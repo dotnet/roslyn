@@ -94,7 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #if DEBUG
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
 #endif
-                return result;
+                // Avoid returning the default instance when caller passes 'force: true'.
+                if (!force || result != s_noUncommonProperties)
+                {
+                    return result;
+                }
             }
 
             if (force || this.IsUncommon())
@@ -320,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // when a file-local type from source is loaded from metadata, we do a best-effort check to identify it as a file type
             // this is needed to allow EE to bind to file types from metadata, for example.
-            if (GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
+            if (container.IsNamespace && GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
             {
                 _name = originalTypeName;
                 var uncommon = GetUncommonProperties(force: true);
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal override FileIdentifier? AssociatedFileIdentifier =>
-            GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } and var checksum, lazyDisplayFileName: { } displayFileName }
+            GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
                 ? new FileIdentifier { FilePathChecksum = checksum, DisplayFilePath = displayFileName }
                 : null;
 
