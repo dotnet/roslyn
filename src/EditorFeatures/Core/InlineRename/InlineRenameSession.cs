@@ -636,10 +636,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void Cancel()
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (_dismissed)
-            {
-                return;
-            }
 
             // This wait is safe.  We are not passing the async callback to DismissUIAndRollbackEditsAndEndRenameSessionAsync.
             // So everything in that method will happen synchronously.
@@ -652,6 +648,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             bool previewChanges,
             Func<Task> finalCommitAction = null)
         {
+            if (_dismissed)
+            {
+                return;
+            }
+
+            _dismissed = true;
+
             // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
             // state for all the editors the user is interacting with.
             var cancellationToken = CancellationToken.None;
@@ -687,7 +690,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             void DismissUIAndRollbackEdits()
             {
-                _dismissed = true;
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                 _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
 
