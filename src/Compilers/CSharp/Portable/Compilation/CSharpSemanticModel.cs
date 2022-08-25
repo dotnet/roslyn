@@ -3781,12 +3781,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)unaryOperator.MethodOpt == null && unaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = unaryOperator.OperatorKind.Operator();
-                bool isChecked = unaryOperator.OperatorKind.IsChecked();
-                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(
-                    unaryOperator.Operand.Type.StrippedType(),
-                    OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked),
-                    unaryOperator.Type.StrippedType(),
-                    isChecked));
+                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type.StrippedType(),
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: unaryOperator.OperatorKind.IsChecked()),
+                                                                                                 unaryOperator.Type.StrippedType(),
+                                                                                                 unaryOperator.OperatorKind.IsChecked()));
                 resultKind = unaryOperator.ResultKind;
             }
         }
@@ -3807,12 +3805,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
-                bool isChecked = increment.OperatorKind.IsChecked();
-                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(
-                    increment.Operand.Type.StrippedType(),
-                    OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked),
-                    increment.Type.StrippedType(),
-                    isChecked));
+                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
+                                                                                                 increment.Type.StrippedType(),
+                                                                                                 increment.OperatorKind.IsChecked()));
                 resultKind = increment.ResultKind;
             }
         }
@@ -3842,13 +3838,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Comparison of a nullable type with null, return corresponding operator for Object.
                     var objectType = binaryOperator.Type.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
-                    bool isChecked = binaryOperator.OperatorKind.IsChecked();
-                    symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(
-                        objectType,
-                        OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
-                        objectType,
-                        binaryOperator.Type,
-                        isChecked));
+
+                    symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(objectType,
+                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked: binaryOperator.OperatorKind.IsChecked()),
+                                                                                             objectType,
+                                                                                             binaryOperator.Type,
+                                                                                             binaryOperator.OperatorKind.IsChecked()));
                 }
                 else
                 {
