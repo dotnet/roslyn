@@ -1561,17 +1561,14 @@ namespace Microsoft.CodeAnalysis
                         return;
                 }
 
-                // ReadOnlySpan<byte> supports a builtin + operator.
-                if (type.OriginalDefinition.Equals(this.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)?.GetISymbol(), SymbolEqualityComparer.ConsiderEverything) &&
-                    ((INamedTypeSymbol)type).TypeArguments[0].SpecialType == SpecialType.System_Byte)
-                {
+                if (IsLanguageSpecificSupportedBuiltinOperatorType(type))
                     return;
-                }
 
                 throw new ArgumentException($"Unsupported built-in operator type: {type.ToDisplayString()}", paramName);
             }
         }
 
+        protected abstract bool IsLanguageSpecificSupportedBuiltinOperatorType(ITypeSymbol type);
         protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked);
 
         /// <summary>
