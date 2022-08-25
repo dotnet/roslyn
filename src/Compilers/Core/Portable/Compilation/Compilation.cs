@@ -1580,8 +1580,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
         /// cref="MethodKind.BuiltinOperator"/> for a unary operator. Built-in operators are commonly created for
-        /// symbols like <c>bool int.operator==(int v1, int v2)</c> which the language implicitly supports, even if such
-        /// a symbol is not explicitly defined for that type in either source or metadata.
+        /// symbols like <c>bool int.operator-(int value)</c> which the language implicitly supports, even if such a
+        /// symbol is not explicitly defined for that type in either source or metadata.
         /// </summary>
         /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
         /// <param name="returnType">The return type of the unary operator.</param>
