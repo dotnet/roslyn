@@ -16,16 +16,20 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToRecord), Shared]
-    internal class ConvertToRecordCodeFixProvider : CodeFixProvider
+    internal class CSharpConvertToRecordCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertToRecordCodeFixProvider()
+        public CSharpConvertToRecordCodeFixProvider()
         {
         }
 
-        // CS8865: Only records may inherit from records.
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8865");
+        /// <summary>
+        /// Only records may inherit from records.
+        /// </summary>
+        private const string CS8865 = nameof(CS8865);
+
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8865);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

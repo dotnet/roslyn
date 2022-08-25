@@ -12,7 +12,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord
 {
-    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertToRecordRefactoringProvider>;
+    using VerifyCSCodeFix = CSharpCodeFixVerifier<Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer, CSharpConvertToRecordCodeFixProvider>;
+    using VerifyCSRefactoring = CSharpCodeRefactoringVerifier<CSharpConvertToRecordRefactoringProvider>;
 
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRecord)]
@@ -328,6 +329,7 @@ namespace N
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -353,6 +355,7 @@ namespace N
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -390,6 +393,7 @@ namespace N
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -422,6 +426,7 @@ namespace N
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3907,9 +3912,25 @@ namespace N
 
         #endregion
 
-        private class Test : VerifyCS.Test
+        private class RefactoringTest : VerifyCSRefactoring.Test
         {
-            public Test() { }
+            public RefactoringTest()
+            {
+                LanguageVersion = LanguageVersion.CSharp10;
+                SolutionTransforms.Add((solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+
+                    var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
+                    // enable nullable
+                    compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+                    solution = solution
+                        .WithProjectCompilationOptions(projectId, compilationOptions)
+                        .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
+
+                    return solution;
+                });
+            }
 
             protected override Workspace CreateWorkspaceImpl()
             {
@@ -3923,29 +3944,46 @@ namespace N
             string initialMarkup,
             string changedMarkup)
         {
-            var test = new Test()
+            var test = new RefactoringTest()
             {
                 TestCode = initialMarkup,
                 FixedCode = changedMarkup,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             };
-            test.SolutionTransforms.Add((solution, projectId) =>
-            {
-                var project = solution.GetProject(projectId)!;
-
-                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-                // enable nullable
-                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-                solution = solution
-                    .WithProjectCompilationOptions(projectId, compilationOptions)
-                    .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
-
-                return solution;
-            });
             await test.RunAsync().ConfigureAwait(false);
         }
 
         private static Task TestNoRefactoringAsync(
             string initialMarkup) => TestRefactoringAsync(initialMarkup, initialMarkup);
+
+        private class CodeFixTest : VerifyCSCodeFix.Test
+        {
+            public CodeFixTest()
+            {
+                LanguageVersion = LanguageVersion.CSharp10;
+                SolutionTransforms.Add((solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+
+                    var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
+                    // enable nullable
+                    compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+                    solution = solution
+                        .WithProjectCompilationOptions(projectId, compilationOptions)
+                        .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
+
+                    return solution;
+                });
+            }
+        }
+
+        private static async Task TestCodeFixAsync(string initialMarkup, string fixedMarkup)
+        {
+            var test = new RefactoringTest()
+            {
+                TestCode = initialMarkup,
+                FixedCode = fixedMarkup,
+            };
+            await test.RunAsync().ConfigureAwait(false);
+        }
     }
 }
