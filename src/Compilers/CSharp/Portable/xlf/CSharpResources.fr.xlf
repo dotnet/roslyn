@@ -978,8 +978,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
-        <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
-        <target state="translated">La méthode d'initialiseur de module '{0}' doit être statique, ne doit avoir aucun paramètre et doit retourner 'void'</target>
+        <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
+        <target state="needs-review-translation">La méthode d'initialiseur de module '{0}' doit être statique, ne doit avoir aucun paramètre et doit retourner 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
