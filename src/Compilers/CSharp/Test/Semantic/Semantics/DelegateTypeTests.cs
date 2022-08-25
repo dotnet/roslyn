@@ -9303,7 +9303,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }

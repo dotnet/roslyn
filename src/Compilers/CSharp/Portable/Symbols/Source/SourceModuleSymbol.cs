@@ -539,9 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyRequiresRefSafetyRulesAttribute == ThreeState.Unknown)
             {
-                bool value = UseUpdatedEscapeRules &&
-                    !_assemblySymbol.DeclaringCompilation.Options.OutputKind.IsApplication() && // No need to emit attribute for .exe
-                    namespaceIncludesRefs(GlobalNamespace);
+                bool value = UseUpdatedEscapeRules && namespaceIncludesRefs(GlobalNamespace);
                 _lazyRequiresRefSafetyRulesAttribute = value.ToThreeState();
             }
             return _lazyRequiresRefSafetyRulesAttribute.Value();
