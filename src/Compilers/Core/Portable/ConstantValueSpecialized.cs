@@ -221,8 +221,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return formatLength < RopeValue.Length ?
-                    string.Format(@"""{0}...""", RopeValue.ToString(Math.Max(formatLength - 3, 0))) :
-                    string.Format(@"""{0}""", RopeValue);
+                    @$"""{RopeValue.ToString(Math.Max(formatLength - 3, 0))}...""" :
+                    @$"""{RopeValue}""";
             }
         }
 

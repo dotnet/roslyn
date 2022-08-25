@@ -17,7 +17,6 @@ using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
-using Castle.Core.Internal;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     return i < _originalFormatSpecifiers.Length ?
-                        string.Format(_originalFormatSpecifiers[i], o) :
+                        string.Format(EnsureEnglishUICulture.PreferredOrNull, _originalFormatSpecifiers[i], o) :
                         string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
                 });
             }
@@ -480,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     builder.Add(
-                        fmtSpecifier.IsNullOrEmpty() ?
+                        string.IsNullOrEmpty(fmtSpecifier) ?
                             $"{{{posSpecifier}}}" :
                             $@"{{{posSpecifier}{fmtSpecifier}}}");
                 }
