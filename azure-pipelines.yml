@@ -53,6 +53,7 @@ stages:
 
 - stage: Unix_Build
   dependsOn: []
+  jobs:
   - template: eng/pipelines/build-unix-job.yml
     parameters:
       jobName: Build_Unix_Debug
@@ -62,11 +63,13 @@ stages:
 
 - stage: Source_Build
   dependsOn: []
+  jobs:
   - template: eng/common/templates/jobs/source-build.yml
 
 - stage: Test_Desktop
   dependsOn: Windows_Build
   # Test Windows Desktop
+  jobs:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
       parameters:
@@ -117,6 +120,7 @@ stages:
 - stage: Test_Windows_CoreClr
   dependsOn: Windows_Build
   # Test Windows CoreCLR
+  jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreClr Debug'
@@ -167,6 +171,7 @@ stages:
 
 - stage: Test_Linux_CoreClr
   dependsOn: Unix_Build
+  jobs:
   - template: eng/pipelines/test-unix-job.yml
     parameters:
       testRunName: 'Test Linux Debug'
@@ -199,6 +204,7 @@ stages:
 - stage: Correctness
   dependsOn: []
   # Build Correctness Jobs
+  jobs:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
       jobName: Determine_Changes
