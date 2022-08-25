@@ -13,9 +13,7 @@ namespace Roslyn.Utilities
     internal class EventMap
     {
         private readonly NonReentrantLock _guard = new();
-
-        private readonly Dictionary<string, object> _eventNameToRegistries =
-            new();
+        private readonly Dictionary<string, object> _eventNameToRegistries = new();
 
         public EventMap()
         {
@@ -147,15 +145,12 @@ namespace Roslyn.Utilities
         internal struct EventHandlerSet<TEventHandler>
             where TEventHandler : class
         {
-            private ImmutableArray<Registry<TEventHandler>> _registries;
+            private readonly ImmutableArray<Registry<TEventHandler>> _registries;
 
             internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
                 => _registries = registries;
 
-            public bool HasHandlers
-            {
-                get { return _registries != null && _registries.Length > 0; }
-            }
+            public bool HasHandlers => _registries != null && _registries.Length > 0;
 
             public void RaiseEvent<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
             {
