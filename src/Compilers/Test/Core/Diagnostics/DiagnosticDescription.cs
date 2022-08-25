@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return hashCode;
         }
 
-        private void AppendArgumentString(StringBuilder sb, string argumentString)
+        private static void AppendArgumentString(StringBuilder sb, string argumentString)
         {
             var beginQuote = "\"";
             var endQuote = "\"";

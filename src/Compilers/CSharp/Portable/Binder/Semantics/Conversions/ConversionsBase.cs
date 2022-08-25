@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (anonymousFunction.HasExplicitlyTypedParameterList)
                 {
-                    var lambdaSymbol = anonymousFunction.TemporaryLambdaSymbol;
+                    var lambdaSymbol = anonymousFunction.LambdaForParameterDefaultValues;
 
                     Debug.Assert(lambdaSymbol is not null);
 

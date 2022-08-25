@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda SuppressIfNeeded(BoundLambda lambda)
             => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
 
-        public LambdaSymbol? TemporaryLambdaSymbol => Data.LazyInProgressLambdaSymbol;
+        public LambdaSymbol? LambdaForParameterDefaultValues => Data.LambdaForParameterDefaultValues;
 
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
@@ -835,42 +835,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind,
                 returnType);
 
-        private LambdaSymbol? _lazyLambdaSymbol = null;
+        private LambdaSymbol? _lambdaForParameterDefaultValues = null;
 
-        internal LambdaSymbol? LazyInProgressLambdaSymbol
+
+        // On certain code paths(such as target type conversion), we need to instantiate a temporary lambda symbol
+        // for binding default parameter values, and this may cause diagnostics to be produced if there is an error
+        // related to a default value. We then need those diagnostics to persist, so we have to store our temporary
+        // lambda symbol on the unbound lambda itself so that we can access the diagnostics later and copy them over.
+        // This also allows us to prevent some level of rebinding of the default parameters, at least for the purposes
+        // of checking for target-type compatibility.
+        internal LambdaSymbol? LambdaForParameterDefaultValues
         {
             get
             {
-                if (_lazyLambdaSymbol is null)
+                if (_lambdaForParameterDefaultValues is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyLambdaSymbol, CreateTemporaryLambdaSymbol(), null);
+                    Interlocked.CompareExchange(ref _lambdaForParameterDefaultValues, createLambda(), null);
                 }
 
-                return _lazyLambdaSymbol;
+                return _lambdaForParameterDefaultValues;
+
+                LambdaSymbol? createLambda()
+                {
+                    Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
+                    if (!HasExplicitlyTypedParameterList)
+                    {
+                        return null;
+                    }
+
+                    var (parameterRefKinds, _, parameterTypes) = CollectParameterProperties();
+                    var lambdaSymbol = new LambdaSymbol(
+                        Binder,
+                        Binder.Compilation,
+                        Binder.ContainingMemberOrLambda,
+                        _unboundLambda,
+                        parameterTypes,
+                        parameterRefKinds,
+                        refKind: default,
+                        returnType: default);
+
+                    return lambdaSymbol;
+                }
             }
-        }
-
-        internal LambdaSymbol? CreateTemporaryLambdaSymbol()
-        {
-            Debug.Assert(Binder.ContainingMemberOrLambda is { });
-
-            if (!HasExplicitlyTypedParameterList)
-            {
-                return null;
-            }
-
-            var (parameterRefKinds, _, parameterTypes) = CollectParameterProperties();
-            var lambdaSymbol = new LambdaSymbol(
-                Binder,
-                Binder.Compilation,
-                Binder.ContainingMemberOrLambda,
-                _unboundLambda,
-                parameterTypes,
-                parameterRefKinds,
-                refKind: default,
-                returnType: default);
-
-            return lambdaSymbol;
         }
 
         internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol)
