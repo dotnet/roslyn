@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SourceText sourceText,
             Document document,
             CompletionService completionService,
-            in CompletionOptions options)
+            CompletionOptions options)
         {
             // The trigger reason guarantees that user wants a completion.
             if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Otherwise, tab should not be a completion trigger.
             if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\t')
             {
-                return TryInvokeSnippetCompletion(completionService, document, sourceText, triggerLocation.Position, options);
+                return TryInvokeSnippetCompletion(triggerLocation.Snapshot.TextBuffer, triggerLocation.Position, sourceText, document.Project.Services, completionService.GetRules(options));
             }
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
@@ -184,16 +185,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private bool TryInvokeSnippetCompletion(
-            CompletionService completionService, Document document, SourceText text, int caretPoint, in CompletionOptions options)
+            ITextBuffer buffer, int caretPoint, SourceText text, LanguageServices services, CompletionRules rules)
         {
-            var rules = completionService.GetRules(options);
             // Do not invoke snippet if the corresponding rule is not set in options.
             if (rules.SnippetsRule != SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
             {
                 return false;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetService<ISyntaxFactsService>();
             // Snippets are included if the user types: <quesiton><tab>
             // If at least one condition for snippets do not hold, bail out.
             if (syntaxFacts == null ||
@@ -206,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Because <question><tab> is actually a command to bring up snippets,
             // we delete the last <question> that was typed.
-            var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 2, caretPoint), string.Empty);
-            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChange, CancellationToken.None);
+            buffer.ApplyChange(new TextChange(TextSpan.FromBounds(caretPoint - 2, caretPoint), string.Empty));
 
             _snippetCompletionTriggeredIndirectly = true;
             return true;
