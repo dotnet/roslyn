@@ -259,7 +259,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 ITypeSymbolInternal? stateMachineType = TryGetStateMachineType(previousHandle);
                 if (stateMachineType != null)
                 {
-                    // method is async/iterator kickoff method
+                    // Method is async/iterator kickoff method.
+
+                    // Use local slots stored in CDI (encLocalSlotMap) to calculate map of local variables hoisted to fields of the state machine.
                     var localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
                     GetStateMachineFieldMapFromMetadata(stateMachineType, localSlotDebugInfo, out hoistedLocalMap, out awaiterMap, out awaiterSlotCount);
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
@@ -296,6 +298,8 @@ namespace Microsoft.CodeAnalysis.Emit
                             return null;
                         }
                     }
+
+                    // Calculate local slot mapping for the current method (might be the MoveNext method of a state machine).
 
                     try
                     {
