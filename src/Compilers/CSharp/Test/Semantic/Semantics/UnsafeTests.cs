@@ -5792,7 +5792,7 @@ unsafe class C
                     Assert.Equal(MethodKind.BuiltinOperator, summaryMethod.MethodKind);
 
                     var synthesizedMethod = compilation.CreateBuiltinOperator(
-                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type, summaryMethod.IsCheckedBuiltin);
+                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type);
                     Assert.Equal(synthesizedMethod, summaryMethod);
                 }
 
@@ -6254,7 +6254,7 @@ unsafe class C
                     Assert.Equal(MethodKind.BuiltinOperator, summaryMethod.MethodKind);
 
                     var synthesizedMethod = compilation.CreateBuiltinOperator(
-                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type, summaryMethod.IsCheckedBuiltin);
+                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type);
                     Assert.Equal(synthesizedMethod, summaryMethod);
                 }
 

@@ -1212,7 +1212,7 @@ End Class
             Assert.True(symbol1.IsImplicitlyDeclared)
 
             Dim synthesizedMethod = compilation.CreateBuiltinOperator(
-                symbol1.Name, symbol1.ReturnType, symbol1.Parameters(0).Type, symbol1.Parameters(1).Type, symbol1.IsCheckedBuiltin)
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters(0).Type, symbol1.Parameters(1).Type)
             Assert.Equal(synthesizedMethod, symbol1)
 
             Assert.Equal((op = BinaryOperatorKind.Multiply OrElse

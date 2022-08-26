@@ -759,7 +759,7 @@ End Class
             Assert.True(symbol1.IsImplicitlyDeclared)
 
             Dim synthesizedMethod = compilation.CreateBuiltinOperator(
-                symbol1.Name, symbol1.ReturnType, symbol1.Parameters(0).Type, symbol1.IsCheckedBuiltin)
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters(0).Type)
             Assert.Equal(synthesizedMethod, symbol1)
 
             Assert.Equal(op = UnaryOperatorKind.Minus AndAlso symbol1.ContainingType.IsIntegralType(),

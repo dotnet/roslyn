@@ -3855,7 +3855,7 @@ class C
                 Assert.Equal(MethodKind.BuiltinOperator, method.MethodKind);
 
                 var synthesizedMethod = comp.CreateBuiltinOperator(
-                    method.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type, method.IsCheckedBuiltin);
+                    method.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
                 Assert.Equal(synthesizedMethod, method);
             }
         }
