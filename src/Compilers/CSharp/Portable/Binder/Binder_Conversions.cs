@@ -1322,6 +1322,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
+        private static void CheckForDefaultParameterMismatch(SyntaxNode methodGroupSyntax, MethodSymbol sourceMethod, TypeSymbol targetType, MethodSymbol targetDelegateInvoke, BindingDiagnosticBag diagnostics)
+        {
+            for (int i = 0; i < sourceMethod.ParameterCount; i++)
+            {
+                if (sourceMethod.Parameters[i].HasExplicitDefaultValue &&
+                    sourceMethod.Parameters[i].ExplicitDefaultConstantValue != targetDelegateInvoke.Parameters[i].ExplicitDefaultConstantValue)
+                {
+                    Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, methodGroupSyntax.GetLocation(), i + 1, targetType.Name);
+                }
+            }
+        }
+
         /// <summary>
         /// This method combines final validation (section 7.6.5.1) and delegate compatibility (section 15.2).
         /// </summary>
@@ -1374,6 +1386,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
                 return true;
+            }
+
+            if (delegateOrFuncPtrType.IsDelegateType())
+            {
+                var invokeMethod = delegateOrFuncPtrType.DelegateInvokeMethod()!;
+                CheckForDefaultParameterMismatch(syntax, selectedMethod, delegateOrFuncPtrType, invokeMethod, diagnostics);
             }
 
             CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);

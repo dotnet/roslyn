@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol);
-
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
             resolution.Free();
             return conversion;
         }
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature.ParameterCount);
             resolution.Free();
             return conversion;
         }
@@ -206,11 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method);
                             hasErrors = true;
                         }
-
-                        if (reportDefaultParameterErrors(expr, method, invokeMethodOpt, diagnostics))
-                        {
-                            hasErrors = true;
-                        }
                     }
                     else if (!hasErrors &&
                             !resolution.IsEmpty &&
@@ -234,33 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resolution.Free();
             return hasErrors;
-
-            bool reportDefaultParameterErrors(BoundMethodGroup methodGroup, MethodSymbol sourceMethod, MethodSymbol targetMethod, BindingDiagnosticBag diagnostics)
-            {
-                Debug.Assert(sourceMethod.ParameterCount == targetMethod.ParameterCount);
-                bool producedWarning = false;
-                for (int i = 0; i < sourceMethod.ParameterCount; i++)
-                {
-                    var sourceParam = sourceMethod.Parameters[i];
-                    var targetParam = targetMethod.Parameters[i];
-                    if (sourceParam.HasExplicitDefaultValue)
-                    {
-                        if (!targetParam.HasExplicitDefaultValue)
-                        {
-                            diagnostics.Add(ErrorCode.WRN_OptionalRequiredParamMismatch, methodGroup.Syntax.GetLocation(), i + 1, targetType);
-                            producedWarning = true;
-
-                        }
-                        else if (sourceParam.ExplicitDefaultConstantValue != targetParam.ExplicitDefaultConstantValue)
-                        {
-                            diagnostics.Add(ErrorCode.WRN_OptionalParamValueMismatch, methodGroup.Syntax.GetLocation(), i + 1, targetType);
-                            producedWarning = true;
-                        }
-                    }
-                }
-
-                return producedWarning;
-            }
         }
 
         public Conversion MethodGroupConversion(SyntaxNode syntax, MethodGroup methodGroup, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -282,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isMethodGroupConversion: true,
                 returnRefKind: delegateInvokeMethod.RefKind,
                 returnType: delegateInvokeMethod.ReturnType);
-            var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod);
+            var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod.ParameterCount);
 
             analyzedArguments.Free();
             result.Free();
@@ -312,21 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.RefKinds.Add(parameter.RefKind);
             }
         }
-        private static bool HasDefaultParameterMismatch(MethodSymbol sourceMethod, MethodSymbol targetDelegate)
-        {
-            for (int i = 0; i < sourceMethod.ParameterCount; i++)
-            {
-                if (sourceMethod.Parameters[i].HasExplicitDefaultValue &&
-                    sourceMethod.Parameters[i].ExplicitDefaultConstantValue != targetDelegate.Parameters[i].ExplicitDefaultConstantValue)
-                {
-                    return true;
-                }
-            }
 
-            return false;
-        }
-
-        private static Conversion ToConversion(OverloadResolutionResult<MethodSymbol> result, MethodGroup methodGroup, MethodSymbol target)
+        private static Conversion ToConversion(OverloadResolutionResult<MethodSymbol> result, MethodGroup methodGroup, int parameterCount)
         {
             // 6.6 An implicit conversion (6.1) exists from a method group (7.1) to a compatible
             // delegate type. Given a delegate type D and an expression E that is classified as
@@ -378,11 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
+            Debug.Assert(method.ParameterCount == parameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
 
-            Debug.Assert(method.ParameterCount == target.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
-
-            var hasWarning = HasDefaultParameterMismatch(method, target);
-            return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup, hasWarning: hasWarning);
+            return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }
 
         public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

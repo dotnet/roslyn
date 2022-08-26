@@ -12604,9 +12604,9 @@ class Program
 """;
             // PROTOTYPE: want to raise an warning here about invalid target-type conversion
             CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics(
-                // (14,15): warning CS9068: Parameter 1 has default value which does not match corresponding parameter in delegate type 'Program.D'.
+                // (14,15): warning CS9068: Parameter 1 has default value which does not match corresponding parameter in delegate type 'D'.
                 //         D d = M;
-                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "Program.D").WithLocation(14, 15));
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "D").WithLocation(14, 15));
         }
 
         [Fact]
@@ -12632,9 +12632,9 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput: "my string").VerifyDiagnostics(
-                // (14,15): warning CS9069: Parameter 1 is optional in lambda or method group but the corresponding parameter in delegate type 'Program.D' is required.
+                // (14,15): warning CS9068: Parameter 1 has default value which does not match corresponding parameter in delegate type 'D'.
                 //         D d = M;
-                Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "M").WithArguments("1", "Program.D").WithLocation(14, 15));
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "D").WithLocation(14, 15));
         }
 
         [Fact]
