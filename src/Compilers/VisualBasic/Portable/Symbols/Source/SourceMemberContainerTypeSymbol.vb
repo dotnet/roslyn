@@ -32,13 +32,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             [Public] = CUShort(Accessibility.Public)
             AccessibilityMask = &H7
 
-            [Class] = CUShort(TypeKind.Class) << TypeKindShift
-            [Structure] = CUShort(TypeKind.Structure) << TypeKindShift
-            [Interface] = CUShort(TypeKind.Interface) << TypeKindShift
-            [Enum] = CUShort(TypeKind.Enum) << TypeKindShift
-            [Delegate] = CUShort(TypeKind.Delegate) << TypeKindShift
-            [Module] = CUShort(TypeKind.Module) << TypeKindShift
-            Submission = CUShort(TypeKind.Submission) << TypeKindShift
+            [Class] = CUShort(TYPEKIND.Class) << TypeKindShift
+            [Structure] = CUShort(TYPEKIND.Structure) << TypeKindShift
+            [Interface] = CUShort(TYPEKIND.Interface) << TypeKindShift
+            [Enum] = CUShort(TYPEKIND.Enum) << TypeKindShift
+            [Delegate] = CUShort(TYPEKIND.Delegate) << TypeKindShift
+            [Module] = CUShort(TYPEKIND.Module) << TypeKindShift
+            Submission = CUShort(TYPEKIND.Submission) << TypeKindShift
             TypeKindMask = &HF0
             TypeKindShift = 4
 
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' In case Vb Core Runtime is being embedded, we should mark attribute 
                     ' 'Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute'
                     ' as being referenced if the named type just created is a module
-                    If type.TypeKind = TypeKind.Module Then
+                    If type.TypeKind = TYPEKIND.Module Then
                         type.DeclaringCompilation.EmbeddedSymbolManager.RegisterModuleDeclaration()
                     End If
 
@@ -1265,9 +1265,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind As TypeKind
+        Public Overrides ReadOnly Property TypeKind As TYPEKIND
             Get
-                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
+                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TYPEKIND)
             End Get
         End Property
 
@@ -2663,7 +2663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If propertySymbol.IsAutoProperty AndAlso
                         propertySymbol.ContainingType.TypeKind = TypeKind.Structure Then
 
-                        Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
+                        binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
                     End If
 
                     AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
@@ -3489,7 +3489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinition) ' Don't do this on constructed types
 
             ' Enums and Delegates have nothing to do.
-            Dim myTypeKind As TypeKind = Me.TypeKind
+            Dim myTypeKind As TYPEKIND = Me.TypeKind
             Dim operatorsKnownToHavePair As HashSet(Of MethodSymbol) = Nothing
 
             If myTypeKind = TypeKind.Class OrElse myTypeKind = TypeKind.Interface OrElse myTypeKind = TypeKind.Structure OrElse myTypeKind = TypeKind.Module Then
