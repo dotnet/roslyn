@@ -751,7 +751,7 @@ End Class
 
             Assert.Equal(String.Format("Function {0}.{1}(value As {0}) As {2}",
                                        containerName,
-                                       OverloadResolution.TryGetOperatorName(op),
+                                       OverloadResolution.TryGetOperatorName(op, symbol1.IsCheckedBuiltin),
                                        returnName),
                          symbol1.ToTestDisplayString())
 

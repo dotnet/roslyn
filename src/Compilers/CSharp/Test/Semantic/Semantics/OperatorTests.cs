@@ -7640,10 +7640,6 @@ public class RubyTime
                                      symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType() ||
                                      symbol1.ContainingType.SpecialType == SpecialType.System_Char);
                     break;
-
-                default:
-                    expectChecked = type.IsDynamic();
-                    break;
             }
 
             Assert.Equal(expectChecked, symbol1.IsCheckedBuiltin);
@@ -8404,7 +8400,7 @@ class Module1
                 symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type, symbol1.Parameters[1].Type, symbol1.IsCheckedBuiltin);
             Assert.Equal(synthesizedMethod, symbol1);
 
-            bool isChecked;
+            bool isChecked = false;
 
             switch (op)
             {
@@ -8413,10 +8409,6 @@ class Module1
                 case BinaryOperatorKind.Subtraction:
                 case BinaryOperatorKind.Division:
                     isChecked = isDynamic || symbol1.ContainingSymbol.Kind == SymbolKind.PointerType || symbol1.ContainingType.EnumUnderlyingTypeOrSelf().SpecialType.IsIntegralType();
-                    break;
-
-                default:
-                    isChecked = isDynamic;
                     break;
             }
 
@@ -8644,6 +8636,56 @@ class Module1
             var nodes = (from node in tree.GetRoot().DescendantNodes()
                          select node as BinaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
+
+            Assert.Equal(2, nodes.Length);
+
+            var symbols1 = (from node1 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            foreach (var symbol1 in symbols1)
+            {
+                Assert.False(symbol1.IsCheckedBuiltin);
+                Assert.True(((ITypeSymbol)symbol1.ContainingSymbol).IsDynamic());
+                Assert.Null(symbol1.ContainingType);
+            }
+
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
+            semanticModel = compilation.GetSemanticModel(tree);
+
+            var symbols2 = (from node2 in nodes select (IMethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            foreach (var symbol2 in symbols2)
+            {
+                Assert.False(symbol2.IsCheckedBuiltin);
+                Assert.True(((ITypeSymbol)symbol2.ContainingSymbol).IsDynamic());
+                Assert.Null(symbol2.ContainingType);
+            }
+
+            for (int i = 0; i < symbols1.Length; i++)
+            {
+                Assert.Equal(symbols1[i], symbols2[i]);
+            }
+        }
+
+        [Fact]
+        public void DynamicBinaryIntrinsicSymbols2()
+        {
+            var source =
+@"
+class Module1
+{
+    void Test(dynamic x)
+    {
+        var z1 = x + 0;
+        var z2 = 0 + x;
+    }
+}";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         select node as BinaryExpressionSyntax).
+                         Where(node => node is not null).ToArray();
 
             Assert.Equal(2, nodes.Length);
 
