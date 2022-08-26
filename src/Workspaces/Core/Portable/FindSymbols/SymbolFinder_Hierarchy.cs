@@ -100,18 +100,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             try
             {
-                // Member can only implement interface members if it is an explicit member, or if it is
-                // public
-                if (symbol != null)
+                // Member can only implement interface members if it is an explicit member, or if it is public
+                if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
                 {
                     var explicitImplementations = symbol.ExplicitInterfaceImplementations();
                     if (explicitImplementations.Length > 0)
-                    {
                         return explicitImplementations;
-                    }
-                    else if (
-                        symbol.DeclaredAccessibility == Accessibility.Public &&
-                        (symbol.ContainingType.TypeKind == TypeKind.Class || symbol.ContainingType.TypeKind == TypeKind.Struct))
+
+                    if (symbol.DeclaredAccessibility == Accessibility.Public &&
+                        symbol.ContainingType.TypeKind is TypeKind.Class or TypeKind.Struct)
                     {
                         // Interface implementation is a tricky thing.  A method may implement an interface
                         // method, even if its containing type doesn't state that it implements the
