@@ -436,10 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
             if (licenseManager != null)
             {
-
-                string? consumerNamespace = inputCompilation.AssemblyName ?? "";
-
-                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Essentials, consumerNamespace))
+                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaCompiler))
                 {
                     diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                         (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
@@ -450,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (shouldDebugTransformedCode)
                 {
-                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaDebugTransformedCode, consumerNamespace))
+                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaDebugTransformedCode))
                     {
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                             (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
