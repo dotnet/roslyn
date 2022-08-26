@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
 
-        public override bool IsCheckedBuiltin { get; }
-
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType)
         {
             if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
@@ -45,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
                                                       new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right"));
-            IsCheckedBuiltin = SyntaxFacts.IsCheckedOperator(name);
         }
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType)
@@ -54,8 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
             _returnType = returnType;
             _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, container, 0, "value"));
-            IsCheckedBuiltin = SyntaxFacts.IsCheckedOperator(name);
         }
+
+        public override bool IsCheckedBuiltin => SyntaxFacts.IsCheckedOperator(this.Name);
 
         public override string Name
         {
@@ -434,8 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (IsCheckedBuiltin == other.IsCheckedBuiltin &&
-                _parameters.Length == other._parameters.Length &&
+            if (_parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
                 TypeSymbol.Equals(_containingType, other._containingType, compareKind) &&
                 TypeSymbol.Equals(_returnType, other._returnType, compareKind))
