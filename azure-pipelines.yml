@@ -91,7 +91,7 @@ stages:
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
   jobs:
-    - template: eng/pipelines/test-windows-job.yml
+  - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows Desktop Release 32'
       jobName: Test_Windows_Desktop_Release_32
