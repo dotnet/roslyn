@@ -801,18 +801,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return true;
             }
 
-            // Corlib ver: 7.0 or greater.
-            string corlibName = ContainingAssembly.CorLibrary.Name;
-            var assemblyHandle = _module.GetAssemblyRef(corlibName);
-            if (!assemblyHandle.IsNil)
+            // System.Runtime { ver: 7.0 }
+            if (IsOrReferencesSystemRuntimeCorLibrary(_module, out var corlibVersion) && corlibVersion is { Major: 7, Minor: 0 })
             {
-                var assemblyVersion = _module.GetAssemblyRef(assemblyHandle).Version;
-                if (assemblyVersion.Major >= 7)
-                {
-                    return true;
-                }
+                return true;
             }
 
+            return false;
+        }
+
+        private static bool IsOrReferencesSystemRuntimeCorLibrary(PEModule module, out Version? version)
+        {
+            const string corlibName = "System.Runtime";
+
+            AssemblyIdentity? identity;
+            try
+            {
+                identity = module.ReadAssemblyIdentityOrThrow();
+            }
+            catch (Exception)
+            {
+                identity = null;
+            }
+            if (identity?.Name == corlibName)
+            {
+                version = identity.Version;
+                return true;
+            }
+
+            var assemblyHandle = module.GetAssemblyRef(corlibName);
+            if (!assemblyHandle.IsNil)
+            {
+                version = module.GetAssemblyRef(assemblyHandle).Version;
+                return true;
+            }
+
+            version = null;
             return false;
         }
     }

@@ -16227,7 +16227,7 @@ class B2 : I<object>
     public struct Boolean { }
     public struct Int32 { }
 }";
-            var assemblyIdentity = new AssemblyIdentity(GetUniqueName(), new System.Version(majorVersion, 0, 0, 0));
+            var assemblyIdentity = new AssemblyIdentity("System.Runtime", new System.Version(majorVersion, 0, 0, 0));
             var comp = CreateCompilation(assemblyIdentity, new[] { source0 }, references: null);
             var ref0 = comp.EmitToImageReference(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
 
@@ -16252,14 +16252,18 @@ class B2 : I<object>
             Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
             Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
 
-            bool useUpdatedEscapeRules = majorVersion >= 7;
+            bool useUpdatedEscapeRules = majorVersion == 7;
+            Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+
+            module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
             Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(LanguageVersion languageVersion)
+        [CombinatorialData]
+        public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            [CombinatorialValues(7, 8)] int higherVersion)
         {
             var source0 =
 @"namespace System
@@ -16271,36 +16275,106 @@ class B2 : I<object>
     public struct Boolean { }
     public struct Int32 { }
 }";
-            var assemblyName = GetUniqueName();
-            var assemblyIdentity6_0 = new AssemblyIdentity(assemblyName, new System.Version(6, 0, 0, 0));
-            var comp = CreateCompilation(assemblyIdentity6_0, new[] { source0 }, references: null);
-            var ref6_0 = comp.EmitToImageReference();
+            var assemblyIdentityLowerVersion = new AssemblyIdentity("System.Runtime", new System.Version(6, 0, 0, 0));
+            var comp = CreateCompilation(assemblyIdentityLowerVersion, new[] { source0 }, references: null);
+            var refLowerVersion = comp.EmitToImageReference();
 
-            var assemblyIdentity7_0 = new AssemblyIdentity(assemblyName, new System.Version(7, 0, 0, 0));
-            comp = CreateCompilation(assemblyIdentity7_0, new[] { source0 }, references: null);
-            var ref7_0 = comp.EmitToImageReference();
+            var assemblyIdentityHigherVersion = new AssemblyIdentity("System.Runtime", new System.Version(higherVersion, 0, 0, 0));
+            comp = CreateCompilation(assemblyIdentityHigherVersion, new[] { source0 }, references: null);
+            var refHigherVersion = comp.EmitToImageReference();
 
             var source1 =
 @"public class A<T>
 {
     public static void F() { }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref6_0 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp = CreateEmptyCompilation(source1, references: new[] { refLowerVersion }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
             var ref1 = comp.EmitToImageReference();
+            var module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.False(module.UseUpdatedEscapeRules);
+
+            // With languageVersion == 11, UseUpdatedEscapeRules will be true for the source module,
+            // but since there are no 'out' parameters or 'ref struct' parameters, we won't emit a
+            // [RefSafetyRules], so UseUpdatedEscapeRules will be false when this is a metadata module.
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
+            Assert.False(((SourceModuleSymbol)module).RequiresRefSafetyRulesAttribute());
 
             var source2 =
 @"class B : A<int>
 {
     static void Main() { }
 }";
-            comp = CreateEmptyCompilation(source2, references: new[] { ref7_0, ref1 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp = CreateEmptyCompilation(source2, references: new[] { refHigherVersion, ref1 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
 
-            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
-            Assert.Equal(assemblyIdentity6_0, module.ReferencedAssemblies.Single());
-            Assert.Equal(assemblyIdentity7_0, module.ContainingAssembly.CorLibrary.Identity);
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentityLowerVersion, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentityHigherVersion, module.ContainingAssembly.CorLibrary.Identity);
             Assert.False(module.UseUpdatedEscapeRules);
+
+            module = module.ContainingAssembly.CorLibrary.Modules[0];
+            bool useUpdatedEscapeRules = higherVersion == 7;
+            Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Theory]
+        [InlineData("System.Runtime", 7, 0, true)]
+        [InlineData("System.Runtime", 7, 1, false)]
+        [InlineData("System.Runtime", 8, 0, false)]
+        [InlineData("mscorlib", 7, 0, false)]
+        [InlineData("System.Core", 7, 0, false)]
+        public void DetectUpdatedEscapeRulesFromCorlib_SystemRuntime70Only(string assemblyName, int majorVersion, int minorVersion, bool expectedUseUpdatedEscapeRules)
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyIdentity = new AssemblyIdentity(assemblyName, new System.Version(majorVersion, minorVersion, 0, 0));
+            var comp = CreateCompilation(assemblyIdentity, new[] { source0 }, references: null);
+            var ref0 = comp.EmitToImageReference(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
+
+            var source1 =
+@"public class A<T>
+{
+    public static void F() { }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 });
+            comp.VerifyEmitDiagnostics();
+            var ref1 = comp.EmitToImageReference();
+            var module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+
+            // With languageVersion == 11, UseUpdatedEscapeRules will be true for the source module,
+            // but since there are no 'out' parameters or 'ref struct' parameters, we won't emit a
+            // [RefSafetyRules], so UseUpdatedEscapeRules will be false when this is a metadata module.
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.True(module.UseUpdatedEscapeRules);
+            Assert.False(((SourceModuleSymbol)module).RequiresRefSafetyRulesAttribute());
+
+            var source2 =
+@"class B : A<int>
+{
+    static void Main() { }
+}";
+            comp = CreateEmptyCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
+
+            Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+
+            module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
         }
     }
 }
