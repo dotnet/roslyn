@@ -3832,8 +3832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             ITypeSymbol returnType,
             ITypeSymbol leftType,
-            ITypeSymbol rightType,
-            bool isChecked)
+            ITypeSymbol rightType)
         {
             var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
             var csharpLeftType = leftType.EnsureCSharpSymbolOrNull(nameof(leftType));
@@ -3848,18 +3847,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntaxKind == SyntaxKind.None)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
-            var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, isChecked);
+            var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (binaryOperatorName != name)
-                throw new ArgumentException($"'{name}' was not a valid binary operator name along with isChecked={isChecked}", nameof(name));
+                throw new ArgumentException($"'{name}' was not a valid binary operator name", nameof(name));
 
-            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
+            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
             string name,
             ITypeSymbol returnType,
-            ITypeSymbol valueType,
-            bool isChecked)
+            ITypeSymbol valueType)
         {
             var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
             var csharpValueType = valueType.EnsureCSharpSymbolOrNull(nameof(valueType));
@@ -3872,11 +3870,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntaxKind == SyntaxKind.None)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
-            var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, isChecked);
+            var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (unaryOperatorName != name)
-                throw new ArgumentException($"'{name}' was not a valid unary operator name along with isChecked={isChecked}", nameof(name));
+                throw new ArgumentException($"'{name}' was not a valid unary operator name", nameof(name));
 
-            return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType, isChecked).GetPublicSymbol();
+            return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType).GetPublicSymbol();
         }
 
         protected override ITypeSymbol CommonDynamicType

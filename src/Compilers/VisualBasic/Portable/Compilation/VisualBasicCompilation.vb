@@ -2917,8 +2917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 name As String,
                 returnType As ITypeSymbol,
                 leftType As ITypeSymbol,
-                rightType As ITypeSymbol,
-                isChecked As Boolean) As IMethodSymbol
+                rightType As ITypeSymbol) As IMethodSymbol
 
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
@@ -2929,15 +2928,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
             End If
 
-            Return New SynthesizedIntrinsicOperatorSymbol(
-                vbLeftType, name, vbRightType, vbReturnType, isChecked)
+            Return New SynthesizedIntrinsicOperatorSymbol(vbLeftType, name, vbRightType, vbReturnType)
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(
                 name As String,
                 returnType As ITypeSymbol,
-                valueType As ITypeSymbol,
-                isChecked As Boolean) As IMethodSymbol
+                valueType As ITypeSymbol) As IMethodSymbol
 
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbValueType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(valueType))
@@ -2947,8 +2944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
             End If
 
-            Return New SynthesizedIntrinsicOperatorSymbol(
-                vbValueType, name, vbReturnType, isChecked)
+            Return New SynthesizedIntrinsicOperatorSymbol(vbValueType, name, vbReturnType)
         End Function
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol

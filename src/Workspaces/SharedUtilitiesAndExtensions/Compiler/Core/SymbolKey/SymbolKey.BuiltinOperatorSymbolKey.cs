@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis
             public sealed override void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.Name);
-                visitor.WriteBoolean(symbol.IsCheckedBuiltin);
                 visitor.WriteSymbolKey(symbol.ReturnType);
                 visitor.WriteParameterTypesArray(symbol.Parameters);
             }
@@ -26,7 +25,6 @@ namespace Microsoft.CodeAnalysis
                 SymbolKeyReader reader, IMethodSymbol? contextualSymbol, out string? failureReason)
             {
                 var name = reader.ReadRequiredString();
-                var isChecked = reader.ReadBoolean();
 
                 var returnType = reader.ReadSymbolKey(contextualSymbol?.ReturnType, out var returnTypeFailureReason);
                 using var parameterTypes = reader.ReadSymbolKeyArray<IMethodSymbol, ITypeSymbol>(
@@ -55,11 +53,11 @@ namespace Microsoft.CodeAnalysis
                     {
                         case 1:
                             failureReason = null;
-                            var unaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], isChecked);
+                            var unaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0]);
                             return new SymbolKeyResolution(unaryOperator);
                         case 2:
                             failureReason = null;
-                            var binaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], parameterTypes[1], isChecked);
+                            var binaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], parameterTypes[1]);
                             return new SymbolKeyResolution(binaryOperator);
 
                         default:

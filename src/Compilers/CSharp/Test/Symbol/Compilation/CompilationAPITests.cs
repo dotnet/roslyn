@@ -2747,7 +2747,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
-            var op = compilation.CreateBuiltinOperator(name, intType, intType, intType, SyntaxFacts.IsCheckedOperator(name));
+            var op = compilation.CreateBuiltinOperator(name, intType, intType, intType);
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
         }
@@ -2757,7 +2757,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         {
             var compilation = CreateCompilation("");
             var intType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
-            var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, SyntaxFacts.IsCheckedOperator(WellKnownMemberNames.AdditionOperatorName));
+            var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
             var result = op.ToDisplayString();
             AssertEx.Equal("System.Int32.operator +(System.Int32, System.Int32)", result);
         }
@@ -2771,31 +2771,27 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             // vb binary operator name
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.LikeOperatorName, intType, intType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.LikeOperatorName, intType, intType, intType));
 
             // unary operator name
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType));
 
             // mismatched checked
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: true));
-
-            // mismatched checked
-            Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType));
 
             // nullable type 1
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, nullableIntType, intType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, nullableIntType, intType, intType));
 
             // nullable type 2
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, nullableIntType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, nullableIntType, intType));
 
             // nullable type 3
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, nullableIntType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, nullableIntType));
         }
 
         [Fact]
@@ -2804,11 +2800,11 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
             Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
-                WellKnownMemberNames.AdditionOperatorName, null, intType, intType, isChecked: false));
+                WellKnownMemberNames.AdditionOperatorName, null, intType, intType));
             Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
-                WellKnownMemberNames.AdditionOperatorName, intType, null, intType, isChecked: false));
+                WellKnownMemberNames.AdditionOperatorName, intType, null, intType));
             Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
-                WellKnownMemberNames.AdditionOperatorName, intType, intType, null, isChecked: false));
+                WellKnownMemberNames.AdditionOperatorName, intType, intType, null));
         }
 
         [Fact]
@@ -2832,10 +2828,10 @@ class C
 
             Assert.NotNull(symbol);
 
-            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: false);
-            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: true);
-            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked: false);
-            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType, isChecked: true);
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType);
 
             Assert.Equal(addBuiltIn, symbol);
             Assert.NotEqual(addBuiltInChecked, symbol);
@@ -2867,10 +2863,10 @@ class C
 
             Assert.NotNull(symbol);
 
-            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: false);
-            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: true);
-            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked: false);
-            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType, isChecked: true);
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType);
 
             Assert.NotEqual(addBuiltIn, symbol);
             Assert.Equal(addBuiltInChecked, symbol);
@@ -2899,10 +2895,10 @@ class C
 
             Assert.NotNull(symbol);
 
-            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: false);
-            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: true);
-            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked: false);
-            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType, isChecked: true);
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType);
 
             Assert.NotEqual(addBuiltIn, symbol);
             Assert.Equal(addBuiltInChecked, symbol);
@@ -2927,7 +2923,7 @@ class C
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
-            var op = compilation.CreateBuiltinOperator(name, intType, intType, SyntaxFacts.IsCheckedOperator(name));
+            var op = compilation.CreateBuiltinOperator(name, intType, intType);
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
         }
@@ -2941,23 +2937,15 @@ class C
 
             // Binary operator name
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, isChecked: false));
-
-            // Mismatched checks
-            Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryNegationOperatorName, intType, intType, isChecked: true));
-
-            // Mismatched checks
-            Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType));
 
             // Nullable type 1
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, nullableIntType, intType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, nullableIntType, intType));
 
             // Nullable type 2
             Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, nullableIntType, isChecked: false));
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, nullableIntType));
         }
 
         [Fact]
@@ -2966,9 +2954,9 @@ class C
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
             Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
-                WellKnownMemberNames.UnaryPlusOperatorName, null, intType, isChecked: false));
+                WellKnownMemberNames.UnaryPlusOperatorName, null, intType));
             Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
-                WellKnownMemberNames.UnaryPlusOperatorName, intType, null, isChecked: false));
+                WellKnownMemberNames.UnaryPlusOperatorName, intType, null));
         }
 
         [Fact]
