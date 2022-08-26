@@ -158,14 +158,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         // Check that the setting name exists
                         if (ShowDiagnosticForSettingName(settingsItems, leftSide))
                         {
-                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingNotFound, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingNotFound, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide));
                             continue;
                         }
 
                         // Check that the setting has not been defined
                         if (definedSettings.Contains(leftSide))
                         {
-                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingAlreadyDefined, DiagnosticSeverity.Warning, false, 1, Document.Project.Id));
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingAlreadyDefined, DiagnosticSeverity.Warning, false, 1, Document.Project.Id, leftSide));
                         }
                         definedSettings.Add(leftSide);
 
@@ -183,14 +183,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                             // Check if the setting is allowd to define severities
                             if (!SettingDefinesSeverities(leftSide, settingsSnapshots))
                             {
-                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SeveritiesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SeveritiesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide));
                                 continue;
                             }
 
                             // Check that the setting has the specified value
                             if (!SettingHasValue(leftSide, values[0], settingsSnapshots) && !values[0].IsEmpty())
                             {
-                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide, values[0]));
                                 continue;
                             }
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                             // Check if setting allows multiple values
                             if (!SettingAllowsMultipleValues(leftSide, settingsSnapshots))
                             {
-                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.MultipleValuesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.MultipleValuesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide));
                                 continue;
                             }
 
@@ -216,13 +216,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                                 // Check that the setting has the specified value
                                 if (!SettingHasValue(leftSide, value.Trim(), settingsSnapshots) && !value.Trim().IsEmpty())
                                 {
-                                    diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                    diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide, value));
                                 }
 
                                 // Check that the setting value has not been defined
                                 if (definedValues.Contains(value))
                                 {
-                                    diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueAlreadyAssigned, DiagnosticSeverity.Warning, false, 1, Document.Project.Id));
+                                    diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueAlreadyAssigned, DiagnosticSeverity.Warning, false, 1, Document.Project.Id, leftSide, value));
                                 }
                                 definedValues.Add(value);
                             }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         // Check if value exists for the setting
                         if (!SettingHasValue(leftSide, rightSide, settingsSnapshots) && !rightSide.IsEmpty())
                         {
-                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide, rightSide));
                         }
                     }
                 }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                     return false;
                 }
 
-                static DiagnosticData CreateDiagnosticData(TextDocument document, TextLine line, string editorConfigId, DiagnosticSeverity severity, bool isEnabledByDefault, int warningLevel, ProjectId projectId)
+                static DiagnosticData CreateDiagnosticData(TextDocument document, TextLine line, string editorConfigId, DiagnosticSeverity severity, bool isEnabledByDefault, int warningLevel, ProjectId projectId, string settingName = "", string settingValue = "")
                 {
                     var location = new DiagnosticDataLocation(
                             document.Id, sourceSpan: line.Span, originalFilePath: document.FilePath,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                     return new DiagnosticData(
                         id: editorConfigId,
                         category: EditorConfigDiagnosticIds.GetCategoryFromId(editorConfigId),
-                        message: EditorConfigDiagnosticIds.GetMessageFromId(editorConfigId),
+                        message: EditorConfigDiagnosticIds.GetMessageFromId(editorConfigId, settingName, settingValue),
                         severity: severity,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: isEnabledByDefault,

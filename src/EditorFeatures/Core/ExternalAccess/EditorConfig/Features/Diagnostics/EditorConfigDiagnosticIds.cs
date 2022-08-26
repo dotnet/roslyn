@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features.Diagnostic
         public const string SettingAlreadyDefined = "EC0009";
         public const string ValueAlreadyAssigned = "EC0010";
 
-        public static string GetMessageFromId(string id)
+        public static string GetMessageFromId(string id, string settingName, string settingValue)
         {
             return id switch
             {
                 IncorrectSettingDefinition => "Incorrect setting definition",
-                SettingNotFound => "Setting is not defined",
-                ValueNotDefinedInSetting => "Value not defined in this setting",
-                SeveritiesNotSupported => "This setting does not support severities",
-                MultipleValuesNotSupported => "This setting does not support multiple values",
+                SettingNotFound => $"{settingName} is not defined",
+                ValueNotDefinedInSetting => $"{settingName} does not support value {settingValue}",
+                SeveritiesNotSupported => $"{settingName} does not support severities",
+                MultipleValuesNotSupported => $"{settingName} does not support multiple values",
                 SeverityNotDefined => "Severity not defined",
-                SettingAlreadyDefined => "Setting is already defined",
-                ValueAlreadyAssigned => "Value is already assigned to this setting",
+                SettingAlreadyDefined => $"{settingName} is already defined",
+                ValueAlreadyAssigned => $"{settingValue} is already assigned to {settingName}",
                 _ => "Error code not defined",
             };
         }
