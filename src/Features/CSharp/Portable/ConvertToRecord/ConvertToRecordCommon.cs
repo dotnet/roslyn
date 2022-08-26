@@ -5,49 +5,36 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
-    internal sealed class CSharpConvertToRecordRefactoringProvider : CodeRefactoringProvider
+    internal static class ConvertToRecordCommon
     {
         private const SyntaxRemoveOptions RemovalOptions =
             SyntaxRemoveOptions.KeepExteriorTrivia |
             SyntaxRemoveOptions.KeepDirectives |
             SyntaxRemoveOptions.AddElasticMarker;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConvertToRecordRefactoringProvider()
+        public static async Task<CodeAction?> GetCodeActionAsync(
+            Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
         {
-        }
-
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, span, cancellationToken) = context;
-
-            var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
-            if (typeDeclaration == null ||
-                // any type declared partial requires complex movement, don't offer refactoring
-                typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
+            // any type declared partial requires complex movement, don't offer refactoring
+            if (typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
             {
-                return;
+                return null;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -61,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     IsStatic: false,
                 } type)
             {
-                return;
+                return null;
             }
 
             var positionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
@@ -74,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 cancellationToken);
             if (positionalParameterInfos.IsEmpty)
             {
-                return;
+                return null;
             }
 
             var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
@@ -119,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 offeredActions = offeredActions.Add(positional);
             }
 
-            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
+            return CodeAction.CodeActionWithNestedActions.Create(
                 string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name),
-                offeredActions, isInlinable: true));
+                offeredActions, isInlinable: true);
         }
 
         private static async Task<Solution> ConvertToPositionalRecordAsync(
@@ -148,9 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // remove properties we're bringing up to positional params
             // or keep them as overrides and link the positional param to the original property
-            foreach (var result in positionalParameterInfos.Where(prop => !prop.IsInherited))
+            foreach (var result in positionalParameterInfos)
             {
-                var property = result.Declaration!;
+                if (result.IsInherited)
+                {
+                    continue;
+                }
+
+                var property = result.Declaration;
                 if (result.KeepAsOverride)
                 {
                     // add an initializer that links the property to the primary constructor parameter
@@ -193,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     ref positionalParamSymbols,
                     constructorSymbols[primaryIndex].Parameters))
             {
+                // grab parameter defaults and reorder positional param info to be in order of primary constructor params
                 defaults = constructors[primaryIndex].ParameterList.Parameters.SelectAsArray(param => param.Default);
                 positionalParameterInfos = positionalParamSymbols
                     .SelectAsArray(symbol => positionalParameterInfos.First(info => info.Symbol.Equals(symbol)));
@@ -251,10 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // if inherited we generate nodes and tokens for the type and identifier
                 var type = result.IsInherited
                     ? result.Symbol.Type.GenerateTypeSyntax()
-                    : result.Declaration!.Type;
+                    : result.Declaration.Type;
                 var identifier = result.IsInherited
                     ? SyntaxFactory.Identifier(result.Symbol.Name)
-                    : result.Declaration!.Identifier;
+                    : result.Declaration.Identifier;
 
                 return SyntaxFactory.Parameter(
                     GetModifiedAttributeListsForProperty(result),
@@ -532,7 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                     SyntaxFactory.Argument(SyntaxFactory.IdentifierName(
                                         constructor.ParameterList.Parameters.Single().Identifier)))))));
                     }
-
                 }
                 // The base class uses positional parameters but this one doesn't.
                 // We should add a base initializer for all declared constructors
@@ -612,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return SyntaxFactory.List<AttributeListSyntax>();
             }
 
-            return SyntaxFactory.List(result.Declaration!.AttributeLists.SelectAsArray(attributeList =>
+            return SyntaxFactory.List(result.Declaration.AttributeLists.SelectAsArray(attributeList =>
             {
                 if (attributeList.Target == null)
                 {
@@ -716,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         return ImmutableArray<SyntaxTrivia>.Empty;
                     }
 
-                    var p = result.Declaration!;
+                    var p = result.Declaration;
                     var leadingPropTrivia = p.GetLeadingTrivia()
                         .Where(trivia => !trivia.IsDocComment() && !trivia.IsWhitespace());
                     // since we remove attributes and reformat, we want to take any comments
@@ -738,8 +730,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // this variable doubles as a flag to see if we need to generate doc comments at all, as
             // if it is still null, we found no meaningful doc comments anywhere
             var exteriorTrivia = GetExteriorTrivia(typeDeclaration) ??
-                propertyResults.SelectAsArray(result => GetExteriorTrivia(result.Declaration)).
-                    FirstOrDefault(t => t != null);
+                propertyResults
+                .Where(result => !result.IsInherited)
+                .Select(result => GetExteriorTrivia(result.Declaration!))
+                .FirstOrDefault(trivia => trivia != null);
 
             if (exteriorTrivia == null)
             {
@@ -821,14 +815,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
         }
 
-        private static SyntaxTriviaList? GetExteriorTrivia(SyntaxNode? declaration)
+        private static SyntaxTriviaList? GetExteriorTrivia(SyntaxNode declaration)
         {
-            if (declaration == null)
-            {
-                // this means that we're looking through an inherited property, so we won't find any exterior trivia
-                return null;
-            }
-
             var potentialDocComment = declaration.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
 
             if (potentialDocComment?.GetStructure() is DocumentationCommentTriviaSyntax docComment)
@@ -899,23 +887,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
                 if (result.IsInherited)
                 {
-                    // generate a param comment with an inherited doc pointing to the doc comment of the original
-                    // property. If there isn't one it will show up as blank. For prop "Example" from inherited record B:
-                    // <param name="Example"><inheritdoc cref="Base" path="/param[@name='Example']"/></param>
-                    yield return SyntaxFactory.XmlParamElement(result.Symbol.Name,
-                        SyntaxFactory.XmlEmptyElement(
-                            SyntaxFactory.XmlName(DocumentationCommentXmlNames.InheritdocElementName),
-                            SyntaxFactory.List(ImmutableArray.Create<XmlAttributeSyntax>(
-                                SyntaxFactory.XmlCrefAttribute(SyntaxFactory.TypeCref(
-                                    SyntaxFactory.ParseTypeName(result.Symbol.ContainingType.MetadataName))),
-                                SyntaxFactory.XmlTextAttribute(
-                                    DocumentationCommentXmlNames.PathAttributeName,
-                                    string.Format("/param[@name='{0}']", result.Symbol.Name))))));
+                    // generate a param comment with an inherited doc
+                    yield return SyntaxFactory.XmlParamElement(result.Symbol.Name, SyntaxFactory.XmlEmptyElement(
+                            SyntaxFactory.XmlName(DocumentationCommentXmlNames.InheritdocElementName)));
                 }
                 else
                 {
                     // get the documentation comment
-                    var potentialDocComment = result.Declaration!.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
+                    var potentialDocComment = result.Declaration.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
                     var paramContent = ImmutableArray<XmlNodeSyntax>.Empty;
                     if (potentialDocComment?.GetStructure() is DocumentationCommentTriviaSyntax docComment)
                     {
@@ -969,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         }
                     }
 
-                    yield return SyntaxFactory.XmlParamElement(result.Declaration!.Identifier.ValueText, paramContent.AsArray());
+                    yield return SyntaxFactory.XmlParamElement(result.Declaration.Identifier.ValueText, paramContent.AsArray());
                 }
             }
         }
