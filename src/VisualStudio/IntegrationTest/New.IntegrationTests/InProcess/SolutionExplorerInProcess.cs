@@ -250,14 +250,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await TestServices.Workspace.WaitForProjectSystemAsync(cancellationToken);
 
             var solutionRestoreService = await GetComponentModelServiceAsync<IVsSolutionRestoreService>(cancellationToken);
-            await solutionRestoreService.CurrentRestoreOperation;
+            var result = await solutionRestoreService.CurrentRestoreOperation;
 
-            var projectFullPath = (await GetProjectAsync(projectName, cancellationToken)).FullName;
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectFullPath = project.FullName;
             var solutionRestoreStatusProvider = await GetComponentModelServiceAsync<IVsSolutionRestoreStatusProvider>(cancellationToken);
             if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
             {
                 return;
             }
+
+            var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
+            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
 
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
