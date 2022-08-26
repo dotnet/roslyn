@@ -64,8 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 return ImmutableArray<ProjectInfo>.Empty;
             }
 
-            var textFactory = _remoteLanguageServiceWorkspace.Services.GetRequiredService<ITextFactoryService>();
-
             var projectInfos = ImmutableArray.CreateBuilder<ProjectInfo>();
             foreach (var project in projects)
             {
@@ -78,14 +76,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray(), textFactory);
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray(), _remoteLanguageServiceWorkspace.Services.SolutionServices);
                 projectInfos.Add(projectInfo);
             }
 
             return projectInfos.ToImmutableArray();
         }
 
-        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, ITextFactoryService textFactory)
+        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, SolutionServices services)
         {
             var projectId = ProjectId.CreateNewId();
             var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
@@ -96,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
                     fileName,
                     filePath: file,
-                    loader: new FileTextLoaderNoException(file, defaultEncoding: null, textFactory));
+                    loader: new FileTextLoaderNoException(services, file, defaultEncoding: null));
                 docInfos.Add(docInfo);
             }
 

@@ -6,12 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class ImmutableWorkspace : Workspace
+/// <summary>
+/// An instance of <see cref="Workspace"/> that does not allow any changes to be made (open documents or update the current solution) and is thus immutable.
+/// The purpose of this API is to pass a <see cref="Workspace"/> instance to deprecated APIs that require it but the new code path does not have it.
+/// </summary>
+internal sealed class ImmutableEmptyWorkspace : Workspace
 {
-    public ImmutableWorkspace(HostServices host, string? workspaceKind)
+    public ImmutableEmptyWorkspace(HostServices host, string? workspaceKind)
         : base(host, workspaceKind)
     {
     }
@@ -28,4 +34,10 @@ internal sealed class ImmutableWorkspace : Workspace
     {
         // nop - overridden to prevent base.Dispose from updating the current solution
     }
+
+    public override bool TryApplyChanges(Solution newSolution)
+        => throw ExceptionUtilities.Unreachable;
+
+    internal override bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
+        => throw ExceptionUtilities.Unreachable;
 }

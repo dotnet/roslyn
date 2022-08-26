@@ -194,8 +194,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal virtual bool CanUpdateSolution => true;
-
         /// <summary>
         /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
         /// </summary>

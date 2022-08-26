@@ -326,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
 
-            var fileLoader = new FileTextLoader(filePath, defaultEncoding: null, projectToAddTo.Solution.Services.GetRequiredService<ITextFactoryService>());
+            var fileLoader = new WorkspaceFileTextLoader(projectToAddTo.Solution.Services, filePath, defaultEncoding: null);
             var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: fileLoader, filePath: filePath));
             var addedDocument = forkedSolution.GetRequiredDocument(documentId);
 

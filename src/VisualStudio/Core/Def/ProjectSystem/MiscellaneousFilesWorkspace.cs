@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
-            var loader = new FileTextLoader(filePath, defaultEncoding: null, Services.GetRequiredService<ITextFactoryService>());
+            var loader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, loader, languageInformation, Services.SolutionServices, _metadataReferences);
         }
 
@@ -309,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var document = this.CurrentSolution.GetProject(projectIdAndContainer.projectId).Documents.Single();
 
                 // We must close the document prior to deleting the project
-                OnDocumentClosed(document.Id, new FileTextLoader(document.FilePath, defaultEncoding: null, Services.GetRequiredService<ITextFactoryService>()));
+                OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(Services.SolutionServices, document.FilePath, defaultEncoding: null));
                 OnProjectRemoved(document.Project.Id);
 
                 _monikersToProjectIdAndContainer.Remove(moniker);

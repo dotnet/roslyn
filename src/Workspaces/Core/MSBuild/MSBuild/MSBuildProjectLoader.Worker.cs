@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         name,
                         folders,
                         info.SourceCodeKind,
-                        new FileTextLoader(info.FilePath, encoding, _workspaceServices.GetRequiredService<ITextFactoryService>()),
+                        new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);
 

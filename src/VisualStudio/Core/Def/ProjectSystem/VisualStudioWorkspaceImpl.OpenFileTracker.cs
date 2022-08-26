@@ -318,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            var loader = new FileTextLoader(moniker, defaultEncoding: null, w.Services.GetRequiredService<ITextFactoryService>());
+                            var loader = new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null);
 
                             if (w.CurrentSolution.ContainsDocument(documentId))
                             {

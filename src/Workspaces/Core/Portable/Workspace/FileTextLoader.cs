@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly SourceText s_dummySourceText = SourceText.From("");
 
-        private readonly ITextFactoryService? _textFactory;
-
         /// <summary>
         /// Absolute path of the file.
         /// </summary>
@@ -47,17 +45,11 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
         public FileTextLoader(string path, Encoding? defaultEncoding)
-            : this(path, defaultEncoding, textFactory: null)
-        {
-        }
-
-        internal FileTextLoader(string path, Encoding? defaultEncoding, ITextFactoryService? textFactory)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
 
             Path = path;
             DefaultEncoding = defaultEncoding;
-            _textFactory = textFactory;
         }
 
         /// <summary>
@@ -75,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspace">Obsolete. Dummy <see cref="Workspace"/> instance.</param>
         [Obsolete("Use CreateText(Stream, CancellationToken)")]
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
-            => _textFactory?.CreateText(stream, DefaultEncoding, CancellationToken.None) ?? EncodedStringText.Create(stream, DefaultEncoding);
+            => EncodedStringText.Create(stream, DefaultEncoding);
 
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.

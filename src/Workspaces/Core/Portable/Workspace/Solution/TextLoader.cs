@@ -17,7 +17,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
-        private protected static readonly Workspace DummyWorkspace = new ImmutableWorkspace(Host.Mef.MefHostServices.DefaultHost, WorkspaceKind.Custom);
+        /// <summary>
+        /// Immutable workspace passed to public APIs of this type that take <see cref="Workspace"/> instance.
+        /// We no longer pass the actual workspace around. To avoid breaking dervied types that may access the workspace entirely
+        /// we pass in a dummy <see cref="ImmutableEmptyWorkspace"/>. This workspace won't have the services that would have been previously available
+        /// if used e.g. in VS layer though so a break is still possible.
+        /// </summary>
+        private protected static readonly Workspace DummyWorkspace = new ImmutableEmptyWorkspace(Host.Mef.MefHostServices.DefaultHost, WorkspaceKind.Custom);
+
         private static readonly DocumentId _dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId("dummy"));
 
         private const double MaxDelaySecs = 1.0;
