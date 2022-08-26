@@ -28,6 +28,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
             await base.InitializeAsync().ConfigureAwait(true);
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CSharpNewDocumentFormatting), HangMitigatingCancellationToken);
+            await TestServices.Workspace.SetFullSolutionAnalysisAsync(false, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
