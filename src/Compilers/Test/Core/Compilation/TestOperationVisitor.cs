@@ -735,11 +735,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
-
-            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
-            // potentially creating synthesized intrinsic operators.
-            if (operation.SemanticModel != null)
-                operation.SemanticModel.GetSymbolInfo(operation.Syntax);
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -773,11 +768,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
-
-            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
-            // potentially creating synthesized intrinsic operators.
-            if (operation.SemanticModel != null)
-                operation.SemanticModel.GetSymbolInfo(operation.Syntax);
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
