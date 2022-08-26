@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Diagnostic))
             {
+                // For help tracking down https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801
                 throw;
             }
         }
