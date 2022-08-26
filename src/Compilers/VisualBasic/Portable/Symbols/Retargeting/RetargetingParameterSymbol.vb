@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
@@ -216,8 +217,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return RetargetingTranslator.GetRetargetedAttributes(_underlyingParameter, _lazyCustomAttributes)
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(compilationState))
+        Friend Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+            Return RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(moduleBuilder))
         End Function
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
