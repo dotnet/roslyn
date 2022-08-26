@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var (document, _, cancellationToken) = context;
 
             var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
+            if (typeDeclaration == null)
+            {
+                return;
+            }
 
             var action = await ConvertToRecordCommon
                 .GetCodeActionAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);

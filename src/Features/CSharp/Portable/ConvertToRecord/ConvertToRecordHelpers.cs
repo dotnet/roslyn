@@ -309,11 +309,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             if (constructorOperation.Initializer is
                 IInvocationOperation { Arguments: ImmutableArray<IArgumentOperation> args })
             {
+                // in a "base" or "this" initializer
                 foreach (var arg in args)
                 {
                     if (arg is { Parameter: IParameterSymbol param, Value: IOperation value } &&
                         captureAssignedSymbol(value) is T captured)
                     {
+                        // We're looking to see if this initializer is a primary constructor,
+                        // i.e. the parameters are declared as auto-implemented properties in the record definition.
+                        // Since there's no way to associate positional parameters (from the primary constructor)
+                        // to the properties that they declare other than by comparing their declaration locations,
+                        // we have to do this rather convoluted comparison.
+                        // Note: We can use AssociatedSymbol once this is implemented:
+                        // https://github.com/dotnet/roslyn/issues/54286
                         var positionalParam = param.ContainingSymbol.ContainingType.GetMembers().FirstOrDefault(member
                                 => member.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() ==
                                     param.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());

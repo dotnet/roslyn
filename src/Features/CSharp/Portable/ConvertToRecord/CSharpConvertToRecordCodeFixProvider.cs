@@ -43,12 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var cancellationToken = context.CancellationToken;
             // get the class declaration. The span should be on the base type in the base list
             var codeRefactoringHelper = document.GetRequiredLanguageService<IRefactoringHelpersService>();
-            var baseSyntax = await codeRefactoringHelper.GetRelevantNodesAsync<BaseTypeSyntax>(
+            var baseSyntaxNodes = await codeRefactoringHelper.GetRelevantNodesAsync<BaseTypeSyntax>(
                 document, span, cancellationToken).ConfigureAwait(false);
+
+            var typeDeclaration = baseSyntaxNodes.FirstOrDefault()?.GetAncestor<TypeDeclarationSyntax>();
+            if (typeDeclaration == null)
+            {
+                return;
+            }
 
             var action = await ConvertToRecordCommon.GetCodeActionAsync(
                 document,
-                baseSyntax.FirstOrDefault()?.GetAncestor<TypeDeclarationSyntax>(),
+                typeDeclaration,
                 cancellationToken)
                 .ConfigureAwait(false);
 
