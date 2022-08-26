@@ -1499,10 +1499,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="returnType">The return type of the binary operator.</param>
         /// <param name="leftType">The type of the left operand of the binary operator.</param>
         /// <param name="rightType">The type of the right operand of the binary operator.</param>
-        /// <param name="isChecked">Whether or not this is a checked binary operator.  For example <c>int int.operator
-        /// checked +(int v1, int v2)</c>.</param>
-        /// <returns></returns>
-        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked)
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType)
         {
             // Can't check 'name' here as VB and C# support a different subset of names.
 
@@ -1524,7 +1521,7 @@ namespace Microsoft.CodeAnalysis
                 checkSupportedBinaryOperatorType(rightType, nameof(rightType));
             }
 
-            return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
+            return CommonCreateBuiltinOperator(name, returnType, leftType, rightType);
 
             void checkSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
             {
@@ -1569,7 +1566,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract bool IsLanguageSpecificSupportedBuiltinOperatorType(ITypeSymbol type);
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType);
 
         /// <summary>
         /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
@@ -1580,10 +1577,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
         /// <param name="returnType">The return type of the unary operator.</param>
         /// <param name="valueType">The type the operator applies to.</param>
-        /// <param name="isChecked">Whether or not this is a checked unary operator.  For example <c>Shared Operator
-        /// -(value As Integer) As Integer</c> can be checked.</param>
-        /// <returns></returns>
-        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked)
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType)
         {
             // Can't check 'name' here as VB and C# support a different subset of names.
 
@@ -1596,7 +1590,7 @@ namespace Microsoft.CodeAnalysis
             checkSupportedUnaryOperatorType(returnType, nameof(returnType));
             checkSupportedUnaryOperatorType(valueType, nameof(valueType));
 
-            return CommonCreateBuiltinOperator(name, returnType, valueType, isChecked);
+            return CommonCreateBuiltinOperator(name, returnType, valueType);
 
             static void checkSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
             {
@@ -1634,7 +1628,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType);
 
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
