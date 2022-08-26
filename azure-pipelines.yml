@@ -43,6 +43,7 @@ stages:
 
 - stage: Windows_Release_Build
   dependsOn: []
+  jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Build_Windows_Release
