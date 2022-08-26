@@ -4,11 +4,8 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -29,8 +26,8 @@ internal sealed class LegacyIndentationManagerWorkspaceService : ILegacyIndentat
         => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.UseSpacesForWhitespace(buffer, explicitFormat: false) : null;
 
     public int? GetTabSize(SourceText text)
-        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.GetTabSize(GetRequiredTextBuffer(text), explicitFormat: false) : null;
+        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.GetTabSize(buffer, explicitFormat: false) : null;
 
     public int? GetIndentSize(SourceText text)
-        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.GetIndentSize(GetRequiredTextBuffer(text), explicitFormat: false) : null;
+        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.GetIndentSize(buffer, explicitFormat: false) : null;
 }
