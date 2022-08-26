@@ -1,1 +1,1 @@
-
+virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Text.SourceText (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)

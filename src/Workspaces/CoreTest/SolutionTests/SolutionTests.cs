@@ -2801,7 +2801,9 @@ public class C : A {
         private class TestSmallFileTextLoader : FileTextLoader
         {
             public TestSmallFileTextLoader(string path, Encoding encoding)
+#pragma warning disable RS0030 // Do not used banned APIs
                 : base(path, encoding)
+#pragma warning restore
             {
             }
 
