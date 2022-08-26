@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await VerifyNoErrorsAsync(HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
         [WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
         public async Task CreateSDKProjectWithFileScopedNamespaces()
         {
@@ -56,7 +56,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await VerifyNoErrorsAsync(HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
         [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
         public async Task CreateSDKProjectWithBlockScopedNamespacesFromEditorConfig()
         {
@@ -81,7 +81,7 @@ csharp_style_namespace_declarations = block_scoped
             await TestServices.EditorVerifier.TextContainsAsync("namespace TestProj\r\n{");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
         [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
         public async Task CreateSDKProjectWithBlockScopedNamespacesFromIrrelevantEditorConfigH()
         {
@@ -111,7 +111,7 @@ csharp_style_namespace_declarations = block_scoped
             await TestServices.EditorVerifier.TextContainsAsync("namespace TestProj;");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63620")]
         [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
         public async Task CreateSDKProjectWithFileScopedNamespacesFromEditorConfig()
         {
