@@ -78,7 +78,7 @@ stages:
 - stage: build
   displayName: Build and Test
   pool:
-    name: NetCore1ESPool-Svc-Svc-Internal
+    name: NetCore1ESPool-Svc-Internal
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
@@ -310,7 +310,7 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        name: NetCore1ESPool-Svc-Svc-Internal
+        name: NetCore1ESPool-Svc-Internal
         demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
 - stage: insert
@@ -322,7 +322,7 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      name: NetCore1ESPool-Svc-Svc-Internal
+      name: NetCore1ESPool-Svc-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
     - download: current
