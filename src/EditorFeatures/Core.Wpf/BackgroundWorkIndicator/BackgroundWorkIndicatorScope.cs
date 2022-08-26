@@ -3,88 +3,49 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
-
-internal partial class WpfBackgroundWorkIndicatorFactory
+namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 {
-    /// <summary>
-    /// Implementation of an <see cref="IUIThreadOperationScope"/> for the background work indicator. Allows for
-    /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
-    /// shown to the user.
-    /// </summary>
-    private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
+    internal partial class WpfBackgroundWorkIndicatorFactory
     {
-        private readonly BackgroundWorkIndicatorContext _context;
-
-        // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
-        // update the tooltip accordingly.
-
-        private string _description;
-        private ProgressInfo _progressInfo;
-
-        public IUIThreadOperationContext Context => _context;
-        public IProgress<ProgressInfo> Progress => this;
-
-        public BackgroundWorkIndicatorScope(
-            BackgroundWorkIndicatorContext indicator, string description)
+        private class BackgroundWorkIndicatorScope : IUIThreadOperationScope
         {
-            _context = indicator;
-            _description = description;
-        }
+            private readonly BackgroundWorkOperationScope _backgroundScope;
+            private readonly BackgroundWorkIndicatorContext _backgroundWorkIndicatorContext;
 
-        /// <summary>
-        /// Retrieves a threadsafe snapshot of our data for our owning context to use to build the tooltip ui.
-        /// </summary>
-        public (string description, ProgressInfo progressInfo) ReadData_MustBeCalledUnderLock()
-        {
-            Contract.ThrowIfFalse(Monitor.IsEntered(_context.Gate));
-            return (_description, _progressInfo);
-        }
-
-        /// <summary>
-        /// On disposal, just remove ourselves from our parent context.  It will update the UI accordingly.
-        /// </summary>
-        void IDisposable.Dispose()
-            => _context.RemoveScope(this);
-
-        bool IUIThreadOperationScope.AllowCancellation
-        {
-            get => true;
-            set { }
-        }
-
-        string IUIThreadOperationScope.Description
-        {
-            get
+            public BackgroundWorkIndicatorScope(
+                BackgroundWorkOperationScope backgroundScope,
+                string description,
+                BackgroundWorkIndicatorContext backgroundWorkIndicatorContext)
             {
-                lock (_context.Gate)
-                    return _description;
+                _backgroundScope = backgroundScope;
+                _description = description;
+                _backgroundWorkIndicatorContext = backgroundWorkIndicatorContext;
             }
-            set
+
+            public bool AllowCancellation { get; set; }
+
+            private string _description;
+            public string Description
             {
-                lock (_context.Gate)
+                get => _description;
+                set
                 {
+                    _backgroundScope.Description = value;
                     _description = value;
                 }
-
-                // We changed.  Enqueue work to make sure the UI reflects this.
-                _context.EnqueueUIUpdate();
             }
-        }
 
-        void IProgress<ProgressInfo>.Report(ProgressInfo value)
-        {
-            lock (_context.Gate)
+            public IUIThreadOperationContext Context => _backgroundWorkIndicatorContext;
+
+            public IProgress<ProgressInfo> Progress { get; } = new Progress<ProgressInfo>();
+
+            public void Dispose()
             {
-                _progressInfo = value;
+                _backgroundWorkIndicatorContext.RemoveScope(this);
+                _backgroundScope.Dispose();
             }
-
-            // We changed.  Enqueue work to make sure the UI reflects this.
-            _context.EnqueueUIUpdate();
         }
     }
 }

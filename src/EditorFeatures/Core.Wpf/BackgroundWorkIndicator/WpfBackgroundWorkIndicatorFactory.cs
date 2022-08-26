@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
     internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IToolTipPresenterFactory _toolTipPresenterFactory;
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
 
         private BackgroundWorkIndicatorContext? _currentContext;
 
@@ -30,12 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WpfBackgroundWorkIndicatorFactory(
             IThreadingContext threadingContext,
-            IToolTipPresenterFactory toolTipPresenterFactory,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IBackgroundWorkIndicatorService service)
         {
             _threadingContext = threadingContext;
-            _toolTipPresenterFactory = toolTipPresenterFactory;
-            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
+            _backgroundWorkIndicatorService = service;
         }
 
         IBackgroundWorkIndicatorContext IBackgroundWorkIndicatorFactory.Create(
@@ -48,22 +45,32 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             _threadingContext.ThrowIfNotOnUIThread();
 
             // If we have an outstanding context in flight, cancel it and create a new one to show the user.
-            _currentContext?.CancelAndDispose();
+            _currentContext?.Dispose();
 
             // Create the indicator in its default/empty state.
-            _currentContext = new BackgroundWorkIndicatorContext(
-                this, textView, applicableToSpan, description,
-                cancelOnEdit, cancelOnFocusLost);
+            var indicator = _backgroundWorkIndicatorService.Create(
+                textView,
+                applicableToSpan,
+                description,
+                new BackgroundWorkIndicatorOptions()
+                {
+                    CancelOnEdit = cancelOnEdit,
+                    CancelOnFocusLost = cancelOnFocusLost
+                });
+
+            _currentContext = new BackgroundWorkIndicatorContext(indicator, description);
+            _currentContext.OnDisposed += OnContextDisposed;
 
             // Then add a single scope representing the how the UI should look initially.
-            _currentContext.AddScope(allowCancellation: true, description);
+            _currentContext.AddScope(description);
             return _currentContext;
         }
 
-        private void OnContextDisposed(BackgroundWorkIndicatorContext context)
+        private void OnContextDisposed(object sender, EventArgs args)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
+            var context = (BackgroundWorkIndicatorContext)sender;
             if (_currentContext == context)
                 _currentContext = null;
         }

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
                 // causing ourselves to self-cancel.
-                backgroundIndicator.CancelOnFocusLost = false;
+                using var _ = backgroundIndicator.SuppressAutoCancel();
                 succeeded = await location.TryNavigateToAsync(
                     _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
             }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Settings.Internal;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -46,9 +47,6 @@ internal class DefaultBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorF
             _context = context;
         }
 
-        public bool CancelOnEdit { get; set; }
-        public bool CancelOnFocusLost { get; set; }
-
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
             => _context.AddScope(allowCancellation, description);
 
@@ -72,5 +70,8 @@ internal class DefaultBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorF
 
         public void Dispose()
             => _context.Dispose();
+
+        public IDisposable SuppressAutoCancel()
+            => NoOpDisposable.Instance;
     }
 }
