@@ -25,16 +25,17 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     </Workspace>), jsonWriter)
 
             AssertEx.EqualOrDiff(
-"{""kind"":""csharp"",""resource"":""file:///Z:/TestProject.csproj"",""id"":1,""type"":""vertex"",""label"":""project""}
-{""kind"":""begin"",""scope"":""project"",""data"":1,""id"":2,""type"":""vertex"",""label"":""$event""}
-{""uri"":""file:///Z:/A.cs"",""languageId"":""csharp"",""id"":3,""type"":""vertex"",""label"":""document""}
-{""kind"":""begin"",""scope"":""document"",""data"":3,""id"":4,""type"":""vertex"",""label"":""$event""}
-{""outV"":3,""inVs"":[],""id"":5,""type"":""edge"",""label"":""contains""}
-{""result"":[],""id"":6,""type"":""vertex"",""label"":""foldingRangeResult""}
-{""outV"":3,""inVs"":[6],""id"":7,""type"":""edge"",""label"":""textDocument/foldingRange""}
-{""kind"":""end"",""scope"":""document"",""data"":3,""id"":8,""type"":""vertex"",""label"":""$event""}
-{""outV"":1,""inVs"":[3],""id"":9,""type"":""edge"",""label"":""contains""}
-{""kind"":""end"",""scope"":""project"",""data"":1,""id"":10,""type"":""vertex"",""label"":""$event""}
+"{""hoverProvider"":true,""declarationProvider"":false,""definitionProvider"":true,""referencesProvider"":true,""typeDefinitionProvider"":false,""documentSymbolProvider"":false,""foldingRangeProvider"":true,""diagnosticProvider"":false,""id"":1,""type"":""vertex"",""label"":""capabilities""}
+{""kind"":""csharp"",""resource"":""file:///Z:/TestProject.csproj"",""id"":2,""type"":""vertex"",""label"":""project""}
+{""kind"":""begin"",""scope"":""project"",""data"":2,""id"":3,""type"":""vertex"",""label"":""$event""}
+{""uri"":""file:///Z:/A.cs"",""languageId"":""csharp"",""id"":4,""type"":""vertex"",""label"":""document""}
+{""kind"":""begin"",""scope"":""document"",""data"":4,""id"":5,""type"":""vertex"",""label"":""$event""}
+{""outV"":4,""inVs"":[],""id"":6,""type"":""edge"",""label"":""contains""}
+{""result"":[],""id"":7,""type"":""vertex"",""label"":""foldingRangeResult""}
+{""outV"":4,""inVs"":[7],""id"":8,""type"":""edge"",""label"":""textDocument/foldingRange""}
+{""kind"":""end"",""scope"":""document"",""data"":4,""id"":9,""type"":""vertex"",""label"":""$event""}
+{""outV"":2,""inVs"":[4],""id"":10,""type"":""edge"",""label"":""contains""}
+{""kind"":""end"",""scope"":""project"",""data"":2,""id"":11,""type"":""vertex"",""label"":""$event""}
 ", stringWriter.ToString())
         End Function
 
@@ -55,79 +56,92 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             AssertEx.EqualOrDiff(
     "[
   {
+    ""hoverProvider"": true,
+    ""declarationProvider"": false,
+    ""definitionProvider"": true,
+    ""referencesProvider"": true,
+    ""typeDefinitionProvider"": false,
+    ""documentSymbolProvider"": false,
+    ""foldingRangeProvider"": true,
+    ""diagnosticProvider"": false,
+    ""id"": 1,
+    ""type"": ""vertex"",
+    ""label"": ""capabilities""
+  },
+  {
     ""kind"": ""csharp"",
     ""resource"": ""file:///Z:/TestProject.csproj"",
-    ""id"": 1,
+    ""id"": 2,
     ""type"": ""vertex"",
     ""label"": ""project""
   },
   {
     ""kind"": ""begin"",
     ""scope"": ""project"",
-    ""data"": 1,
-    ""id"": 2,
+    ""data"": 2,
+    ""id"": 3,
     ""type"": ""vertex"",
     ""label"": ""$event""
   },
   {
     ""uri"": ""file:///Z:/A.cs"",
     ""languageId"": ""csharp"",
-    ""id"": 3,
+    ""id"": 4,
     ""type"": ""vertex"",
     ""label"": ""document""
   },
   {
     ""kind"": ""begin"",
     ""scope"": ""document"",
-    ""data"": 3,
-    ""id"": 4,
+    ""data"": 4,
+    ""id"": 5,
     ""type"": ""vertex"",
     ""label"": ""$event""
   },
   {
-    ""outV"": 3,
+    ""outV"": 4,
     ""inVs"": [],
-    ""id"": 5,
+    ""id"": 6,
     ""type"": ""edge"",
     ""label"": ""contains""
   },
   {
     ""result"": [],
-    ""id"": 6,
+    ""id"": 7,
     ""type"": ""vertex"",
     ""label"": ""foldingRangeResult""
   },
   {
-    ""outV"": 3,
+    ""outV"": 4,
     ""inVs"": [
-      6
+      7
     ],
-    ""id"": 7,
+    ""id"": 8,
     ""type"": ""edge"",
     ""label"": ""textDocument/foldingRange""
   },
   {
     ""kind"": ""end"",
     ""scope"": ""document"",
-    ""data"": 3,
-    ""id"": 8,
+    ""data"": 4,
+    ""id"": 9,
     ""type"": ""vertex"",
     ""label"": ""$event""
   },
   {
-    ""outV"": 1,
+    ""outV"": 2,
     ""inVs"": [
-      3
+      4
     ],
-    ""id"": 9,
+    ""id"": 10,
     ""type"": ""edge"",
     ""label"": ""contains""
   },
   {
     ""kind"": ""end"",
     ""scope"": ""project"",
-    ""data"": 1,
-    ""id"": 10,
+    ""data"": 2,
+    ""id"": 11,
     ""type"": ""vertex"",
     ""label"": ""$event""
   }

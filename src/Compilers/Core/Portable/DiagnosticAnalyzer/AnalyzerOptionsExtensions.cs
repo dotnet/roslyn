@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //  3. Non-configurable diagnostics
             if (analyzerOptions == null ||
                 !descriptor.IsEnabledByDefault ||
-                descriptor.CustomTags.Contains(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.IsCompilerOrNotConfigurable())
             {
                 severity = default;
                 return false;

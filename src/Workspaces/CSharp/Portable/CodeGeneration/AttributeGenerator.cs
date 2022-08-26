@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var name = attrClass.Name;
 
-            if (name != "NullableAttribute" &&
-                name != "NullableContextAttribute" &&
-                name != "NativeIntegerAttribute" &&
-                name != "DynamicAttribute")
+            if (name is not "NullableAttribute" and
+                not "NullableContextAttribute" and
+                not "NativeIntegerAttribute" and
+                not "DynamicAttribute")
             {
                 return false;
             }

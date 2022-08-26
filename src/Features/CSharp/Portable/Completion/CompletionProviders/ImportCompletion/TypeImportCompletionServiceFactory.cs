@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 => "<>";
 
             protected override bool IsCaseSensitive => true;
+
+            protected override string Language => LanguageNames.CSharp;
         }
     }
 }

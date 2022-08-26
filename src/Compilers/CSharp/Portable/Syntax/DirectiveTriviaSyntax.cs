@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return ((UndefDirectiveTriviaSyntax)this).UndefKeyword;
                     case SyntaxKind.LineDirectiveTrivia:
                         return ((LineDirectiveTriviaSyntax)this).LineKeyword;
+                    case SyntaxKind.LineSpanDirectiveTrivia:
+                        return ((LineSpanDirectiveTriviaSyntax)this).LineKeyword;
                     case SyntaxKind.PragmaWarningDirectiveTrivia:
                         return ((PragmaWarningDirectiveTriviaSyntax)this).PragmaKeyword;
                     case SyntaxKind.PragmaChecksumDirectiveTrivia:

@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Save metadata reading failure so that future compilations created 
                 // with this reference snapshot fail consistently in the same way.
-                if (e is IOException || e is BadImageFormatException)
+                if (e is IOException or BadImageFormatException)
                 {
                     _error = e;
                 }

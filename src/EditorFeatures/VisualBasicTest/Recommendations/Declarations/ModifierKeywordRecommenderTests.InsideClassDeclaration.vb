@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
     Public Class InsideClassDeclaration
+        Inherits RecommenderTests
 
 #Region "Scope Keywords"
 

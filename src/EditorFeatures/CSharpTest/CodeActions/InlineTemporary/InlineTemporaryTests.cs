@@ -2291,7 +2291,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine((Func<int?, int?>)((int? s) => { return s; }));
+        Console.WriteLine((int? s) => { return s; });
     }
 }");
         }

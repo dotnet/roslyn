@@ -2594,22 +2594,23 @@ public ref struct S<T>
 {
     public readonly Span<T> this[Span<T> span] { get => default; set {} }
 
-    public unsafe static void N(S<byte> b)
+    public unsafe static Span<byte> N(S<byte> b)
     {
         Span<byte> x = stackalloc byte[5];
         _ = b[x];
         b[x] = x;
+        return b[x];
     }
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (11,13): error CS8347: Cannot use a result of 'S<byte>.this[Span<byte>]' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //         _ = b[x];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(11, 13),
-                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         _ = b[x];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+                // (13,16): error CS8347: Cannot use a result of 'S<byte>.this[Span<byte>]' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         return b[x];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(13, 16),
+                // (13,18): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return b[x];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(13, 18));
         }
 
         [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
@@ -2744,7 +2745,7 @@ public class C
         (global, local) = local; // error 2
         (local, local) = local;
         (global, _) = local; // error 3
-        (local, _) = local; // error 4
+        (local, _) = local;
         (global, _) = global;
     }
     public static void Main()
@@ -2768,10 +2769,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(11, 27),
                 // (13,23): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (global, _) = local; // error 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(13, 23),
-                // (14,22): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (local, _) = local; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(14, 22)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(13, 23)
             );
         }
 

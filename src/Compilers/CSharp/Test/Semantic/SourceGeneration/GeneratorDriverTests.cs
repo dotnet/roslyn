@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -263,283 +265,6 @@ class C
         }
 
         [Fact]
-        public void TryApply_Edits_Fails_If_FullGeneration_Has_Not_Run()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator() { CanApplyChanges = false };
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
-
-            // try apply edits should fail if we've not run a full compilation yet
-            driver = driver.TryApplyEdits(compilation, out var outputCompilation, out var succeeded);
-            Assert.False(succeeded);
-            Assert.Equal(compilation, outputCompilation);
-        }
-
-        [Fact]
-        public void TryApply_Edits_Does_Nothing_When_Nothing_Pending()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
-
-            // run an initial generation pass
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            Assert.Single(outputCompilation.SyntaxTrees);
-
-            // now try apply edits (which should succeed, but do nothing)
-            driver = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
-            Assert.True(succeeded);
-            Assert.Equal(outputCompilation, editedCompilation);
-        }
-
-        [Fact]
-        public void Failed_Edit_Does_Not_Change_Compilation()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator() { CanApplyChanges = false };
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
-
-            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            Assert.Single(outputCompilation.SyntaxTrees);
-
-            // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
-
-            // now try apply edits (which will fail)
-            driver = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
-            Assert.False(succeeded);
-            Assert.Single(editedCompilation.SyntaxTrees);
-            Assert.Equal(compilation, editedCompilation);
-        }
-
-        [Fact]
-        public void Added_Additional_File()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
-
-            // run initial generation pass
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            Assert.Single(outputCompilation.SyntaxTrees);
-
-            // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file1.cs", ""));
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
-
-            // now try apply edits
-            driver = driver.TryApplyEdits(compilation, out outputCompilation, out var succeeded);
-            Assert.True(succeeded);
-            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
-        }
-
-        [Fact]
-        public void Multiple_Added_Additional_Files()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(parseOptions: parseOptions,
-                                                                  generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                                  optionsProvider: CompilerAnalyzerConfigOptionsProvider.Empty,
-                                                                  additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
-
-            // run initial generation pass
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
-
-            // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
-
-            // now try apply edits
-            driver = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
-            Assert.True(succeeded);
-            Assert.Equal(3, editedCompilation.SyntaxTrees.Count());
-
-            // if we run a full compilation again, we should still get 3 syntax trees
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
-            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
-
-            // lets add multiple edits   
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file3.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file5.cs", ""))));
-            // now try apply edits
-            driver = driver.TryApplyEdits(compilation, out editedCompilation, out succeeded);
-            Assert.True(succeeded);
-            Assert.Equal(6, editedCompilation.SyntaxTrees.Count());
-        }
-
-        [Fact]
-        public void Added_Additional_File_With_Full_Generation()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            var text = new InMemoryAdditionalText("a\\file1.cs", "");
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(parseOptions: parseOptions,
-                                                                  generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                                  optionsProvider: CompilerAnalyzerConfigOptionsProvider.Empty,
-                                                                  additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
-
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-
-            // we should have a single extra file for the additional texts
-            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
-
-            // even if we run a full gen, or partial, nothing should change yet
-            driver = driver.TryApplyEdits(outputCompilation, out var editedCompilation, out var succeeded);
-            Assert.True(succeeded);
-            Assert.Equal(2, editedCompilation.SyntaxTrees.Count());
-
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
-            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
-
-            // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
-
-            // now try apply edits
-            driver = driver.TryApplyEdits(compilation, out editedCompilation, out succeeded);
-            Assert.True(succeeded);
-            Assert.Equal(3, editedCompilation.SyntaxTrees.Count());
-
-            // if we run a full compilation again, we should still get 3 syntax trees
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
-            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
-        }
-
-        [Fact]
-        public void Edits_Are_Applied_During_Full_Generation()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            var text = new InMemoryAdditionalText("a\\file1.cs", "");
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(parseOptions: parseOptions,
-                                                                  generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                                  optionsProvider: CompilerAnalyzerConfigOptionsProvider.Empty,
-                                                                  additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
-
-            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
-
-            // add multiple edits   
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file3.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", ""))));
-
-            // but just do a full generation (don't try apply)
-            driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
-            Assert.Equal(5, outputCompilation.SyntaxTrees.Count());
-        }
-
-        [Fact]
-        public void Adding_Another_Generator_Makes_TryApplyEdits_Fail()
-        {
-            var source = @"
-class C { }
-";
-
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
-
-            SingleFileTestGenerator testGenerator1 = new SingleFileTestGenerator("public class D { }");
-            SingleFileTestGenerator2 testGenerator2 = new SingleFileTestGenerator2("public class E { }");
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(parseOptions: parseOptions,
-                                                                  generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),
-                                                                  optionsProvider: CompilerAnalyzerConfigOptionsProvider.Empty,
-                                                                  additionalTexts: ImmutableArray<AdditionalText>.Empty);
-
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
-
-            // try apply edits
-            driver = driver.TryApplyEdits(compilation, out _, out bool success);
-            Assert.True(success);
-
-            // add another generator
-            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator2));
-
-            // try apply changes should now fail
-            driver = driver.TryApplyEdits(compilation, out _, out success);
-            Assert.False(success);
-
-            // full generation
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
-            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
-
-            // try apply changes should now succeed
-            driver.TryApplyEdits(compilation, out _, out success);
-            Assert.True(success);
-        }
-
-        [Fact]
         public void Error_During_Initialization_Is_Reported()
         {
             var source = @"
@@ -760,6 +485,47 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        public void Generator_HintName_MustBe_Unique_Across_Outputs()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) =>
+                {
+                    spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+
+                    // throws immediately, because we're within the same output node
+                    Assert.Throws<ArgumentException>("hintName", () => spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)));
+
+                    // throws for .cs too
+                    Assert.Throws<ArgumentException>("hintName", () => spc.AddSource("test.cs", SourceText.From("public class D{}", Encoding.UTF8)));
+                });
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) =>
+                {
+                    // will not throw at this point, because we have no way of knowing what the other outputs added
+                    // we *will* throw later in the driver when we combine them however (this is a change for V2, but not visible from V1)
+                    spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify(
+                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "The hintName 'test.cs' of the added source file must be unique within a generator. (Parameter 'hintName')").WithLocation(1, 1)
+                );
+            Assert.Equal(1, outputCompilation.SyntaxTrees.Count());
+        }
+
         [Fact]
         public void Generator_HintName_Is_Appended_With_GeneratorName()
         {
@@ -954,42 +720,6 @@ class C { }
         }
 
         [Fact]
-        public void Cancellation_During_Initialization_Doesnt_Report_As_Generator_Error()
-        {
-            var source = @"
-class C 
-{
-}
-";
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-
-            Assert.Single(compilation.SyntaxTrees);
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-
-            var testGenerator = new CallbackGenerator(
-                onInit: (i) => { cts.Cancel(); },
-                onExecute: (e) => { }
-                );
-
-            // test generator cancels the token. Check that the call to this generator doesn't make it look like it errored.
-            var testGenerator2 = new CallbackGenerator2(
-                onInit: (i) => { i.CancellationToken.ThrowIfCancellationRequested(); },
-                onExecute: (e) => { throw ExceptionUtilities.Unreachable; });
-
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
-            var oldDriver = driver;
-
-            Assert.Throws<OperationCanceledException>(() =>
-               driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics, cts.Token)
-               );
-            Assert.Same(oldDriver, driver);
-        }
-
-        [Fact]
         public void Cancellation_During_Execution_Doesnt_Report_As_Generator_Error()
         {
             var source = @"
@@ -1047,7 +777,7 @@ class C { }
 
             Assert.Single(outputDiagnostics);
             outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The provided SourceText must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The SourceText with hintName 'a.cs' must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
                 );
         }
 
@@ -1074,6 +804,67 @@ class C
             driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.Same(parseOptions, passedOptions);
+        }
+
+        [Fact]
+        public void AdditionalFiles_Are_Passed_To_Generator()
+        {
+            var source = @"
+class C 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var texts = ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a", "abc"), new InMemoryAdditionalText("b", "def"));
+
+            ImmutableArray<AdditionalText> passedIn = default;
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => passedIn = e.AdditionalFiles
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions, additionalTexts: texts);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.Equal(2, passedIn.Length);
+            Assert.Equal<AdditionalText>(texts, passedIn);
+        }
+
+        [Fact]
+        public void AnalyzerConfigOptions_Are_Passed_To_Generator()
+        {
+            var source = @"
+class C 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
+
+            AnalyzerConfigOptionsProvider? passedIn = null;
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => passedIn = e.AnalyzerConfigOptions
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions, optionsProvider: options);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.NotNull(passedIn);
+
+            Assert.True(passedIn!.GlobalOptions.TryGetValue("a", out var item1));
+            Assert.Equal("abc", item1);
+
+            Assert.True(passedIn!.GlobalOptions.TryGetValue("b", out var item2));
+            Assert.Equal("def", item2);
         }
 
         [Fact]
@@ -1378,7 +1169,7 @@ class C { }
 
             var options = ((CSharpCompilationOptions)compilation.Options);
 
-            // generator driver diagnostics are reported seperately from the compilation
+            // generator driver diagnostics are reported separately from the compilation
             verifyDiagnosticsWithOptions(options,
                 Diagnostic("GEN001").WithLocation(1, 1),
                 Diagnostic("GEN002").WithLocation(1, 1));
@@ -1490,6 +1281,845 @@ class C { }
                 outputCompilation.VerifyDiagnostics();
                 diagnostics.Verify(expected);
             }
+        }
+
+        [Fact]
+        public void GeneratorDriver_Prefers_Incremental_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+
+            int incrementalInitCount = 0;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => incrementalInitCount++));
+
+            int dualInitCount = 0, dualExecuteCount = 0, dualIncrementalInitCount = 0;
+            var generator3 = new IncrementalAndSourceCallbackGenerator((ic) => dualInitCount++, (sgc) => dualExecuteCount++, (ic) => dualIncrementalInitCount++);
+
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
+            driver.RunGenerators(compilation);
+
+            // ran individual incremental and source generators
+            Assert.Equal(1, initCount);
+            Assert.Equal(1, executeCount);
+            Assert.Equal(1, incrementalInitCount);
+
+            // ran the combined generator only as an IIncrementalGenerator
+            Assert.Equal(0, dualInitCount);
+            Assert.Equal(0, dualExecuteCount);
+            Assert.Equal(1, dualIncrementalInitCount);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Initializes_Incremental_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int incrementalInitCount = 0;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => incrementalInitCount++));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver.RunGenerators(compilation);
+
+            // ran the incremental generator
+            Assert.Equal(1, incrementalInitCount);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Exception_During_Initialization()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => throw e));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Single(runResults.Results);
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Exception_During_Execution()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e)));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Single(runResults.Results);
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Exception_During_Execution_Doesnt_Produce_AnySource()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => spc.AddSource("test", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e);
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Single(runResults.Results);
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Exception_During_Execution_Doesnt_Stop_Other_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e);
+            }));
+
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => spc.AddSource("test", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2 }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Equal(2, runResults.Results.Length);
+            Assert.Single(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_No_Pipeline_Callback_Is_Valid()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => { }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Can_Add_PostInit_Source()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => ic.RegisterPostInitializationOutput(c => c.AddSource("a", "class D {}"))));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+            Assert.Empty(diagnostics);
+        }
+
+        [Fact]
+        public void User_WrappedFunc_Throw_Exceptions()
+        {
+            Func<int, CancellationToken, int> func = (input, _) => input;
+            Func<int, CancellationToken, int> throwsFunc = (input, _) => throw new InvalidOperationException("user code exception");
+            Func<int, CancellationToken, int> timeoutFunc = (input, ct) => { ct.ThrowIfCancellationRequested(); return input; };
+            Func<int, CancellationToken, int> otherTimeoutFunc = (input, _) => throw new OperationCanceledException();
+
+            var userFunc = func.WrapUserFunction();
+            var userThrowsFunc = throwsFunc.WrapUserFunction();
+            var userTimeoutFunc = timeoutFunc.WrapUserFunction();
+            var userOtherTimeoutFunc = otherTimeoutFunc.WrapUserFunction();
+
+            // user functions return same values when wrapped
+            var result = userFunc(10, CancellationToken.None);
+            var userResult = userFunc(10, CancellationToken.None);
+            Assert.Equal(10, result);
+            Assert.Equal(result, userResult);
+
+            // exceptions thrown in user code are wrapped
+            Assert.Throws<InvalidOperationException>(() => throwsFunc(20, CancellationToken.None));
+            Assert.Throws<UserFunctionException>(() => userThrowsFunc(20, CancellationToken.None));
+
+            try
+            {
+                userThrowsFunc(20, CancellationToken.None);
+            }
+            catch (UserFunctionException e)
+            {
+                Assert.IsType<InvalidOperationException>(e.InnerException);
+            }
+
+            // cancellation is not wrapped, and is bubbled up
+            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30, new CancellationToken(true)));
+            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30, new CancellationToken(true)));
+
+            // unless it wasn't *our* cancellation token, in which case it still gets wrapped
+            Assert.Throws<OperationCanceledException>(() => otherTimeoutFunc(30, CancellationToken.None));
+            Assert.Throws<UserFunctionException>(() => userOtherTimeoutFunc(30, CancellationToken.None));
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Doesnt_Run_For_Same_Input()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var filePaths = ctx.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees).Select((tree, _) => tree.FilePath);
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
+            }));
+
+            // run the generator once, and check it was passed the compilation
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+
+            // run the same compilation through again, and confirm the output wasn't called
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Runs_Only_For_Changed_Inputs()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var text1 = new InMemoryAdditionalText("Text1", "content1");
+            var text2 = new InMemoryAdditionalText("Text2", "content2");
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+            List<AdditionalText> textsCalledFor = new List<AdditionalText>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
+
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, c) => { textsCalledFor.Add(c); });
+            }));
+
+            // run the generator once, and check it was passed the compilation
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, additionalTexts: new[] { text1 }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+            Assert.Equal(1, textsCalledFor.Count);
+            Assert.Equal(text1, textsCalledFor[0]);
+
+            // clear the results, add an additional text, but keep the compilation the same
+            compilationsCalledFor.Clear();
+            textsCalledFor.Clear();
+            driver = driver.AddAdditionalTexts(ImmutableArray.Create<AdditionalText>(text2));
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(0, compilationsCalledFor.Count);
+            Assert.Equal(1, textsCalledFor.Count);
+            Assert.Equal(text2, textsCalledFor[0]);
+
+            // now edit the compilation
+            compilationsCalledFor.Clear();
+            textsCalledFor.Clear();
+            var newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newComp"));
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(newCompilation, compilationsCalledFor[0]);
+            Assert.Equal(0, textsCalledFor.Count);
+
+            // re run without changing anything
+            compilationsCalledFor.Clear();
+            textsCalledFor.Clear();
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(0, compilationsCalledFor.Count);
+            Assert.Equal(0, textsCalledFor.Count);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Can_Add_Comparer_To_Input_Node()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var compilationSource = ctx.CompilationProvider.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
+                ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
+                {
+                    compilationsCalledFor.Add(c);
+                });
+            }));
+
+            // run the generator once, and check it was passed the compilation
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+
+            // now edit the compilation, run the generator, and confirm that the output was not called again this time
+            Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Can_Add_Comparer_To_Combine_Node()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<AdditionalText> texts = new List<AdditionalText>() { new InMemoryAdditionalText("abc", "") };
+
+            List<(Compilation, ImmutableArray<AdditionalText>)> calledFor = new List<(Compilation, ImmutableArray<AdditionalText>)>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.Collect())
+                                                // comparer that ignores the LHS (additional texts)
+                                                .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
+                ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
+                {
+                    calledFor.Add(c);
+                });
+            }));
+
+            // run the generator once, and check it was passed the compilation + additional texts
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: texts);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(1, calledFor.Count);
+            Assert.Equal(compilation, calledFor[0].Item1);
+            Assert.Equal(texts[0], calledFor[0].Item2.Single());
+
+            // edit the additional texts, and verify that the output was *not* called again on the next run
+            driver = driver.RemoveAdditionalTexts(texts.ToImmutableArray());
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(1, calledFor.Count);
+
+            // now edit the compilation, run the generator, and confirm that the output *was* called again this time with the new compilation and no additional texts
+            Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(2, calledFor.Count);
+            Assert.Equal(newCompilation, calledFor[1].Item1);
+            Assert.Empty(calledFor[1].Item2);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Register_End_Node_Only_Once_Through_Combines()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = ctx.CompilationProvider;
+                var source2 = ctx.CompilationProvider.Combine(source);
+                var source3 = ctx.CompilationProvider.Combine(source2);
+                var source4 = ctx.CompilationProvider.Combine(source3);
+                var source5 = ctx.CompilationProvider.Combine(source4);
+
+                ctx.RegisterSourceOutput(source5, (spc, c) =>
+                {
+                    compilationsCalledFor.Add(c.Item1);
+                });
+            }));
+
+            // run the generator and check that we didn't multiple register the generate source node through the combine
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_PostInit_Source_Is_Cached()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<ClassDeclarationSyntax> classes = new List<ClassDeclarationSyntax>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterPostInitializationOutput(c => c.AddSource("a", "class D {}"));
+
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(2, classes.Count);
+            Assert.Equal("C", classes[0].Identifier.ValueText);
+            Assert.Equal("D", classes[1].Identifier.ValueText);
+
+            // clear classes, re-run
+            classes.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(classes);
+
+            // modify the original tree, see that the post init is still cached
+            var c2 = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText("class E{}", parseOptions));
+            classes.Clear();
+            driver = driver.RunGenerators(c2);
+            Assert.Single(classes);
+            Assert.Equal("E", classes[0].Identifier.ValueText);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Can_Be_Cancelled()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            bool generatorCancelled = false;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var step1 = ctx.CompilationProvider.Select((c, ct) => { generatorCancelled = true; cts.Cancel(); return c; });
+                var step2 = step1.Select((c, ct) => { ct.ThrowIfCancellationRequested(); return c; });
+
+                ctx.RegisterSourceOutput(step2, (spc, c) => spc.AddSource("a", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
+            Assert.True(generatorCancelled);
+        }
+
+        [Fact]
+        public void ParseOptions_Can_Be_Updated()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<ParseOptions> parseOptionsCalledFor = new List<ParseOptions>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, p) => { parseOptionsCalledFor.Add(p); });
+            }));
+
+            // run the generator once, and check it was passed the parse options
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, parseOptionsCalledFor.Count);
+            Assert.Equal(parseOptions, parseOptionsCalledFor[0]);
+
+            // clear the results, and re-run
+            parseOptionsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(parseOptionsCalledFor);
+
+            // now update the parse options
+            parseOptionsCalledFor.Clear();
+            var newParseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Diagnose);
+            driver = driver.WithUpdatedParseOptions(newParseOptions);
+
+            // check we ran
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, parseOptionsCalledFor.Count);
+            Assert.Equal(newParseOptions, parseOptionsCalledFor[0]);
+
+            // clear the results, and re-run
+            parseOptionsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(parseOptionsCalledFor);
+
+            // replace it with null, and check that it throws
+            Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
+        }
+
+        [Fact]
+        public void AnalyzerConfig_Can_Be_Updated()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+            string? analyzerOptionsValue = string.Empty;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (spc, p) => p.GlobalOptions.TryGetValue("test", out analyzerOptionsValue));
+            }));
+
+            var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
+            builder.Add("test", "value1");
+            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+
+            // run the generator once, and check it was passed the configs
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal("value1", analyzerOptionsValue);
+
+            // clear the results, and re-run
+            analyzerOptionsValue = null;
+            driver = driver.RunGenerators(compilation);
+            Assert.Null(analyzerOptionsValue);
+
+            // now update the config
+            analyzerOptionsValue = null;
+            builder.Clear();
+            builder.Add("test", "value2");
+            var newOptionsProvider = optionsProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+            driver = driver.WithUpdatedAnalyzerConfigOptions(newOptionsProvider);
+
+            // check we ran
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal("value2", analyzerOptionsValue);
+
+            // replace it with null, and check that it throws
+            Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedAnalyzerConfigOptions(null!));
+        }
+
+        [Fact]
+        public void AdditionalText_Can_Be_Replaced()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            InMemoryAdditionalText additionalText1 = new InMemoryAdditionalText("path1.txt", "");
+            InMemoryAdditionalText additionalText2 = new InMemoryAdditionalText("path2.txt", "");
+            InMemoryAdditionalText additionalText3 = new InMemoryAdditionalText("path3.txt", "");
+
+
+            List<string?> additionalTextPaths = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((t, _) => t.Path), (spc, p) => { additionalTextPaths.Add(p); });
+            }));
+
+            // run the generator once and check we saw the additional file
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText1, additionalText2, additionalText3 });
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(3, additionalTextPaths.Count);
+            Assert.Equal("path1.txt", additionalTextPaths[0]);
+            Assert.Equal("path2.txt", additionalTextPaths[1]);
+            Assert.Equal("path3.txt", additionalTextPaths[2]);
+
+            // re-run and check nothing else got added
+            additionalTextPaths.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(additionalTextPaths);
+
+            // now, update the additional text, but keep the path the same
+            additionalTextPaths.Clear();
+            driver = driver.ReplaceAdditionalText(additionalText2, new InMemoryAdditionalText("path4.txt", ""));
+
+            // run, and check that only the replaced file was invoked
+            driver = driver.RunGenerators(compilation);
+            Assert.Single(additionalTextPaths);
+            Assert.Equal("path4.txt", additionalTextPaths[0]);
+
+            // replace it with null, and check that it throws
+            Assert.Throws<ArgumentNullException>(() => driver.ReplaceAdditionalText(additionalText1, null!));
+        }
+
+        [Fact]
+        public void Replaced_Input_Is_Treated_As_Modified()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            InMemoryAdditionalText additionalText = new InMemoryAdditionalText("path.txt", "abc");
+
+            List<string?> additionalTextPaths = new List<string?>();
+            List<string?> additionalTextsContents = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var texts = ctx.AdditionalTextsProvider;
+                var paths = texts.Select((t, _) => t?.Path);
+                var contents = texts.Select((t, _) => t?.GetText()?.ToString());
+
+                ctx.RegisterSourceOutput(paths, (spc, p) => { additionalTextPaths.Add(p); });
+                ctx.RegisterSourceOutput(contents, (spc, p) => { additionalTextsContents.Add(p); });
+            }));
+
+            // run the generator once and check we saw the additional file
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText });
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, additionalTextPaths.Count);
+            Assert.Equal("path.txt", additionalTextPaths[0]);
+
+            Assert.Equal(1, additionalTextsContents.Count);
+            Assert.Equal("abc", additionalTextsContents[0]);
+
+            // re-run and check nothing else got added
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, additionalTextPaths.Count);
+            Assert.Equal(1, additionalTextsContents.Count);
+
+            // now, update the additional text, but keep the path the same
+            additionalTextPaths.Clear();
+            additionalTextsContents.Clear();
+            var secondText = new InMemoryAdditionalText("path.txt", "def");
+            driver = driver.ReplaceAdditionalText(additionalText, secondText);
+
+            // run, and check that only the contents got re-run
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(additionalTextPaths);
+
+            Assert.Equal(1, additionalTextsContents.Count);
+            Assert.Equal("def", additionalTextsContents[0]);
+
+            // now replace the text with a different path, but the same text
+            additionalTextPaths.Clear();
+            additionalTextsContents.Clear();
+            var thirdText = new InMemoryAdditionalText("path2.txt", "def");
+            driver = driver.ReplaceAdditionalText(secondText, thirdText);
+
+            // run, and check that only the paths got re-run
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(1, additionalTextPaths.Count);
+            Assert.Equal("path2.txt", additionalTextPaths[0]);
+
+            Assert.Empty(additionalTextsContents);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, driverOptions: new GeneratorDriverOptions(disabledOutput), parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Single(result.Results);
+            Assert.Empty(result.Results[0].Diagnostics);
+
+            // verify the expected outputs were generated
+            // NOTE: adding new output types will cause this test to fail. Update above as needed.
+            foreach (IncrementalGeneratorOutputKind kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
+            {
+                if (kind == IncrementalGeneratorOutputKind.None)
+                    continue;
+
+                if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
+                {
+                    Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
+                }
+                else
+                {
+                    Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
+                }
+
+                bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
+            }
+        }
+
+        [Fact]
+        public void Metadata_References_Provider()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            var metadataRefs = new[] {
+                MetadataReference.CreateFromAssemblyInternal(this.GetType().Assembly),
+                MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly)
+            };
+            Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, references: metadataRefs);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<string?> referenceList = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.MetadataReferencesProvider, (spc, r) => { referenceList.Add(r.Display); });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(referenceList[0], metadataRefs[0].Display);
+            Assert.Equal(referenceList[1], metadataRefs[1].Display);
+
+            // re-run and check we didn't see anything new
+            referenceList.Clear();
+
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(referenceList);
+
+            // Modify the reference
+            var modifiedRef = metadataRefs[0].WithAliases(new[] { "Alias " });
+            metadataRefs[0] = modifiedRef;
+            compilation = compilation.WithReferences(metadataRefs);
+
+            driver = driver.RunGenerators(compilation);
+            Assert.Single(referenceList, modifiedRef.Display);
         }
     }
 }

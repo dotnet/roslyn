@@ -113,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                         If param Is parameterSyntax Then
                                             Exit For
                                         End If
+
                                         ordinal = ordinal + 1
                                     Next
 

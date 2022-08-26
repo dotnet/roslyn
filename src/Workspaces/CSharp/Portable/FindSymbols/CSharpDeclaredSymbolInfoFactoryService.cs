@@ -11,6 +11,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -24,7 +25,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
 {
     [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
-    internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService
+    internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
+        CompilationUnitSyntax,
+        UsingDirectiveSyntax,
+        BaseNamespaceDeclarationSyntax,
+        TypeDeclarationSyntax,
+        EnumDeclarationSyntax,
+        MemberDeclarationSyntax,
+        NameSyntax,
+        QualifiedNameSyntax,
+        IdentifierNameSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -82,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax nsDecl))
+                if (current is BaseNamespaceDeclarationSyntax nsDecl)
                 {
                     ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
@@ -147,7 +157,16 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo)
+        protected override void AddDeclaredSymbolInfosWorker(
+            SyntaxNode container,
+            MemberDeclarationSyntax node,
+            StringTable stringTable,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            CancellationToken cancellationToken)
         {
             // If this is a part of partial type that only contains nested types, then we don't make an info type for
             // it. That's because we effectively think of this as just being a virtual container just to hold the nested
@@ -158,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 typeDeclaration.Members.Any() &&
                 typeDeclaration.Members.All(m => m is BaseTypeDeclarationSyntax))
             {
-                declaredSymbolInfo = default;
-                return false;
+                return;
             }
 
             switch (node.Kind())
@@ -170,12 +188,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                     var typeDecl = (TypeDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         typeDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(typeDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         typeDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         node.Kind() switch
                         {
@@ -186,126 +204,128 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
                             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
                         },
-                        GetAccessibility(typeDecl, typeDecl.Modifiers),
+                        GetAccessibility(container, typeDecl.Modifiers),
                         typeDecl.Identifier.Span,
                         GetInheritanceNames(stringTable, typeDecl.BaseList),
-                        IsNestedType(typeDecl));
-                    return true;
+                        IsNestedType(typeDecl)));
+                    return;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(enumDecl, enumDecl.Modifiers),
+                        GetAccessibility(container, enumDecl.Modifiers),
                         enumDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
-                        isNestedType: IsNestedType(enumDecl));
-                    return true;
+                        isNestedType: IsNestedType(enumDecl)));
+                    return;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         ctorDecl.Identifier.ValueText,
                         GetConstructorSuffix(ctorDecl),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         ctorDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Constructor,
-                        GetAccessibility(ctorDecl, ctorDecl.Modifiers),
+                        GetAccessibility(container, ctorDecl.Modifiers),
                         ctorDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
-                        parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0);
-                    return true;
+                        parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0));
+                    return;
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Delegate,
-                        GetAccessibility(delegateDecl, delegateDecl.Modifiers),
+                        GetAccessibility(container, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         enumMember.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Event,
-                        GetAccessibility(eventDecl, eventDecl.Modifiers),
+                        GetAccessibility(container, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         "this", GetIndexerSuffix(indexerDecl),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         indexerDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Indexer,
-                        GetAccessibility(indexerDecl, indexerDecl.Modifiers),
+                        GetAccessibility(container, indexerDecl.Modifiers),
                         indexerDecl.ThisKeyword.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    var isExtensionMethod = IsExtensionMethod(method);
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         method.Identifier.ValueText, GetMethodSuffix(method),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         method.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        IsExtensionMethod(method) ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
-                        GetAccessibility(method, method.Modifiers),
+                        isExtensionMethod ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
+                        GetAccessibility(container, method.Modifiers),
                         method.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: method.ParameterList?.Parameters.Count ?? 0,
-                        typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0);
-                    return true;
+                        typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0));
+                    if (isExtensionMethod)
+                        AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
+                    return;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         property.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         property.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Property,
-                        GetAccessibility(property, property.Modifiers),
+                        GetAccessibility(container, property.Modifiers),
                         property.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
-                case SyntaxKind.VariableDeclarator:
-                    // could either be part of a field declaration or an event field declaration
-                    var variableDeclarator = (VariableDeclaratorSyntax)node;
-                    var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-                    if (variableDeclaration?.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    var fieldDeclaration = (BaseFieldDeclarationSyntax)node;
+                    foreach (var variableDeclarator in fieldDeclaration.Declaration.Variables)
                     {
                         var kind = fieldDeclaration is EventFieldDeclarationSyntax
                             ? DeclaredSymbolInfoKind.Event
@@ -313,25 +333,51 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                                 ? DeclaredSymbolInfoKind.Constant
                                 : DeclaredSymbolInfoKind.Field;
 
-                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
                             variableDeclarator.Identifier.ValueText, null,
-                            GetContainerDisplayName(fieldDeclaration.Parent),
-                            GetFullyQualifiedContainerName(fieldDeclaration.Parent),
+                            containerDisplayName,
+                            fullyQualifiedContainerName,
                             fieldDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
                             kind,
-                            GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers),
+                            GetAccessibility(container, fieldDeclaration.Modifiers),
                             variableDeclarator.Identifier.Span,
-                            inheritanceNames: ImmutableArray<string>.Empty);
-                        return true;
+                            inheritanceNames: ImmutableArray<string>.Empty));
                     }
 
-                    break;
+                    return;
             }
-
-            declaredSymbolInfo = default;
-            return false;
         }
+
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(CompilationUnitSyntax node)
+            => node.Members;
+
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(BaseNamespaceDeclarationSyntax node)
+            => node.Members;
+
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(TypeDeclarationSyntax node)
+            => node.Members;
+
+        protected override IEnumerable<MemberDeclarationSyntax> GetChildren(EnumDeclarationSyntax node)
+            => node.Members;
+
+        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(CompilationUnitSyntax node)
+            => node.Usings;
+
+        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(BaseNamespaceDeclarationSyntax node)
+            => node.Usings;
+
+        protected override NameSyntax GetName(BaseNamespaceDeclarationSyntax node)
+            => node.Name;
+
+        protected override NameSyntax GetLeft(QualifiedNameSyntax node)
+            => node.Left;
+
+        protected override NameSyntax GetRight(QualifiedNameSyntax node)
+            => node.Right;
+
+        protected override SyntaxToken GetIdentifier(IdentifierNameSyntax node)
+            => node.Identifier;
 
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;
@@ -432,13 +478,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private static string GetContainerDisplayName(SyntaxNode node)
+        protected override string GetContainerDisplayName(MemberDeclarationSyntax node)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
 
-        private static string GetFullyQualifiedContainerName(SyntaxNode node)
+        protected override string GetFullyQualifiedContainerName(MemberDeclarationSyntax node, string rootNamespace)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
-        private static Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
+        private static Accessibility GetAccessibility(SyntaxNode container, SyntaxTokenList modifiers)
         {
             var sawInternal = false;
             foreach (var modifier in modifiers)
@@ -455,12 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
 
             if (sawInternal)
-            {
                 return Accessibility.Internal;
-            }
 
             // No accessibility modifiers:
-            switch (node.Parent.Kind())
+            switch (container.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
@@ -473,10 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return Accessibility.Public;
                 case SyntaxKind.CompilationUnit:
                     // Things are private by default in script
-                    if (((CSharpParseOptions)node.SyntaxTree.Options).Kind == SourceCodeKind.Script)
-                    {
+                    if (((CSharpParseOptions)container.SyntaxTree.Options).Kind == SourceCodeKind.Script)
                         return Accessibility.Private;
-                    }
 
                     return Accessibility.Internal;
 
@@ -512,12 +554,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
 
         // Root namespace is a VB only concept, which basically means root namespace is always global in C#.
-        public override string GetRootNamespace(CompilationOptions compilationOptions)
+        protected override string GetRootNamespace(CompilationOptions compilationOptions)
             => string.Empty;
 
-        public override bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases)
+        protected override bool TryGetAliasesFromUsingDirective(
+            UsingDirectiveSyntax usingDirectiveNode, out ImmutableArray<(string aliasName, string name)> aliases)
         {
-            if (node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null)
+            if (usingDirectiveNode.Alias != null)
             {
                 if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
                     TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name, out _))
@@ -531,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        public override string GetReceiverTypeName(SyntaxNode node)
+        protected override string GetReceiverTypeName(MemberDeclarationSyntax node)
         {
             var methodDeclaration = (MethodDeclarationSyntax)node;
             Debug.Assert(IsExtensionMethod(methodDeclaration));
@@ -562,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     case GenericNameSyntax genericNameNode:
                         var name = genericNameNode.Identifier.Text;
                         var arity = genericNameNode.Arity;
-                        simpleTypeName = arity == 0 ? name : name + GetMetadataAritySuffix(arity);
+                        simpleTypeName = arity == 0 ? name : name + ArityUtilities.GetMetadataAritySuffix(arity);
                         return true;
 
                     case PredefinedTypeSyntax predefinedTypeNode:

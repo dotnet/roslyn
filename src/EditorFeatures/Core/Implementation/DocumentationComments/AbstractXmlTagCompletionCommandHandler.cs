@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         private void ExecuteCommandWorker(TypeCharCommandArgs args, CommandExecutionContext context)
         {
-            if (args.TypedChar != '>' && args.TypedChar != '/')
+            if (args.TypedChar is not '>' and not '/')
             {
                 return;
             }

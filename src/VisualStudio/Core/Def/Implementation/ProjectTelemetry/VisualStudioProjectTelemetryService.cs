@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -58,13 +59,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectTelemetryService(
             VisualStudioWorkspaceImpl workspace,
-            IThreadingContext threadingContext) : base(threadingContext)
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider) : base(threadingContext)
         {
             _workspace = workspace;
 
             _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryData>(
                 TimeSpan.FromSeconds(1),
                 NotifyTelemetryServiceAsync,
+                asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Telemetry),
                 threadingContext.DisposalToken);
         }
 
@@ -117,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task NotifyTelemetryServiceAsync(
+        private async ValueTask NotifyTelemetryServiceAsync(
             ImmutableArray<ProjectTelemetryData> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

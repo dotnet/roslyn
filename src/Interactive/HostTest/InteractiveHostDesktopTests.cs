@@ -63,7 +63,7 @@ System.Console.Error.WriteLine(""error-\u7890!"");
             Assert.Equal("4\r\n", error);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46414")]
         public async Task StackOverflow()
         {
             var process = Host.TryGetProcess();

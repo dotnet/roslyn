@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -35,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(exportProvider.GetExportedValue(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
-                Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                Using tempRoot = New TempRoot(), analyzer = New VisualStudioAnalyzer(tempRoot.CreateFile().Path, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
 
@@ -60,7 +61,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim file = Path.GetTempFileName()
 
             Using workspace = New TestWorkspace(composition:=composition)
-                Dim eventHandler = New EventHandlers(file, workspace)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                Dim eventHandler = New EventHandlers(file, globalOptions)
                 AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
                 Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
@@ -77,15 +79,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         Private Class EventHandlers
             Public File As String
-            Private ReadOnly _workspace As Workspace
+            Private ReadOnly _globalOptions As IGlobalOptionService
 
-            Public Sub New(file As String, workspace As Workspace)
+            Public Sub New(file As String, globalOptions As IGlobalOptionService)
                 Me.File = file
-                _workspace = workspace
+                _globalOptions = globalOptions
             End Sub
 
             Public Sub DiagnosticAddedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                Dim diagnostics = e.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
                 Assert.Equal(1, diagnostics.Length)
                 Dim diagnostic As DiagnosticData = diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
@@ -93,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Sub
 
             Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                Dim diagnostics = e.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
                 Assert.Equal(0, diagnostics.Length)
             End Sub
         End Class

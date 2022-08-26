@@ -219,7 +219,7 @@ namespace RunTests
 
                 // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
                 // to bug investigations.
-                if (name == "procdump" || name == "conhost")
+                if (name is "procdump" or "conhost")
                 {
                     return;
                 }
@@ -288,7 +288,7 @@ namespace RunTests
 
             foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
             }
 
             return list;

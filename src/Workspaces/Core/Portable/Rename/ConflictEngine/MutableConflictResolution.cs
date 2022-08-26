@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -113,6 +114,33 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 
+            // If possible, check that the new file name is unique to on disk files as well 
+            // as solution items.
+            IOUtilities.PerformIO(() =>
+            {
+                if (File.Exists(document.FilePath))
+                {
+                    var directory = Directory.GetParent(document.FilePath).FullName;
+                    var newDocumentFilePath = Path.Combine(directory, newName);
+
+                    var versionNumber = 1;
+                    while (File.Exists(newDocumentFilePath))
+                    {
+                        if (newName.Equals(document.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // If the document name is the same as the original, we know 
+                            // it can be renamed to that because the old file on disk will
+                            // be removed.
+                            return;
+                        }
+
+                        var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
+                        newName = Path.ChangeExtension(nameWithoutExtension, extension);
+                        newDocumentFilePath = Path.Combine(directory, newName);
+                    }
+                }
+            });
+
             _renamedDocument = (document.Id, newName);
         }
 
@@ -136,13 +164,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (ErrorMessage != null)
                 return new ConflictResolution(ErrorMessage);
 
-            var documentIds = this._renamedSpansTracker.DocumentIds.Concat(
+            var documentIds = _renamedSpansTracker.DocumentIds.Concat(
                 this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
 
             var relatedLocations = this.RelatedLocations.ToImmutableArray();
 
-            var documentToModifiedSpansMap = this._renamedSpansTracker.GetDocumentToModifiedSpansMap();
-            var documentToComplexifiedSpansMap = this._renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
+            var documentToModifiedSpansMap = _renamedSpansTracker.GetDocumentToModifiedSpansMap();
+            var documentToComplexifiedSpansMap = _renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
             var documentToRelatedLocationsMap = this.RelatedLocations.GroupBy(loc => loc.DocumentId).ToImmutableDictionary(
                 g => g.Key, g => g.ToImmutableArray());
 

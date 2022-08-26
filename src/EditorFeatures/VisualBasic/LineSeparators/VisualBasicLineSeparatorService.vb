@@ -114,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
                         Dim prev = children(i - 1)
                         spans.Add(GetLineSeparatorSpanForNode(prev))
                     End If
+
                     spans.Add(GetLineSeparatorSpanForNode(cur))
 
                     seenSeparator = True
@@ -128,6 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
                     Dim nextToLast = children(children.Count - 2)
                     spans.Add(GetLineSeparatorSpanForNode(nextToLast))
                 End If
+
                 If lastChild.Parent.Kind = SyntaxKind.CompilationUnit Then
                     spans.Add(GetLineSeparatorSpanForNode(lastChild))
                 End If

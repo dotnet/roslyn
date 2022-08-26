@@ -65,10 +65,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If methodDeclaration IsNot Nothing Then
                 memberKindKeyword = methodDeclaration.DeclarationKeyword.Kind
             End If
+
             Dim propertyDeclaration = context.TargetToken.GetAncestor(Of PropertyStatementSyntax)()
             If propertyDeclaration IsNot Nothing Then
                 memberKindKeyword = propertyDeclaration.DeclarationKeyword.Kind
             End If
+
             Dim eventDeclaration = context.TargetToken.GetAncestor(Of EventStatementSyntax)()
             If eventDeclaration IsNot Nothing Then
                 memberKindKeyword = eventDeclaration.DeclarationKeyword.Kind
@@ -115,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If Not method.ReturnsVoid Then
                     Return memberKindKeyword = SyntaxKind.FunctionKeyword
                 End If
+
                 Return memberKindKeyword = SyntaxKind.SubKeyword
             End If
 
@@ -164,6 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If container Is Nothing Then
                 Return ImmutableArray(Of ISymbol).Empty
             End If
+
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
             Dim hashSet = New HashSet(Of ISymbol)(symbols.ToArray() _
@@ -208,6 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     defaultListing.Add(containingType.ContainingNamespace)
                     AddAliasesAndContainers(containingType.ContainingNamespace, defaultListing, node, semanticModel)
                 End If
+
                 Return defaultListing.ToImmutableArray()
             End If
 

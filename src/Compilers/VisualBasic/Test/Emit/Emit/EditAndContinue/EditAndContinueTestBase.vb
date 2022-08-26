@@ -186,12 +186,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Friend Shared Sub CheckEncLogDefinitions(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry)), itemInspector:=AddressOf EncLogRowToString)
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry.Handle.Kind)), itemInspector:=AddressOf EncLogRowToString)
         End Sub
 
-        Friend Shared Function IsDefinition(entry As EditAndContinueLogEntry) As Boolean
+        Friend Shared Function IsDefinition(kind As HandleKind) As Boolean
             Dim index As TableIndex
-            Assert.True(MetadataTokens.TryGetTableIndex(entry.Handle.Kind, index))
+            Assert.True(MetadataTokens.TryGetTableIndex(kind, index))
 
             Select Case index
                 Case TableIndex.MethodDef,
@@ -230,6 +230,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
+        End Sub
+
+        Friend Shared Sub CheckEncMapDefinitions(reader As MetadataReader, ParamArray [handles] As EntityHandle())
+            AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries().Where(Function(e) IsDefinition(e.Kind)), itemInspector:=AddressOf EncMapRowToString)
         End Sub
 
         Friend Shared Sub CheckNames(reader As MetadataReader, [handles] As StringHandle(), ParamArray expectedNames As String())

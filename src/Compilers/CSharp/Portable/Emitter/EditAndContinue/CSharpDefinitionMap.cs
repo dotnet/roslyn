@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     string name = member.Name;
                     int slotIndex;
 
-                    switch (GeneratedNames.GetKind(name))
+                    switch (GeneratedNameParser.GetKind(name))
                     {
                         case GeneratedNameKind.AwaiterField:
-                            if (GeneratedNames.TryParseSlotIndex(name, out slotIndex))
+                            if (GeneratedNameParser.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         case GeneratedNameKind.HoistedLocalField:
                         case GeneratedNameKind.HoistedSynthesizedLocalField:
-                            if (GeneratedNames.TryParseSlotIndex(name, out slotIndex))
+                            if (GeneratedNameParser.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;
                                 if (slotIndex >= localSlotDebugInfo.Length)

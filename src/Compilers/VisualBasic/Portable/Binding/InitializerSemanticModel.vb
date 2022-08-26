@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                     If expressionInitializer IsNot Nothing Then
-                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer)
+                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer, binderOpt:=Nothing)
                     End If
 
                 Case SymbolKind.Property
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                     If expressionInitializer IsNot Nothing Then
-                        Return New BoundPropertyInitializer(initializer, propertySymbols, Nothing, expressionInitializer)
+                        Return New BoundPropertyInitializer(initializer, propertySymbols, Nothing, expressionInitializer, binderOpt:=Nothing)
                     End If
 
                 Case SymbolKind.Parameter

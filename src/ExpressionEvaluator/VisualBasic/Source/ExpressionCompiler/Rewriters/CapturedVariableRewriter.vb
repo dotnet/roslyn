@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' will have a hoisted "me" field if it needs access to the containing
                 ' display class, but the display class may not have a "me" field.
                 If symbol.Type.IsClosureOrStateMachineType() AndAlso
-                    GeneratedNames.GetKind(name) <> GeneratedNameKind.TransparentIdentifier Then
+                   GeneratedNameParser.GetKind(name) <> GeneratedNameKind.TransparentIdentifier Then
 
                     ReportMissingMe(syntax)
                 End If

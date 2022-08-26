@@ -45,29 +45,48 @@ namespace Roslyn.Test.Utilities
             return data.Methods.Where(m => !m.Key.IsImplicitlyDeclared).ToImmutableArray();
         }
 
+        private static bool TryGetMethodData(ImmutableDictionary<string, CompilationTestData.MethodData> map, string qualifiedMethodName, out CompilationTestData.MethodData methodData)
+        {
+            if (map.TryGetValue(qualifiedMethodName, out methodData))
+            {
+                return true;
+            }
+
+            // caller may not have specified parameter list, so try to match parameterless method
+            if (map.TryGetValue(qualifiedMethodName + "()", out methodData))
+            {
+                return true;
+            }
+
+            // now try to match single method with any parameter list
+            var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "(", StringComparison.Ordinal));
+            if (keys.Count() == 1)
+            {
+                methodData = map[keys.First()];
+                return true;
+            }
+            else if (keys.Count() > 1)
+            {
+                throw new AmbiguousMatchException(
+                    "Could not determine best match for method named: " + qualifiedMethodName + Environment.NewLine +
+                    string.Join(Environment.NewLine, keys.Select(s => "    " + s)) + Environment.NewLine);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        internal static bool TryGetMethodData(this CompilationTestData data, string qualifiedMethodName, out CompilationTestData.MethodData methodData)
+        {
+            var map = data.GetMethodsByName();
+            return TryGetMethodData(map, qualifiedMethodName, out methodData);
+        }
+
         internal static CompilationTestData.MethodData GetMethodData(this CompilationTestData data, string qualifiedMethodName)
         {
             var map = data.GetMethodsByName();
-
-            if (!map.TryGetValue(qualifiedMethodName, out var methodData))
-            {
-                // caller may not have specified parameter list, so try to match parameterless method
-                if (!map.TryGetValue(qualifiedMethodName + "()", out methodData))
-                {
-                    // now try to match single method with any parameter list
-                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "(", StringComparison.Ordinal));
-                    if (keys.Count() == 1)
-                    {
-                        methodData = map[keys.First()];
-                    }
-                    else if (keys.Count() > 1)
-                    {
-                        throw new AmbiguousMatchException(
-                            "Could not determine best match for method named: " + qualifiedMethodName + Environment.NewLine +
-                            string.Join(Environment.NewLine, keys.Select(s => "    " + s)) + Environment.NewLine);
-                    }
-                }
-            }
+            TryGetMethodData(data, qualifiedMethodName, out var methodData);
 
             if (methodData.ILBuilder == null)
             {

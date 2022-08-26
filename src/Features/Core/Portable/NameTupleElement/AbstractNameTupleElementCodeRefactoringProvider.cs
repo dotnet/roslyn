@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var potentialArguments = await document.GetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
             var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TTupleExpressionSyntax);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
@@ -55,10 +53,10 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var tuple = (TTupleExpressionSyntax)argument.Parent;
+            var tuple = (TTupleExpressionSyntax)argument.GetRequiredParent();
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol tupleType))
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is not INamedTypeSymbol tupleType)
             {
                 return default;
             }
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (root, argument, element.Name);
         }
 
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

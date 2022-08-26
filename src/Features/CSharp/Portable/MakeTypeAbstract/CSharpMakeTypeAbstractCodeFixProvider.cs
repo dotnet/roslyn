@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                         typeDeclaration = null;
                         return false;
                     }
+
                     break;
 
                 case AccessorDeclarationSyntax accessor:
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                         typeDeclaration = null;
                         return false;
                     }
+
                     break;
 
                 default:

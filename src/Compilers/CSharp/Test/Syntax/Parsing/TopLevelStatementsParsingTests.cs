@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public TopLevelStatementsParsingTests(ITestOutputHelper output) : base(output) { }
 
-        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
-        {
-            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Regular9);
-        }
-
         private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         {
             var tree = base.UsingTree(text);
@@ -2581,6 +2576,71 @@ e
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.CloseBraceToken);
                         }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingAliasTest()
+        {
+            var test = @"using s = delegate*<void>;";
+
+            UsingTree(test,
+                // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
+                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "s");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

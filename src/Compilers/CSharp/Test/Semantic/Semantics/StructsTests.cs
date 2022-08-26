@@ -7,9 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class StructsTests : CompilingTestBase
     {
-        // Cannot have instance field initializers in structs
         [WorkItem(540982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540982")]
         [Fact()]
         public void TestInitFieldStruct()
@@ -29,17 +26,16 @@ public struct A
     public static int Main() { return 1; }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-    // (4,7): error CS0573: 'A': cannot have instance property or field initializers in structs
-    //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A").WithLocation(4, 7),
-    // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-    //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-    // (4,7): warning CS0169: The field 'A.a' is never used
-    //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
-    );
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,7): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     A a = new A();   // CS8036
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 7),
+                // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+                //     A a = new A();   // CS8036
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+                // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+                //     A a = new A();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
         [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
@@ -56,11 +52,12 @@ struct S {
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-    // (3,25): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     event System.Action E = null;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(3, 25)
-                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,25): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     event System.Action E = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "E").WithArguments("struct field initializers", "10.0").WithLocation(3, 25));
+
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
@@ -363,7 +360,7 @@ class Test
             var @struct = c2.GlobalNamespace.GetMember<RetargetingNamedTypeSymbol>("S");
             var method = (RetargetingMethodSymbol)@struct.GetMembers().Single();
 
-            Assert.True(method.IsDefaultValueTypeConstructor());
+            Assert.True(method.IsDefaultValueTypeConstructor(requireZeroInit: false));
 
             //TODO (tomat)
             CompileAndVerify(c2).VerifyIL("C.M", @"
@@ -499,7 +496,6 @@ public class C
             // CONSIDER: This is the dev10 behavior, but it seems like a bug.
             // Shouldn't there be an error for trying to call an inaccessible ctor?
             var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
-
             CompileAndVerify(comp).VerifyIL("C.M", @"
 {
   // Code size       39 (0x27)
@@ -570,7 +566,6 @@ public class mem033
                 );
         }
 
-
         [WorkItem(545498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545498")]
         [Fact]
         public void StructMemberNullableTypeCausesCycle()
@@ -605,16 +600,28 @@ public struct X1
     {
     }
 }
-
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (11,5): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     X1()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X1").WithLocation(11, 5),
-    // (4,13): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     private X()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X").WithLocation(4, 13)
-                );
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,13): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     private X()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 13),
+                // (4,13): error CS8938: The parameterless struct constructor must be 'public'.
+                //     private X()
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X").WithLocation(4, 13),
+                // (11,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     X1()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X1").WithArguments("parameterless struct constructors", "10.0").WithLocation(11, 5),
+                // (11,5): error CS8938: The parameterless struct constructor must be 'public'.
+                //     X1()
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X1").WithLocation(11, 5));
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,13): error CS8918: The parameterless struct constructor must be 'public'.
+                //     private X()
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X").WithLocation(4, 13),
+                // (11,5): error CS8918: The parameterless struct constructor must be 'public'.
+                //     X1()
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X1").WithLocation(11, 5));
         }
 
         [Fact]
@@ -625,15 +632,20 @@ public struct X1
     public int I { get { throw null; } set {} } = 9;
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-            // (3,16): error CS8050: Only auto-implemented properties can have initializers.
-            //     public int I {get { throw null; } set {} } = 9;
-            Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16),
-            // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-            //     public int I {get { throw null; } set {} } = 9;
-            Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
-);
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
+                // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));
         }
     }
 }

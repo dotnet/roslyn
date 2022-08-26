@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -37,6 +38,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
+
+#if DEBUG
+        private int _id = -1;
+
+        public int Id
+        {
+            get
+            {
+                return _id;
+            }
+            internal set
+            {
+                Debug.Assert(value > 0, "Id must be positive but was set to " + value);
+                Debug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
+                _id = value;
+            }
+        }
+
+        internal string GetOutputTempDebuggerDisplay()
+        {
+            var id = Id;
+            return id switch
+            {
+                -1 => "<uninitialized>",
+
+                // Note that we never expect to create an evaluation with id 0
+                // To do so would imply that dag evaluation assigns to the original input
+                0 => "<error>",
+
+                _ => $"t{id}"
+            };
+        }
+#endif
     }
 
     partial class BoundDagIndexEvaluation

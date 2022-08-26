@@ -226,14 +226,7 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            string assertMessage = GetAssertMessage(expected, actual, comparer, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine);
-
-            if (message != null)
-            {
-                assertMessage = message + "\r\n" + assertMessage;
-            }
-
-            Assert.True(false, assertMessage);
+            Assert.True(false, GetAssertMessage(expected, actual, comparer, message, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine));
         }
 
         /// <summary>
@@ -434,14 +427,10 @@ namespace Roslyn.Test.Utilities
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);
             if (!result)
             {
-                if (string.IsNullOrEmpty(message))
-                {
-                    message = GetAssertMessage(
-                        ToString(expected, itemSeparator, itemInspector),
-                        ToString(actual, itemSeparator, itemInspector));
-                }
-
-                Assert.True(result, message);
+                Assert.True(result, GetAssertMessage(
+                    ToString(expected, itemSeparator, itemInspector),
+                    ToString(actual, itemSeparator, itemInspector),
+                    prefix: message));
             }
         }
 
@@ -523,6 +512,7 @@ namespace Roslyn.Test.Utilities
         public static void AssertEqualToleratingWhitespaceDifferences(
             string expected,
             string actual,
+            string message = null,
             bool escapeQuotes = true,
             [CallerFilePath] string expectedValueSourcePath = null,
             [CallerLineNumber] int expectedValueSourceLine = 0)
@@ -532,7 +522,7 @@ namespace Roslyn.Test.Utilities
 
             if (normalizedExpected != normalizedActual)
             {
-                Assert.True(false, GetAssertMessage(expected, actual, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
+                Assert.True(false, GetAssertMessage(expected, actual, message, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
             }
         }
 
@@ -597,15 +587,13 @@ namespace Roslyn.Test.Utilities
             return output.ToString();
         }
 
-        public static string GetAssertMessage(string expected, string actual, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
-        {
-            return GetAssertMessage(DiffUtil.Lines(expected), DiffUtil.Lines(actual), escapeQuotes, expectedValueSourcePath, expectedValueSourceLine);
-        }
+        public static string GetAssertMessage(string expected, string actual, string prefix = null, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
+            => GetAssertMessage(DiffUtil.Lines(expected), DiffUtil.Lines(actual), prefix, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine);
 
-        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, bool escapeQuotes, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
+        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, string prefix = null, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
         {
             Func<T, string> itemInspector = escapeQuotes ? new Func<T, string>(t => t.ToString().Replace("\"", "\"\"")) : null;
-            return GetAssertMessage(expected, actual, itemInspector: itemInspector, itemSeparator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
+            return GetAssertMessage(expected, actual, prefix: prefix, itemInspector: itemInspector, itemSeparator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
         private static readonly string s_diffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
@@ -614,6 +602,7 @@ namespace Roslyn.Test.Utilities
             IEnumerable<T> expected,
             IEnumerable<T> actual,
             IEqualityComparer<T> comparer = null,
+            string prefix = null,
             Func<T, string> itemInspector = null,
             string itemSeparator = null,
             string expectedValueSourcePath = null,
@@ -647,13 +636,20 @@ namespace Roslyn.Test.Utilities
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
 
             var message = new StringBuilder();
-            message.AppendLine();
+
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                message.AppendLine(prefix);
+                message.AppendLine();
+            }
+
             message.AppendLine("Expected:");
             message.AppendLine(expectedString);
             if (expected.Count() > 10)
             {
                 message.AppendLine("... truncated ...");
             }
+
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");

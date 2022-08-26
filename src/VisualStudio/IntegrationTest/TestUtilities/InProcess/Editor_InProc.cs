@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -34,6 +32,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using UIAutomationClient;
+using Xunit;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -77,10 +76,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var (textViewHost, hr) = TryGetActiveTextViewHost();
             Marshal.ThrowExceptionForHR(hr);
+            Contract.ThrowIfNull(textViewHost);
+
             return textViewHost;
         }
 
-        private static (IWpfTextViewHost textViewHost, int hr) TryGetActiveTextViewHost()
+        private static (IWpfTextViewHost? textViewHost, int hr) TryGetActiveTextViewHost()
         {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
@@ -258,6 +259,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
             {
                 var subjectBuffer = view.GetBufferContainingCaret();
+                Contract.ThrowIfNull(subjectBuffer);
+
                 var selectedSpan = view.Selection.SelectedSpans[0];
                 return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
             });
@@ -266,6 +269,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
             {
                 var subjectBuffer = view.GetBufferContainingCaret();
+                Contract.ThrowIfNull(subjectBuffer);
+
                 var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
                 view.Caret.MoveTo(point);
@@ -291,7 +296,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private string PrintSpan(SnapshotSpan span)
                 => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
-        private string[] GetTags<TTag>(Predicate<TTag> filter = null)
+        private string[] GetTags<TTag>(Predicate<TTag>? filter = null)
             where TTag : ITag
         {
             bool Filter(TTag tag)
@@ -412,7 +417,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         string.Format("ISuggestionAction {0} not found.  Buffer content type={1}", menuText, bufferType));
                 }
 
-                IWpfTextView preview = null;
+                IWpfTextView? preview = null;
                 var pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
                 if (pane is System.Windows.Controls.UserControl)
                 {
@@ -436,7 +441,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Array.Empty<ClassifiedToken>();
         }
 
-        private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject
+        private static IEnumerable<T> FindDescendants<T>(DependencyObject? rootObject) where T : DependencyObject
         {
             if (rootObject != null)
             {
@@ -444,7 +449,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     var child = VisualTreeHelper.GetChild(rootObject, i);
 
-                    if (child != null && child is T)
+                    if (child is not null and T)
                         yield return (T)child;
 
                     foreach (var descendant in FindDescendants<T>(child))
@@ -595,7 +600,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string? propertyTypeName = null)
         {
             using (var waitHandle = new ManualResetEvent(false))
             {
@@ -693,7 +698,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+        public string? GetWinFormButtonPropertyValue(string buttonName, string propertyName)
         {
             var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
             var button = designerHost.Container.Components[buttonName];
@@ -746,7 +751,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 GetActiveVsTextView().GetBuffer(out var textLines);
                 Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
                 Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
-                var languageContextProvider = languageService as IVsLanguageContextProvider;
+                var languageContextProvider = (IVsLanguageContextProvider)languageService;
 
                 var monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
                 Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));

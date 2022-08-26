@@ -207,7 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 readOutside = readInside
                 writtenOutside = readInside
                 captured = readInside
-
+                capturedInside = readInside
+                capturedOutside = readInside
             Else
                 ReadWriteWalker.Analyze(
                     _context.AnalysisInfo, _context.RegionInfo,

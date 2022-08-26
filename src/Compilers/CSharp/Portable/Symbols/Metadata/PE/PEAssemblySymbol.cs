@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -112,6 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return this.PrimaryModule.MetadataLocation.Cast<MetadataLocation, Location>();
+            }
+        }
+
+        public override int MetadataToken
+        {
+            get
+            {
+                return MetadataTokens.GetToken(_assembly.Handle);
             }
         }
 

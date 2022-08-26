@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly IAsyncServiceProvider _vsServiceProvider;
             private readonly AsynchronousOperationListenerProvider _listenerProvider;
             private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+            private readonly IGlobalOptionService _globalOptions;
             private readonly IThreadingContext _threadingContext;
 
             [ImportingConstructor]
@@ -36,10 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public Factory(
                 SVsServiceProvider vsServiceProvider,
                 AsynchronousOperationListenerProvider listenerProvider,
+                IGlobalOptionService globalOptions,
                 IThreadingContext threadingContext,
                 [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
                 _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
+                _globalOptions = globalOptions;
                 _listenerProvider = listenerProvider;
                 _threadingContext = threadingContext;
                 _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
@@ -50,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // We don't want to bring up the OOP process in a VS cloud environment client instance
                 // Avoids proffering brokered services on the client instance.
-                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices) ||
+                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(_globalOptions) ||
                     workspaceServices.Workspace is not VisualStudioWorkspace ||
                     workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
@@ -58,11 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
             }
         }
 
         private readonly HostWorkspaceServices _services;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
@@ -70,12 +75,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private VisualStudioRemoteHostClientProvider(
             HostWorkspaceServices services,
+            IGlobalOptionService globalOptions,
             IAsyncServiceProvider vsServiceProvider,
             IThreadingContext threadingContext,
             AsynchronousOperationListenerProvider listenerProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
+            _globalOptions = globalOptions;
             _vsServiceProvider = vsServiceProvider;
             _listenerProvider = listenerProvider;
             _callbackDispatchers = callbackDispatchers;
@@ -93,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 // VS AsyncLazy does not currently support cancellation:
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _globalOptions, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
                 _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));

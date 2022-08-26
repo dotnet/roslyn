@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If parameter.IsMe Then
                 Dim typeName As String = parameter.ContainingSymbol.ContainingType.Name
-                Dim isMeOfClosureType As Boolean = typeName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal)
+                Dim isMeOfClosureType As Boolean = typeName.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal)
 
                 ' NOTE: even though 'Me' is 'ByRef' in structures, Dev11 does capture it by value
                 ' NOTE: without generation of any errors/warnings. Roslyn has to match this behavior
@@ -339,13 +339,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case local.SynthesizedKind
                 Case SynthesizedLocalKind.LambdaDisplayClass
-                    proxyName = StringConstants.StateMachineHoistedUserVariablePrefix & StringConstants.ClosureVariablePrefix & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix & "$" & slotIndex
                 Case SynthesizedLocalKind.UserDefined
-                    proxyName = StringConstants.StateMachineHoistedUserVariablePrefix & local.Name & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & local.Name & "$" & slotIndex
                 Case SynthesizedLocalKind.With
-                    proxyName = StringConstants.HoistedWithLocalPrefix & slotIndex
+                    proxyName = GeneratedNameConstants.HoistedWithLocalPrefix & slotIndex
                 Case Else
-                    proxyName = StringConstants.HoistedSynthesizedLocalPrefix & slotIndex
+                    proxyName = GeneratedNameConstants.HoistedSynthesizedLocalPrefix & slotIndex
             End Select
 
             Return F.StateMachineField(localType, Me.Method, proxyName, New LocalSlotDebugInfo(local.SynthesizedKind, id), slotIndex, Accessibility.Friend)

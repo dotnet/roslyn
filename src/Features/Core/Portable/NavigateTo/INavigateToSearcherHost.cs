@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// <summary>
         /// Returns the fully loaded state for both the project system and the remote host.
         /// </summary>
-        ValueTask<(bool projectSystem, bool remoteHost)> IsFullyLoadedAsync(CancellationToken cancellationToken);
+        ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
     internal class DefaultNavigateToSearchHost : INavigateToSearcherHost
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
             => project.GetLanguageService<INavigateToSearchService>();
 
-        public async ValueTask<(bool projectSystem, bool remoteHost)> IsFullyLoadedAsync(CancellationToken cancellationToken)
+        public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {
             var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
 
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // return cached data from languages that support that.
             var isProjectSystemFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isProjectSystemFullyLoaded)
-                return (false, false);
+                return false;
 
             var isRemoteHostFullyLoaded = GetRemoteHostHydrateTask().IsCompleted;
-            return (isProjectSystemFullyLoaded, isRemoteHostFullyLoaded);
+            return isRemoteHostFullyLoaded;
         }
 
         /// <summary>
