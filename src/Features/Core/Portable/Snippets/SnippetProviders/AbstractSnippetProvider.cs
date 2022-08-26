@@ -214,6 +214,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
+        /// <summary>
+        /// Certain snippets require more indentation - snippets with blocks.
+        /// The SyntaxGenerator does not insert this space for us nor does the LSP Snippet Expander.
+        /// We need to manually add that spacing to snippets containing blocks.
+        /// </summary>
         protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             return await Task.FromResult(document).ConfigureAwait(false);
