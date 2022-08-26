@@ -29,9 +29,8 @@ pr:
       - README.md
 
 stages:
-- stage: Windows_Build
+- stage: Windows_Debug_Build
   dependsOn: []
-  # Windows Builds
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -42,6 +41,8 @@ stages:
       restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
+- stage: Windows_Release_Build
+  dependsOn: []
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Build_Windows_Release
@@ -66,9 +67,8 @@ stages:
   jobs:
   - template: eng/common/templates/jobs/source-build.yml
 
-- stage: Test_Desktop
-  dependsOn: Windows_Build
-  # Test Windows Desktop
+- stage: Windows_Debug_Desktop
+  dependsOn: Windows_Debug_Build
   jobs:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -87,14 +87,17 @@ stages:
       configuration: Debug
       testArguments: -testDesktop -testArch x64
 
-  - template: eng/pipelines/test-windows-job.yml
+- stage: Windows_Release_Desktop
+  dependsOn: Windows_Release_Build
+  jobs:
+    - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows Desktop Release 32'
       jobName: Test_Windows_Desktop_Release_32
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-
+      
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
       parameters:
@@ -112,9 +115,8 @@ stages:
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
-- stage: Test_Windows_CoreClr
-  dependsOn: Windows_Build
-  # Test Windows CoreCLR
+- stage: Windows_Debug_CoreClr
+  dependsOn: Windows_Debug_Build
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -135,14 +137,6 @@ stages:
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
-      testRunName: 'Test Windows CoreClr Release'
-      jobName: Test_Windows_CoreClr_Release
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testCoreClr
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
       testRunName: 'Test Windows CoreCLR IOperation Debug'
       jobName: Test_Windows_CoreClr_IOperation_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
@@ -159,7 +153,18 @@ stages:
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
 
-- stage: Test_Linux_CoreClr
+- stage: Windows_Release_CoreClr
+  dependsOn: Windows_Release_Build
+  jobs:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Release'
+      jobName: Test_Windows_CoreClr_Release
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testCoreClr
+
+- stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
   jobs:
   - template: eng/pipelines/test-unix-job.yml
@@ -190,7 +195,6 @@ stages:
 
 - stage: Correctness
   dependsOn: []
-  # Build Correctness Jobs
   jobs:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
