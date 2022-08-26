@@ -2567,12 +2567,6 @@ End Class";
             var workspace = new AdhocWorkspace();
             var solution = workspace.CurrentSolution;
 
-            WorkspaceDiagnostic diagnosticFromEvent = null;
-            solution.Workspace.WorkspaceFailed += (sender, args) =>
-            {
-                diagnosticFromEvent = args.Diagnostic;
-            };
-
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
@@ -2586,7 +2580,6 @@ End Class";
             var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
             Assert.Equal("", text.ToString());
 
             // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).
