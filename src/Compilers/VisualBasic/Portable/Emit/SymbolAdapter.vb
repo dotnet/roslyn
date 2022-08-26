@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
-            Return AdaptedSymbol.GetCustomAttributesToEmit(CType(context.Module, PEModuleBuilder))
+            Return AdaptedSymbol.GetCustomAttributesToEmit(DirectCast(context.Module, PEModuleBuilder))
         End Function
     End Class
 
