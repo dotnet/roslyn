@@ -75,7 +75,11 @@ namespace Microsoft.CodeAnalysis
             _services = host.CreateWorkspaceServices(this);
 
             _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>();
-            _legacyOptions.RegisterWorkspace(this);
+
+            if (CanUpdateOptions)
+            {
+                _legacyOptions.RegisterWorkspace(this);
+            }
 
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
@@ -190,6 +194,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal virtual bool CanUpdateSolution => true;
+
         /// <summary>
         /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
         /// </summary>
@@ -258,8 +264,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal virtual bool CanUpdateOptions => true;
+
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
+            Debug.Assert(!CanUpdateOptions);
             SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
         }
 
@@ -360,7 +369,10 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            _legacyOptions.UnregisterWorkspace(this);
+            if (CanUpdateOptions)
+            {
+                _legacyOptions.UnregisterWorkspace(this);
+            }
 
             // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
             // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
@@ -372,6 +384,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         #region Host API
+
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.
         /// </summary>

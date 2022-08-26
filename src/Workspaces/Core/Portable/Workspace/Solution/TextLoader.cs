@@ -17,15 +17,23 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
+        private protected static readonly Workspace DummyWorkspace = new ImmutableWorkspace(Host.Mef.MefHostServices.DefaultHost, WorkspaceKind.Custom);
+        private static readonly DocumentId _dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId("dummy"));
+
         private const double MaxDelaySecs = 1.0;
         private const int MaxRetries = 5;
         internal static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(MaxDelaySecs / MaxRetries);
 
         internal virtual string? FilePath => null;
 
+        internal Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+            => LoadTextAndVersionAsync(DummyWorkspace, _dummyDocumentId, cancellationToken);
+
         /// <summary>
         /// Load a text and a version of the document.
         /// </summary>
+        /// <param name="workspace">Obsolete. Default, immutable <see cref="Workspace"/> instance.</param>
+        /// <param name="documentId">Obsolete. Dummy <see cref="DocumentId"/>.</param>
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
@@ -37,13 +45,13 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
-        internal virtual TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal virtual TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
         {
             // this implementation exists in case a custom derived type does not have access to internals
-            return LoadTextAndVersionAsync(workspace, documentId, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            return LoadTextAndVersionAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
-        internal async Task<TextAndVersion> LoadTextAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal async Task<TextAndVersion> LoadTextAsync(CancellationToken cancellationToken)
         {
             var retries = 0;
 
@@ -51,20 +59,20 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    return await LoadTextAndVersionAsync(workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    return await LoadTextAndVersionAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                 }
                 catch (IOException e)
                 {
                     if (++retries > MaxRetries)
                     {
-                        return CreateFailedText(workspace, documentId, e.Message);
+                        return CreateFailedText(e.Message);
                     }
 
                     // fall out to try again
                 }
                 catch (InvalidDataException e)
                 {
-                    return CreateFailedText(workspace, documentId, e.Message);
+                    return CreateFailedText(e.Message);
                 }
 
                 // try again after a delay
@@ -72,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal TextAndVersion LoadTextSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal TextAndVersion LoadTextSynchronously(CancellationToken cancellationToken)
         {
             var retries = 0;
 
@@ -80,32 +88,31 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    return LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken);
+                    return LoadTextAndVersionSynchronously(cancellationToken);
                 }
                 catch (IOException e)
                 {
                     if (++retries > MaxRetries)
                     {
-                        return CreateFailedText(workspace, documentId, e.Message);
+                        return CreateFailedText(e.Message);
                     }
 
                     // fall out to try again
                 }
                 catch (InvalidDataException e)
                 {
-                    return CreateFailedText(workspace, documentId, e.Message);
+                    return CreateFailedText(e.Message);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // try again after a delay
                 Thread.Sleep(RetryDelay);
             }
         }
 
-        private TextAndVersion CreateFailedText(Workspace workspace, DocumentId documentId, string message)
+        private TextAndVersion CreateFailedText(string message)
         {
-            // Notify workspace for backwards compatibility.
-            workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, documentId));
-
             Location location;
             string display;
 
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             if (filePath == null)
             {
                 location = Location.None;
-                display = documentId.ToString();
+                display = "<no path>";
             }
             else
             {
@@ -167,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 => Task.FromResult(_textAndVersion);
 
-            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                 => _textAndVersion;
         }
 
@@ -185,9 +192,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+                => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
 
-            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                 => TextAndVersion.Create(_container.CurrentText, _version, _filePath);
         }
     }

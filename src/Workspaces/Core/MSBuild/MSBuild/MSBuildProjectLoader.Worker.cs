@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
             }
 
-            private static ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
+            private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
             {
                 var results = ImmutableArray.CreateBuilder<DocumentInfo>();
 
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         name,
                         folders,
                         info.SourceCodeKind,
-                        new FileTextLoader(info.FilePath, encoding),
+                        new FileTextLoader(info.FilePath, encoding, _workspaceServices.GetRequiredService<ITextFactoryService>()),
                         info.FilePath,
                         info.IsGenerated);
 

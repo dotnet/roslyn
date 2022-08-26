@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
@@ -17,9 +18,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     /// This is a FileTextLoader which no-ops if the file is not available on disk. This is the common case for
     /// Cascade and throwing exceptions slows down GetText operations significantly enough to have visible UX impact.
     /// </summary>
-    internal class FileTextLoaderNoException : FileTextLoader
+    internal sealed class FileTextLoaderNoException : FileTextLoader
     {
-        public FileTextLoaderNoException(string path, Encoding defaultEncoding) : base(path, defaultEncoding)
+        public FileTextLoaderNoException(string path, Encoding defaultEncoding, ITextFactoryService textFactory)
+            : base(path, defaultEncoding, textFactory)
         {
         }
 
@@ -30,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 return Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()));
             }
 
-            return base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
+            return LoadTextAndVersionAsync(cancellationToken);
         }
     }
 }

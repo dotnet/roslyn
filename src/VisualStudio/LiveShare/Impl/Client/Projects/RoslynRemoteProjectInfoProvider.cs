@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -63,6 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 return ImmutableArray<ProjectInfo>.Empty;
             }
 
+            var textFactory = _remoteLanguageServiceWorkspace.Services.GetRequiredService<ITextFactoryService>();
+
             var projectInfos = ImmutableArray.CreateBuilder<ProjectInfo>();
             foreach (var project in projects)
             {
@@ -75,14 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray());
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray(), textFactory);
                 projectInfos.Add(projectInfo);
             }
 
             return projectInfos.ToImmutableArray();
         }
 
-        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files)
+        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, ITextFactoryService textFactory)
         {
             var projectId = ProjectId.CreateNewId();
             var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
@@ -93,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
                     fileName,
                     filePath: file,
-                    loader: new FileTextLoaderNoException(file, null));
+                    loader: new FileTextLoaderNoException(file, defaultEncoding: null, textFactory));
                 docInfos.Add(docInfo);
             }
 

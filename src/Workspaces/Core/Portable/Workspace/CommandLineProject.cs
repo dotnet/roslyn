@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                    name: name,
                    folders: folders,
                    sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
-                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding),
+                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding, workspace.Services.GetRequiredService<ITextFactoryService>()),
                    filePath: absolutePath);
 
                 docs.Add(doc);
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                    name: name,
                    folders: folders,
                    sourceCodeKind: SourceCodeKind.Regular,
-                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding),
+                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding, workspace.Services.GetRequiredService<ITextFactoryService>()),
                    filePath: absolutePath);
 
                 additionalDocs.Add(doc);

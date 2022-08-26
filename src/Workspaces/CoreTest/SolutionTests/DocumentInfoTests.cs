@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Create()
         {
-            var loader = new FileTextLoader(Path.GetTempPath(), defaultEncoding: null);
+            var loader = new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, textFactory: null);
             var id = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
             var info = DocumentInfo.Create(
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, textFactory: null));
 
             SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithFolders(value), opt => opt.Folders, "folder", allowDuplicates: true);
         }

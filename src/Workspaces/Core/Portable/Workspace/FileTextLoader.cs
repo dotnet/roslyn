@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
+        private static readonly SourceText s_dummySourceText = SourceText.From("");
+
+        private readonly ITextFactoryService? _textFactory;
+
         /// <summary>
         /// Absolute path of the file.
         /// </summary>
@@ -43,11 +47,17 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
         public FileTextLoader(string path, Encoding? defaultEncoding)
+            : this(path, defaultEncoding, textFactory: null)
+        {
+        }
+
+        internal FileTextLoader(string path, Encoding? defaultEncoding, ITextFactoryService? textFactory)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
 
             Path = path;
             DefaultEncoding = defaultEncoding;
+            _textFactory = textFactory;
         }
 
         /// <summary>
@@ -58,10 +68,29 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override string FilePath => Path;
 
+        /// <summary>
+        /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="workspace">Obsolete. Dummy <see cref="Workspace"/> instance.</param>
+        [Obsolete("Use CreateText(Stream, CancellationToken)")]
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
+            => _textFactory?.CreateText(stream, DefaultEncoding, CancellationToken.None) ?? EncodedStringText.Create(stream, DefaultEncoding);
+
+        /// <summary>
+        /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
+        /// </summary>
+        public virtual SourceText CreateText(Stream stream, CancellationToken cancellationToken)
+            => s_dummySourceText;
+
+        private SourceText CreateTextImpl(Stream stream, CancellationToken cancellationToken)
         {
-            var factory = workspace.Services.GetRequiredService<ITextFactoryService>();
-            return factory.CreateText(stream, DefaultEncoding);
+            var text = CreateText(stream, cancellationToken);
+
+            // Call the obsolete API for backwards compat if the new API is not overridden.
+#pragma warning disable CS0618 // Type or member is obsolete
+            return ReferenceEquals(text, s_dummySourceText) ? CreateText(stream, DummyWorkspace) : text;
+#pragma warning restore
         }
 
         /// <summary>
@@ -150,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
                 using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var text = CreateText(readStream, workspace);
+                var text = CreateTextImpl(readStream, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
@@ -169,11 +198,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Load a text and a version of the document in the workspace.
+        /// Load a text and a version of the document.
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 
@@ -185,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
-                var text = CreateText(stream, workspace);
+                var text = CreateTextImpl(stream, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 

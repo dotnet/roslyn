@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentClosed(info.DocumentId, new FileTextLoader(filePath, info.Encoding));
+                workspace.OnDocumentClosed(info.DocumentId, new FileTextLoader(filePath, info.Encoding, workspace.Services.GetRequiredService<ITextFactoryService>()));
 
                 return true;
             }

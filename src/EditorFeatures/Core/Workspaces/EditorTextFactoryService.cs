@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
-    internal class EditorTextFactoryService : ITextFactoryService
+    internal sealed class EditorTextFactoryService : ITextFactoryService
     {
         private readonly ITextBufferCloneService _textBufferCloneService;
         private readonly ITextBufferFactoryService _textBufferFactory;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken)
         {
             // this API is for a case where user wants us to figure out encoding from the given stream.
             // if defaultEncoding is given, we will use it if we couldn't figure out encoding used in the stream ourselves.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             }
         }
 
-        public SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
             // this API is for a case where user just wants to create a source text with explicit encoding.
             var buffer = CreateTextBuffer(reader);

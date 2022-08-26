@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             sol = sol.AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                     .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
+                     .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8, textFactory: null));
 
             var observedText = GetObservedText(sol, did, text1);
 
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
+                                    .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8, textFactory: null));
 
             var doc = sol.GetDocument(did);
 
@@ -2052,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
+                                    .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8, textFactory: null));
 
             var doc = sol.GetDocument(did);
             var docTree = doc.GetSyntaxTreeAsync().Result;
@@ -2577,7 +2577,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8))
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8, textFactory: null))
                                .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);
@@ -2819,8 +2819,6 @@ public class C : A {
         [Fact]
         public async Task TestMassiveFileSize()
         {
-            var workspace = new AdhocWorkspace();
-
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
 
@@ -2834,7 +2832,7 @@ public class C : A {
             try
             {
                 // test async one
-                var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+                var unused = await loader.LoadTextAndVersionAsync(CancellationToken.None);
             }
             catch (InvalidDataException ex)
             {
@@ -2848,7 +2846,7 @@ public class C : A {
             try
             {
                 // test sync one
-                var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+                var unused = loader.LoadTextAndVersionSynchronously(CancellationToken.None);
             }
             catch (InvalidDataException ex)
             {

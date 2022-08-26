@@ -497,21 +497,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, encodingA),
+                loader: new FileTextLoader(sourceFileA.Path, encodingA, textFactory: null),
                 filePath: sourceFileA.Path));
 
             var documentIdB = DocumentId.CreateNewId(projectP.Id, debugName: "B");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdB,
                 name: "B",
-                loader: new FileTextLoader(sourceFileB.Path, encodingB),
+                loader: new FileTextLoader(sourceFileB.Path, encodingB, textFactory: null),
                 filePath: sourceFileB.Path));
 
             var documentIdC = DocumentId.CreateNewId(projectP.Id, debugName: "C");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdC,
                 name: "C",
-                loader: new FileTextLoader(sourceFileC.Path, encodingC),
+                loader: new FileTextLoader(sourceFileC.Path, encodingC, textFactory: null),
                 filePath: sourceFileC.Path));
 
             var documentIdE = DocumentId.CreateNewId(projectP.Id, debugName: "E");
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // change content of B on disk again:
             sourceFileB.WriteAllText(sourceB3, encodingB);
-            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB), PreservationMode.PreserveValue);
+            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB, textFactory: null), PreservationMode.PreserveValue);
 
             EnterBreakState(debuggingSession);
 
@@ -4380,7 +4380,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, textFactory: null),
                 filePath: sourceFileA.Path));
 
             var tasks = Enumerable.Range(0, 10).Select(async i =>
@@ -4465,7 +4465,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, textFactory: null),
                 filePath: sourceFileA.Path));
 
             var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
@@ -4532,7 +4532,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, textFactory: null),
                 filePath: sourceFileA.Path));
 
             var hotReload = new UnitTestingHotReloadService(workspace.Services);

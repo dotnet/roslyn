@@ -29,3 +29,4 @@ Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentOpenedEventAsync(Microsoft.Cod
 Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Text.SourceText

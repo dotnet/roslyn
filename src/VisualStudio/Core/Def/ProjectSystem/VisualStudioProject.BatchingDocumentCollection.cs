@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new FileTextLoader(fullPath, defaultEncoding: null);
+                var textLoader = new FileTextLoader(fullPath, defaultEncoding: null, _project._workspace.Services.GetRequiredService<ITextFactoryService>());
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
@@ -401,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                             if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
                             {
-                                documentsToChange.Add((documentId, new FileTextLoader(filePath, defaultEncoding: null)));
+                                documentsToChange.Add((documentId, new FileTextLoader(filePath, defaultEncoding: null, _project._workspace.Services.GetRequiredService<ITextFactoryService>())));
                             }
                         }
                     }
