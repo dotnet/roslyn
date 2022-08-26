@@ -2777,10 +2777,6 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType));
 
-            // mismatched checked
-            Assert.Throws<ArgumentException>(() =>
-                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType));
-
             // nullable type 1
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, nullableIntType, intType, intType));

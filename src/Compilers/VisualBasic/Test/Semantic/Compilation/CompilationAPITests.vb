@@ -1862,13 +1862,9 @@ end class")
 
             Assert.NotNull(Symbol)
 
-            Dim addBuiltIn = Compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType)
-            Dim addBuiltInChecked = Compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType)
             Dim subtractBuiltIn = Compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType)
             Dim subtractBuiltInChecked = Compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType)
 
-            Assert.NotEqual(addBuiltIn, Symbol)
-            Assert.Equal(addBuiltInChecked, Symbol)
             Assert.NotEqual(subtractBuiltIn, Symbol)
             Assert.NotEqual(subtractBuiltInChecked, Symbol)
         End Sub
