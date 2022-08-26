@@ -786,11 +786,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
                 {
-                    bool value = _module.HasRefSafetyRulesAttribute(Token, out int version) && version == 11;
+                    bool value = CalculateUseUpdatedRules();
                     _lazyUseUpdatedEscapeRules = value.ToThreeState();
                 }
                 return _lazyUseUpdatedEscapeRules == ThreeState.True;
             }
+        }
+
+        private bool CalculateUseUpdatedRules()
+        {
+            // [RefSafetyRules(11)]
+            if (_module.HasRefSafetyRulesAttribute(Token, out int rulesVersion) && rulesVersion == 11)
+            {
+                return true;
+            }
+
+            // Corlib ver: 7.0 or greater.
+            string corlibName = ContainingAssembly.CorLibrary.Name;
+            var assemblyHandle = _module.GetAssemblyRef(corlibName);
+            if (!assemblyHandle.IsNil)
+            {
+                var assemblyVersion = _module.GetAssemblyRef(assemblyHandle).Version;
+                if (assemblyVersion.Major >= 7)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

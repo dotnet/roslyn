@@ -2538,6 +2538,11 @@ namespace Microsoft.CodeAnalysis
             return default(AssemblyReferenceHandle);
         }
 
+        internal AssemblyReference GetAssemblyRef(AssemblyReferenceHandle assemblyRef)
+        {
+            return MetadataReader.GetAssemblyReference(assemblyRef);
+        }
+
         /// <summary>
         /// Returns MetadataToken for type ref matching resolution scope and name
         /// </summary>

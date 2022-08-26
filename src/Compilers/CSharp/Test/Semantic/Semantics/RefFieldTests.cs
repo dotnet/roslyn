@@ -16210,5 +16210,97 @@ class B2 : I<object>
                 comp.VerifyEmitDiagnostics();
             }
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void DetectUpdatedEscapeRulesFromCorlib(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            [CombinatorialValues(6, 7, 8)] int majorVersion)
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyIdentity = new AssemblyIdentity(GetUniqueName(), new System.Version(majorVersion, 0, 0, 0));
+            var comp = CreateCompilation(assemblyIdentity, new[] { source0 }, references: null);
+            var ref0 = comp.EmitToImageReference(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
+
+            var source1 =
+@"public class A<T>
+{
+    public static void F() { }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class B : A<int>
+{
+    static void Main() { }
+}";
+            comp = CreateEmptyCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+
+            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
+
+            bool useUpdatedEscapeRules = majorVersion >= 7;
+            Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(LanguageVersion languageVersion)
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyName = GetUniqueName();
+            var assemblyIdentity6_0 = new AssemblyIdentity(assemblyName, new System.Version(6, 0, 0, 0));
+            var comp = CreateCompilation(assemblyIdentity6_0, new[] { source0 }, references: null);
+            var ref6_0 = comp.EmitToImageReference();
+
+            var assemblyIdentity7_0 = new AssemblyIdentity(assemblyName, new System.Version(7, 0, 0, 0));
+            comp = CreateCompilation(assemblyIdentity7_0, new[] { source0 }, references: null);
+            var ref7_0 = comp.EmitToImageReference();
+
+            var source1 =
+@"public class A<T>
+{
+    public static void F() { }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref6_0 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class B : A<int>
+{
+    static void Main() { }
+}";
+            comp = CreateEmptyCompilation(source2, references: new[] { ref7_0, ref1 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+
+            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentity6_0, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentity7_0, module.ContainingAssembly.CorLibrary.Identity);
+            Assert.False(module.UseUpdatedEscapeRules);
+        }
     }
 }
