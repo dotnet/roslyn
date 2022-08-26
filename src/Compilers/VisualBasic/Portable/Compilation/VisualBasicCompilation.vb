@@ -2923,9 +2923,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
             Dim vbRightType = rightType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
 
-            Dim opInfo = OverloadResolution.GetOperatorInfo(name)
-            If Not opInfo.IsBinary Then
-                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            If Not SynthesizedIntrinsicOperatorSymbol.IsCheckedBinaryOperator(name) Then
+                Dim opInfo = OverloadResolution.GetOperatorInfo(name)
+                If Not opInfo.IsBinary Then
+                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+                End If
             End If
 
             Return New SynthesizedIntrinsicOperatorSymbol(vbLeftType, name, vbRightType, vbReturnType)
@@ -2939,9 +2941,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbValueType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(valueType))
 
-            Dim opInfo = OverloadResolution.GetOperatorInfo(name)
-            If Not opInfo.IsUnary Then
-                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            If Not SynthesizedIntrinsicOperatorSymbol.IsCheckedUnaryOperator(name) Then
+                Dim opInfo = OverloadResolution.GetOperatorInfo(name)
+                If Not opInfo.IsUnary Then
+                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+                End If
             End If
 
             Return New SynthesizedIntrinsicOperatorSymbol(vbValueType, name, vbReturnType)
