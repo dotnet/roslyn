@@ -55,8 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 leftType,
                                 opName,
                                 Right.Type.GetNullableUnderlyingTypeOrSelf(),
-                                Type.GetNullableUnderlyingTypeOrSelf(),
-                                isChecked)
+                                Type.GetNullableUnderlyingTypeOrSelf())
                         End If
                     End If
                 End If

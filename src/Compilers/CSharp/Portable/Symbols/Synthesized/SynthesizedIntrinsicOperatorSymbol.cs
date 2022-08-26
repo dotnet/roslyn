@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
-        private readonly bool _isCheckedBuiltin;
 
-        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
+        public override bool IsCheckedBuiltin { get; }
+
+        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType)
         {
-            Debug.Assert(SyntaxFacts.IsCheckedOperator(name) == isCheckedBuiltin);
             if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = leftType;
@@ -45,17 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
                                                       new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right"));
-            _isCheckedBuiltin = isCheckedBuiltin;
+            IsCheckedBuiltin = SyntaxFacts.IsCheckedOperator(name);
         }
 
-        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType, bool isCheckedBuiltin)
+        public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType)
         {
-            Debug.Assert(SyntaxFacts.IsCheckedOperator(name) == isCheckedBuiltin);
             _containingType = container;
             _name = name;
             _returnType = returnType;
             _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, container, 0, "value"));
-            _isCheckedBuiltin = isCheckedBuiltin;
+            IsCheckedBuiltin = SyntaxFacts.IsCheckedOperator(name);
         }
 
         public override string Name
@@ -63,14 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _name;
-            }
-        }
-
-        public override bool IsCheckedBuiltin
-        {
-            get
-            {
-                return _isCheckedBuiltin;
             }
         }
 
@@ -443,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (_isCheckedBuiltin == other._isCheckedBuiltin &&
+            if (IsCheckedBuiltin == other.IsCheckedBuiltin &&
                 _parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
                 TypeSymbol.Equals(_containingType, other._containingType, compareKind) &&

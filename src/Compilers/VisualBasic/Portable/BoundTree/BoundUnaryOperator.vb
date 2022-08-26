@@ -43,8 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return New SynthesizedIntrinsicOperatorSymbol(
                                 operandType,
                                 opName,
-                                Type.GetNullableUnderlyingTypeOrSelf(),
-                                isChecked)
+                                Type.GetNullableUnderlyingTypeOrSelf())
                         End If
                     End If
                 End If

@@ -13,25 +13,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _returnType As TypeSymbol
         Private ReadOnly _isCheckedBuiltin As Boolean
 
-        Public Sub New(container As NamedTypeSymbol, name As String, rightType As TypeSymbol, returnType As TypeSymbol, isCheckedBuiltin As Boolean)
+        Public Sub New(container As NamedTypeSymbol, name As String, rightType As TypeSymbol, returnType As TypeSymbol)
             MyBase.New(container)
 
-            Debug.Assert(IsCheckedOperator(name) = isCheckedBuiltin)
             _name = name
             _returnType = returnType
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "left"),
                                                    New SynthesizedOperatorParameterSymbol(Me, rightType, 1, "right")}).AsImmutableOrNull()
-            _isCheckedBuiltin = isCheckedBuiltin
+            _isCheckedBuiltin = IsCheckedOperator(name)
         End Sub
 
-        Public Sub New(container As NamedTypeSymbol, name As String, returnType As TypeSymbol, isCheckedBuiltin As Boolean)
+        Public Sub New(container As NamedTypeSymbol, name As String, returnType As TypeSymbol)
             MyBase.New(container)
 
-            Debug.Assert(IsCheckedOperator(name) = isCheckedBuiltin)
             _name = name
             _returnType = returnType
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "value")}).AsImmutableOrNull()
-            _isCheckedBuiltin = isCheckedBuiltin
+            _isCheckedBuiltin = IsCheckedOperator(name)
         End Sub
 
         Private Shared Function IsCheckedOperator(operatorMetadataName As String) As Boolean
