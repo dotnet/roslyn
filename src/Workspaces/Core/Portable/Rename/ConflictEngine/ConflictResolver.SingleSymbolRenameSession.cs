@@ -50,37 +50,37 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var documentIdToRenameLocations = renameLocations
                     .GroupBy(location => location.DocumentId)
                     .ToDictionary(grouping => grouping.Key);
+
                 foreach (var documentId in documentsIdsToBeCheckedForConflict)
                 {
                     using var documentRenameInfoBuilder = new DocumentRenameInfo.Builder();
 
+                    if (documentIdToRenameLocations.TryGetValue(documentId, out var renameLocationsInDocument))
+                    {
+                        var locationRenameContexts = renameLocationsInDocument
+                            .Where(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
+                            .SelectAsArray(location => new LocationRenameContext(location, replacementTextValid, replacementText, originalText));
+                        foreach (var locationRenameContext in locationRenameContexts)
+                        {
+                            var overlap = documentRenameInfoBuilder.AddLocationRenameContext(locationRenameContext);
+                            // Here only one symbol is renamed, so each rename text span should never overlap.
+                            RoslynDebug.Assert(!overlap);
+                        }
+
+                        // All textSpan in the document documentId, that requires rename in String or Comment
+                        var stringAndCommentContexts = renameLocationsInDocument
+                            .Where(l => l.IsRenameInStringOrComment)
+                            .SelectAsArray(location => new StringAndCommentRenameContext(location, replacementText));
+                        foreach (var stringAndCommentContext in stringAndCommentContexts)
+                        {
+                            var overlap = documentRenameInfoBuilder.AddStringAndCommentRenameContext(stringAndCommentContext);
+                            // Here only one symbol is renamed, so each sub text span in string/comment should never overlap.
+                            RoslynDebug.Assert(!overlap);
+                        }
+                    }
+
                     // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
                     // just passing an empty rename information to check for conflicts.
-                    var renameLocationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
-                        ? documentIdToRenameLocations[documentId].ToImmutableArray()
-                        : ImmutableArray<RenameLocation>.Empty;
-
-                    var locationRenameContexts = renameLocationsInDocument
-                        .WhereAsArray(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
-                        .SelectAsArray(location => new LocationRenameContext(location, replacementTextValid, replacementText, originalText));
-                    foreach (var locationRenameContext in locationRenameContexts)
-                    {
-                        var overlap = documentRenameInfoBuilder.AddLocationRenameContext(locationRenameContext);
-                        // Here only one symbol is renamed, so each rename text span should never overlap.
-                        RoslynDebug.Assert(!overlap);
-                    }
-
-                    // All textSpan in the document documentId, that requires rename in String or Comment
-                    var stringAndCommentContexts = renameLocationsInDocument
-                        .WhereAsArray(l => l.IsRenameInStringOrComment)
-                        .SelectAsArray(location => new StringAndCommentRenameContext(location, replacementText));
-                    foreach (var stringAndCommentContext in stringAndCommentContexts)
-                    {
-                        var overlap = documentRenameInfoBuilder.AddStringAndCommentRenameContext(stringAndCommentContext);
-                        // Here only one symbol is renamed, so each sub text span in string/comment should never overlap.
-                        RoslynDebug.Assert(!overlap);
-                    }
-
                     documentRenameInfoBuilder.AddRenamedSymbol(symbol, replacementText, replacementTextValid, possibleNameConflicts);
                     documentIdToRenameInfoBuilder[documentId] = documentRenameInfoBuilder.ToRenameInfo();
                 }

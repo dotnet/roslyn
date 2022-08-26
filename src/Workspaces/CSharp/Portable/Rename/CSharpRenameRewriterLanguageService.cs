@@ -123,7 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isProcessingComplexifiedSpans = false;
                 _skipRenameForComplexification = 0;
 
-                (_textSpanToLocationContextMap, _renamedSymbolContexts, _stringAndCommentRenameContexts, _replacementTexts, _originalTexts, _allPossibleConflictNames) = parameters.DocumentRenameInfo;
+                _textSpanToLocationContextMap = parameters.DocumentRenameInfo.TextSpanToLocationContexts;
+                _renamedSymbolContexts = parameters.DocumentRenameInfo.RenamedSymbolContexts;
+                _stringAndCommentRenameContexts = parameters.DocumentRenameInfo.TextSpanToStringAndCommentRenameContexts;
+                _replacementTexts = parameters.DocumentRenameInfo.AllReplacementTexts;
+                _originalTexts = parameters.DocumentRenameInfo.AllOriginalText;
+                _allPossibleConflictNames = parameters.DocumentRenameInfo.AllPossibleConflictNames;
             }
 
             public override SyntaxNode? Visit(SyntaxNode? node)

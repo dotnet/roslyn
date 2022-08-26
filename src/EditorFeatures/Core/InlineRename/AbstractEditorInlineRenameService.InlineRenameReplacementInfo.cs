@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
         {
             private readonly ConflictResolution _conflicts;
+            private readonly ISymbol _renameSymbol;
 
             public InlineRenameReplacementInfo(
                 ISymbol renameSymbol,
@@ -21,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 Contract.ThrowIfFalse(conflicts.IsSuccessful);
                 _conflicts = conflicts;
-                ReplacementTextValid = _conflicts.SymbolToReplacementTextValid[renameSymbol];
+                _renameSymbol = renameSymbol;
             }
 
             public IEnumerable<DocumentId> DocumentIds => _conflicts.DocumentIds;
 
             public Solution NewSolution => _conflicts.NewSolution!;
 
-            public bool ReplacementTextValid { get; }
+            public bool ReplacementTextValid => _conflicts.SymbolToReplacementTextValid[_renameSymbol];
 
             public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
             {
