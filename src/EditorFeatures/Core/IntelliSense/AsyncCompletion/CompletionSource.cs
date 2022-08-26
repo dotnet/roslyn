@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -54,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // Use CWT to cache data needed to create VSCompletionItem, so the table would be cleared when Roslyn completion item cache is cleared.
         private static readonly ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>> s_roslynItemToVsItemData =
             new();
+
+        // Cancellation series we use to stop background task for expanded items when exclusive items are returned by core providers.
+        private readonly CancellationSeries _expandeditemsTaskCancellationSeries = new();
 
         private readonly ITextView _textView;
         private readonly bool _isDebuggerTextView;
@@ -296,10 +298,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // OK, expand item is enabled but we shouldn't block completion on its results.
                     // Kick off expand item calculation first in background.
                     Stopwatch stopwatch = new();
+
+                    var expandeditemsTaskCancellationToken = _expandeditemsTaskCancellationSeries.CreateNext(cancellationToken);
                     var expandedItemsTask = Task.Run(async () =>
                     {
                         var result = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
-                          options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
+                          options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, expandeditemsTaskCancellationToken).ConfigureAwait(false);
 
                         // Record how long it takes for the background task to complete *after* core providers returned.
                         // If telemetry shows that a short wait is all it takes for ExpandedItemsTask to complete in
@@ -310,12 +314,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(stopwatch.Elapsed);
 
                         return result;
-                    }, cancellationToken);
+                    }, expandeditemsTaskCancellationToken);
 
                     // Now trigger and wait for core providers to return;
                     var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
                             options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
                     UpdateSessionData(session, sessionData, nonExpandedCompletionList, triggerLocation);
+
+                    // If the core items are exclusive, we don't include expanded items.
+                    if (sessionData.IsExclusive)
+                    {
+                        // This would cancel expandedItemsTask.
+                        _ = _expandeditemsTaskCancellationSeries.CreateNext(CancellationToken.None);
+                        return nonExpandedContext;
+                    }
 
                     if (expandedItemsTask.IsCompleted)
                     {
@@ -372,8 +384,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
-            // We only want to provide expanded items for Roslyn's expander.
-            if (expander == FilterSet.Expander && sessionData.ExpandedItemTriggerLocation.HasValue)
+            // We only want to provide expanded items for Roslyn's expander
+            if (!sessionData.IsExclusive && expander == FilterSet.Expander && sessionData.ExpandedItemTriggerLocation.HasValue)
             {
                 var initialTriggerLocation = sessionData.ExpandedItemTriggerLocation.Value;
                 AsyncCompletionLogger.LogExpanderUsage();
@@ -458,6 +470,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private static void UpdateSessionData(IAsyncCompletionSession session, CompletionSessionData sessionData, CompletionList completionList, SnapshotPoint triggerLocation)
         {
+            sessionData.IsExclusive |= completionList.IsExclusive;
+
             // Store around the span this completion list applies to.  We'll use this later
             // to pass this value in when we're committing a completion list item.
             // It's OK to overwrite this value when expanded items are requested.
