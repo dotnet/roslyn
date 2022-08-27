@@ -696,7 +696,7 @@ Imports System.Reflection
                         case Lang.CSharp:
                             return string.Join(", ", _arguments.Select(a => "object " + GetArgName(a)));
                         case Lang.VisualBasic:
-                            return string.Join(", ", _arguments.Select(a => GetArgName(a)));
+                            return string.Join(", ", _arguments.Select(GetArgName));
                         default:
                             throw new NotImplementedException();
                     }

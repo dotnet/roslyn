@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 allowedIdsInfo.start = start;
                                 allowedIdsInfo.end = start;
                             }
-                            else if (range.All(ch => char.IsLetter(ch)))
+                            else if (range.All(char.IsLetter))
                             {
                                 // Only prefix validation.
                                 allowedIdsInfo.prefix = range;
