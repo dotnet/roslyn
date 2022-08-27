@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     var createReturnStatement = true;
 
                     if (method is not null)
-                        createReturnStatement = !method.ReturnsVoid && !method.IsAsyncEffectivelyReturningVoidTask(document.SemanticModel.Compilation);
+                        createReturnStatement = !method.ReturnsVoid && !method.IsAsyncReturningVoidTask(document.SemanticModel.Compilation);
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
