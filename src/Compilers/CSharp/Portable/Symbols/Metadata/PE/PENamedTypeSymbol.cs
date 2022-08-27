@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override FileIdentifier? AssociatedFileIdentifier =>
             GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
-                ? new FileIdentifier { FilePathChecksum = checksum, DisplayFilePath = displayFileName }
+                ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
                 : null;
 
         internal abstract int MetadataArity

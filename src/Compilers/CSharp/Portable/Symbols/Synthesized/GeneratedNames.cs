@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
         }
 
-        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksum)
+        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -504,15 +504,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AppendFileName(filePath, sb);
             sb.Append('>');
             sb.Append((char)GeneratedNameKind.FileType);
-            foreach (var b in checksum)
+            if (checksumOpt.IsDefault)
             {
-                sb.AppendFormat("{0:X2}", b);
+                // Note: this is an error condition.
+                // This is only included for clarity for users inspecting the value of 'MetadataName'.
+                sb.Append("<no checksum>");
+            }
+            else
+            {
+                foreach (var b in checksumOpt)
+                {
+                    sb.AppendFormat("{0:X2}", b);
+                }
             }
             sb.Append("__");
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static void AppendFileName(string? filePath, StringBuilder sb)
+        internal static string GetDisplayFilePath(string filePath)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            AppendFileName(filePath, pooledBuilder.Builder);
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static void AppendFileName(string filePath, StringBuilder sb)
         {
             var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
             if (fileName is null)

@@ -1351,10 +1351,17 @@ symIsHidden:;
             }
 
             var symbolFileIdentifier = ((NamedTypeSymbol)symbol).AssociatedFileIdentifier.GetValueOrDefault();
-            var binderFileIdentifier = getFileIdentifierForFileTypes();
-            return binderFileIdentifier.FilePathChecksum.SequenceEqual(symbolFileIdentifier.FilePathChecksum);
+            if (symbolFileIdentifier.FilePathChecksumOpt.IsDefault)
+            {
+                // the containing file of the file-local type has an ill-formed path.
+                return false;
+            }
 
-            NamedTypeSymbol.FileIdentifier getFileIdentifierForFileTypes()
+            var binderFileIdentifier = getFileIdentifierForFileTypes();
+            return !binderFileIdentifier.FilePathChecksumOpt.IsDefault
+                && binderFileIdentifier.FilePathChecksumOpt.SequenceEqual(symbolFileIdentifier.FilePathChecksumOpt);
+
+            FileIdentifier getFileIdentifierForFileTypes()
             {
                 for (var binder = this; binder != null; binder = binder.Next)
                 {

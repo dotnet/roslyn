@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var document = reader.GetDocument(documentHandle);
             var documentName = reader.GetString(document.Name);
             using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(documentName));
+            var hash = sha256.ComputeHash(s_fileNameEncoding.GetBytes(documentName)).ToImmutableArray();
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 localConstants,
                 reuseSpan,
                 documentName,
-                hash.ToImmutableArray());
+                hash);
         }
 
         /// <summary>

@@ -840,8 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                // TODO2: consider caching this
-                return CreateFileIdentifier(AssociatedSyntaxTree);
+                return FileIdentifier.Create(AssociatedSyntaxTree);
             }
         }
 
@@ -1759,12 +1758,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsFileLocal)
+            if (AssociatedFileIdentifier is { } fileIdentifier)
             {
+                Debug.Assert(IsFileLocal);
+
                 // A well-behaved file-local type only has declarations in one syntax tree.
                 // There may be multiple syntax trees across declarations in error scenarios,
                 // but we're not interested in handling that for the purposes of producing this error.
                 var tree = declaration.Declarations[0].SyntaxReference.SyntaxTree;
+                if (fileIdentifier.FilePathChecksumOpt.IsDefault)
+                {
+                    Debug.Assert(fileIdentifier.EncoderFallbackErrorMessage is not null);
+                    diagnostics.Add(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, location, this, fileIdentifier.EncoderFallbackErrorMessage);
+                }
+
                 // TODO2: we probably don't want to linearly search the syntax trees.
                 foreach (var otherTree in DeclaringCompilation.SyntaxTrees)
                 {

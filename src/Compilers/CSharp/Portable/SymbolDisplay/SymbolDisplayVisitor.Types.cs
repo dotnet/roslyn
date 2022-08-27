@@ -185,26 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
                 && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedFileIdentifier: { } identifier } internalSymbol })
             {
-                var fileDescription = getDisplayFileName(identifier) is { Length: not 0 } path ? path
+                var fileDescription = identifier.DisplayFilePath is { Length: not 0 } path ? path
                     : internalSymbol.Locations.FirstOrNone().SourceTree is { } tree ? $"<tree {internalSymbol.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
                     : "<unknown>";
 
                 builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
                 builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
-            }
-
-            // TODO2: standardize on whether to store a full path or just the display file name in the FileIdentifier.
-            static string getDisplayFileName(NamedTypeSymbol.FileIdentifier identifier)
-            {
-                if (identifier.DisplayFilePath.Length == 0)
-                {
-                    return "";
-                }
-
-                var pooledBuilder = PooledStringBuilder.GetInstance();
-                var sb = pooledBuilder.Builder;
-                GeneratedNames.AppendFileName(identifier.DisplayFilePath, sb);
-                return pooledBuilder.ToStringAndFree();
             }
         }
 

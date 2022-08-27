@@ -592,6 +592,11 @@
         <target state="translated">필드와 유사한 이벤트 '{0}'이(가) 'readonly'일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
+        <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
+        <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
         <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
         <target state="translated">원본 파일은 파일 범위 선언과 일반 네임스페이스 선언을 모두 포함할 수 없습니다.</target>

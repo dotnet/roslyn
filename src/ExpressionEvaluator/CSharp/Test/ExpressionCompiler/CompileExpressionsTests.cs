@@ -903,5 +903,47 @@ class Program
                     Assert.Empty(methodTokens);
                 });
         }
+
+        [Fact]
+        public void IllFormedFilePath_01()
+        {
+            var source =
+@"class C
+{
+    public static int X = 42;
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/\uD800.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "C.X",
+                        out var error,
+                        testData);
+                    Assert.NotNull(result.Assembly);
+                    Assert.Null(error);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "int C.X"
+                          IL_0005:  ret
+                        }
+                        """);
+                });
+        }
     }
 }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class BuckStopsHereBinder : Binder
     {
-        internal BuckStopsHereBinder(CSharpCompilation compilation, NamedTypeSymbol.FileIdentifier? associatedFileIdentifier)
+        internal BuckStopsHereBinder(CSharpCompilation compilation, FileIdentifier? associatedFileIdentifier)
             : base(compilation)
         {
             this.AssociatedFileIdentifier = associatedFileIdentifier;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is <see langword="null"/> in some scenarios, such as the binder used for <see cref="CSharpCompilation.Conversions" />
         /// or the binder used to bind usings in <see cref="CSharpCompilation.UsingsFromOptionsAndDiagnostics"/>.
         /// </summary>
-        internal readonly NamedTypeSymbol.FileIdentifier? AssociatedFileIdentifier;
+        internal readonly FileIdentifier? AssociatedFileIdentifier;
 
         internal override ImportChain? ImportChain
         {

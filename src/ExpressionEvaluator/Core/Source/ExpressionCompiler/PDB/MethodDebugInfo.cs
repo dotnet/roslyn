@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -28,6 +30,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             containingDocumentName: null,
             containingDocumentChecksumOpt: default);
 
+        private static readonly UTF8Encoding s_fileNameEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
         /// <summary>
         /// Hoisted local variable scopes.
         /// Null if the information should be decoded from local variable debug info (VB Windows PDBs).
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ImmutableArray<TLocalSymbol> LocalConstants;
         public readonly ILSpan ReuseSpan;
         public readonly string? ContainingDocumentName;
-        public readonly ImmutableArray<byte> ContainingDocumentChecksumOpt;
+        public readonly ImmutableArray<byte> ContainingDocumentNameChecksumOpt;
 
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReuseSpan = reuseSpan;
 
             ContainingDocumentName = containingDocumentName;
-            ContainingDocumentChecksumOpt = containingDocumentChecksumOpt;
+            ContainingDocumentNameChecksumOpt = containingDocumentChecksumOpt;
         }
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)

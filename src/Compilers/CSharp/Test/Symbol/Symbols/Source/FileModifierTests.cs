@@ -692,6 +692,26 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
+    public void BadFileNames_04()
+    {
+        var source1 = """
+            new C(); // 1
+
+            file class C { } // 2
+            """;
+
+        var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: "\uD800.cs"));
+        comp.VerifyDiagnostics(
+            // �.cs(1,12): error CS9067: File-local type 'C' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD800 at index 0 to specified code page.
+            // file class C { }
+            Diagnostic(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, "C").WithArguments("C", @"Unable to translate Unicode character \\uD800 at index 0 to specified code page.").WithLocation(1, 12));
+
+        var classC = comp.GetMember("C");
+        Assert.Equal("<_>F<no checksum>__C", classC.MetadataName);
+        Assert.Null(comp.GetTypeByMetadataName("<_>F<no checksum>__C"));
+    }
+
+    [Fact]
     public void Pdb_01()
     {
         var source = """
@@ -3538,7 +3558,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         var identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksum);
+        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
         Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
@@ -3547,7 +3567,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksum);
+        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
         Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
@@ -3556,7 +3576,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("C@<unknown>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksum);
+        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
         Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
         Assert.False(type.IsFileLocal);
     }
@@ -3607,7 +3627,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.NotNull(identifier);
         AssertEx.Equal(
             new byte[] { 0xE3, 0xB0, 0xC4, 0x42, 0x98, 0xFC, 0x1C, 0x14, 0x9A, 0xFB, 0xF4, 0xC8, 0x99, 0x6F, 0xB9, 0x24, 0x27, 0xAE, 0x41, 0xE4, 0x64, 0x9B, 0x93, 0x4C, 0xA4, 0x95, 0x99, 0x1B, 0x78, 0x52, 0xB8, 0x55 },
-            identifier.GetValueOrDefault().FilePathChecksum);
+            identifier.GetValueOrDefault().FilePathChecksumOpt);
         Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
         Assert.True(type.IsFileLocal);
     }

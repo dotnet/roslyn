@@ -1369,11 +1369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string? GetFileLocalTypeMetadataNamePrefix(this NamedTypeSymbol type)
         {
-            if (type.AssociatedFileIdentifier is not NamedTypeSymbol.FileIdentifier identifier)
+            if (type.AssociatedFileIdentifier is not FileIdentifier identifier)
             {
                 return null;
             }
-            return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksum);
+            return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksumOpt);
         }
 
         public static bool IsPointerType(this TypeSymbol type)

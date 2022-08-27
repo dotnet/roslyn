@@ -60,9 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // added (anonymous types, for instance).
             Debug.Assert(Compilation != compilation);
 
-            NamedTypeSymbol.FileIdentifier? identifier = methodDebugInfo.ContainingDocumentName is null
+            // TODO2: consider delaying creating the checksum, etc. to here to reduce duplication
+            FileIdentifier? identifier = methodDebugInfo.ContainingDocumentName is null
                 ? null
-                : new NamedTypeSymbol.FileIdentifier { DisplayFilePath = methodDebugInfo.ContainingDocumentName, FilePathChecksum = methodDebugInfo.ContainingDocumentChecksumOpt };
+                : new FileIdentifier { DisplayFilePath = GeneratedNames.GetDisplayFilePath(methodDebugInfo.ContainingDocumentName), FilePathChecksumOpt = methodDebugInfo.ContainingDocumentNameChecksumOpt };
 
             NamespaceBinder = CreateBinderChain(
                 Compilation,
@@ -703,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             CSharpCompilation compilation,
             NamespaceSymbol @namespace,
             ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
-            NamedTypeSymbol.FileIdentifier? fileIdentifier)
+            FileIdentifier? fileIdentifier)
         {
             var stack = ArrayBuilder<string>.GetInstance();
             while (@namespace is object)

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
                 string? name = null;
-                byte[]? checksum = null;
+                ImmutableArray<byte> checksum = default;
                 if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
                 {
                     // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
@@ -184,9 +185,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var documents => throw ExceptionUtilities.UnexpectedValue(documents)
                     };
 
-                    name = doc.GetName();
-                    using var sha256 = SHA256.Create();
-                    checksum = sha256.ComputeHash(Encoding.UTF8.GetBytes(name));
+                    try
+                    {
+                        name = doc.GetName();
+                        using var sha256 = SHA256.Create();
+                        checksum = sha256.ComputeHash(s_fileNameEncoding.GetBytes(name)).ToImmutableArray();
+                    }
+                    catch (EncoderFallbackException)
+                    {
+                        // If the name contains ill-formed unicode, just drop the information used for binding file types.
+                        // No file types would be produced by the compiler with this path, so we won't miss anything.
+                        name = null;
+                        checksum = default;
+                    }
                 }
 
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
@@ -200,7 +211,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     constantsBuilder.ToImmutableAndFree(),
                     reuseSpan,
                     name,
-                    checksum?.ToImmutableArray() ?? default);
+                    checksum);
             }
             catch (InvalidOperationException)
             {

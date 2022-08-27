@@ -342,9 +342,10 @@ Done:
                 namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
                 foreach (var named in namespaceOrTypeMembers)
                 {
-                    if (named.AssociatedFileIdentifier is NamedTypeSymbol.FileIdentifier identifier
+                    if (named.AssociatedFileIdentifier is FileIdentifier identifier
                         && getDisplayName(identifier) == displayFileName
-                        && identifier.FilePathChecksum.SequenceEqual(checksum.ToImmutableArray())
+                        && !identifier.FilePathChecksumOpt.IsDefault
+                        && identifier.FilePathChecksumOpt.SequenceEqual(checksum)
                         && named.Arity == emittedTypeName.InferredArity)
                     {
                         if ((object?)namedType != null)
@@ -372,7 +373,7 @@ Done:
 
             return namedType;
 
-            static string getDisplayName(NamedTypeSymbol.FileIdentifier identifier)
+            static string getDisplayName(FileIdentifier identifier)
             {
                 var sb = PooledStringBuilder.GetInstance();
                 GeneratedNames.AppendFileName(identifier.DisplayFilePath, sb);

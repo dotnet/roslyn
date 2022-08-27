@@ -7148,6 +7148,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FileTypeNested" xml:space="preserve">
     <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
   </data>
+  <data name="ERR_FilePathCannotBeConvertedToUtf8" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</value>
+  </data>
   <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
     <value>File-local type '{0}' cannot be used in a 'global using static' directive.</value>
   </data>
