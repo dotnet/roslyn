@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
     public class CSharpCodeActions : AbstractEditorTest
     {
         public CSharpCodeActions()
-            : base(nameof(CSharpCodeActions))
+            : base(nameof(CSharpCodeActions), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
@@ -1232,6 +1233,8 @@ class C2
                 HangMitigatingCancellationToken);
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await Task.Delay(100000);
 
             await TestServices.EditorVerifier.CodeActionAsync(
                 "Convert to raw string",
