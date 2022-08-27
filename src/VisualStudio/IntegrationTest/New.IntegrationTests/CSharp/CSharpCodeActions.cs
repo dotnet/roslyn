@@ -1234,8 +1234,6 @@ class C2
 
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
-            await Task.Delay(100000);
-
             await TestServices.EditorVerifier.CodeActionAsync(
                 "Convert to raw string",
                 applyFix: true,
