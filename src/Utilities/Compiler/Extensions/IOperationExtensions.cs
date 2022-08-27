@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -463,10 +464,10 @@ namespace Analyzer.Utilities.Extensions
                     return null;
 
                 default:
-                    // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
-                    // have an overload for such operation roots.
+                    // Attribute blocks have OperationKind.None (prior to IAttributeOperationSupport) or
+                    // OperationKind.Attribute, but we do not support flow analysis for attributes.
                     // Gracefully return null for this case and fire an assert for any other OperationKind.
-                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind}");
+                    Debug.Assert(operation.Kind is OperationKind.None or OperationKindEx.Attribute, $"Unexpected root operation kind: {operation.Kind}");
                     return null;
             }
         }
