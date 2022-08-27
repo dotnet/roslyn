@@ -464,7 +464,7 @@ namespace Analyzer.Utilities.Extensions
                     return null;
 
                 default:
-                    // Attribute blocks have OperationKind.None (prior to IAttributeOperationSupport) or
+                    // Attribute blocks have OperationKind.None (prior to IAttributeOperation support) or
                     // OperationKind.Attribute, but we do not support flow analysis for attributes.
                     // Gracefully return null for this case and fire an assert for any other OperationKind.
                     Debug.Assert(operation.Kind is OperationKind.None or OperationKindEx.Attribute, $"Unexpected root operation kind: {operation.Kind}");
