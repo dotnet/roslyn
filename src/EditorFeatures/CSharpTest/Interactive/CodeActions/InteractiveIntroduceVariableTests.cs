@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -214,6 +215,47 @@ index: 1);
     }
 }
 ");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [WorkItem(61796, "https://github.com/dotnet/roslyn/issues/61796")]
+        [InlineData("Task")]
+        [InlineData("ValueTask")]
+        public async Task IntroduceLocal_DoNotReturnForVoidTaskLikeTypes(string taskType)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+using System;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1;
+
+internal class Example1
+{{
+    private async {taskType} DoStuff() => await ConsumeAsync([|await TransformAsync(""abc"")|]);
+
+    private Task<object> TransformAsync(string v) => throw new NotImplementedException();
+
+    private Task ConsumeAsync(object value) => throw new NotImplementedException();
+}}",
+$@"
+using System;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1;
+
+internal class Example1
+{{
+    private async {taskType} DoStuff()
+    {{
+        object {{|Rename:value|}} = await TransformAsync(""abc"");
+        await ConsumeAsync(value);
+    }}
+
+    private Task<object> TransformAsync(string v) => throw new NotImplementedException();
+
+    private Task ConsumeAsync(object value) => throw new NotImplementedException();
+}}");
         }
     }
 }
