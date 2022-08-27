@@ -986,7 +986,6 @@ namespace System.Diagnostics.CodeAnalysis
                 source,
                 (s, _) =>
                 {
-                    if (s == "Version") return null;
                     Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
                     return expectedBlobs[s];
                 },
