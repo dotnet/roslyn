@@ -37,6 +37,7 @@ param (
   [switch]$buildServerLog,
   [switch]$ci,
   [switch]$collectDumps,
+  [switch]$testsOnly = $false,
   [switch][Alias('a')]$runAnalyzers,
   [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
@@ -84,6 +85,7 @@ function Print-Usage() {
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
   Write-Host "  -build                    Build main solution (short: -b)"
+  Write-Host "  -testsOnly                Build only test projects and their dependecies"
   Write-Host "  -rebuild                  Rebuild main solution"
   Write-Host "  -pack                     Build NuGet packages, VS insertion manifests and installer"
   Write-Host "  -sign                     Sign our binaries"
@@ -209,7 +211,15 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  $solution = "Roslyn.sln"
+  
+  if($testsOnly)
+  {
+    $solution = "UnitTests.slnf"
+  }
+  else
+  {
+    $solution = "Roslyn.sln"
+  }
 
   Write-Host "$($solution):"
 

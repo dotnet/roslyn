@@ -38,8 +38,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet -testsOnly /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet -testsOnly /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build
   dependsOn: []
@@ -50,8 +50,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet -testsOnly /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet -testsOnly /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Unix_Build
   dependsOn: []
