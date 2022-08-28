@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Null(DefaultNamespaceOfSingleProject(environment));
 
                 var rootNamespace = "Foo.Bar";
-                project.SetProperty(AdditionalPropertyNames.RootNamespace, rootNamespace);
+                project.SetProperty(BuildPropertyNames.RootNamespace, rootNamespace);
                 Assert.Equal(rootNamespace, DefaultNamespaceOfSingleProject(environment));
             }
 
@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
                 var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
-                cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
+                cpsProject.SetProperty(BuildPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
 
                 var canApply = environment.Workspace.CanApplyParseOptionChange(
                     oldParseOptions,
@@ -131,8 +131,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 using var environment = new TestEnvironment();
                 using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
 
-                cpsProject.SetProperty(AdditionalPropertyNames.RunAnalyzers, runAnalyzers);
-                cpsProject.SetProperty(AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, runAnalyzersDuringLiveAnalysis);
+                cpsProject.SetProperty(BuildPropertyNames.RunAnalyzers, runAnalyzers);
+                cpsProject.SetProperty(BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, runAnalyzersDuringLiveAnalysis);
 
                 Assert.Equal(expectedRunAnalyzers, environment.Workspace.CurrentSolution.Projects.Single().State.RunAnalyzers);
             }
@@ -146,11 +146,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 Assert.True(ErrorHandler.Succeeded(
                     storage.SetPropertyValue(
-                        AdditionalPropertyNames.RunAnalyzers, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzers)));
+                        BuildPropertyNames.RunAnalyzers, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzers)));
 
                 Assert.True(ErrorHandler.Succeeded(
                     storage.SetPropertyValue(
-                        AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzersDuringLiveAnalysis)));
+                        BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzersDuringLiveAnalysis)));
 
                 _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
 
