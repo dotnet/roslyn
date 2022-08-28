@@ -1192,7 +1192,7 @@ class Program
         }
 
         [Fact]
-        public void RefFields_RefReassignment()
+        public void RefFields_RefReassignment_01()
         {
             var source =
 @"ref struct R<T>
@@ -1232,6 +1232,195 @@ class Program
                 //         r2.F = ref t;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
                 );
+        }
+
+        [Fact]
+        [WorkItem(63434, "https://github.com/dotnet/roslyn/issues/63434")]
+        public void RefFields_RefReassignment_02()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        var r = new R() { Field = ref i };
+        Console.WriteLine(r.Field);
+        i = 43;
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+@"42
+43")).VerifyDiagnostics().
+                VerifyIL("Program.Main",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (int V_0, //i
+                R V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""R""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  stfld      ""ref int R.Field""
+  IL_0014:  ldloc.1
+  IL_0015:  dup
+  IL_0016:  ldfld      ""ref int R.Field""
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ldc.i4.s   43
+  IL_0023:  stloc.0
+  IL_0024:  ldfld      ""ref int R.Field""
+  IL_0029:  ldind.i4
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefFields_RefReassignment_03()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        var r = new R();
+        r.Field = ref i;
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8374: Cannot ref-assign 'i' to 'Field' because 'i' has a narrower escape scope than 'Field'.
+                //         r.Field = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.Field = ref i").WithArguments("Field", "i").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(63434, "https://github.com/dotnet/roslyn/issues/63434")]
+        public void RefFields_RefReassignment_04()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        Test(ref i);
+    }
+
+    static void Test(ref int i)
+    {
+        var r = new R() { Field = ref i };
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().
+                VerifyIL("Program.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (R V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""R""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldarg.0
+  IL_000b:  stfld      ""ref int R.Field""
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""ref int R.Field""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefFields_RefReassignment_05()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        Test(ref i);
+    }
+
+    static void Test(ref int i)
+    {
+        var r = new R();
+        r.Field = ref i;
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().
+                VerifyIL("Program.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (R V_0) //r
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""R""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldarg.0
+  IL_000b:  stfld      ""ref int R.Field""
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""ref int R.Field""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
         }
 
         [Fact]
@@ -12260,7 +12449,7 @@ ref struct R
             verifier.VerifyIL("C.Main",
 """
 {
-  // Code size       40 (0x28)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (int V_0, //x
                 R V_1, //r
@@ -12269,17 +12458,16 @@ ref struct R
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_2
   IL_0005:  initobj    "R"
-  IL_000b:  ldloc.2
-  IL_000c:  ldfld      "ref int R.field"
-  IL_0011:  ldloc.0
-  IL_0012:  stind.i4
-  IL_0013:  ldloc.2
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  constrained. "R"
-  IL_001d:  callvirt   "string object.ToString()"
-  IL_0022:  call       "void System.Console.Write(string)"
-  IL_0027:  ret
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  stfld      "ref int R.field"
+  IL_0014:  ldloc.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  constrained. "R"
+  IL_001e:  callvirt   "string object.ToString()"
+  IL_0023:  call       "void System.Console.Write(string)"
+  IL_0028:  ret
 }
 """);
         }
@@ -13014,7 +13202,7 @@ ref struct Item
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (int V_0, //x
                 Container V_1)
@@ -13022,17 +13210,16 @@ ref struct Item
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_1
   IL_0005:  initobj    ""Container""
-  IL_000b:  ldloc.1
-  IL_000c:  ldfld      ""Item Container.item""
-  IL_0011:  ldfld      ""ref int Item.field""
-  IL_0016:  ldloc.0
-  IL_0017:  stind.i4
-  IL_0018:  ldloc.1
-  IL_0019:  ldfld      ""Item Container.item""
-  IL_001e:  ldfld      ""ref int Item.field""
-  IL_0023:  ldind.i4
-  IL_0024:  call       ""void System.Console.Write(int)""
-  IL_0029:  ret
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldflda     ""Item Container.item""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  stfld      ""ref int Item.field""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""Item Container.item""
+  IL_001f:  ldfld      ""ref int Item.field""
+  IL_0024:  ldind.i4
+  IL_0025:  call       ""void System.Console.Write(int)""
+  IL_002a:  ret
 }
 ");
         }
@@ -13192,7 +13379,7 @@ ref struct R<T>
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
             verifier.VerifyIL("C.Main", """
 {
-  // Code size      256 (0x100)
+  // Code size      257 (0x101)
   .maxstack  9
   .locals init (object V_0, //i
                 R<dynamic> V_1, //r
@@ -13204,86 +13391,85 @@ ref struct R<T>
   IL_0008:  stloc.0
   IL_0009:  ldloca.s   V_3
   IL_000b:  initobj    "R<dynamic>"
-  IL_0011:  ldloc.3
-  IL_0012:  ldfld      "ref dynamic R<dynamic>.F"
-  IL_0017:  ldloc.0
-  IL_0018:  stind.ref
-  IL_0019:  ldloc.3
-  IL_001a:  stloc.1
-  IL_001b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
-  IL_0020:  brfalse.s  IL_0024
-  IL_0022:  br.s       IL_0063
-  IL_0024:  ldc.i4     0x100
-  IL_0029:  ldstr      "Write"
-  IL_002e:  ldnull
-  IL_002f:  ldtoken    "C"
-  IL_0034:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-  IL_0039:  ldc.i4.2
-  IL_003a:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-  IL_003f:  dup
-  IL_0040:  ldc.i4.0
-  IL_0041:  ldc.i4.s   33
-  IL_0043:  ldnull
-  IL_0044:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-  IL_0049:  stelem.ref
-  IL_004a:  dup
-  IL_004b:  ldc.i4.1
-  IL_004c:  ldc.i4.0
-  IL_004d:  ldnull
-  IL_004e:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-  IL_0053:  stelem.ref
-  IL_0054:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-  IL_0059:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-  IL_005e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
-  IL_0063:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
-  IL_0068:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
-  IL_006d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
-  IL_0072:  ldtoken    "System.Console"
-  IL_0077:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-  IL_007c:  ldloc.1
-  IL_007d:  ldfld      "ref dynamic R<dynamic>.F"
-  IL_0082:  ldind.ref
-  IL_0083:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
-  IL_0088:  nop
-  IL_0089:  ldloca.s   V_0
-  IL_008b:  newobj     "R<dynamic>..ctor(ref dynamic)"
-  IL_0090:  stloc.2
-  IL_0091:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
-  IL_0096:  brfalse.s  IL_009a
-  IL_0098:  br.s       IL_00d9
-  IL_009a:  ldc.i4     0x100
-  IL_009f:  ldstr      "Write"
-  IL_00a4:  ldnull
-  IL_00a5:  ldtoken    "C"
-  IL_00aa:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-  IL_00af:  ldc.i4.2
-  IL_00b0:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-  IL_00b5:  dup
-  IL_00b6:  ldc.i4.0
-  IL_00b7:  ldc.i4.s   33
-  IL_00b9:  ldnull
-  IL_00ba:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-  IL_00bf:  stelem.ref
-  IL_00c0:  dup
-  IL_00c1:  ldc.i4.1
-  IL_00c2:  ldc.i4.0
-  IL_00c3:  ldnull
-  IL_00c4:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-  IL_00c9:  stelem.ref
-  IL_00ca:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-  IL_00cf:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-  IL_00d4:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
-  IL_00d9:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
-  IL_00de:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
-  IL_00e3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
-  IL_00e8:  ldtoken    "System.Console"
-  IL_00ed:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-  IL_00f2:  ldloc.2
-  IL_00f3:  ldfld      "ref dynamic R<dynamic>.F"
-  IL_00f8:  ldind.ref
-  IL_00f9:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
-  IL_00fe:  nop
-  IL_00ff:  ret
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  stfld      "ref dynamic R<dynamic>.F"
+  IL_001a:  ldloc.3
+  IL_001b:  stloc.1
+  IL_001c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0021:  brfalse.s  IL_0025
+  IL_0023:  br.s       IL_0064
+  IL_0025:  ldc.i4     0x100
+  IL_002a:  ldstr      "Write"
+  IL_002f:  ldnull
+  IL_0030:  ldtoken    "C"
+  IL_0035:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_003a:  ldc.i4.2
+  IL_003b:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_0040:  dup
+  IL_0041:  ldc.i4.0
+  IL_0042:  ldc.i4.s   33
+  IL_0044:  ldnull
+  IL_0045:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_004a:  stelem.ref
+  IL_004b:  dup
+  IL_004c:  ldc.i4.1
+  IL_004d:  ldc.i4.0
+  IL_004e:  ldnull
+  IL_004f:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_0054:  stelem.ref
+  IL_0055:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_005a:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_005f:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0064:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0069:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_006e:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0073:  ldtoken    "System.Console"
+  IL_0078:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_007d:  ldloc.1
+  IL_007e:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_0083:  ldind.ref
+  IL_0084:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_0089:  nop
+  IL_008a:  ldloca.s   V_0
+  IL_008c:  newobj     "R<dynamic>..ctor(ref dynamic)"
+  IL_0091:  stloc.2
+  IL_0092:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_0097:  brfalse.s  IL_009b
+  IL_0099:  br.s       IL_00da
+  IL_009b:  ldc.i4     0x100
+  IL_00a0:  ldstr      "Write"
+  IL_00a5:  ldnull
+  IL_00a6:  ldtoken    "C"
+  IL_00ab:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00b0:  ldc.i4.2
+  IL_00b1:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_00b6:  dup
+  IL_00b7:  ldc.i4.0
+  IL_00b8:  ldc.i4.s   33
+  IL_00ba:  ldnull
+  IL_00bb:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00c0:  stelem.ref
+  IL_00c1:  dup
+  IL_00c2:  ldc.i4.1
+  IL_00c3:  ldc.i4.0
+  IL_00c4:  ldnull
+  IL_00c5:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00ca:  stelem.ref
+  IL_00cb:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_00d0:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_00d5:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00da:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00df:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_00e4:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00e9:  ldtoken    "System.Console"
+  IL_00ee:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00f3:  ldloc.2
+  IL_00f4:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_00f9:  ldind.ref
+  IL_00fa:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_00ff:  nop
+  IL_0100:  ret
 }
 """);
         }
@@ -13317,7 +13503,7 @@ ref struct R<T>
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
             verifier.VerifyIL("C.Main", """
 {
-  // Code size       55 (0x37)
+  // Code size       56 (0x38)
   .maxstack  2
   .locals init (object V_0, //i
                 R<object> V_1)
@@ -13326,20 +13512,19 @@ ref struct R<T>
   IL_0007:  stloc.0
   IL_0008:  ldloca.s   V_1
   IL_000a:  initobj    "R<object>"
-  IL_0010:  ldloc.1
-  IL_0011:  ldfld      "ref object R<object>.F"
-  IL_0016:  ldloc.0
-  IL_0017:  stind.ref
-  IL_0018:  ldloc.1
-  IL_0019:  ldfld      "ref object R<object>.F"
-  IL_001e:  ldind.ref
-  IL_001f:  call       "void System.Console.Write(object)"
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  newobj     "R<object>..ctor(ref object)"
-  IL_002b:  ldfld      "ref object R<object>.F"
-  IL_0030:  ldind.ref
-  IL_0031:  call       "void System.Console.Write(object)"
-  IL_0036:  ret
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  stfld      "ref object R<object>.F"
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      "ref object R<object>.F"
+  IL_001f:  ldind.ref
+  IL_0020:  call       "void System.Console.Write(object)"
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  newobj     "R<object>..ctor(ref object)"
+  IL_002c:  ldfld      "ref object R<object>.F"
+  IL_0031:  ldind.ref
+  IL_0032:  call       "void System.Console.Write(object)"
+  IL_0037:  ret
 }
 """);
         }
@@ -13650,7 +13835,7 @@ ref struct R
             verifier.VerifyIL("C.Main",
 """
 {
-  // Code size       40 (0x28)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (int V_0, //x
                 R V_1, //r
@@ -13659,17 +13844,16 @@ ref struct R
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_2
   IL_0005:  initobj    "R"
-  IL_000b:  ldloc.2
-  IL_000c:  ldfld      "ref int R.field"
-  IL_0011:  ldloc.0
-  IL_0012:  stind.i4
-  IL_0013:  ldloc.2
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  constrained. "R"
-  IL_001d:  callvirt   "string object.ToString()"
-  IL_0022:  call       "void System.Console.Write(string)"
-  IL_0027:  ret
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  stfld      "ref int R.field"
+  IL_0014:  ldloc.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  constrained. "R"
+  IL_001e:  callvirt   "string object.ToString()"
+  IL_0023:  call       "void System.Console.Write(string)"
+  IL_0028:  ret
 }
 """);
         }
@@ -14582,7 +14766,7 @@ class Program
         }
 
         [CombinatorialData]
-        [Theory]
+        [Theory, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
         public void UnscopedRefAttribute_RefRefStructParameter_02(bool useCompilationReference)
         {
             var sourceA =
@@ -14605,10 +14789,6 @@ public class A<T>
     public ref T F3A([UnscopedRef] ref R<T> r3)
     {
         return ref r3.F;
-    }
-    public ref T F4A([UnscopedRef] scoped ref R<T> r4)
-    {
-        return ref r4.F;
     }
 }";
             var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
@@ -14636,12 +14816,6 @@ public class A<T>
         var r = new R<int>(ref i);
         return ref F3A(ref r); // 3
     }
-    ref int F4B()
-    {
-        int i = 4;
-        var r = new R<int>(ref i);
-        return ref F4A(ref r); // 4
-    }
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -14662,19 +14836,12 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(19, 20),
                 // (19,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F3A(ref r); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 28),
-                // (25,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
-                //         return ref F4A(ref r); // 4
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref r)").WithArguments("A<int>.F4A(ref R<int>)", "r4").WithLocation(25, 20),
-                // (25,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
-                //         return ref F4A(ref r); // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(25, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped);
 
             var sourceB2 =
 @"class B2 : A<int>
@@ -14694,11 +14861,6 @@ public class A<T>
         var r = new R<int>(ref i);
         return ref F3A(ref r); // 1
     }
-    ref int F4B(ref int i)
-    {
-        var r = new R<int>(ref i);
-        return ref F4A(ref r); // 2
-    }
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -14706,14 +14868,141 @@ public class A<T>
                 //         return ref F3A(ref r); // 1
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
                 // (16,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F3A(ref r); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28),
-                // (21,20): error CS8350: This combination of arguments to 'A<int>.F4A(ref R<int>)' is disallowed because it may expose variables referenced by parameter 'r4' outside of their declaration scope
-                //         return ref F4A(ref r); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F4A(ref r)").WithArguments("A<int>.F4A(ref R<int>)", "r4").WithLocation(21, 20),
-                // (21,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F4A(ref r); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(21, 28));
+                //         return ref F3A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28));
+        }
+
+        [Fact, WorkItem(63057, "https://github.com/dotnet/roslyn/issues/63057")]
+        public void UnscopedScoped_Source()
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+public class A<T>
+{
+    public ref T F1([UnscopedRef] scoped ref R<T> r1) // 1
+    {
+        return ref r1.F;
+    }
+    public ref T F2([UnscopedRef] scoped out T t2) // 2
+    {
+        t2 = default;
+        return ref t2;
+    }
+    public ref T F3([UnscopedRef] scoped in R<T> t3) // 3
+    {
+        throw null;
+    }
+    public ref T F4([UnscopedRef] scoped R<T> t4) // 4
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F1([UnscopedRef] scoped ref R<T> r1) // 1
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(9, 22),
+                // (13,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F2([UnscopedRef] scoped out T t2) // 2
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(13, 22),
+                // (18,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F3([UnscopedRef] scoped in R<T> t3) // 3
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(18, 22),
+                // (22,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F4([UnscopedRef] scoped R<T> t4) // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(22, 22));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            VerifyParameterSymbol(type.GetMethod("F1").Parameters[0], "ref R<T> r1", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F2").Parameters[0], "out T t2", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F3").Parameters[0], "in R<T> t3", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F4").Parameters[0], "R<T> t4", RefKind.None, DeclarationScope.Unscoped);
+        }
+
+        [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
+        public void UnscopedScoped_Metadata()
+        {
+            // Equivalent to:
+            // public class A<T>
+            // {
+            //      public ref T F4([UnscopedRef] scoped R<T> t4) { throw null; }
+            // }
+            var ilSource = """
+.class public sequential ansi sealed beforefieldinit R`1<T>
+	extends [mscorlib]System.ValueType
+{
+	.method public hidebysig specialname rtspecialname instance void .ctor ( !T& t ) cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class public auto ansi beforefieldinit A`1<T>
+	extends [mscorlib]System.Object
+{
+    // [UnscopedRef] scoped parameter
+	.method public hidebysig instance !T& F4A ( valuetype R`1<!T>& r4 ) cil managed
+	{
+		.param [1]
+			.custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+			.custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+	.method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ScopedRefAttribute
+	extends [mscorlib]System.Attribute
+{
+	.method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute
+	extends [mscorlib]System.Attribute
+{
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+""";
+            var refA = CompileIL(ilSource);
+
+            var sourceB =
+@"class B : A<int>
+{
+    ref int F4B()
+    {
+        int i = 4;
+        var r = new R<int>(ref i);
+        return ref F4A(ref r); // 1
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS0570: 'A<T>.F4A(ref R<T>)' is not supported by the language
+                //         return ref F4A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F4A").WithArguments("A<T>.F4A(ref R<T>)").WithLocation(7, 20));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped);
         }
 
         [Fact]
@@ -14765,11 +15054,6 @@ public class A<T>
         t3 = default;
         return ref t3;
     }
-    public ref T F4A([UnscopedRef] scoped out T t4)
-    {
-        t4 = default;
-        return ref t4;
-    }
 }";
             var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics();
@@ -14793,11 +15077,6 @@ public class A<T>
         int i = 3;
         return ref F3A(out i); // 1
     }
-    ref int F4B()
-    {
-        int i = 4;
-        return ref F4A(out i); // 2
-    }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -14806,19 +15085,12 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(out i)").WithArguments("A<int>.F3A(out int)", "t3").WithLocation(16, 20),
                 // (16,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F3A(out i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28),
-                // (21,20): error CS8347: Cannot use a result of 'A<int>.F4A(out int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
-                //         return ref F4A(out i); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(out i)").WithArguments("A<int>.F4A(out int)", "t4").WithLocation(21, 20),
-                // (21,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         return ref F4A(out i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(21, 28));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "out System.Int32 t1", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "out System.Int32 t2", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "out System.Int32 t3", RefKind.Out, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "out System.Int32 t4", RefKind.Out, DeclarationScope.Unscoped);
         }
 
         [Fact]

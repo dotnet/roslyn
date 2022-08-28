@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DeclarationScope DeclaredScope => _scope;
 
-        internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
+        internal sealed override DeclarationScope EffectiveScope => ParameterHelpers.CalculateEffectiveScopeIgnoringAttributes(this);
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase

@@ -1501,6 +1501,283 @@ End Class
 ")
         End Sub
 
+        <Fact>
+        Public Sub UpdateType_AddAttributes()
+            Dim source0 = "
+Class C
+End Class
+"
+            Dim source1 = "
+<System.ComponentModel.Description(""C"")>
+Class C
+End Class
+"
+            Dim source2 = "
+<System.ComponentModel.Description(""C"")>
+<System.ObsoleteAttribute>
+Class C
+End Class
+"
+
+            Dim compilation0 = CreateCompilation(source0, options:=TestOptions.DebugDll, TargetFramework:=TargetFramework.NetStandard20)
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+
+            Dim c0 = compilation0.GetMember(Of NamedTypeSymbol)("C")
+            Dim c1 = compilation1.GetMember(Of NamedTypeSymbol)("C")
+            Dim c2 = compilation2.GetMember(Of NamedTypeSymbol)("C")
+
+            ' Verify full metadata contains expected rows.
+            Dim bytes0 = compilation0.EmitToArray()
+            Dim md0 = ModuleMetadata.CreateFromImage(bytes0)
+            Dim reader0 = md0.MetadataReader
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C")
+
+            Assert.Equal(3, reader0.CustomAttributes.Count)
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, c0, c1)))
+
+            ' Verify delta metadata contains expected rows.
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+            Dim readers = New MetadataReader() {reader0, reader1}
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "C")
+
+            Assert.Equal(1, reader1.CustomAttributes.Count)
+
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+
+            CheckEncMapDefinitions(reader1,
+                Handle(2, TableIndex.TypeDef),
+                Handle(4, TableIndex.CustomAttribute))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, c1, c2)))
+
+            ' Verify delta metadata contains expected rows.
+            Dim md2 = diff2.GetMetadata()
+            Dim reader2 = md2.Reader
+            readers = New MetadataReader() {reader0, reader1, reader2}
+
+            CheckNames(readers, reader2.GetTypeDefNames(), "C")
+
+            Assert.Equal(2, reader2.CustomAttributes.Count)
+
+            CheckEncLogDefinitions(reader2,
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+
+            CheckEncMapDefinitions(reader2,
+                Handle(2, TableIndex.TypeDef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute))
+        End Sub
+
+        Private Shared ReadOnly s_metadataUpdateOriginalTypeAttributeSource As String = "
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(System.AttributeTargets.Class Or System.AttributeTargets.Struct, AllowMultiple:=false, Inherited:=false)>
+    Public Class MetadataUpdateOriginalTypeAttribute
+        Inherits Attribute
+
+        Public Sub New(originalType as Type) 
+            Me.OriginalType = originalType
+        End Sub
+
+        Public Readonly Property OriginalType As Type
+    End Class
+End Namespace
+"
+
+        Private Shared ReadOnly s_badMetadataUpdateOriginalTypeAttributeSource As String = "
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(System.AttributeTargets.Class Or System.AttributeTargets.Struct, AllowMultiple:=false, Inherited:=false)>
+    Public Class MetadataUpdateOriginalTypeAttribute
+        Inherits Attribute
+
+        Public Sub New(originalType as Object)
+            Me.OriginalType = originalType
+        End Sub
+
+        Public Readonly Property OriginalType As Type
+    End Class
+End Namespace
+"
+        <Theory>
+        <CombinatorialData>
+        Public Sub ReplaceType(hasAttribute As Boolean)
+            ' using incorrect definition of the attribute so that it's easier to compare the two emit results (having and attribute and not having one):
+            Dim attributeSource = If(hasAttribute, s_metadataUpdateOriginalTypeAttributeSource, s_badMetadataUpdateOriginalTypeAttributeSource)
+
+            Dim source0 = "
+Class C 
+    Sub F(x As Integer)
+    End Sub
+End Class" & attributeSource
+
+            Dim source1 = "
+Class C
+    Sub F(x As Integer, y As Integer)
+    End Sub
+End CLass" & attributeSource
+
+            Dim source2 = "
+Class C
+    Sub F(x As Integer, y As Integer)
+        System.Console.WriteLine(1)
+    End Sub
+End Class" & attributeSource
+
+            Dim source3 = "
+<System.Obsolete>
+Class C
+    Sub F(x As Integer, y As Integer)
+        System.Console.WriteLine(2)
+    End Sub
+End Class" & attributeSource
+
+            Dim compilation0 = CreateCompilation(source0, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandard20)
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+            Dim compilation3 = compilation2.WithSource(source3)
+
+            Dim c0 = compilation0.GetMember(Of NamedTypeSymbol)("C")
+            Dim c1 = compilation1.GetMember(Of NamedTypeSymbol)("C")
+            Dim c2 = compilation2.GetMember(Of NamedTypeSymbol)("C")
+            Dim c3 = compilation3.GetMember(Of NamedTypeSymbol)("C")
+            Dim f2 = c2.GetMember(Of MethodSymbol)("F")
+            Dim f3 = c3.GetMember(Of MethodSymbol)("F")
+
+            ' Verify full metadata contains expected rows.
+            Dim bytes0 = compilation0.EmitToArray()
+            Dim md0 = ModuleMetadata.CreateFromImage(bytes0)
+            Dim reader0 = md0.MetadataReader
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "MetadataUpdateOriginalTypeAttribute")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider)
+
+            Dim baseTypeCount = reader0.TypeDefinitions.Count
+            Dim baseMethodCount = reader0.MethodDefinitions.Count
+            Dim baseAttributeCount = reader0.CustomAttributes.Count
+            Dim baseParameterCount = reader0.GetParameters().Count()
+
+            Assert.Equal(3, baseTypeCount)
+            Assert.Equal(4, baseMethodCount)
+            Assert.Equal(7, baseAttributeCount)
+            Assert.Equal(2, baseParameterCount)
+
+            Dim validateReplacedType =
+                Sub(diff As CompilationDifference, readers As MetadataReader())
+                    Dim generation = diff.NextGeneration.Ordinal
+                    Dim reader = readers(generation)
+
+                    CheckNames(readers, diff.EmitResult.ChangedTypes, "C#" & generation)
+                    CheckNames(readers, reader.GetTypeDefNames(), "C#" & generation)
+
+                    CheckEncLogDefinitions(reader,
+                        Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.Default), ' adding a type def
+                        Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                        Row(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                        Row(baseMethodCount + generation * 2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(baseMethodCount + generation * 2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                        Row(baseParameterCount + generation * 2 - 1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(baseMethodCount + generation * 2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                        Row(baseParameterCount + generation * 2, TableIndex.Param, EditAndContinueOperation.Default),
+                        If(hasAttribute, Row(baseAttributeCount + generation, TableIndex.CustomAttribute, EditAndContinueOperation.Default), Nothing)) ' adding a new attribute row for attribute on C#* definition
+
+                    CheckEncMapDefinitions(reader,
+                            Handle(baseTypeCount + generation, TableIndex.TypeDef),
+                            Handle(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef),
+                            Handle(baseMethodCount + generation * 2, TableIndex.MethodDef),
+                            Handle(baseParameterCount + generation * 2 - 1, TableIndex.Param),
+                            Handle(baseParameterCount + generation * 2, TableIndex.Param),
+                            If(hasAttribute, Handle(baseAttributeCount + generation, TableIndex.CustomAttribute), Nothing))
+
+                    Dim newTypeDefHandle = reader.TypeDefinitions.Single()
+                    Dim newTypeDef = reader.GetTypeDefinition(newTypeDefHandle)
+                    CheckStringValue(readers, newTypeDef.Name, "C#" & generation)
+
+                    If hasAttribute Then
+                        Dim attribute = reader.GetCustomAttribute(reader.CustomAttributes.Single())
+
+                        ' parent should be C#1
+                        Dim aggregator = GetAggregator(readers)
+                        Dim parentGeneration As Integer
+                        Dim parentHandle = aggregator.GetGenerationHandle(attribute.Parent, parentGeneration)
+                        Assert.Equal(generation, parentGeneration)
+                        Assert.Equal(newTypeDefHandle, parentHandle)
+
+                        ' The attribute value encodes the serialized type name. It should be the base name "C", not "C#1".
+                        CheckBlobValue(readers, attribute.Value, New Byte() {&H1, &H0, &H1, AscW("C"c), &H0, &H0})
+                    End If
+                End Sub
+
+            ' This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, Nothing, c1)))
+
+            Dim md1 = diff1.GetMetadata()
+            ValidateReplacedType(diff1, {reader0, md1.Reader})
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, Nothing, c2)))
+
+            Dim md2 = diff2.GetMetadata()
+            validateReplacedType(diff2, {reader0, md1.Reader, md2.Reader})
+
+            ' This update is an EnC update - even reloadable types are updated in-place
+            Dim diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, c2, c3),
+                    SemanticEdit.Create(SemanticEditKind.Update, f2, f3)))
+
+            ' Verify delta metadata contains expected rows.
+            Dim md3 = diff3.GetMetadata()
+            Dim reader3 = md3.Reader
+            Dim readers4 = {reader0, md1.Reader, md2.Reader, reader3}
+
+            CheckNames(readers4, reader3.GetTypeDefNames(), "C#2")
+            CheckNames(readers4, diff3.EmitResult.ChangedTypes, "C#2")
+
+            ' Obsolete attribute is added. MetadataUpdateOriginalTypeAttribute is still present on the type.
+            CheckEncLogDefinitions(reader3,
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(If(hasAttribute, 9, 8), TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+
+            CheckEncMapDefinitions(reader3,
+                Handle(5, TableIndex.TypeDef),
+                Handle(8, TableIndex.MethodDef),
+                Handle(5, TableIndex.Param),
+                Handle(6, TableIndex.Param),
+                Handle(If(hasAttribute, 9, 8), TableIndex.CustomAttribute))
+
+            ' Obsolete attribute:
+            CheckBlobValue(readers4, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, New Byte() {&H1, &H0, &H0, &H0})
+        End Sub
+
         ''' <summary>
         ''' Should use TypeDef rather than TypeRef for unrecognized
         ''' local of a type defined in the original assembly.

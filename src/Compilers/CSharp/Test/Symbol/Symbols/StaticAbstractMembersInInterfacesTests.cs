@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class StaticAbstractMembersInInterfacesTests : CSharpTestBase
     {
-        private const TargetFramework _supportingFramework = TargetFramework.Net60;
+        internal const TargetFramework _supportingFramework = TargetFramework.Net60;
 
         [Fact]
         public void MethodModifiers_01()

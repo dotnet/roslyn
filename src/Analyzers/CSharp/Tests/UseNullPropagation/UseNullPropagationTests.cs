@@ -2044,5 +2044,76 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
+        public async Task TestNotWithColorColorStaticCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class D
+{
+    public static void StaticMethod(D d) { }
+    public void InstanceMethod(D d) { }
+}
+
+public class C
+{
+    D D { get; }
+
+    public void Test()
+    {
+        if (D != null)
+        {
+            D.StaticMethod(D);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
+        public async Task TestWithColorColorInstanceCase()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class D
+{
+    public static void Method(D d) { }
+    public void InstanceMethod(D d) { }
+}
+
+public class C
+{
+    D D { get; }
+
+    public void Test()
+    {
+        [|if|] (D != null)
+        {
+            D.InstanceMethod(D);
+        }
+    }
+}",
+@"using System;
+
+class D
+{
+    public static void Method(D d) { }
+    public void InstanceMethod(D d) { }
+}
+
+public class C
+{
+    D D { get; }
+
+    public void Test()
+    {
+        D?.InstanceMethod(D);
+    }
+}");
+        }
     }
 }

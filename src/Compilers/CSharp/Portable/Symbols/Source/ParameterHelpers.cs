@@ -188,12 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
-                if (scope == DeclarationScope.Unscoped &&
-                    IsRefScopedByDefault(refKind, parameterType))
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
-
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, parameter.IsParams, parameter.TypeWithAnnotations,
@@ -342,6 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     return false;
             }
+        }
+
+        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
+        {
+            var declaredScope = parameter.DeclaredScope;
+            return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
+                DeclarationScope.RefScoped :
+                declaredScope;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
