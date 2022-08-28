@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal abstract class AbstractEntryPointFinder : SymbolVisitor
     {
         protected readonly HashSet<INamedTypeSymbol> EntryPoints = new();
+
+        protected virtual bool ShouldCheckEntryPoint() => true;
+
+        protected abstract bool IsEntryPoint(IMethodSymbol methodSymbol);
 
         public override void VisitNamespace(INamespaceSymbol symbol)
         {
@@ -35,46 +37,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public override void VisitMethod(IMethodSymbol symbol)
         {
-            // named Main
-            if (!MatchesMainMethodName(symbol.Name))
+            if (!ShouldCheckEntryPoint())
             {
                 return;
             }
 
-            // static
-            if (!symbol.IsStatic)
-            {
-                return;
-            }
-
-            // returns void or int
-            if (!symbol.ReturnsVoid && symbol.ReturnType.SpecialType != SpecialType.System_Int32)
-            {
-                return;
-            }
-
-            // parameterless or takes a string[]
-            if (symbol.Parameters.Length == 1)
-            {
-                var parameter = symbol.Parameters.Single();
-                if (parameter.Type is IArrayTypeSymbol)
-                {
-                    var elementType = ((IArrayTypeSymbol)parameter.Type).ElementType;
-                    var specialType = elementType.SpecialType;
-
-                    if (specialType == SpecialType.System_String)
-                    {
-                        EntryPoints.Add(symbol.ContainingType);
-                    }
-                }
-            }
-
-            if (!symbol.Parameters.Any())
+            if (IsEntryPoint(symbol))
             {
                 EntryPoints.Add(symbol.ContainingType);
             }
         }
-
-        protected abstract bool MatchesMainMethodName(string name);
     }
 }

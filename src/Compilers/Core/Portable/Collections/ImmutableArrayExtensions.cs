@@ -418,6 +418,22 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public static bool Any<T, TArg1, TArg2>(this ImmutableArray<T> array, Func<T, TArg1, TArg2, bool> predicate, TArg1 arg1, TArg2 arg2)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (predicate(a, arg1, arg2))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool All<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
         {
             int n = array.Length;

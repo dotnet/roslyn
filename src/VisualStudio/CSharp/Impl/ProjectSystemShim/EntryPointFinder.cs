@@ -4,15 +4,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
     internal class EntryPointFinder : AbstractEntryPointFinder
     {
-        protected override bool MatchesMainMethodName(string name)
-            => name == "Main";
+        private readonly INamedTypeSymbol? _task;
+        private readonly INamedTypeSymbol? _taskOf;
+        private static readonly ImmutableArray<string> _entryPointMethodNames
+            = ImmutableArray.Create(WellKnownMemberNames.EntryPointMethodName, WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
+
+        public EntryPointFinder(Compilation? compilation)
+        {
+            _task = compilation?.TaskType();
+            _taskOf = compilation?.TaskOfTType();
+        }
 
         [Obsolete("FindEntryPoints on a INamespaceSymbol is deprecated, please pass in the Compilation instead.")]
         public static IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol)
@@ -21,16 +32,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // because we don't ever consider forms entry points.
             // Techinically, this is wrong but it just doesn't matter since the
             // ref assemblies are unlikely to have a random Main() method that matches
-            var visitor = new EntryPointFinder();
+            var visitor = new EntryPointFinder(symbol.ContainingCompilation);
             visitor.Visit(symbol);
             return visitor.EntryPoints;
         }
 
         public static IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation)
         {
-            var visitor = new EntryPointFinder();
+            var visitor = new EntryPointFinder(compilation);
             visitor.Visit(compilation.SourceModule.GlobalNamespace);
             return visitor.EntryPoints;
         }
+
+        protected override bool IsEntryPoint(IMethodSymbol methodSymbol)
+            => methodSymbol.IsEntryPoint(
+                CSharpSyntaxFacts.Instance.StringComparer,
+                _entryPointMethodNames,
+                _task,
+                _taskOf);
     }
 }
