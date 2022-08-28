@@ -214,7 +214,7 @@ function BuildSolution() {
   
   if($testsOnly)
   {
-    $solution = "UnitTests.slnf"
+    $solution = "UnitTests.sln"
   }
   else
   {
