@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (baseList?.Parent is TypeDeclarationSyntax typeDecl)
             {
                 if (typeDecl.TypeParameterList != null &&
-                    typeDecl.BaseList!.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
+                    baseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
                 {
                     // token is IdentifierName "where"
                     // only suggest "where" if token's previous token is also "where"
