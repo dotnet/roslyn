@@ -144,12 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true);
                         refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out _, out _, out scope);
-
-                        if (scope == DeclarationScope.Unscoped &&
-                            ParameterHelpers.IsRefScopedByDefault(refKind, type))
-                        {
-                            scope = DeclarationScope.RefScoped;
-                        }
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);

@@ -6539,7 +6539,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Module initializer method '{0}' must be accessible at the module level</value>
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
-    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+    <value>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</value>
   </data>
   <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
     <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
@@ -7213,5 +7213,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExplicitScopedRef" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</value>
+  </data>
+  <data name="ERR_UnscopedScoped" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
   </data>
 </root>
