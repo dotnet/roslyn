@@ -100,34 +100,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Equal(expectedNewBinPath, project.BinOutputPath);
         }
 
-        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public async Task InvalidProjectOutputBinPaths_CPS1()
+        public async Task InvalidProjectOutputBinPaths_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project1 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: null);
-            // Null output path is allowed.
-            Assert.Null(project1.BinOutputPath);
-        }
-
-        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public async Task InvalidProjectOutputBinPaths_CPS2()
-        {
-            using var environment = new TestEnvironment();
-            using var project2 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: String.Empty);
-            // Empty output path is not allowed, it gets reset to null.
-            Assert.Null(project2.BinOutputPath);
-        }
-
-        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public async Task InvalidProjectOutputBinPaths_CPS3()
-        {
-            using var environment = new TestEnvironment();
-            using var project3 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll");
-            // Non-rooted output path is not allowed, it gets reset to a temp rooted path.
-            Assert.Equal(Path.Combine(Path.GetTempPath(), "Test.dll"), project3.BinOutputPath);
+            await Assert.ThrowsAsync<InvalidProjectPropertyValueException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: ""));
+            await Assert.ThrowsAsync<InvalidProjectPropertyValueException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll"));
         }
 
         [WpfFact]
