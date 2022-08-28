@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void Outlining()
         {
             var input = @"

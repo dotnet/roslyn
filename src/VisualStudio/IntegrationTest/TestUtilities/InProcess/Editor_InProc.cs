@@ -687,7 +687,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var manager = GetComponentModelService<IOutliningManagerService>().GetOutliningManager(view);
                 var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
-                var regions = manager.GetAllRegions(span);
+
+                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+                var regions = Retry(_ => manager.GetAllRegions(span), (actual, _) => actual.Any(), TimeSpan.FromMilliseconds(100), cts.Token);
+
                 return regions
                     .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
                     .Select(r => PrintSpan(r.Extent.GetSpan(view.TextSnapshot)))
