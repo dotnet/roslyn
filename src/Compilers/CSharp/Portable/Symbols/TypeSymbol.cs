@@ -1851,14 +1851,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics,
                                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
                                     {
-                                        // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
-                                        // overrides or interface implementations until variance is supported.
-                                        //diagnostics.Add(
-                                        //    ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                        //    GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                        //    new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                                        diagnostics.Add(
+                                            ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                            GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                            new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                                     },
-                                (implementingType, isExplicit));
+                                (implementingType, isExplicit),
+                                allowVariance: true,
+                                invokedAsExtensionMethod: false);
                         }
                     }
 

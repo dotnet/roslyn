@@ -761,7 +761,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                         typeAndLocation.Type),
                 (Type: targetType, Location: syntax.Location),
-                invokedAsExtensionMethod);
+                allowVariance: true,
+                invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)

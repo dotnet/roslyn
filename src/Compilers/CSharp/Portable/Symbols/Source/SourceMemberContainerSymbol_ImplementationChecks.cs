@@ -1169,14 +1169,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics,
                         static (diagnostics, _, _, overridingParameter, _, location) =>
                             {
-                                // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
-                                // overrides or interface implementations until variance is supported.
-                                //diagnostics.Add(
-                                //    ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                //    location,
-                                //    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
+                                diagnostics.Add(
+                                    ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                    location,
+                                    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
                             },
-                        overridingMemberLocation);
+                        overridingMemberLocation,
+                        allowVariance: true,
+                        invokedAsExtensionMethod: false);
                 }
 
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
@@ -1377,7 +1377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument,
-            bool invokedAsExtensionMethod = false)
+            bool allowVariance,
+            bool invokedAsExtensionMethod)
         {
             Debug.Assert(reportMismatchInParameterType is { });
 
@@ -1396,13 +1397,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var baseParameter = baseParameters[i];
                 var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                if (baseParameter.EffectiveScope != overrideParameter.EffectiveScope)
+                if (!isValidScopedConversion(allowVariance, baseParameter.EffectiveScope, overrideParameter.EffectiveScope))
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, extraArgument);
                     hasErrors = true;
                 }
             }
             return hasErrors;
+
+            static bool isValidScopedConversion(bool allowVariance, DeclarationScope baseScope, DeclarationScope overrideScope)
+            {
+                if (baseScope == overrideScope)
+                {
+                    return true;
+                }
+                return allowVariance && baseScope == DeclarationScope.Unscoped;
+            }
         }
 #nullable disable
 
