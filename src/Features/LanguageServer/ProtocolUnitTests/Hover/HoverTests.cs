@@ -262,7 +262,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -329,7 +329,7 @@ Remarks are cool too.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.Third.Value);
+            Assert.Equal(expectedText, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -383,7 +383,7 @@ _italic\_&nbsp;\*\*text\*\*_
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -426,7 +426,7 @@ dotnet_diagnostic.IDE0017.severity = warning
                 CreateTextDocumentPositionParams(caret, projectContext), CancellationToken.None);
         }
 
-        private void VerifyVSContent(LSP.Hover hover, string expectedContent)
+        private static void VerifyVSContent(LSP.Hover hover, string expectedContent)
         {
             var vsHover = Assert.IsType<LSP.VSInternalHover>(hover);
             var containerElement = (ContainerElement)vsHover.RawContent;
@@ -437,7 +437,7 @@ dotnet_diagnostic.IDE0017.severity = warning
             Assert.Equal(expectedContent, content);
         }
 
-        private void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
+        private static void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
         {
             foreach (var element in container.Elements)
             {

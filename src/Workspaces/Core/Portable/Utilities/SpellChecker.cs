@@ -48,7 +48,7 @@ namespace Roslyn.Utilities
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
             Checksum.WriteTo(writer);

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
                 else
                 {
-                    return new StatisticResult(_maximum, _mininum, mean: _total / _count, range: _maximum - _mininum, mode: null, count: _count);
+                    return new StatisticResult(_maximum, _mininum, mean: (double)_total / _count, range: _maximum - _mininum, mode: null, count: _count);
                 }
             }
         }

@@ -462,7 +462,7 @@ End Program</Document>
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, RoslynCompletion.CompletionTrigger.Invoke)
-                Assert.True(completionList.IsEmpty OrElse completionList.GetTestAccessor().IsExclusive, "Expected always exclusive")
+                Assert.True(completionList.IsEmpty OrElse completionList.IsExclusive, "Expected always exclusive")
             End Using
         End Function
 
