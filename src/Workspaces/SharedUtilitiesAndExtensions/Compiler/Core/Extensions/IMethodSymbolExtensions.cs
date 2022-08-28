@@ -98,14 +98,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => PredefinedOperator.None,
             };
 
-        public static bool IsEntryPoint(this IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType)
-            => methodSymbol.Name is WellKnownMemberNames.EntryPointMethodName or WellKnownMemberNames.TopLevelStatementsEntryPointMethodName &&
-               methodSymbol.IsStatic &&
-               (methodSymbol.ReturnsVoid ||
-                methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
-                methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
-                methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
-
         public static bool IsEntryPoint(this IMethodSymbol methodSymbol, StringComparer languageStringComparer, ImmutableArray<string> entryPointMethodNames, INamedTypeSymbol? taskType = null, INamedTypeSymbol? genericTaskType = null)
         {
             if (!methodSymbol.IsStatic)

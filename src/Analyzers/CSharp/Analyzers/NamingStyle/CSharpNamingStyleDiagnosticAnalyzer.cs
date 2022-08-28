@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -23,6 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
                 SyntaxKind.LocalFunctionStatement,
                 SyntaxKind.Parameter,
                 SyntaxKind.TypeParameter);
+
+        protected override bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType)
+            => methodSymbol.IsCSharpEntryPoint(taskType, genericTaskType);
 
         protected override bool ShouldIgnore(ISymbol symbol)
         {

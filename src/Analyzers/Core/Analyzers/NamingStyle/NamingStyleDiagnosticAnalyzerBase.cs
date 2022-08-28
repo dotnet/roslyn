@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
@@ -45,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
         protected abstract bool ShouldIgnore(ISymbol symbol);
+
+        protected abstract bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType);
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
+            if (symbol is IMethodSymbol methodSymbol && IsEntryPoint(methodSymbol, compilation.TaskType(), compilation.TaskOfTType()))
             {
                 return null;
             }

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // to reference this field should clear the unused field diagnostic.
         // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
+        public abstract bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationStartContext
@@ -660,7 +662,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     }
 
                                     // Do not flag unused entry point (Main) method.
-                                    if (methodSymbol.IsEntryPoint(_taskType, _genericTaskType))
+                                    if (_analyzer.IsEntryPoint(methodSymbol, _taskType, _genericTaskType))
                                     {
                                         return false;
                                     }
