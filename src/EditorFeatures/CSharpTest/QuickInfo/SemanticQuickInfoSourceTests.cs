@@ -7394,6 +7394,278 @@ public interface ICloneable<T>
                 Documentation("Clones a Test<T>."));
         }
 
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithExplicitSummaryOveride()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+/// <typeparam name=""T"">hello world</typeparam>
+public class A<T> { }
+
+/// <inheritdoc/>
+/// <summary>goodbye world</summary>
+public class $$B<T> : A<T> { }
+";
+
+            await TestAsync(markup,
+                MainDescription("class B<T>"),
+                Documentation("goodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithExplicitTypeParamOveride()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+/// <typeparam name=""T"">hello world</typeparam>
+public class A<T> { }
+
+/// <inheritdoc/>
+/// <typeparam name=""T"">goodbye world</typeparam>
+public class B<$$T> : A<T> { }
+";
+
+            await TestAsync(markup,
+                MainDescription("T in B<T>"),
+                Documentation("goodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithExplicitReturnsOveride()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+/// <returns>hello world</returns>
+public object A() { }
+
+/// <inheritdoc cref=""A""/>
+/// <returns>goodbye world</returns>
+public object $$B() { }
+";
+
+            await TestInClassAsync(markup,
+                MainDescription("object C.B()"),
+                Documentation("hello world"),
+                Returns("\r\nReturns:\r\n  goodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithExplicitRemarksOveride()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+/// <remarks>hello world</remarks>
+public object A() { }
+
+/// <inheritdoc cref=""A""/>
+/// <remarks>goodbye world</remarks>
+public object $$B() { }
+";
+
+            await TestInClassAsync(markup,
+                MainDescription("object C.B()"),
+                Documentation("hello world"),
+                Remarks("\r\ngoodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithExplicitParamOveride()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+/// <param name=""a"">hello world</param>
+public void A(object a) { }
+
+/// <inheritdoc/>
+/// <param name=""a"">goodbye world</param>
+public void B(object $$a) { }
+";
+
+            await TestInClassAsync(markup,
+                MainDescription("(parameter) object a"),
+                Documentation("goodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithExplicitValueOveride()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+/// <value>hello world</value>
+public object A;
+
+/// <inheritdoc cref=""A""/>
+/// <value>goodbye world</value>
+public object $$B;
+";
+
+            await TestInClassAsync(markup,
+                MainDescription("(field) object C.B"),
+                Documentation("hello world"),
+                Value("\r\nValue:\r\n  goodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineOrderBefore()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+public class A { }
+
+/// <summary>
+/// <inheritdoc/>
+/// <para>goodbye world</para>
+/// </summary>
+public class $$B : A { }
+";
+
+            await TestAsync(markup,
+                MainDescription("class B"),
+                Documentation("hello world\r\n\r\ngoodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineOrderAfter()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+public class A { }
+
+/// <summary>
+/// <para>goodbye world</para>
+/// <inheritdoc/>
+/// </summary>
+public class $$B : A { }
+";
+
+            await TestAsync(markup,
+                MainDescription("class B"),
+                Documentation("goodbye world\r\n\r\nhello world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocMultipleInline()
+        {
+            var markup =
+@"
+/// <summary>a</summary>
+public class A { }
+
+/// <summary>b</summary>
+public class B { }
+
+/// <summary>c</summary>
+public class C { }
+
+/// <summary>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""A""/>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""B""/>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""B""/>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""A""/>
+/// <para>d</para>
+/// </summary>
+public class $$D : C { }
+";
+
+            var documentation = string.Join("\r\n\r\n", "dcdadcdbdcdbdcdad".ToArray());
+
+            await TestAsync(markup,
+                MainDescription("class D"),
+                Documentation(documentation));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocMultipleInlineChain()
+        {
+            var markup =
+@"
+/// <summary>a</summary>
+public class A { }
+
+/// <summary>b</summary>
+public class B { }
+
+/// <summary>
+/// <para>A</para>
+/// <para>B</para>
+/// <para></para>
+/// <inheritdoc cref=""A""/>
+/// <para></para>
+/// <inheritdoc cref=""B""/>
+/// </summary>
+public class AB { }
+
+/// <summary>c</summary>
+public class C { }
+
+/// <summary>d</summary>
+public class D { }
+
+/// <summary>
+/// <para>D</para>
+/// <para>C</para>
+/// <para></para>
+/// <inheritdoc cref=""D""/>
+/// <para></para>
+/// <inheritdoc cref=""C""/>
+/// </summary>
+public class DC { }
+
+/// <summary>
+/// <para>e</para>
+/// <inheritdoc cref=""A""/>
+/// <para>e</para>
+/// <inheritdoc cref=""B""/>
+/// <para>e</para>
+/// <inheritdoc cref=""AB""/>
+/// <para>e</para>
+/// <inheritdoc cref=""C""/>
+/// <para>e</para>
+/// <inheritdoc cref=""D""/>
+/// <para>e</para>
+/// <inheritdoc cref=""DC""/>
+/// <para>e</para>
+/// </summary>
+public class $$E { }
+";
+
+            var documentation = string.Join("\r\n\r\n", "eaebeABabecedeDCdce".ToArray());
+
+            await TestAsync(markup,
+                MainDescription("class E"),
+                Documentation(documentation));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {

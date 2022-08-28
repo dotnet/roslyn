@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 try
                 {
                     var element = XElement.Parse(xmlText, LoadOptions.PreserveWhitespace);
-                    element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
+                    element.ReplaceNodes(RewriteManyTopLevel(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
                 catch (XmlException)
@@ -352,19 +352,43 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (oldNodes != null)
             {
-                var rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
+                var rewritten = RewriteManyInline(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
                 container.ReplaceNodes(rewritten);
             }
 
             return new XNode[] { container };
         }
 
-        private static XNode[] RewriteMany(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
+        private static XNode[] RewriteManyInline(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
         {
             var result = new List<XNode>();
+
             foreach (var child in nodes)
             {
                 result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
+            }
+
+            return result.ToArray();
+        }
+
+        private static XNode[] RewriteManyTopLevel(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
+        {
+            var result = new List<XNode>();
+
+            foreach (var child in nodes)
+            {
+                if (!(child.NodeType == XmlNodeType.Element && ElementNameIs((XElement)child, DocumentationCommentXmlNames.InheritdocElementName)))
+                {
+                    result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
+                }
+            }
+
+            foreach (var child in nodes)
+            {
+                if (child.NodeType == XmlNodeType.Element && ElementNameIs((XElement)child, DocumentationCommentXmlNames.InheritdocElementName))
+                {
+                    result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
+                }
             }
 
             return result.ToArray();
