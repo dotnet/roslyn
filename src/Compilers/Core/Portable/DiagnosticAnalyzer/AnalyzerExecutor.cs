@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<SyntaxTree, SemanticModel>? _getSemanticModel;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
-        private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
+        private readonly Func<SyntaxTree, SyntaxNode, bool> _isGeneratedCodeLocation;
         private readonly Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? _isAnalyzerSuppressedForTree;
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
-            Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
+            Func<SyntaxTree, SyntaxNode, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
-            Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
+            Func<SyntaxTree, SyntaxNode, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
@@ -1866,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Check if the node is generated code that must be skipped.
             if (_shouldSkipAnalysisOnGeneratedCode(analyzer) &&
-                _isGeneratedCodeLocation(node.SyntaxTree, node.Span))
+                _isGeneratedCodeLocation(node.SyntaxTree, node))
             {
                 return false;
             }
@@ -1884,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Check if the operation syntax is generated code that must be skipped.
             if (operation.Syntax != null && _shouldSkipAnalysisOnGeneratedCode(analyzer) &&
-                _isGeneratedCodeLocation(operation.Syntax.SyntaxTree, operation.Syntax.Span))
+                _isGeneratedCodeLocation(operation.Syntax.SyntaxTree, operation.Syntax))
             {
                 return false;
             }

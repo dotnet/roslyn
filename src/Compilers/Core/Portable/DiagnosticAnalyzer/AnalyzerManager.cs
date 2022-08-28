@@ -217,13 +217,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns <see cref="GeneratedCodeAnalysisFlags"/> for the given analyzer.
-        /// If an analyzer hasn't configured generated code analysis, returns <see cref="AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags"/>.
+        /// Determines the <see cref="GeneratedCodeAnalysisFlags"/> for the given analyzer.
+        /// If an analyzer hasn't configured generated code analysis, the default value
+        /// <see cref="AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags"/> will be used.
         /// </summary>
-        public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async Task TrackGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
+            sessionScope.TrackGeneratedCodeAnalysisFlags(analyzerExecutor.Compilation, analyzer);
         }
 
         private static void ForceLocalizableStringExceptions(LocalizableString localizableString, EventHandler<Exception> handler)

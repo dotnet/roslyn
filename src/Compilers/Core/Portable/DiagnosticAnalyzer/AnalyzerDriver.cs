@@ -160,20 +160,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _lazyGeneratedCodeAnalysisFlagsMap;
-
-        /// <summary>
-        /// Map from analyzers to their <see cref="GeneratedCodeAnalysisFlags"/> setting. 
-        /// </summary>
-        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> GeneratedCodeAnalysisFlagsMap
-        {
-            get
-            {
-                Debug.Assert(!_lazyGeneratedCodeAnalysisFlagsMap.IsDefault);
-                return _lazyGeneratedCodeAnalysisFlagsMap;
-            }
-        }
-
         /// <summary>
         /// The set of registered analyzer actions.
         /// </summary>
@@ -386,9 +372,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazyAnalyzerGateMap = await CreateAnalyzerGateMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, _severityFilter).ConfigureAwait(false);
                     _lazyNonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(UnsuppressedAnalyzers);
                     _lazySymbolStartAnalyzers = ComputeSymbolStartAnalyzers(UnsuppressedAnalyzers);
-                    _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, _severityFilter).ConfigureAwait(false);
-                    _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap);
-                    _lazyDoNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap, TreatAllCodeAsNonGeneratedCode);
+                    await TrackGeneratedCodeAnalysisFlagsAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, _severityFilter).ConfigureAwait(false);
+                    _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, analyzerExecutor);
+                    _lazyDoNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(UnsuppressedAnalyzers, analyzerExecutor, TreatAllCodeAsNonGeneratedCode);
                     _lazyGeneratedCodeFilesMap = TreatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<SyntaxTree, bool>();
                     _lazyGeneratedCodeSymbolsForTreeMap = TreatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
                     _lazyIsGeneratedCodeSymbolMap = TreatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<ISymbol, bool>();
@@ -534,12 +520,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool ComputeShouldSkipAnalysisOnGeneratedCode(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
-            ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap,
+            AnalyzerExecutor analyzerExecutor,
             bool treatAllCodeAsNonGeneratedCode)
         {
             foreach (var analyzer in analyzers)
             {
-                if (!ShouldSkipAnalysisOnGeneratedCode(analyzer, generatedCodeAnalysisFlagsMap, treatAllCodeAsNonGeneratedCode))
+                if (!ShouldSkipAnalysisOnGeneratedCode(analyzer, analyzerExecutor, treatAllCodeAsNonGeneratedCode))
                 {
                     return false;
                 }
@@ -551,11 +537,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if all analyzers need to analyze and report diagnostics in generated code - we can assume all code to be non-generated code.
         /// </summary>
-        private static bool ComputeShouldTreatAllCodeAsNonGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers, ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap)
+        private static bool ComputeShouldTreatAllCodeAsNonGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers, AnalyzerExecutor analyzerExecutor)
         {
             foreach (var analyzer in analyzers)
             {
-                var flags = generatedCodeAnalysisFlagsMap[analyzer];
+                var flags = analyzer.GetGeneratedCodeAnalysisFlags(analyzerExecutor.Compilation);
                 var analyze = (flags & GeneratedCodeAnalysisFlags.Analyze) != 0;
                 var report = (flags & GeneratedCodeAnalysisFlags.ReportDiagnostics) != 0;
                 if (!analyze || !report)
@@ -568,11 +554,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private bool ShouldSkipAnalysisOnGeneratedCode(DiagnosticAnalyzer analyzer)
-            => ShouldSkipAnalysisOnGeneratedCode(analyzer, GeneratedCodeAnalysisFlagsMap, TreatAllCodeAsNonGeneratedCode);
+            => ShouldSkipAnalysisOnGeneratedCode(analyzer, AnalyzerExecutor, TreatAllCodeAsNonGeneratedCode);
 
         private static bool ShouldSkipAnalysisOnGeneratedCode(
             DiagnosticAnalyzer analyzer,
-            ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap,
+            AnalyzerExecutor analyzerExecutor,
             bool treatAllCodeAsNonGeneratedCode)
         {
             if (treatAllCodeAsNonGeneratedCode)
@@ -580,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var mode = generatedCodeAnalysisFlagsMap[analyzer];
+            var mode = analyzer.GetGeneratedCodeAnalysisFlags(analyzerExecutor.Compilation);
             return (mode & GeneratedCodeAnalysisFlags.Analyze) == 0;
         }
 
@@ -591,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var generatedCodeAnalysisFlags = GeneratedCodeAnalysisFlagsMap[analyzer];
+            var generatedCodeAnalysisFlags = analyzer.GetGeneratedCodeAnalysisFlags(compilation);
             var suppressInGeneratedCode = (generatedCodeAnalysisFlags & GeneratedCodeAnalysisFlags.ReportDiagnostics) == 0;
             return suppressInGeneratedCode && IsInGeneratedCode(diagnostic.Location, compilation, cancellationToken);
         }
@@ -2194,22 +2180,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>> CreateGeneratedCodeAnalysisFlagsMapAsync(
+        private static async Task TrackGeneratedCodeAnalysisFlagsAsync(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             SeverityFilter severityFilter)
         {
-            var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
             foreach (var analyzer in analyzers)
             {
                 Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, severityFilter));
 
-                var generatedCodeAnalysisFlags = await analyzerManager.GetGeneratedCodeAnalysisFlagsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                builder.Add(analyzer, generatedCodeAnalysisFlags);
+                await analyzerManager.TrackGeneratedCodeAnalysisFlagsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             }
-
-            return builder.ToImmutable();
         }
 
         [PerformanceSensitive(
@@ -2285,11 +2267,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // Location is in generated code if either the containing tree is a generated code file OR if it is a hidden source location.
         protected bool IsGeneratedOrHiddenCodeLocation(SyntaxTree syntaxTree, TextSpan span)
-            => IsGeneratedCode(syntaxTree) || IsHiddenSourceLocation(syntaxTree, span);
+        {
+            return IsGeneratedCode(syntaxTree) || isHiddenSourceLocation(syntaxTree, span);
 
-        protected bool IsHiddenSourceLocation(SyntaxTree syntaxTree, TextSpan span)
-            => HasHiddenRegions(syntaxTree) &&
-               syntaxTree.IsHiddenPosition(span.Start);
+            // Local function
+            bool isHiddenSourceLocation(SyntaxTree syntaxTree, TextSpan span)
+                => HasHiddenRegions(syntaxTree) && syntaxTree.IsHiddenPosition(span.Start);
+        }
+
+        private bool IsGeneratedOrHiddenCodeLocation(SyntaxTree syntaxTree, SyntaxNode node)
+        {
+            // Avoid accessing node.Span unless the node is in a non-generated tree with hidden locations
+            return IsGeneratedCode(syntaxTree) || isHiddenSourceLocation(syntaxTree, node);
+
+            // Local function
+            bool isHiddenSourceLocation(SyntaxTree syntaxTree, SyntaxNode node)
+                => HasHiddenRegions(syntaxTree) && syntaxTree.IsHiddenPosition(node.SpanStart);
+        }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/pull/23637",
