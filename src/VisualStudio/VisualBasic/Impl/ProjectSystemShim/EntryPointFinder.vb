@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -23,6 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Return String.Equals(name, "Main", StringComparison.OrdinalIgnoreCase)
         End Function
 
+        <Obsolete("FindEntryPoints on a INamespaceSymbol is deprecated, please pass in the Compilation instead.")>
         Public Shared Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
             Dim visitor = New EntryPointFinder(findFormsOnly)
             ' Attempt to only search source symbols
@@ -32,6 +33,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End If
 
             visitor.Visit(symbol)
+            Return visitor.EntryPoints
+        End Function
+
+        Public Shared Function FindEntryPoints(compilation As Compilation, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
+            Dim visitor = New EntryPointFinder(findFormsOnly)
+            visitor.Visit(compilation.SourceModule.GlobalNamespace)
             Return visitor.EntryPoints
         End Function
 

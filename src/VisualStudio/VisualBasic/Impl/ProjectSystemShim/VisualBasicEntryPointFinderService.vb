@@ -17,8 +17,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Public Sub New()
         End Sub
 
+        <Obsolete("FindEntryPoints on a INamespaceSymbol is deprecated, please pass in the Compilation instead.")>
         Public Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol) Implements IEntryPointFinderService.FindEntryPoints
             Return EntryPointFinder.FindEntryPoints(symbol, findFormsOnly)
+        End Function
+
+        Public Function FindEntryPoints(compilation As Compilation, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol) Implements IEntryPointFinderService.FindEntryPoints
+            Return EntryPointFinder.FindEntryPoints(compilation, findFormsOnly)
         End Function
     End Class
 End Namespace
