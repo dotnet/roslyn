@@ -445,11 +445,13 @@ class Program
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        [InlineData((int)PreferBracesPreference.None, false)]
-        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
-        [InlineData((int)PreferBracesPreference.Always, true)]
-        public async Task FireForStandaloneElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        [InlineData(PreferBracesPreference.None, false)]
+        [InlineData(PreferBracesPreference.WhenMultiline, false)]
+        [InlineData(PreferBracesPreference.Always, true)]
+        public async Task FireForStandaloneElseWithoutBraces(object bracesPreference, bool expectDiagnostic)
         {
+            Assert.IsType<PreferBracesPreference>(bracesPreference);
+
             await TestAsync(
             @"
 class Program

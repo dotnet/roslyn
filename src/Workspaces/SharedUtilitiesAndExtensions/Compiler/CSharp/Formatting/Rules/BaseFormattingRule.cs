@@ -103,7 +103,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken endToken,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
         {
+            if (baseToken.IsKind(SyntaxKind.None))
+            {
+                AddIndentBlockOperation(list, startToken, endToken, option);
+                return;
+            }
+
             list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 1, option: option));
+        }
+
+        protected static void AddIndentBlockOperation(
+            List<IndentBlockOperation> list,
+            SyntaxToken baseToken,
+            SyntaxToken startToken,
+            SyntaxToken endToken,
+            TextSpan textSpan,
+            IndentBlockOption option = IndentBlockOption.RelativePosition)
+        {
+            if (baseToken.IsKind(SyntaxKind.None))
+            {
+                AddIndentBlockOperation(list, startToken, endToken, textSpan, option);
+                return;
+            }
+
+            list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, textSpan, indentationDelta: 1, option: option));
         }
 
         protected static void SetAlignmentBlockOperation(

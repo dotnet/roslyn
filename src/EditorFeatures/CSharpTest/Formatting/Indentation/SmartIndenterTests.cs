@@ -745,7 +745,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+        [WpfTheory]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
         [InlineData("do")]
@@ -769,6 +769,59 @@ namespace NS
                 code,
                 indentationLine: 5,
                 expectedIndentation: 4);
+        }
+
+        [WpfTheory]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        [PairwiseData]
+        public void EmbeddedStatement3(
+            [CombinatorialValues("", "   ", "    ")] string indentation,
+            [CombinatorialValues("if (true)", "for (;;)")] string statement,
+            [CombinatorialValues("Console", "Console.", "Console.WriteLine", "Console.WriteLine(", "Console.WriteLine()")] string incompleteEmbeddedStatement)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{indentation}{statement}
+{indentation}    {incompleteEmbeddedStatement}
+
+    }}
+}}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 6,
+                expectedIndentation: indentation.Length + 8);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        public void EmbeddedStatement4()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        using (var stream = new MemoryStream())
+        try
+        {
+
+        }
+        finally
+        {
+        }
+    }
+}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
         }
 
         [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
@@ -2138,13 +2191,13 @@ class GooClass : IDisposable
             AssertSmartIndent(
                 code,
                 indentationLine: 5,
-                expectedIndentation: 16);
+                expectedIndentation: 12);
         }
 
         [WpfFact]
         [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void LambdaEmbededInExpression_3()
+        public void LambdaEmbededInExpression_2()
         {
             var code = @"using System;
 
@@ -2179,30 +2232,84 @@ class GooClass : IDisposable
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
+        [WpfTheory]
         [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void LambdaEmbededInExpression_2()
+        [InlineData("()")]
+        [InlineData("(string value)")]
+        [InlineData("(value)")]
+        [InlineData("value")]
+        public void LambdaEmbededInExpression_3(string parameter)
         {
-            var code = @"class Program
-{
+            var code = $@"class Program
+{{
     static void Main(string[] args)
-    {
+    {{
         using (var var = new GooClass(
-            () =>
+            {parameter} =>
 
-    }
-}";
+    }}
+}}";
             AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 16);
         }
 
+        [WpfTheory]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [InlineData("()")]
+        [InlineData("(string value)")]
+        [InlineData("(value)")]
+        [InlineData("value")]
+        public void LambdaEmbededInExpression_4(string parameter)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+        using (var var = new GooClass(
+            {parameter}
+                =>
+
+    }}
+}}";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 20);
+        }
+
+        [WpfTheory]
+        [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [InlineData("()")]
+        [InlineData("(string value)")]
+        [InlineData("(value)")]
+        [InlineData("value")]
+        public void LambdaEmbededInExpression_5(string parameter)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+        using (var var = new GooClass(
+            {parameter}
+                    =>
+
+    }}
+}}";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 24);
+        }
+
         [WpfFact]
         [WorkItem(543563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543563")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void LambdaEmbededInExpression_4()
+        public void LambdaEmbededInExpression_6()
         {
             var code = @"using System;
 class Class

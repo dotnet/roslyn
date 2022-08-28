@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             expected = expected.Remove(virtualPosition.Position, charactersToRemove);
 
-            Assert.Equal(expected, buffer.CurrentSnapshot.GetText());
+            AssertEx.EqualOrDiff(expected, buffer.CurrentSnapshot.GetText());
             Assert.Equal(expectedPosition, virtualPosition.Position.Position + charactersToRemove);
         }
 

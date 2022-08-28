@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             // increase indentation - embedded statement cases
-            if (node is IfStatementSyntax ifStatement && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))
+            if (node is IfStatementSyntax { IfKeyword.IsMissing: false, Statement: not BlockSyntax } ifStatement)
             {
                 AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
                 return;
@@ -325,27 +325,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (node is LockStatementSyntax lockStatement && lockStatement.Statement != null && !(lockStatement.Statement is BlockSyntax))
+            if (node is LockStatementSyntax { Statement: not (null or BlockSyntax) } lockStatement)
             {
                 AddEmbeddedStatementsIndentationOperation(list, lockStatement.Statement);
+                return;
+            }
+
+            if (node is LocalFunctionStatementSyntax { Body: null } localFunctionStatement)
+            {
+                var baseToken = localFunctionStatement.GetFirstToken();
+                var firstToken = localFunctionStatement.ParameterList.CloseParenToken;
+                var lastToken = localFunctionStatement.GetLastToken();
+                var spanStart = localFunctionStatement.ParameterList.Span.End;
+                var spanEnd = localFunctionStatement.FullSpan.End;
+                AddIndentBlockOperation(list, baseToken, firstToken, lastToken, TextSpan.FromBounds(spanStart, spanEnd), IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                return;
+            }
+
+            if (node is LambdaExpressionSyntax { Body: not BlockSyntax } lambdaExpression)
+            {
+                var baseToken = lambdaExpression.ArrowToken;
+                var firstToken = lambdaExpression.ArrowToken;
+                var lastToken = lambdaExpression.GetLastToken();
+                var spanStart = lambdaExpression.ArrowToken.Span.End;
+                var spanEnd = lambdaExpression.FullSpan.End;
+                AddIndentBlockOperation(list, baseToken, firstToken, lastToken, TextSpan.FromBounds(spanStart, spanEnd), IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             }
         }
 
         private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
         {
+            var baseToken = statement.Parent?.GetFirstToken() ?? default;
             var firstToken = statement.GetFirstToken(includeZeroWidth: true);
             var lastToken = statement.GetLastToken(includeZeroWidth: true);
+            var option = baseToken.IsKind(SyntaxKind.None) ? IndentBlockOption.RelativePosition : IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
 
             if (lastToken.IsMissing)
             {
                 // embedded statement is not done, consider following as part of embedded statement
-                AddIndentBlockOperation(list, firstToken, lastToken);
+                if (!firstToken.IsMissing)
+                {
+                    baseToken = firstToken;
+                    firstToken = firstToken.GetNextToken(includeZeroWidth: true);
+                    option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+                }
+
+                AddIndentBlockOperation(list, baseToken, firstToken, lastToken, option);
             }
             else
             {
                 // embedded statement is done
-                AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
+                AddIndentBlockOperation(list, baseToken, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End), option);
             }
         }
     }
