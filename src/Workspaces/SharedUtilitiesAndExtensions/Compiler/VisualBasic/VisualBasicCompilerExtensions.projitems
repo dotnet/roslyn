@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\InvocationExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.vb" />

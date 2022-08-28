@@ -1,11 +1,9 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.[Shared].Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
@@ -13,7 +11,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Inherits AbstractEntryPointFinder
 
         Private ReadOnly _findFormsOnly As Boolean
-        Private Shared ReadOnly _entryPointMethodNames As ImmutableArray(Of String) = ImmutableArray.Create(WellKnownMemberNames.EntryPointMethodName)
 
         Public Sub New(findFormsOnly As Boolean)
             Me._findFormsOnly = findFormsOnly
@@ -24,11 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Protected Overrides Function IsEntryPoint(methodSymbol As IMethodSymbol) As Boolean
-            Return methodSymbol.IsEntryPoint(
-                VisualBasicSyntaxFacts.Instance.StringComparer,
-                _entryPointMethodNames,
-                Nothing,
-                Nothing)
+            Return methodSymbol.IsVisualBasicEntryPoint()
         End Function
 
         <Obsolete("FindEntryPoints on a INamespaceSymbol is deprecated, please pass in the Compilation instead.")>

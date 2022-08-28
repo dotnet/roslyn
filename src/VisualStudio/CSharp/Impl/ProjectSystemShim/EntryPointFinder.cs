@@ -4,9 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -16,8 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     {
         private readonly INamedTypeSymbol? _task;
         private readonly INamedTypeSymbol? _taskOf;
-        private static readonly ImmutableArray<string> _entryPointMethodNames
-            = ImmutableArray.Create(WellKnownMemberNames.EntryPointMethodName, WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
 
         public EntryPointFinder(Compilation? compilation)
         {
@@ -45,10 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         protected override bool IsEntryPoint(IMethodSymbol methodSymbol)
-            => methodSymbol.IsEntryPoint(
-                CSharpSyntaxFacts.Instance.StringComparer,
-                _entryPointMethodNames,
-                _task,
-                _taskOf);
+            => methodSymbol.IsCSharpEntryPoint(_task, _taskOf);
     }
 }

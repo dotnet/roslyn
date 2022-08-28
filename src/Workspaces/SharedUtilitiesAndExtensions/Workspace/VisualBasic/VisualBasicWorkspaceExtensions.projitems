@@ -22,7 +22,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\VisualBasicSyntaxContextService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxGeneratorVisitor.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
