@@ -88,6 +88,7 @@ class Test : MyBase
                         expected2,
                     }
                 },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -192,7 +193,7 @@ partial class Test
                         expected3,
                     }
                 },
-                FileName = "/0/Test2.cs",
+                FileName = "Test2.cs",
                 DialogSelection = MakeSelection("Method", "Method2")
             }.RunAsync();
         }
@@ -241,6 +242,7 @@ namespace MyNamespace
                         expected2,
                     }
                 },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -291,7 +293,8 @@ internal class MyBase
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -343,7 +346,8 @@ namespace MyNamespace
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -395,7 +399,8 @@ namespace MyNamespace
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -432,8 +437,9 @@ public class Test : MyBase
                     {
                         expected1,
                         expected2
-                    }
-                }
+                    },
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -471,7 +477,8 @@ internal class MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -503,7 +510,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -535,7 +543,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -567,7 +576,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -599,7 +609,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -631,7 +642,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -664,7 +676,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -697,7 +710,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -742,7 +756,8 @@ internal class MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -790,7 +805,8 @@ internal class MyBase
                 Options =
                 {
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -856,7 +872,8 @@ internal class MyBase
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error },
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -923,7 +940,8 @@ namespace ConsoleApp185
                 Options = {
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -976,7 +994,8 @@ internal class MyBase
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1044,7 +1063,8 @@ namespace N1
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1052,7 +1072,7 @@ namespace N1
         public async Task TestWithInterface()
         {
             var input = @"
-interface ITest 
+interface ITest
 {
     int Method();
 }
@@ -1066,7 +1086,7 @@ class Test : ITest
 }";
 
             var expected1 = @"
-interface ITest 
+interface ITest
 {
     int Method();
 }
@@ -1092,7 +1112,8 @@ class Test : MyBase, ITest
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1182,7 +1203,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeAbstractSelection("Method")
+                DialogSelection = MakeAbstractSelection("Method"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1230,7 +1252,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeAbstractSelection("Method", "Method2", "Method3")
+                DialogSelection = MakeAbstractSelection("Method", "Method2", "Method3"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1273,7 +1296,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeSelection("Method", "Method2")
+                DialogSelection = MakeSelection("Method", "Method2"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1316,7 +1340,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeSelection("Method2")
+                DialogSelection = MakeSelection("Method2"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1360,7 +1385,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1404,7 +1430,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1448,7 +1475,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1492,7 +1520,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1546,7 +1575,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1604,7 +1634,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1791,6 +1822,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1830,6 +1862,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1869,6 +1902,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1908,6 +1942,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1957,6 +1992,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2006,6 +2042,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2055,6 +2092,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2105,6 +2143,7 @@ internal class MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2144,6 +2183,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2183,6 +2223,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2227,7 +2268,8 @@ internal class MyBase<T1, T3>
                         expected2
                     }
                 },
-                DialogSelection = MakeSelection("Field1", "Method")
+                DialogSelection = MakeSelection("Field1", "Method"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
