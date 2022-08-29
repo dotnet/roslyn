@@ -1322,15 +1322,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
-        private static void CheckForDefaultParameterMismatch(SyntaxNode methodGroupSyntax, MethodSymbol sourceMethod, TypeSymbol targetType, MethodSymbol targetDelegateInvoke, BindingDiagnosticBag diagnostics)
+        private static void CheckForDefaultParameterMismatch(SyntaxNode methodGroupSyntax, MethodSymbol sourceMethod, MethodSymbol targetDelegateInvoke, bool isExtensionMethod, BindingDiagnosticBag diagnostics)
         {
-            for (int i = 0; i < sourceMethod.ParameterCount; i++)
+            Debug.Assert(sourceMethod.ParameterCount == targetDelegateInvoke.ParameterCount + (isExtensionMethod ? 1 : 0));
+
+            var start = isExtensionMethod ? 1 : 0;
+            for (int i = start; i < sourceMethod.ParameterCount; i++)
             {
-                if (sourceMethod.Parameters[i].HasExplicitDefaultValue &&
-                    sourceMethod.Parameters[i].ExplicitDefaultConstantValue != targetDelegateInvoke.Parameters[i].ExplicitDefaultConstantValue)
-                {
-                    Error(diagnostics, ErrorCode.WRN_OptionalParamValueMismatch, methodGroupSyntax.GetLocation(), i + 1, targetType.Name);
-                }
+                var delegateParameter = targetDelegateInvoke.Parameters[isExtensionMethod ? i - 1 : i];
+                var sourceParameter = sourceMethod.Parameters[i];
+                Conversions.ReportDefaultParameterMismatchError(ErrorCode.WRN_OptionalParamValueMismatch, sourceParameter, delegateParameter, i + 1, methodGroupSyntax.Location, diagnostics);
             }
         }
 
@@ -1391,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (delegateOrFuncPtrType.IsDelegateType())
             {
                 var invokeMethod = delegateOrFuncPtrType.DelegateInvokeMethod()!;
-                CheckForDefaultParameterMismatch(syntax, selectedMethod, delegateOrFuncPtrType, invokeMethod, diagnostics);
+                CheckForDefaultParameterMismatch(syntax, selectedMethod, invokeMethod, isExtensionMethod, diagnostics);
             }
 
             CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
