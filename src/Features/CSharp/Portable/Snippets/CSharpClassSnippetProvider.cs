@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -65,11 +67,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                     cancellationToken: cancellationToken);
         }
 
-        protected override void GetClassDeclaration(SyntaxNode node, out SyntaxToken identifier, out int cursorPosition)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+        {
+            var classDeclaration = (ClassDeclarationSyntax)caretTarget;
+            var triviaSpan = classDeclaration.CloseBraceToken.LeadingTrivia.Span;
+            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
+            // Getting the location at the end of the line before the newline.
+            return line.Span.End;
+        }
+
+        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        {
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var classDeclarationSyntax = (ClassDeclarationSyntax)node;
+            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(classDeclarationSyntax.OpenBraceToken.SpanStart).LineNumber;
+
+            var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
+            var newLine = indentationOptions.FormattingOptions.NewLine;
+
+            var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
+            var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
+
+            // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
+            var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
+            return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
+        }
+
+        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+
+            var originalClassDeclaration = (ClassDeclarationSyntax)snippet;
+            var newClassDeclaration = originalClassDeclaration.WithCloseBraceToken(
+                originalClassDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
+
+            var newRoot = root.ReplaceNode(originalClassDeclaration, newClassDeclaration.WithAdditionalAnnotations(_cursorAnnotation, _cursorAnnotation));
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        protected override void GetClassDeclarationIdentifier(SyntaxNode node, out SyntaxToken identifier)
         {
             var classDeclarationSyntax = (ClassDeclarationSyntax)node;
             identifier = classDeclarationSyntax.Identifier;
-            cursorPosition = classDeclarationSyntax.OpenBraceToken.SpanStart + 1;
         }
     }
 }

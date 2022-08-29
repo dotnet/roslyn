@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractClassSnippetProvider : AbstractSnippetProvider
     {
-        protected abstract void GetClassDeclaration(SyntaxNode node, out SyntaxToken identifier, out int cursorPosition);
+        protected abstract void GetClassDeclarationIdentifier(SyntaxNode node, out SyntaxToken identifier);
 
         public override string SnippetIdentifier => "class";
 
@@ -49,12 +49,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             return syntaxFacts.IsClassDeclaration;
         }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
-        {
-            GetClassDeclaration(caretTarget, out _, out var cursorPosition);
-            return cursorPosition;
-        }
-
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
             SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
         {
@@ -73,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            GetClassDeclaration(node, out var identifier, out var unusedValue);
+            GetClassDeclarationIdentifier(node, out var identifier);
             arrayBuilder.Add(new SnippetPlaceholder(identifier: identifier.ValueText, placeholderPositions: ImmutableArray.Create(identifier.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();

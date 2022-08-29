@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 @"namespace Namespace
 {
     class MyClass
-    {$$
+    {
+        $$
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -48,7 +49,8 @@ $$";
 @"namespace Namespace;
 
 class MyClass
-{$$
+{
+    $$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -61,7 +63,8 @@ class MyClass
 
             var expectedCodeAfterCommit =
 @"class MyClass
-{$$
+{
+    $$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -77,7 +80,8 @@ $$";
 @"System.Console.WriteLine();
 
 class MyClass
-{$$
+{
+    $$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -95,7 +99,8 @@ class MyClass
 @"class MyClass
 {
     class MyClass1
-    {$$
+    {
+        $$
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -114,7 +119,8 @@ class MyClass
 @"record MyRecord
 {
     class MyClass
-    {$$
+    {
+        $$
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -133,7 +139,8 @@ class MyClass
 @"struct MyStruct
 {
     class MyClass
-    {$$
+    {
+        $$
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -152,7 +159,8 @@ class MyClass
 @"interface MyInterface
 {
     class MyClass
-    {$$
+    {
+        $$
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -180,7 +188,8 @@ dotnet_style_require_accessibility_modifiers = always
             var expectedCodeAfterCommit =
                 $@"
 public class MyClass
-{{$$
+{{
+    $$
 }}
 ";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);

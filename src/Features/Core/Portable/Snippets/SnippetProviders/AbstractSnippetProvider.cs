@@ -38,17 +38,23 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Generates the new snippet's TextChanges that are being inserted into the document
+        /// Generates the new snippet's TextChanges that are being inserted into the document.
         /// </summary>
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Method for each snippet to locate the inserted SyntaxNode to reformat
+        /// Method for each snippet to locate the inserted SyntaxNode to reformat.
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-        
-        
+
+        /// <summary>
+        /// Gets the position that we want the caret to be at after all of the indentation/formatting has been done.
+        /// </summary>
         protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
+
+        /// <summary>
+        /// Helper function to retrieve the specific type of snippet syntax when it needs to be searched for again.
+        /// </summary>
         protected abstract Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts);
 
         /// <summary>
