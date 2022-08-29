@@ -3957,7 +3957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   BinaryOperatorKind.GreaterThanOrEqual or
                                   BinaryOperatorKind.LessThanOrEqual &&
                     csharpReturnType.SpecialType == SpecialType.System_Boolean &&
-                    csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void }
+                    csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
                     csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
                 {
                     return;
