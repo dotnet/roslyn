@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
@@ -45,7 +46,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
+        
+        
+        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
         protected abstract Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts);
 
         /// <summary>
@@ -99,13 +102,18 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Goes through and calls upon the formatting engines that the previous step annotated.
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
-            var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            // Finds the added snippet and adds identation where necessary (braces).
+            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+
+            var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
             var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
+            var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
+
             // All the TextChanges from the original document. Will include any imports (if necessary) and all snippet associated
             // changes after having been formatted.
-            var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var changes = await annotatedReformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Gets a listing of the identifiers that need to be found in the snippet TextChange
             // and their associated TextSpan so they can later be converted into an LSP snippet format.
@@ -114,9 +122,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             // All the changes from the original document to the most updated. Will later be
             // collpased into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
+            var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
             return new SnippetChange(
                 textChanges: changesArray,
-                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
+                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget, sourceText),
                 placeholders: placeholders);
         }
 
@@ -222,6 +232,16 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             return closestNode;
+        }
+
+        /// <summary>
+        /// Certain snippets require more indentation - snippets with blocks.
+        /// The SyntaxGenerator does not insert this space for us nor does the LSP Snippet Expander.
+        /// We need to manually add that spacing to snippets containing blocks.
+        /// </summary>
+        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
+            return await Task.FromResult(document).ConfigureAwait(false);
         }
     }
 }

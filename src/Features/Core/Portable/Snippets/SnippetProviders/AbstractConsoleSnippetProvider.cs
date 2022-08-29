@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Tries to get the location after the open parentheses in the argument list.
         /// If it can't, then we default to the end of the snippet's span.
         /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
             var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
             if (invocationExpression is null)

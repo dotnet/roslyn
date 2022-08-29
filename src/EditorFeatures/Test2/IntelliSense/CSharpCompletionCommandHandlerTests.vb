@@ -7034,6 +7034,101 @@ namespace NS1
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExpandedItemsShouldNotShowInExclusiveContext() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+namespace CC
+{
+    public class DD
+    {
+    }
+}
+public class AA
+{
+    public AA DDProp1 { get; set; }
+
+    private static void A()
+    {
+        AA a = new()
+            {$$
+            };
+    }
+}</Document>)
+
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' import completion is disabled, so we shouldn't have expander selected by default
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+                Await state.AssertCompletionItemsContain("DDProp1", "")
+                Await state.AssertCompletionItemsDoNotContainAny("DD")
+
+                Dim session = Await state.GetCompletionSession()
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Assert.Null(sessionData.ExpandedItemsTask)
+
+                state.SendTypeChars("D")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+                Await state.AssertCompletionItemsContain("DDProp1", "")
+                Await state.AssertCompletionItemsDoNotContainAny("DD")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExpandedItemsShouldNotShowViaExpanderInExclusiveContext() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+namespace CC
+{
+    public class DD
+    {
+    }
+}
+public class AA
+{
+    public AA Prop1 { get; set; }
+    public int Prop2 { get; set; }
+
+    private static void A()
+    {
+        AA a = new()
+            {$$
+            };
+    }
+}</Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' import completion is disabled, so we shouldn't have expander selected by default
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+                Await state.AssertCompletionItemsContain("Prop1", "")
+                Await state.AssertCompletionItemsDoNotContainAny("DD")
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' since we are in exclusive context (property name provider is exclusive in this case), selceting expander is a no-op
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                Await state.AssertCompletionItemsContain("Prop1", "")
+                Await state.AssertCompletionItemsDoNotContainAny("DD")
+            End Using
+        End Function
+
         <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
