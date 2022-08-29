@@ -531,7 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 return SyntaxFactory.TriviaList(classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic()));
             }
 
-            // comments for inherited parameters go first
             var propertyParamComments = CreateParamComments(propertyResults, exteriorTrivia!.Value, lineFormattingOptions);
             var classDocComment = classTrivia.FirstOrNull(trivia => trivia.IsDocComment());
             DocumentationCommentTriviaSyntax newClassDocComment;
@@ -555,8 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 if (propertyResults
                         .SelectAsArray(result => !result.IsInherited,
                             result => result.Declaration!.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment()))
-                        .Where(t => t != null)
-                        .First()?.GetStructure() is DocumentationCommentTriviaSyntax propDoc &&
+                        .FirstOrDefault(t => t != null)?.GetStructure() is DocumentationCommentTriviaSyntax propDoc &&
                     propDoc.IsMultilineDocComment())
                 {
                     // add /** and */
