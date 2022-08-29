@@ -327,8 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 localVariableNames:=ImmutableArray(Of String).Empty,
                 localConstants:=ImmutableArray(Of LocalSymbol).Empty,
                 reuseSpan:=Nothing,
-                containingDocumentName:=Nothing,
-                containingDocumentChecksumOpt:=Nothing)
+                containingDocumentName:=Nothing)
         End Function
 
         Friend Function CreateCompilationContext(withSyntax As Boolean) As CompilationContext

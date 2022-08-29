@@ -3261,7 +3261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
-        { 
+        {
             // note: the default HashSet<string> uses an ordinal comparison
             private readonly PooledHashSet<string> _duplicatePaths = PooledHashSet<string>.GetInstance();
 
