@@ -32,12 +32,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 
         // specify all options explicitly to override defaults.
         private OptionsCollection ImplicitTypingEverywhere()
-            => new OptionsCollection(GetLanguage())
+            => new(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
             };
+
+        // Workaround to mimic awaitable `ValueTask` type from the runtime 
+        private const string ValueTaskDeclaration = """
+            namespace System.Runtime.CompilerServices
+            {
+                public class AsyncMethodBuilderAttribute : System.Attribute { }
+            }
+            
+            namespace System.Threading.Tasks
+            {
+                [System.Runtime.CompilerServices.AsyncMethodBuilder]
+                public struct ValueTask { }
+            }
+            """;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestEmptySpan1()
@@ -8026,38 +8040,42 @@ class C
         public async Task IntroduceLocal_DoNotReturnForVoidTaskLikeTypes(string taskType)
         {
             await TestInRegularAndScriptAsync(
-$@"
+$$"""
 using System;
 using System.Threading.Tasks;
 
-namespace ConsoleApp1;
+namespace ConsoleApp1
+{
+    internal class Example1
+    {
+        private async {{taskType}} DoStuff() => await ConsumeAsync([|await TransformAsync("abc")|]);
 
-internal class Example1
-{{
-    private async {taskType} DoStuff() => await ConsumeAsync([|await TransformAsync(""abc"")|]);
+        private Task<object> TransformAsync(string v) => throw new NotImplementedException();
 
-    private Task<object> TransformAsync(string v) => throw new NotImplementedException();
-
-    private Task ConsumeAsync(object value) => throw new NotImplementedException();
-}}",
-$@"
+        private Task ConsumeAsync(object value) => throw new NotImplementedException();
+    }
+}
+""" + ValueTaskDeclaration,
+$$"""
 using System;
 using System.Threading.Tasks;
 
-namespace ConsoleApp1;
+namespace ConsoleApp1
+{
+    internal class Example1
+    {
+        private async {{taskType}} DoStuff()
+        {
+            object {|Rename:value|} = await TransformAsync("abc");
+            await ConsumeAsync(value);
+        }
 
-internal class Example1
-{{
-    private async {taskType} DoStuff()
-    {{
-        object {{|Rename:value|}} = await TransformAsync(""abc"");
-        await ConsumeAsync(value);
-    }}
+        private Task<object> TransformAsync(string v) => throw new NotImplementedException();
 
-    private Task<object> TransformAsync(string v) => throw new NotImplementedException();
-
-    private Task ConsumeAsync(object value) => throw new NotImplementedException();
-}}");
+        private Task ConsumeAsync(object value) => throw new NotImplementedException();
+    }
+}
+""" + ValueTaskDeclaration);
         }
     }
 }
