@@ -8401,7 +8401,6 @@ class Module1
             Assert.Equal(synthesizedMethod, symbol1);
 
             bool isChecked = false;
-
             switch (op)
             {
                 case BinaryOperatorKind.Multiplication:
