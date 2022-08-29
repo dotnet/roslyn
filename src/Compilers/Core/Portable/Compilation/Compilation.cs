@@ -1512,60 +1512,9 @@ namespace Microsoft.CodeAnalysis
             if (rightType is null)
                 throw new ArgumentNullException(nameof(rightType));
 
-            // When the types are dynamic, then virtually all operators are allowed and synthesized.
-            // So only check when neither are dynamic.
-            if (leftType.TypeKind != TypeKind.Dynamic && rightType.TypeKind != TypeKind.Dynamic)
-            {
-                checkSupportedBinaryOperatorType(returnType, nameof(returnType));
-                checkSupportedBinaryOperatorType(leftType, nameof(leftType));
-                checkSupportedBinaryOperatorType(rightType, nameof(rightType));
-            }
-
             return CommonCreateBuiltinOperator(name, returnType, leftType, rightType);
-
-            void checkSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
-            {
-                // Enums have operators automatically synthesized for them.
-                // Pointers have operators automatically synthesized for them.
-                // Delegates have a synthesized operator for combining them together.
-                //
-                // For error types, we don't bother checking.  The type was already in error, so fine to create an error
-                // builtin wrapping it.
-                if (type.TypeKind is TypeKind.Delegate or TypeKind.Enum or TypeKind.Error or TypeKind.Pointer)
-                    return;
-
-                switch (type.OriginalDefinition.SpecialType)
-                {
-                    case SpecialType.System_SByte:
-                    case SpecialType.System_Byte:
-                    case SpecialType.System_Int16:
-                    case SpecialType.System_UInt16:
-                    case SpecialType.System_Int32:
-                    case SpecialType.System_UInt32:
-                    case SpecialType.System_Int64:
-                    case SpecialType.System_UInt64:
-                    case SpecialType.System_IntPtr:
-                    case SpecialType.System_UIntPtr:
-                    case SpecialType.System_Char:
-                    case SpecialType.System_Single:
-                    case SpecialType.System_Double:
-                    case SpecialType.System_Decimal:
-                    case SpecialType.System_Boolean:
-                    case SpecialType.System_Object:
-                    case SpecialType.System_String:
-                    case SpecialType.System_DateTime:
-                    case SpecialType.System_Delegate:
-                        return;
-                }
-
-                if (IsLanguageSpecificSupportedBuiltinOperatorType(type))
-                    return;
-
-                throw new ArgumentException($"Unsupported built-in operator type: {type.ToDisplayString()}", paramName);
-            }
         }
 
-        protected abstract bool IsLanguageSpecificSupportedBuiltinOperatorType(ITypeSymbol type);
         protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType);
 
         /// <summary>

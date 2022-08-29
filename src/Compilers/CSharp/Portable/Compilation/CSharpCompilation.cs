@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -3845,13 +3844,191 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntaxKind = SyntaxFacts.GetOperatorKind(name);
             if (syntaxKind == SyntaxKind.None)
-                throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
+                throw new ArgumentException($"Illegal operator name '{name}'.", nameof(name));
 
             var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (binaryOperatorName != name)
-                throw new ArgumentException($"'{name}' was not a valid binary operator name", nameof(name));
+                throw new ArgumentException($"'{name}' was not a valid binary operator name.", nameof(name));
+
+            // Lang specific checks to ensure this is an acceptable operator.
+            checkOperatorKinds();
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
+
+            void checkOperatorKinds()
+            {
+                // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic || csharpLeftType.TypeKind is TypeKind.Dynamic || csharpRightType.TypeKind is TypeKind.Dynamic)
+                    return;
+
+                checkNullableType(csharpReturnType, nameof(returnType));
+                checkNullableType(csharpLeftType, nameof(leftType));
+                checkNullableType(csharpRightType, nameof(rightType));
+
+                // Use fast-path check to see if this types are ok.
+                var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(syntaxKind);
+                OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
+
+                if (binaryKind != BinaryOperatorKind.Error)
+                {
+                    var signature = this.builtInOperators.GetSignature(binaryKind);
+                    if (!TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything))
+                        throw new ArgumentException($"Built-in operator return type must be '{signature.ReturnType.ToDisplayString()}'.", nameof(returnType));
+                    return;
+                }
+
+                if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
+                {
+                    if ((csharpLeftType.SpecialType is SpecialType.System_Object && csharpRightType.SpecialType is SpecialType.System_Object) ||
+                        (csharpLeftType.SpecialType is SpecialType.System_Delegate && csharpRightType.SpecialType is SpecialType.System_Delegate))
+                    {
+                        // bool operator ==(object, object) is legal.
+                        // bool operator !=(object, object) is legal.
+                        // bool operator ==(Delegate, Delegate) is legal.
+                        // bool operator !=(Delegate, Delegate) is legal.
+                        if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
+                            throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
+
+                        return;
+                    }
+                }
+
+                if (csharpLeftType.SpecialType is SpecialType.System_Delegate && csharpRightType.SpecialType is SpecialType.System_Delegate)
+                {
+                    // Delegates have ==, !=, + and -
+                    if (!TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                        throw new ArgumentException("Built-in operator parameter types must be the same type if either is a Delegate type.", nameof(leftType));
+
+                    if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
+                    {
+                        if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
+                            throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
+
+                        return;
+                    }
+
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                    {
+                        if (!TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                            throw new ArgumentException("Built-in operator return type must be the same type as the parameter types when the parameters are a Delegate type.", nameof(returnType));
+
+                        return;
+                    }
+                }
+
+                if (csharpLeftType.IsEnumType() || csharpRightType.IsEnumType())
+                {
+                    if (binaryKind is BinaryOperatorKind.Equal or
+                                      BinaryOperatorKind.NotEqual or
+                                      BinaryOperatorKind.GreaterThan or
+                                      BinaryOperatorKind.LessThan or
+                                      BinaryOperatorKind.GreaterThanOrEqual or
+                                      BinaryOperatorKind.LessThanOrEqual)
+                    {
+                        if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
+                            throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
+
+                        if (!TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                            throw new ArgumentException("Built-in operator parameter type must be the same type if the other is an Enum type.", nameof(rightType));
+
+                        return;
+                    }
+
+                    if (binaryKind is BinaryOperatorKind.And or
+                                      BinaryOperatorKind.Or or
+                                      BinaryOperatorKind.Xor)
+                    {
+                        if (!TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                            throw new ArgumentException("Built-in operator parameter type must be the same type if the other is an Enum type.", nameof(rightType));
+
+                        if (!TypeSymbol.Equals(csharpReturnType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                            throw new ArgumentException($"Built-in operator return type must be the same type as the parameter types.", nameof(returnType));
+
+                        return;
+                    }
+
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                    {
+                        if (csharpLeftType.IsEnumType() &&
+                            !TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
+                            throw new ArgumentException("Built-in operator return type must be the same type as parameter type.", nameof(leftType));
+                        }
+
+                        if (csharpRightType.IsEnumType() &&
+                            !TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
+                            throw new ArgumentException("Built-in operator return type must be the same type as parameter type.", nameof(rightType));
+                        }
+
+                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                            return;
+
+                        if (csharpRightType.IsIntegralType())
+                            return;
+
+                        if (csharpLeftType.IsIntegralType())
+                            return;
+                    }
+                }
+
+                if (csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
+                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
+                {
+                    if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
+                        throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
+
+                    if (binaryKind is BinaryOperatorKind.Equal or
+                                      BinaryOperatorKind.NotEqual or
+                                      BinaryOperatorKind.GreaterThan or
+                                      BinaryOperatorKind.LessThan or
+                                      BinaryOperatorKind.GreaterThanOrEqual or
+                                      BinaryOperatorKind.LessThanOrEqual)
+                    {
+                        return;
+                    }
+                }
+
+                if (csharpLeftType.IsPointerType() || csharpRightType.IsPointerType())
+                {
+                    if (binaryKind == BinaryOperatorKind.Addition)
+                    {
+                        if (!csharpLeftType.IsIntegralType() && !csharpRightType.IsIntegralType())
+                            throw new ArgumentException($"Built-in operator parameter type must be an integral type if the other type is a pointer type.");
+
+                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                            return;
+                    }
+
+                    if (binaryKind == BinaryOperatorKind.Subtraction)
+                    {
+                        if (!csharpLeftType.IsPointerType())
+                            throw new ArgumentException($"Built-in operator parameter type must be an pointer type.", nameof(leftType));
+
+                        if (csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                            return;
+
+                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) && csharpReturnType.SpecialType is SpecialType.System_Int64)
+                            return;
+                    }
+                }
+
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    this.IsReadOnlySpanType(csharpReturnType) &&
+                    this.IsReadOnlySpanType(csharpLeftType) &&
+                    this.IsReadOnlySpanType(csharpRightType))
+                {
+                    return;
+                }
+
+                throw new ArgumentException($"Unsupported built-in operator kind: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
+            }
+
+            void checkNullableType(TypeSymbol type, string paramName)
+            {
+                if (type.IsNullableType())
+                    throw new ArgumentException("Built-in operator type cannot be System.Nullable", paramName);
+            }
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
