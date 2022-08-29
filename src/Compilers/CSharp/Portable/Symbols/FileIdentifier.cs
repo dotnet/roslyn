@@ -18,9 +18,10 @@ internal struct FileIdentifier
     public string DisplayFilePath { get; init; }
 
     public static FileIdentifier Create(SyntaxTree tree)
-    {
-        var filePath = tree.FilePath;
+        => Create(tree.FilePath);
 
+    public static FileIdentifier Create(string filePath)
+    {
         string? encoderFallbackErrorMessage = null;
         ImmutableArray<byte> hash = default;
         try

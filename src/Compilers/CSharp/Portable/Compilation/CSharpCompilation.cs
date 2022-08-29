@@ -3309,21 +3309,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitNamedType(NamedTypeSymbol symbol)
             {
-                Debug.Assert(symbol.IsDefinition);
                 Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
-                if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
+                if (symbol.AssociatedFileIdentifier is not null)
                 {
                     var location = symbol.Locations[0];
-                    var filePath = location.SourceTree!.FilePath;
-                    if (_duplicatePaths.Contains(filePath))
+                    var filePath = location.SourceTree?.FilePath;
+                    if (_duplicatePaths.Contains(filePath!))
                     {
                         _diagnostics.Add(ErrorCode.ERR_FileTypeNonUniquePath, location, symbol, filePath);
                         _hasDuplicateFilePaths = true;
                     }
-                }
-                else
-                {
-                    Debug.Assert(symbol.AssociatedFileIdentifier is null);
                 }
             }
         }

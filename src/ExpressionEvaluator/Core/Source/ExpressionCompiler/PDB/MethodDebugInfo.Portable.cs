@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -68,8 +66,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var documentHandle = reader.GetMethodDebugInformation(methodHandle).Document;
             var document = reader.GetDocument(documentHandle);
             var documentName = reader.GetString(document.Name);
-            using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(s_fileNameEncoding.GetBytes(documentName)).ToImmutableArray();
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
@@ -81,8 +77,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 localVariableNames,
                 localConstants,
                 reuseSpan,
-                documentName,
-                hash);
+                documentName);
         }
 
         /// <summary>

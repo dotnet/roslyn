@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -174,7 +171,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
                 string? name = null;
-                ImmutableArray<byte> checksum = default;
                 if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
                 {
                     // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
@@ -185,19 +181,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var documents => throw ExceptionUtilities.UnexpectedValue(documents)
                     };
 
-                    try
-                    {
-                        name = doc.GetName();
-                        using var sha256 = SHA256.Create();
-                        checksum = sha256.ComputeHash(s_fileNameEncoding.GetBytes(name)).ToImmutableArray();
-                    }
-                    catch (EncoderFallbackException)
-                    {
-                        // If the name contains ill-formed unicode, just drop the information used for binding file types.
-                        // No file types would be produced by the compiler with this path, so we won't miss anything.
-                        name = null;
-                        checksum = default;
-                    }
+                    name = doc.GetName();
                 }
 
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
@@ -210,8 +194,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
                     reuseSpan,
-                    name,
-                    checksum);
+                    name);
             }
             catch (InvalidOperationException)
             {

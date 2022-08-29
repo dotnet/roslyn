@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -27,10 +24,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             localVariableNames: ImmutableArray<string>.Empty,
             localConstants: ImmutableArray<TLocalSymbol>.Empty,
             reuseSpan: ILSpan.MaxValue,
-            containingDocumentName: null,
-            containingDocumentChecksumOpt: default);
-
-        private static readonly UTF8Encoding s_fileNameEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            containingDocumentName: null);
 
         /// <summary>
         /// Hoisted local variable scopes.
@@ -48,7 +42,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ImmutableArray<TLocalSymbol> LocalConstants;
         public readonly ILSpan ReuseSpan;
         public readonly string? ContainingDocumentName;
-        public readonly ImmutableArray<byte> ContainingDocumentNameChecksumOpt;
 
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
@@ -60,8 +53,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
             ILSpan reuseSpan,
-            string? containingDocumentName,
-            ImmutableArray<byte> containingDocumentChecksumOpt)
+            string? containingDocumentName)
         {
             RoslynDebug.Assert(!importRecordGroups.IsDefault);
             RoslynDebug.Assert(!externAliasRecords.IsDefault);
@@ -81,7 +73,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReuseSpan = reuseSpan;
 
             ContainingDocumentName = containingDocumentName;
-            ContainingDocumentNameChecksumOpt = containingDocumentChecksumOpt;
         }
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)

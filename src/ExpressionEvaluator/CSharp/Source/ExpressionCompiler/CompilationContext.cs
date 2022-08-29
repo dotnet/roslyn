@@ -60,16 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // added (anonymous types, for instance).
             Debug.Assert(Compilation != compilation);
 
-            // TODO2: consider delaying creating the checksum, etc. to here to reduce duplication
-            FileIdentifier? identifier = methodDebugInfo.ContainingDocumentName is null
-                ? null
-                : new FileIdentifier { DisplayFilePath = GeneratedNames.GetDisplayFilePath(methodDebugInfo.ContainingDocumentName), FilePathChecksumOpt = methodDebugInfo.ContainingDocumentNameChecksumOpt };
-
             NamespaceBinder = CreateBinderChain(
                 Compilation,
                 currentFrame.ContainingNamespace,
                 methodDebugInfo.ImportRecordGroups,
-                identifier);
+                methodDebugInfo.ContainingDocumentName is { } documentName ? FileIdentifier.Create(documentName) : null);
 
             if (_methodNotType)
             {
