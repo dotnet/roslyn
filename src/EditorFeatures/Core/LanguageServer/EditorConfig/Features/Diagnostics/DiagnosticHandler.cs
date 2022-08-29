@@ -19,12 +19,12 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using System.Linq;
-using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 {
     [ExportStatelessLspService(typeof(PullDiagnosticHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]

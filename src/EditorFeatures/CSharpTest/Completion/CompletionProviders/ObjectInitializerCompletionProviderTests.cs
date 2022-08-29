@@ -1230,7 +1230,7 @@ class Program
 
             if (!completionList.IsEmpty)
             {
-                Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
+                Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
             }
         }
     }

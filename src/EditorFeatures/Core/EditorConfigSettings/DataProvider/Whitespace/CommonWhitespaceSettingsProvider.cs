@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
 
         private IEnumerable<WhitespaceSetting> GetDefaultOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updater)
         {
-            // Don't pass the editorfeatureresources string
             yield return WhitespaceSetting.Create(FormattingOptions2.UseTabs, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.UseTabs);
             yield return WhitespaceSetting.Create(FormattingOptions2.TabSize, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.TabSize);
             yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.IndentationSize);

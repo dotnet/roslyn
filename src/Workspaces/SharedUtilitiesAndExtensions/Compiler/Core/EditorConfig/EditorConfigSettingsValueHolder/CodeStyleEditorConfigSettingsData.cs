@@ -61,49 +61,61 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         #region Qualify Options
         public static EditorConfigData<bool> QualifyFieldAccess = new BooleanEditorConfigData("dotnet_style_qualification_for_field",
-                                                                                              CompilerExtensionsResources.Qualify_field_access_with_this_or_Me);
+                                                                                              CompilerExtensionsResources.Qualify_field_access_with_this_or_Me,
+                                                                                              valuesDocumentation: EditorConfigSettingsValuesDocumentation.ThisOrMeDocumentation);
 
         public static EditorConfigData<bool> QualifyPropertyAccess = new BooleanEditorConfigData("dotnet_style_qualification_for_property",
-                                                                                                 CompilerExtensionsResources.Qualify_property_access_with_this_or_Me);
+                                                                                                 CompilerExtensionsResources.Qualify_property_access_with_this_or_Me,
+                                                                                                 valuesDocumentation: EditorConfigSettingsValuesDocumentation.ThisOrMeDocumentation);
 
         public static EditorConfigData<bool> QualifyMethodAccess = new BooleanEditorConfigData("dotnet_style_qualification_for_method",
-                                                                                               CompilerExtensionsResources.Qualify_method_access_with_this_or_Me);
+                                                                                               CompilerExtensionsResources.Qualify_method_access_with_this_or_Me,
+                                                                                               valuesDocumentation: EditorConfigSettingsValuesDocumentation.ThisOrMeDocumentation);
 
         public static EditorConfigData<bool> QualifyEventAccess = new BooleanEditorConfigData("dotnet_style_qualification_for_event",
-                                                                                              CompilerExtensionsResources.Qualify_event_access_with_this_or_Me);
+                                                                                              CompilerExtensionsResources.Qualify_event_access_with_this_or_Me,
+                                                                                              valuesDocumentation: EditorConfigSettingsValuesDocumentation.ThisOrMeDocumentation);
         #endregion
 
         #region Predefined Types Options
         public static EditorConfigData<bool> PreferIntrinsicPredefinedTypeKeywordInDeclaration = new BooleanEditorConfigData("dotnet_style_predefined_type_for_locals_parameters_members",
-                                                                                                                             CompilerExtensionsResources.For_locals_parameters_and_members);
+                                                                                                                             CompilerExtensionsResources.For_locals_parameters_and_members,
+                                                                                                                             valuesDocumentation: EditorConfigSettingsValuesDocumentation.PreferTypeDocumentation);
 
         public static EditorConfigData<bool> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = new BooleanEditorConfigData("dotnet_style_predefined_type_for_member_access",
-                                                                                                                              CompilerExtensionsResources.For_member_access_expressions);
+                                                                                                                              CompilerExtensionsResources.For_member_access_expressions,
+                                                                                                                              valuesDocumentation: EditorConfigSettingsValuesDocumentation.PreferTypeDocumentation);
         #endregion
 
         #region Null Checking Options
         public static EditorConfigData<bool> PreferCoalesceExpression = new BooleanEditorConfigData("dotnet_style_coalesce_expression",
-                                                                                                    CompilerExtensionsResources.Prefer_coalesce_expression);
+                                                                                                    CompilerExtensionsResources.Prefer_coalesce_expression,
+                                                                                                    valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferNullPropagation = new BooleanEditorConfigData("dotnet_style_null_propagation",
-                                                                                                 CompilerExtensionsResources.Prefer_null_propagation);
+                                                                                                 CompilerExtensionsResources.Prefer_null_propagation,
+                                                                                                 valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferIsNullCheckOverReferenceEqualityMethod = new BooleanEditorConfigData("dotnet_style_prefer_is_null_check_over_reference_equality_method",
-                                                                                                                        CompilerExtensionsResources.Prefer_is_null_for_reference_equality_checks);
+                                                                                                                        CompilerExtensionsResources.Prefer_is_null_for_reference_equality_checks,
+                                                                                                                        valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
         #endregion
 
         #region Modifier Options
         public static EditorConfigData<AccessibilityModifiersRequired> RequireAccessibilityModifiers = new EnumEditorConfigData<AccessibilityModifiersRequired>("dotnet_style_require_accessibility_modifiers",
                                                                                                                                                                 CompilerExtensionsResources.Require_accessibility_modifiers,
-                                                                                                                                                                AccessibilityModifiersRequiredMap);
+                                                                                                                                                                AccessibilityModifiersRequiredMap,
+                                                                                                                                                                EditorConfigSettingsValuesDocumentation.AccessibilityModifiersDocumentation);
 
         public static EditorConfigData<bool> PreferReadonly = new BooleanEditorConfigData("dotnet_style_readonly_field",
-                                                                                          CompilerExtensionsResources.Prefer_readonly_fields);
+                                                                                          CompilerExtensionsResources.Prefer_readonly_fields,
+                                                                                          valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
         #endregion
 
         #region Code Block Options
         public static EditorConfigData<bool> PreferAutoProperties = new BooleanEditorConfigData("dotnet_style_prefer_auto_properties",
-                                                                                                CompilerExtensionsResources.Analyzer_Prefer_auto_properties);
+                                                                                                CompilerExtensionsResources.Analyzer_Prefer_auto_properties,
+                                                                                                valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferSystemHashCode = new BooleanEditorConfigData("",
                                                                                                 CompilerExtensionsResources.Prefer_System_HashCode_in_GetHashCode);
@@ -111,69 +123,87 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         #region Expression Options
         public static EditorConfigData<bool> PreferObjectInitializer = new BooleanEditorConfigData("dotnet_style_object_initializer",
-                                                                                                   CompilerExtensionsResources.Prefer_object_initializer);
+                                                                                                   CompilerExtensionsResources.Prefer_object_initializer,
+                                                                                                   valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferCollectionInitializer = new BooleanEditorConfigData("dotnet_style_collection_initializer",
-                                                                                                       CompilerExtensionsResources.Prefer_collection_initializer);
+                                                                                                       CompilerExtensionsResources.Prefer_collection_initializer,
+                                                                                                       valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferSimplifiedBooleanExpressions = new BooleanEditorConfigData("dotnet_style_prefer_simplified_boolean_expressions",
-                                                                                                              CompilerExtensionsResources.Prefer_simplified_boolean_expressions);
+                                                                                                              CompilerExtensionsResources.Prefer_simplified_boolean_expressions,
+                                                                                                              valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferConditionalExpressionOverAssignment = new BooleanEditorConfigData("dotnet_style_prefer_conditional_expression_over_assignment",
-                                                                                                                     CompilerExtensionsResources.Prefer_conditional_expression_over_if_with_assignments);
+                                                                                                                     CompilerExtensionsResources.Prefer_conditional_expression_over_if_with_assignments,
+                                                                                                                     valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferConditionalExpressionOverReturn = new BooleanEditorConfigData("dotnet_style_prefer_conditional_expression_over_return",
-                                                                                                                 CompilerExtensionsResources.Prefer_conditional_expression_over_if_with_returns);
+                                                                                                                 CompilerExtensionsResources.Prefer_conditional_expression_over_if_with_returns,
+                                                                                                                 valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferExplicitTupleNames = new BooleanEditorConfigData("dotnet_style_explicit_tuple_names",
-                                                                                                    CompilerExtensionsResources.Prefer_explicit_tuple_name);
+                                                                                                    CompilerExtensionsResources.Prefer_explicit_tuple_name,
+                                                                                                    valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferInferredTupleNames = new BooleanEditorConfigData("dotnet_style_prefer_inferred_tuple_names",
-                                                                                                    CompilerExtensionsResources.Prefer_inferred_tuple_names);
+                                                                                                    CompilerExtensionsResources.Prefer_inferred_tuple_names,
+                                                                                                    valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferInferredAnonymousTypeMemberNames = new BooleanEditorConfigData("dotnet_style_prefer_inferred_anonymous_type_member_names",
-                                                                                                                  CompilerExtensionsResources.Prefer_inferred_anonymous_type_member_names);
+                                                                                                                  CompilerExtensionsResources.Prefer_inferred_anonymous_type_member_names,
+                                                                                                                  valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferCompoundAssignment = new BooleanEditorConfigData("dotnet_style_prefer_compound_assignment",
-                                                                                                    CompilerExtensionsResources.Prefer_compound_assignments);
+                                                                                                    CompilerExtensionsResources.Prefer_compound_assignments,
+                                                                                                    valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> PreferSimplifiedInterpolation = new BooleanEditorConfigData("dotnet_style_prefer_simplified_interpolation",
-                                                                                                         CompilerExtensionsResources.Prefer_simplified_interpolation);
+                                                                                                         CompilerExtensionsResources.Prefer_simplified_interpolation,
+                                                                                                         valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
         #endregion
 
         #region Parentheses Options
         public static EditorConfigData<ParenthesesPreference> ArithmeticBinaryParentheses = new EnumEditorConfigData<ParenthesesPreference>("dotnet_style_parentheses_in_arithmetic_binary_operators",
                                                                                                                                             CompilerExtensionsResources.In_arithmetic_binary_operators,
-                                                                                                                                            ParenthesesPreferenceMap);
+                                                                                                                                            ParenthesesPreferenceMap,
+                                                                                                                                            EditorConfigSettingsValuesDocumentation.ParenthesesPreferenceDocumentation);
 
         public static EditorConfigData<ParenthesesPreference> OtherBinaryParentheses = new EnumEditorConfigData<ParenthesesPreference>("dotnet_style_parentheses_in_other_binary_operators",
                                                                                                                                        CompilerExtensionsResources.In_other_binary_operators,
-                                                                                                                                       ParenthesesPreferenceMap);
+                                                                                                                                       ParenthesesPreferenceMap,
+                                                                                                                                       EditorConfigSettingsValuesDocumentation.ParenthesesPreferenceDocumentation);
 
         public static EditorConfigData<ParenthesesPreference> RelationalBinaryParentheses = new EnumEditorConfigData<ParenthesesPreference>("dotnet_style_parentheses_in_relational_binary_operators",
                                                                                                                                             CompilerExtensionsResources.In_relational_binary_operators,
-                                                                                                                                            ParenthesesPreferenceMap);
+                                                                                                                                            ParenthesesPreferenceMap,
+                                                                                                                                            EditorConfigSettingsValuesDocumentation.ParenthesesPreferenceDocumentation);
 
         public static EditorConfigData<ParenthesesPreference> OtherParentheses = new EnumEditorConfigData<ParenthesesPreference>("dotnet_style_parentheses_in_other_operators",
                                                                                                                                  CompilerExtensionsResources.In_other_operators,
-                                                                                                                                 ParenthesesPreferenceMap);
+                                                                                                                                 ParenthesesPreferenceMap,
+                                                                                                                                 EditorConfigSettingsValuesDocumentation.ParenthesesPreferenceDocumentation);
         #endregion
 
         #region Paramenter Options
         public static EditorConfigData<UnusedParametersPreference> UnusedParameters = new EnumEditorConfigData<UnusedParametersPreference>("dotnet_code_quality_unused_parameters",
                                                                                                                                            CompilerExtensionsResources.Avoid_unused_parameters,
-                                                                                                                                           UnusedParametersPreferenceMap);
+                                                                                                                                           UnusedParametersPreferenceMap,
+                                                                                                                                           EditorConfigSettingsValuesDocumentation.UnusedParametersPreferenceDocumentation);
         #endregion
 
         #region Experimental Options
         public static EditorConfigData<bool> PreferNamespaceAndFolderMatchStructure = new BooleanEditorConfigData("dotnet_style_namespace_match_folder",
-                                                                                                                  CompilerExtensionsResources.Prefer_namespace_and_folder_match_structure);
+                                                                                                                  CompilerExtensionsResources.Prefer_namespace_and_folder_match_structure,
+                                                                                                                  valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> AllowMultipleBlankLines = new BooleanEditorConfigData("dotnet_style_allow_multiple_blank_lines_experimental",
-                                                                                                   CompilerExtensionsResources.Allow_multiple_blank_lines);
+                                                                                                   CompilerExtensionsResources.Allow_multiple_blank_lines,
+                                                                                                   valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<bool> AllowStatementImmediatelyAfterBlock = new BooleanEditorConfigData("dotnet_style_allow_statement_immediately_after_block_experimental",
-                                                                                                               CompilerExtensionsResources.Allow_statement_immediately_after_block);
+                                                                                                               CompilerExtensionsResources.Allow_statement_immediately_after_block,
+                                                                                                               valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
         #endregion
 
         #region Visual Basic Options
@@ -234,11 +264,13 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         #region Test
         public static EditorConfigData<bool> BoolCodeStyleTest = new BooleanEditorConfigData("BoolCodeStyleTest",
-                                                                                             "TestDescription");
+                                                                                             "TestDescription",
+                                                                                             valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<DayOfWeek> DayOfWeekCodeStyleTest = new EnumEditorConfigData<DayOfWeek>("DayOfWeekCodeStyleTest",
                                                                                                                "TestDescription",
-                                                                                                               DayOfWeekMap);
+                                                                                                               DayOfWeekMap,
+                                                                                                               EditorConfigSettingsValuesDocumentation.DayOfWeekTestDocumentation);
         #endregion
     }
 }

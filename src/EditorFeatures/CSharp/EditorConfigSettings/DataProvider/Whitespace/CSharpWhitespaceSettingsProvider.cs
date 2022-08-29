@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
 {
-    internal class CSharpWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
+    internal partial class CSharpWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
     {
         public CSharpWhitespaceSettingsProvider(string filePath, OptionUpdater updaterService, Workspace workspace)
             : base(filePath, updaterService, workspace)

@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -16,9 +15,9 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 {
     [ExportStatelessLspService(typeof(CompletionHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
     [Method(Methods.TextDocumentCompletionName)]
@@ -116,14 +115,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, _settingNameCommitCharacters);
         }
-
         private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional)
         {
             var values = new List<CompletionItem>();
             var allowsMultipleValues = setting.AllowsMultipleValues();
 
             // User may type a ',' but not in a setting that allows multiple values
-            if (additional && (!allowsMultipleValues))
+            if (additional && !allowsMultipleValues)
             {
                 return null;
             }
@@ -156,7 +154,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             };
             return item;
         }
-
         private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, bool multipleValues = false)
         {
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);

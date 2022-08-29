@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var visualStudioOptions = new TestOptionSet<DayOfWeek>(option.DefaultValue);
             var setting = CodeStyleSetting.Create(option,
                                                   enumValues: (DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)),
-                                                  valueDescriptions: Enum.GetNames(typeof(DayOfWeek)),
                                                   editorConfigOptions,
                                                   visualStudioOptions,
                                                   updater: null!,

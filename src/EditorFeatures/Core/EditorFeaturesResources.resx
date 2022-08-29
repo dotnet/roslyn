@@ -933,18 +933,6 @@ Do you want to proceed?</value>
   <data name="Reassigned_variable" xml:space="preserve">
     <value>Reassigned variable</value>
   </data>
-  <data name="No" xml:space="preserve">
-    <value>No</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
-  </data>
-  <data name="Do_not_prefer_this_or_Me" xml:space="preserve">
-    <value>Do not prefer 'this.' or 'Me.'</value>
-  </data>
-  <data name="Prefer_this_or_Me" xml:space="preserve">
-    <value>Prefer 'this.' or 'Me.'</value>
-  </data>
   <data name="Regex_Comment" xml:space="preserve">
     <value>Regex - Comment</value>
   </data>
@@ -1033,36 +1021,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
     <value>Rename operation could not complete due to external change to workspace</value>
-  </data>
-  <data name="All_methods" xml:space="preserve">
-    <value>All methods</value>
-  </data>
-  <data name="Always" xml:space="preserve">
-    <value>Always</value>
-  </data>
-  <data name="Always_for_clarity" xml:space="preserve">
-    <value>Always for clarity</value>
-  </data>
-  <data name="For_non_interface_members" xml:space="preserve">
-    <value>For non interface members</value>
-  </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
-  </data>
-  <data name="Never_if_unnecessary" xml:space="preserve">
-    <value>Never if unnecessary</value>
-  </data>
-  <data name="Non_public_methods" xml:space="preserve">
-    <value>Non-public methods</value>
-  </data>
-  <data name="Omit_if_default" xml:space="preserve">
-    <value>Omit if default</value>
-  </data>
-  <data name="Prefer_framework_type" xml:space="preserve">
-    <value>Prefer framework type</value>
-  </data>
-  <data name="Prefer_predefined_type" xml:space="preserve">
-    <value>Prefer predefined type</value>
   </data>
   <data name="Value" xml:space="preserve">
     <value>Value</value>

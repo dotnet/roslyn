@@ -393,4 +393,178 @@
   <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
     <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
   </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
+  <data name="Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Block_scoped" xml:space="preserve">
+    <value>Block scoped</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Do_not_prefer_this_or_Me" xml:space="preserve">
+    <value>Do not prefer 'this.' or 'Me.'</value>
+  </data>
+  <data name="Error_severity" xml:space="preserve">
+    <value>Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar.</value>
+  </data>
+  <data name="File_scoped" xml:space="preserve">
+    <value>File scoped</value>
+  </data>
+  <data name="For_non_interface_members" xml:space="preserve">
+    <value>For non interface members</value>
+  </data>
+  <data name="Inside_namespace" xml:space="preserve">
+    <value>Inside namespace</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Non_public_methods" xml:space="preserve">
+    <value>Non-public methods</value>
+  </data>
+  <data name="Omit_if_default" xml:space="preserve">
+    <value>Omit if default</value>
+  </data>
+  <data name="Outside_namespace" xml:space="preserve">
+    <value>Outside namespace</value>
+  </data>
+  <data name="Prefer_explicit_type" xml:space="preserve">
+    <value>Prefer explicit type</value>
+  </data>
+  <data name="Prefer_framework_type" xml:space="preserve">
+    <value>Prefer framework type</value>
+  </data>
+  <data name="Prefer_predefined_type" xml:space="preserve">
+    <value>Prefer predefined type</value>
+  </data>
+  <data name="Prefer_this_or_Me" xml:space="preserve">
+    <value>Prefer 'this.' or 'Me.'</value>
+  </data>
+  <data name="Prefer_var" xml:space="preserve">
+    <value>Prefer 'var'</value>
+  </data>
+  <data name="Silent_severity" xml:space="preserve">
+    <value>Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however.</value>
+  </data>
+  <data name="Suggestion_severity" xml:space="preserve">
+    <value>Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar.</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="Warning_severity" xml:space="preserve">
+    <value>Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar.</value>
+  </data>
+  <data name="When_on_multiple_lines" xml:space="preserve">
+    <value>When on multiple lines</value>
+  </data>
+  <data name="When_on_single_line" xml:space="preserve">
+    <value>When on single line</value>
+  </data>
+  <data name="When_possible" xml:space="preserve">
+    <value>When possible</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Accessors" xml:space="preserve">
+    <value>Accessors</value>
+  </data>
+  <data name="Anonymous_methods" xml:space="preserve">
+    <value>Anonymous methods</value>
+  </data>
+  <data name="Anonymous_types" xml:space="preserve">
+    <value>Anonymous types</value>
+  </data>
+  <data name="Before_and_after" xml:space="preserve">
+    <value>Insert spaces before and after binary operators</value>
+  </data>
+  <data name="Beginning_of_line" xml:space="preserve">
+    <value>Beginning of line</value>
+  </data>
+  <data name="Control_blocks" xml:space="preserve">
+    <value>Control blocks</value>
+  </data>
+  <data name="Control_flow_statements" xml:space="preserve">
+    <value>Control flow statements</value>
+  </data>
+  <data name="Cr" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
+  </data>
+  <data name="Crlf" xml:space="preserve">
+    <value>Carriage Return + New Line (\r\n)</value>
+  </data>
+  <data name="End_of_line" xml:space="preserve">
+    <value>End of line</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Events</value>
+  </data>
+  <data name="Expressions" xml:space="preserve">
+    <value>Expressions</value>
+  </data>
+  <data name="False" xml:space="preserve">
+    <value>False</value>
+  </data>
+  <data name="Flush_left" xml:space="preserve">
+    <value>Place goto labels in leftmost column</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignore</value>
+  </data>
+  <data name="Ignore_binary_operator_spacing" xml:space="preserve">
+    <value>Ignore spaces around binary operators</value>
+  </data>
+  <data name="Indexers" xml:space="preserve">
+    <value>Indexers</value>
+  </data>
+  <data name="Lambdas" xml:space="preserve">
+    <value>Lambdas</value>
+  </data>
+  <data name="Lf" xml:space="preserve">
+    <value>New Line (\n)</value>
+  </data>
+  <data name="Local_functions" xml:space="preserve">
+    <value>Local functions</value>
+  </data>
+  <data name="Methods" xml:space="preserve">
+    <value>Methods</value>
+  </data>
+  <data name="None_binary_operator_spacing" xml:space="preserve">
+    <value>Remove spaces before and after binary operators</value>
+  </data>
+  <data name="No_change" xml:space="preserve">
+    <value>Indent labels normally</value>
+  </data>
+  <data name="Object_collection_array_initializers" xml:space="preserve">
+    <value>Object collection array initializers</value>
+  </data>
+  <data name="One_less_than_current" xml:space="preserve">
+    <value>Place goto labels one indent less than current</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Use spaces</value>
+  </data>
+  <data name="Tab" xml:space="preserve">
+    <value>Use tabs</value>
+  </data>
+  <data name="Type_casts" xml:space="preserve">
+    <value>Type casts</value>
+  </data>
 </root>

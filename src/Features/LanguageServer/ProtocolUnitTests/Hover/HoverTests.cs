@@ -262,7 +262,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -329,7 +329,7 @@ Remarks are cool too.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.Third.Value);
+            Assert.Equal(expectedText, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -383,41 +383,10 @@ _italic\_&nbsp;\*\*text\*\*_
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_InEditorConfigFiles()
-        {
-            var markup = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
-dotnet_style_object_initializer = true:warning
-dotnet_diagnostic.IDE0017.severity = {|caret:warning|}
-
-[Program.cs]
-dotnet_style_object_initializer = true:warning
-dotnet_diagnostic.IDE0017.severity = warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-            var clientCapabilities = new LSP.ClientCapabilities
-            {
-                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
-            };
-            using var testLspServer = await CreateXmlTestLspServerAsync(markup, initializationOptions: new InitializationOptions { ServerKind = WellKnownLspServerKinds.EditorConfigLspServer, ClientCapabilities = clientCapabilities });
-            var expectedLocation = testLspServer.GetLocations("caret").Single();
-
-            var expectedText = @$"Hover works!";
-
-            var results = await RunGetHoverAsync(
-                testLspServer,
-                expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.Third.Value);
-        }
-
-        private static async Task<LSP.Hover> RunGetHoverAsync(
+        internal static async Task<LSP.Hover> RunGetHoverAsync(
             TestLspServer testLspServer,
             LSP.Location caret,
             ProjectId projectContext = null)
@@ -426,7 +395,7 @@ dotnet_diagnostic.IDE0017.severity = warning
                 CreateTextDocumentPositionParams(caret, projectContext), CancellationToken.None);
         }
 
-        private void VerifyVSContent(LSP.Hover hover, string expectedContent)
+        private static void VerifyVSContent(LSP.Hover hover, string expectedContent)
         {
             var vsHover = Assert.IsType<LSP.VSInternalHover>(hover);
             var containerElement = (ContainerElement)vsHover.RawContent;
@@ -437,7 +406,7 @@ dotnet_diagnostic.IDE0017.severity = warning
             Assert.Equal(expectedContent, content);
         }
 
-        private void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
+        private static void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
         {
             foreach (var element in container.Elements)
             {

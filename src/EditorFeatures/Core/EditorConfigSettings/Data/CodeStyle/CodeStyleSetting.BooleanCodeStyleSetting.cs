@@ -21,24 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
-            public IEditorConfigData EditorConfigData;
-
             public BooleanCodeStyleSetting(Option2<CodeStyleOption2<bool>> option,
                                            string description,
-                                           string? trueValueDescription,
-                                           string? falseValueDescription,
                                            AnalyzerConfigOptions editorConfigOptions,
                                            OptionSet visualStudioOptions,
                                            OptionUpdater updater,
                                            string fileName,
                                            IEditorConfigData editorConfigData)
-                : base(description, option.Group.Description, trueValueDescription, falseValueDescription, updater)
+                : base(description, option.Group.Description, updater, editorConfigData)
             {
                 _option = option;
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
                 Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
-                EditorConfigData = editorConfigData;
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<bool>>(_option, out _);
@@ -64,23 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 => _editorConfigOptions.TryGetEditorConfigOption(_option, out CodeStyleOption2<bool>? value) && value is not null
                     ? value
                     : _visualStudioOptions.GetOption(_option);
-
-            public override string? GetSettingName()
-            {
-                return EditorConfigData.GetSettingName();
-            }
-
-            public override string GetDocumentation()
-            {
-                return Description;
-            }
-
-            public override ImmutableArray<string>? GetSettingValues()
-            {
-                return EditorConfigData.GetAllSettingValues();
-            }
-
-            public override bool SupportsSeverities() { return true; }
         }
     }
 }
