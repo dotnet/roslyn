@@ -3861,10 +3861,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                checkNullableType(csharpReturnType, nameof(returnType));
-                checkNullableType(csharpLeftType, nameof(leftType));
-                checkNullableType(csharpRightType, nameof(rightType));
-
                 // Use fast-path check to see if this types are ok.
                 var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
                 var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
@@ -3872,8 +3868,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (easyOutBinaryKind != BinaryOperatorKind.Error)
                 {
                     var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
-                    if (TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything))
+                    if (TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything) &&
+                        TypeSymbol.Equals(csharpLeftType, signature.LeftType, TypeCompareKind.ConsiderEverything) &&
+                        TypeSymbol.Equals(csharpRightType, signature.RightType, TypeCompareKind.ConsiderEverything))
+                    {
                         return;
+                    }
                 }
 
                 // bool operator ==(object, object) is legal.
@@ -4015,12 +4015,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 throw new ArgumentException($"Unsupported built-in operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
-            }
-
-            void checkNullableType(TypeSymbol type, string paramName)
-            {
-                if (type.IsNullableType())
-                    throw new ArgumentException("Built-in operator type cannot be System.Nullable", paramName);
             }
         }
 
