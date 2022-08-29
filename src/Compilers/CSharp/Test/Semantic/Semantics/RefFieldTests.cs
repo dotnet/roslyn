@@ -15807,9 +15807,9 @@ class Program
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
-.class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
 {
-  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
 .class public A
 {
@@ -15821,7 +15821,7 @@ class Program
   .method public static int32& ScopedRefOnly([out] int32& i)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 01 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: true, isValueScoped: false)
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
     ldnull
     throw
   }
@@ -15837,7 +15837,7 @@ class Program
     .param [1]
     .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 ) 
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 01 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: true, isValueScoped: false)
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
     ldnull
     throw
   }
@@ -15877,12 +15877,9 @@ class Program
                 // (16,42): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref A.UnscopedRefOnly(out i); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 42),
-                // (21,20): error CS8347: Cannot use a result of 'A.ScopedRefAndUnscopedRef(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                // (21,22): error CS0570: 'A.ScopedRefAndUnscopedRef(out int)' is not supported by the language
                 //         return ref A.ScopedRefAndUnscopedRef(out i); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "A.ScopedRefAndUnscopedRef(out i)").WithArguments("A.ScopedRefAndUnscopedRef(out int)", "i").WithLocation(21, 20),
-                // (21,50): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         return ref A.ScopedRefAndUnscopedRef(out i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(21, 50));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(out int)").WithLocation(21, 22));
 
             var typeA = comp.GetMember<NamedTypeSymbol>("A");
             VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
@@ -16209,6 +16206,49 @@ class B2 : I<object>
                 // overrides or interface implementations until variance is supported.
                 comp.VerifyEmitDiagnostics();
             }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(11)]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
+        public void RefSafetyRulesAttribute_Version(int version)
+        {
+            var sourceA =
+$@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }}
+.assembly '<<GeneratedFileName>>' {{ }}
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = {{ int32({version}) }}
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed {{ ret }}
+  .field public int32 Version
+}}
+.class public A
+{{
+  .method public static int32& F1([out] int32& i)
+  {{
+    ldnull
+    throw
+  }}
+}}
+";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB =
+@"class B
+{
+    static ref int F2(out int i) => ref A.F1(out i);
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics();
+
+            var method = comp.GetMember<MethodSymbol>("A.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+
+            Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
         [Theory]
