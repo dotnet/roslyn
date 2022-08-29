@@ -44,5 +44,10 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         {
             return int.TryParse(key, out var result) ? result : new Optional<int>();
         }
+
+        public override bool IsValueValid(string value)
+        {
+            return int.TryParse(value, out var _);
+        }
     }
 }

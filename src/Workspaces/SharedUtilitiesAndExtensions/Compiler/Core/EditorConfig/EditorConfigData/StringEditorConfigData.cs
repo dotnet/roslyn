@@ -83,5 +83,15 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             key ??= "";
             return key.Replace("\\r", "\r").Replace("\\n", "\n");
         }
+
+        public override bool IsValueValid(string value)
+        {
+            if (ValueToSettingName != null)
+            {
+                return ValueToSettingName.TryGetValue(value.Trim(), out var _);
+            }
+
+            return true;
+        }
     }
 }

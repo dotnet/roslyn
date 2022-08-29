@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public string? GetValueDocumentation(string value) => EditorConfigData.GetSettingValueDocumentation(value);
 
+        public bool IsValueValid(string value) => EditorConfigData.IsValueValid(value);
+
         public bool SupportsSeverities() => false;
 
         public bool AllowsMultipleValues() => false;

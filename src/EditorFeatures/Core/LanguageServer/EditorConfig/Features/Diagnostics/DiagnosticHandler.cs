@@ -8,7 +8,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExtractMethod;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 {
@@ -140,14 +140,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 
                 foreach (var line in text.Lines)
                 {
-                    var lineText = line.ToString();
+                    var lineText = line.ToString().Trim();
 
-                    // Check that setting definition doesn't have more than 1 '='
-                    if (lineText.Where(c => c == '=').Count() > 1)
+                    // If line only contains a comment ignore
+                    // # A comment
+                    if (lineText.StartsWith("#"))
                     {
-                        diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.IncorrectSettingDefinition, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                        continue;
                     }
-                    else if (lineText.Contains('='))
+
+                    // Check if the line contains a setting definition and a comment
+                    // setting_name = setting_value # A comment
+                    if (lineText.Contains('#'))
+                    {
+                        lineText = lineText.Split('#').First().Trim();
+                    }
+
+                    // Clears the definedSettings map if a new group of settings is defined
+                    if (lineText.StartsWith("[") && lineText.EndsWith("]"))
+                    {
+                        definedSettings.Clear();
+                        continue;
+                    }
+
+                    if (lineText.Contains('='))
                     {
                         var splitted = lineText.Split('=');
                         string leftSide = splitted[0].Trim(), rightSide = splitted[1].Replace(" ", "");
@@ -155,22 +171,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
                         var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
                         var settingsItems = settingsSnapshots.Select(sett => sett.GetSettingName()).WhereNotNull();
 
-                        // Check that the setting name exists
-                        if (ShowDiagnosticForSettingName(settingsItems, leftSide))
+                        // Check that setting definition doesn't have more than 1 '='
+                        if (lineText.Where(c => c == '=').Count() > 1 && !CanContainAnyString(leftSide))
                         {
-                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingNotFound, DiagnosticSeverity.Error, false, 1, Document.Project.Id, leftSide));
-                            continue;
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.IncorrectSettingDefinition, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                         }
 
                         // Check that the setting has not been defined
-                        if (definedSettings.Contains(leftSide))
+                        if (!definedSettings.Add(leftSide))
                         {
                             diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingAlreadyDefined, DiagnosticSeverity.Warning, false, 1, Document.Project.Id, leftSide));
                         }
-                        definedSettings.Add(leftSide);
 
                         // Check for settings that define severities
-                        if (rightSide.Contains(':'))
+                        if (rightSide.Contains(':') && !CanContainAnyString(leftSide))
                         {
                             var values = rightSide.Split(':');
                             // Check if it has more than one ':'
@@ -198,7 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
                         }
 
                         // Check for settings that allow multiple values
-                        if (rightSide.Contains(','))
+                        if (rightSide.Contains(',') && !CanContainAnyString(leftSide))
                         {
                             // Check if setting allows multiple values
                             if (!SettingAllowsMultipleValues(leftSide, settingsSnapshots))
@@ -239,17 +253,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 
                 return diagnostics.ToImmutableArray();
 
-                static bool ShowDiagnosticForSettingName(IEnumerable<string> settings, string settingName)
-                {
-                    var prefix = settingName.Split('_').First();
-                    if (prefix == "dotnet" || prefix == "csharp")
-                    {
-                        return !settings.Contains(settingName);
-                    }
-
-                    return false;
-                }
-
                 static DiagnosticData CreateDiagnosticData(TextDocument document, TextLine line, string editorConfigId, DiagnosticSeverity severity, bool isEnabledByDefault, int warningLevel, ProjectId projectId, string settingName = "", string settingValue = "")
                 {
                     var location = new DiagnosticDataLocation(
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
                         return foundSetting.First().SupportsSeverities();
                     }
 
-                    return false;
+                    return true;
                 }
 
                 static bool SettingAllowsMultipleValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots)
@@ -289,7 +292,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
                         return foundSetting.First().AllowsMultipleValues();
                     }
 
-                    return false;
+                    return true;
                 }
 
                 static bool SettingHasValue(string settingName, string settingValue, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots)
@@ -297,12 +300,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
                     var foundSetting = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
                     if (foundSetting.Any())
                     {
-                        var values = foundSetting.First().GetSettingValues();
-                        return values != null && values.Contains(settingValue);
+                        var setting = foundSetting.First();
+                        return setting.GetSettingValues() != null && setting.IsValueValid(settingValue);
                     }
 
-                    return false;
+                    return true;
                 }
+
+                static bool CanContainAnyString(string settingName) => settingName == "file_header_template";
             }
         }
     }
