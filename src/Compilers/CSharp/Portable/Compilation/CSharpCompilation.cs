@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -3248,15 +3247,91 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
                 }
 
+                bool hasDuplicateFilePaths = CheckDuplicateFilePaths(diagnostics);
+
                 bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag, cancellationToken);
 
-                if (hasDeclarationErrors || hasMethodBodyError)
+                if (hasDeclarationErrors || hasMethodBodyError || hasDuplicateFilePaths)
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
+        { 
+            // note: the default HashSet<string> uses an ordinal comparison
+            private readonly PooledHashSet<string> _duplicatePaths = PooledHashSet<string>.GetInstance();
+
+            private readonly DiagnosticBag _diagnostics;
+
+            private bool _hasDuplicateFilePaths;
+
+            public DuplicateFilePathsVisitor(DiagnosticBag diagnostics)
+            {
+                _diagnostics = diagnostics;
+            }
+
+            public bool CheckDuplicateFilePathsAndFree(ImmutableArray<SyntaxTree> syntaxTrees, NamespaceSymbol globalNamespace)
+            {
+                var paths = PooledHashSet<string>.GetInstance();
+                foreach (var tree in syntaxTrees)
+                {
+                    if (!paths.Add(tree.FilePath))
+                    {
+                        _duplicatePaths.Add(tree.FilePath);
+                    }
+                }
+                paths.Free();
+
+                VisitNamespace(globalNamespace);
+                _duplicatePaths.Free();
+                return _hasDuplicateFilePaths;
+            }
+
+            public override void VisitNamespace(NamespaceSymbol symbol)
+            {
+                foreach (var childSymbol in symbol.GetMembers())
+                {
+                    switch (childSymbol)
+                    {
+                        case NamespaceSymbol @namespace:
+                            VisitNamespace(@namespace);
+                            break;
+                        case NamedTypeSymbol namedType:
+                            VisitNamedType(namedType);
+                            break;
+                    }
+                }
+            }
+
+            public override void VisitNamedType(NamedTypeSymbol symbol)
+            {
+                Debug.Assert(symbol.IsDefinition);
+                Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
+                if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
+                {
+                    var location = symbol.Locations[0];
+                    var filePath = location.SourceTree!.FilePath;
+                    if (_duplicatePaths.Contains(filePath))
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_FileTypeNonUniquePath, location, symbol, filePath);
+                        _hasDuplicateFilePaths = true;
+                    }
+                }
+                else
+                {
+                    Debug.Assert(symbol.AssociatedFileIdentifier is null);
+                }
+            }
+        }
+
+        private bool CheckDuplicateFilePaths(DiagnosticBag diagnostics)
+        {
+            var visitor = new DuplicateFilePathsVisitor(diagnostics);
+            return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
         }
 
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)

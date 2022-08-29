@@ -1772,15 +1772,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, location, this, fileIdentifier.EncoderFallbackErrorMessage);
                 }
 
-                // TODO2: we probably don't want to linearly search the syntax trees.
-                foreach (var otherTree in DeclaringCompilation.SyntaxTrees)
-                {
-                    if ((object)tree != otherTree && tree.FilePath == otherTree.FilePath)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_FileTypeNonUniquePath, location, this, tree.FilePath);
-                    }
-                }
-
                 if ((object?)ContainingType != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);

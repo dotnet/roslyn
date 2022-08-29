@@ -595,8 +595,43 @@ public class FileModifierTests : CSharpTestBase
                 public static void M() { Console.Write(1); }
             }
             """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+        var source2 = SyntaxFactory.ParseSyntaxTree("", options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+
+        var comp = CreateCompilation(new[] { source1, source2 }, assemblyName: "comp");
+        verify();
+
+        comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        void verify()
+        {
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // path/to/file.cs(5,12): error CS9067: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
+                // file class C
+                Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(5, 12));
+            var classC = comp.GetMember("C");
+            Assert.Equal(source1, classC.Locations[0].SourceTree);
+            AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", classC.MetadataName);
+        }
+    }
+
+    [Fact]
+    public void DuplicateFileNames_02()
+    {
+        var path = "path/to/file.cs";
+        var source1 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+
+            C.M();
+
+            file class C
+            {
+                public static void M() { Console.Write(1); }
+            }
+            """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
         var source2 = SyntaxFactory.ParseSyntaxTree("""
             using System;
+
+            namespace NS;
 
             file class C
             {
@@ -605,27 +640,86 @@ public class FileModifierTests : CSharpTestBase
             """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
 
         var comp = CreateCompilation(new[] { source1, source2 }, assemblyName: "comp");
-        comp.VerifyEmitDiagnostics(
-            // path/to/file.cs(3,1): error CS0433: The type 'C' exists in both 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-            // C.M();
-            Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "C").WithArguments("comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 1),
-            // path/to/file.cs(3,12): error CS9066: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
-            // file class C
-            Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(3, 12),
-            // path/to/file.cs(5,12): error CS9066: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
-            // file class C
-            Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(5, 12));
+        verify();
 
-        var members = comp.GetMembers("C");
-        Assert.Equal(2, members.Length);
+        comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
 
-        Assert.Equal(source1, members[0].Locations[0].SourceTree);
-        AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", members[0].MetadataName);
+        void verify()
+        {
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // path/to/file.cs(5,12): error CS9067: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
+                // file class C
+                Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("NS.C", "path/to/file.cs").WithLocation(5, 12),
+                // path/to/file.cs(5,12): error CS9067: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
+                // file class C
+                Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(5, 12));
+            var member = comp.GetMember("C");
+            Assert.Equal(source1, member.Locations[0].SourceTree);
+            AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", member.MetadataName);
+        }
+    }
 
-        Assert.Equal(source2, members[1].Locations[0].SourceTree);
-        AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", members[1].MetadataName);
+    [Fact]
+    public void DuplicateFileNames_03()
+    {
+        var path = "path/to/file.cs";
+        var source1 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
 
-        Assert.NotEqual(members[0], members[1]);
+            namespace NS1.NS2;
+
+            file class C<T>
+            {
+                public static void M() { Console.Write(1); }
+            }
+            """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+        var source2 = SyntaxFactory.ParseSyntaxTree("", options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+
+        var comp = CreateCompilation(new[] { source1, source2 }, assemblyName: "comp");
+        verify();
+
+        comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        void verify()
+        {
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // path/to/file.cs(5,12): error CS9067: File-local type 'C<T>' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
+                // file class C<T>
+                Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("NS1.NS2.C<T>", "path/to/file.cs").WithLocation(5, 12));
+            var classC = comp.GetMember("NS1.NS2.C");
+            Assert.Equal(source1, classC.Locations[0].SourceTree);
+            AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C`1", classC.MetadataName);
+        }
+    }
+
+    [Fact]
+    public void DuplicateFileNames_04()
+    {
+        var source1 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+
+            C.M();
+
+            file class C
+            {
+                public static void M() { Console.Write(1); }
+            }
+            """, options: TestOptions.RegularPreview, path: "path/to/file.cs", encoding: Encoding.Default);
+        var source2 = SyntaxFactory.ParseSyntaxTree("", options: TestOptions.RegularPreview, path: "path/to/File.cs", encoding: Encoding.Default);
+
+        var comp = CreateCompilation(new[] { source1, source2 }, assemblyName: "comp");
+        verify();
+
+        comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        void verify()
+        {
+            comp.VerifyEmitDiagnostics();
+            var classC = comp.GetMember("C");
+            Assert.Equal(source1, classC.Locations[0].SourceTree);
+            AssertEx.Equal("<file>F620949CDCC480533E3607E5DD92F88E866EC1D65C225D70509A32F831433D9A4__C", classC.MetadataName);
+        }
     }
 
     // Data based on Lexer.ScanIdentifier_FastPath, excluding '/', '\', and ':' because those are path separators.
@@ -702,9 +796,12 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: "\uD800.cs"));
         comp.VerifyDiagnostics(
-            // �.cs(1,12): error CS9067: File-local type 'C' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD800 at index 0 to specified code page.
-            // file class C { }
-            Diagnostic(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, "C").WithArguments("C", @"Unable to translate Unicode character \\uD800 at index 0 to specified code page.").WithLocation(1, 12));
+            // ?.cs(1,5): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+            // new C(); // 1
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(1, 5),
+            // ?.cs(3,12): error CS9068: File-local type 'C' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD800 at index 0 to specified code page.      
+            // file class C { } // 2
+            Diagnostic(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, "C").WithArguments("C", @"Unable to translate Unicode character \\uD800 at index 0 to specified code page.").WithLocation(3, 12));
 
         var classC = comp.GetMember("C");
         Assert.Equal("<_>F<no checksum>__C", classC.MetadataName);
