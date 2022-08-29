@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string SnippetIdentifier => "cw";
 
-        public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
+        public override string SnippetDescription => FeaturesResources.console_writeline;
 
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Tries to get the location after the open parentheses in the argument list.
         /// If it can't, then we default to the end of the snippet's span.
         /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
             var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
             if (invocationExpression is null)

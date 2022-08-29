@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     {
         private static IGlobalOptionService GetGlobalOptionService(HostWorkspaceServices services, IOptionPersisterProvider? optionPersisterProvider = null)
         {
-            var mefHostServices = (IMefHostExportProvider)services.HostServices;
+            var mefHostServices = services.SolutionServices.ExportProvider;
             var workspaceThreadingService = mefHostServices.GetExportedValues<IWorkspaceThreadingService>().SingleOrDefault();
             return new GlobalOptionService(
                 workspaceThreadingService,

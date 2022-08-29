@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
                 SortOption.Type => FunctionId.DocumentOutline_SortByType,
                 _ => throw new NotImplementedException(),
-            });
+            }, logLevel: LogLevel.Information);
 
             return SortDocumentSymbols(documentSymbolData, sortOption, cancellationToken);
 

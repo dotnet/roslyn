@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -24,9 +24,12 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         public override string SnippetIdentifier => "if";
 
-        public override string SnippetDisplayName => FeaturesResources.Insert_an_if_statement;
+        public override string SnippetDescription => FeaturesResources.if_statement;
 
-        protected abstract void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode);
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
+
+        protected abstract void GetIfStatementCondition(SyntaxNode node, out SyntaxNode condition);
+        protected abstract void GetIfStatementCursorPosition(SourceText text, SyntaxNode node, out int position);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -50,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            GetIfStatementConditionAndCursorPosition(caretTarget, out _, out var cursorPosition);
+            GetIfStatementCursorPosition(sourceText, caretTarget, out var cursorPosition);
 
             // Place at the end of the node specified for cursor position.
             // Is the statement node in C# and the "Then" keyword
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            GetIfStatementConditionAndCursorPosition(node, out var condition, out var unusedVariable);
+            GetIfStatementCondition(node, out var condition);
             arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();

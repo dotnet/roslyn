@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+            if (context.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
