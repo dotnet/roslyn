@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return new VSInternalHover
                 {
                     Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                    Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+                    Contents = new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
                     // Build the classified text without navigation actions - they are not serializable.
                     // TODO - Switch to markup content once it supports classifications.
                     // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138

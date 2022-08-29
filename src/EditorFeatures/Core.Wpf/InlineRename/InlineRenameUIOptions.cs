@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineRename
 {
-    internal sealed class InlineRenameExperimentationOptions
+    internal sealed class InlineRenameUIOptions
     {
         public static readonly Option2<bool> UseInlineAdornment = new(
-            feature: "InlineRenameExperimentation",
+            feature: "InlineRename",
             name: "UseInlineAdornment",
-            defaultValue: false,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.UseInlineAdornmentForRename"));
+            defaultValue: true,
+            storageLocation: new FeatureFlagStorageLocation("Roslyn.Rename_UseInlineAdornment"));
     }
 }

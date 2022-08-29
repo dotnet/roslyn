@@ -29,6 +29,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
             VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(argumentCompletion);
 
+            // Disable new rename UI for now, it's causing these tests to fail.
+            // https://github.com/dotnet/roslyn/issues/63576
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
+
             SetUpEditor(@"
 Class C
     Sub Goo()
@@ -189,6 +193,10 @@ End Class");
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndTabCompletion()
         {
+            // Disable new rename UI for now, it's causing these tests to fail.
+            // https://github.com/dotnet/roslyn/issues/63576
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, language: null, false);
+
             SetUpEditor(@"
 Class C
     Sub Goo()

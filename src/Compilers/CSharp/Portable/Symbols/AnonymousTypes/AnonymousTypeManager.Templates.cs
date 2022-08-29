@@ -258,8 +258,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return returnParameter.Type.IsVoidType() || isValidTypeArgument(returnParameter);
             }
 
-            static bool hasDefaultScope(AnonymousTypeField field) =>
-                (field.Scope == DeclarationScope.Unscoped && field.RefKind != RefKind.Out) || (field.Scope == DeclarationScope.RefScoped && field.RefKind == RefKind.Out);
+            static bool hasDefaultScope(AnonymousTypeField field)
+            {
+                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(field.RefKind, field.TypeWithAnnotations)) switch
+                {
+                    (DeclarationScope.Unscoped, false) => true,
+                    (DeclarationScope.RefScoped, true) => true,
+                    _ => false
+                };
+            }
 
             static bool isValidTypeArgument(AnonymousTypeField field)
             {

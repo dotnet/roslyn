@@ -295,11 +295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (_moduleSymbol.Module.HasUnscopedRefAttribute(_handle))
                 {
+                    if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
+                    {
+                        isBad = true;
+                    }
                     scope = DeclarationScope.Unscoped;
-                }
-                else if (refKind == RefKind.Out)
-                {
-                    scope = DeclarationScope.RefScoped;
                 }
                 else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
                 {
@@ -1039,6 +1039,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                         out _,
                         AttributeDescription.ScopedRefAttribute,
+                        out _,
+                        default,
                         out _,
                         default);
 
