@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public static EditorConfigData<bool> UseTabs = new BooleanEditorConfigData("indent_style",
                                                                                    CompilerExtensionsResources.Use_Tabs,
-                                                                                   UseTabsMap);
+                                                                                   UseTabsMap,
+                                                                                   EditorConfigSettingsValuesDocumentation.UseTabsDocumentation);
 
         public static EditorConfigData<int> TabSize = new IntegerEditorConfigData("tab_width",
                                                                                   CompilerExtensionsResources.Tab_Size);
@@ -46,14 +47,17 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
                                                                                     CompilerExtensionsResources.New_Line,
                                                                                     "unset",
                                                                                     Environment.NewLine,
-                                                                                    valueToSettingName: NewLineMap);
+                                                                                    NewLineMap,
+                                                                                    EditorConfigSettingsValuesDocumentation.NewLineDocumentation);
 
         public static EditorConfigData<bool> InsertFinalNewLine = new BooleanEditorConfigData("insert_final_newline",
-                                                                                              CompilerExtensionsResources.Insert_Final_Newline);
+                                                                                              CompilerExtensionsResources.Insert_Final_Newline,
+                                                                                              valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
         public static EditorConfigData<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping = new EnumEditorConfigData<OperatorPlacementWhenWrappingPreference>("dotnet_style_operator_placement_when_wrapping",
                                                                                                                                                                                   CompilerExtensionsResources.Operator_placement_when_wrapping,
                                                                                                                                                                                   OperatorPlacementWhenWrappingMap,
-                                                                                                                                                                                  OperatorPlacementWhenWrappingPreference.BeginningOfLine);
+                                                                                                                                                                                  OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+                                                                                                                                                                                  EditorConfigSettingsValuesDocumentation.OperatorPlacementWhenWrappingPreferenceDocumentation);
     }
 }

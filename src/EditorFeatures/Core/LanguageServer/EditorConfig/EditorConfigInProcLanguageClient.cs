@@ -5,23 +5,17 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json;
-using Roslyn.Utilities;
-using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig
 {
     /// <summary>
     /// Language client to handle .editorconfig LSP requests.

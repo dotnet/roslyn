@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -13,27 +14,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
     {
         private abstract class BooleanCodeStyleSettingBase : CodeStyleSetting
         {
-            private readonly string _trueValueDescription;
-            private readonly string _falseValueDescription;
-
             public BooleanCodeStyleSettingBase(string description,
                                                string category,
-                                               string? trueValueDescription,
-                                               string? falseValueDescription,
-                                               OptionUpdater updater)
-                : base(description, updater)
+                                               OptionUpdater updater,
+                                               IEditorConfigData editorConfigData)
+                : base(description, updater, editorConfigData)
             {
                 Category = category;
-                _trueValueDescription = trueValueDescription ?? EditorFeaturesResources.Yes;
-                _falseValueDescription = falseValueDescription ?? EditorFeaturesResources.No;
             }
 
             public override string Category { get; }
             public override Type Type => typeof(bool);
             public override DiagnosticSeverity Severity => GetOption().Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
-            public override string GetCurrentValue() => GetOption().Value ? _trueValueDescription : _falseValueDescription;
+            public override string GetCurrentValue()
+            {
+                var editorConfigString = ((EditorConfigData<bool>)EditorConfigData).GetEditorConfigStringFromValue(GetOption().Value);
+                return EditorConfigData.GetSettingValueDocumentation(editorConfigString) ?? "";
+            }
+
             public override object? Value => GetOption().Value;
-            public override string[] GetValues() => new[] { _trueValueDescription, _falseValueDescription };
+            public override string[] GetValues() => EditorConfigData.GetAllSettingValuesDocumentation();
             protected abstract CodeStyleOption2<bool> GetOption();
         }
     }

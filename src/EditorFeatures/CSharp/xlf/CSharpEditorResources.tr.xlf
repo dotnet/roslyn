@@ -12,11 +12,6 @@
         <target state="translated">Eksik using yönergeleri ekleniyor...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Block_scoped">
-        <source>Block scoped</source>
-        <target state="new">Block scoped</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
         <target state="translated">Seçilen sürüm: '{0}'</target>
@@ -35,16 +30,6 @@
       <trans-unit id="Decompilation_log">
         <source>Decompilation log</source>
         <target state="translated">Kaynak koda dönüştürme günlüğü</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Discard">
-        <source>Discard</source>
-        <target state="new">Discard</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="File_scoped">
-        <source>File scoped</source>
-        <target state="new">File scoped</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -112,11 +97,6 @@
         <target state="new">Insert spaces within parentheses of control flow statements</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inside_namespace">
-        <source>Inside namespace</source>
-        <target state="new">Inside namespace</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Şuradan yükle: '{0}'</target>
@@ -125,16 +105,6 @@
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
         <target state="translated">Modül bulunamadı!</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="new">Never</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">namespace dışında</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
@@ -187,19 +157,9 @@
         <target state="new">Place query expression clauses on new line</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicit_type">
-        <source>Prefer explicit type</source>
-        <target state="new">Prefer explicit type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_var">
-        <source>Prefer 'var'</source>
-        <target state="new">Prefer 'var'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
-        <target state="translated">     (Eklemek için TAB tuşuna basın)</target>
+        <target state="new">     (Press TAB to insert)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_spaces_before_and_after_binary_operators">
@@ -232,29 +192,9 @@
         <target state="translated">Dizeyi böl</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="new">Unused local</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
         <target state="translated">UYARI: Sürüm uyumsuzluğu. Beklenen: '{0}', Alınan: '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_on_multiple_lines">
-        <source>When on multiple lines</source>
-        <target state="new">When on multiple lines</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_on_single_line">
-        <source>When on single line</source>
-        <target state="new">When on single line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_possible">
-        <source>When possible</source>
-        <target state="new">When possible</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">

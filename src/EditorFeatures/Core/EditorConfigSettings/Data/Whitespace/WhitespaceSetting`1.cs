@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 return _visualStudioOptions.GetOption(_option);
             }
         }
-        public IEditorConfigData EditorConfigData;
 
         public override Type Type => typeof(T);
         public override string Category => _option.Group.Description;
@@ -63,12 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                  OptionUpdater updater,
                                  SettingLocation location,
                                  IEditorConfigData editorConfigData)
-            : base(description, updater, location)
+            : base(description, updater, location, editorConfigData)
         {
             _option = option;
             _options = options;
             _visualStudioOptions = visualStudioOptions;
-            EditorConfigData = editorConfigData;
         }
 
         public override void SetValue(object value)
@@ -79,25 +77,5 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         }
 
         public override object? GetValue() => Value;
-
-        public override string? GetSettingName()
-        {
-            return EditorConfigData.GetSettingName();
-        }
-
-        public override string GetDocumentation()
-        {
-            return Description;
-        }
-
-        public override ImmutableArray<string>? GetSettingValues()
-        {
-            return EditorConfigData.GetAllSettingValues();
-        }
-
-        public override bool AllowsMultipleValues()
-        {
-            return EditorConfigData.GetAllowsMultipleValues();
-        }
     }
 }

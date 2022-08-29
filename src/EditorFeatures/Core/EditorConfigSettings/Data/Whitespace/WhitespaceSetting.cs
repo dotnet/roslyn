@@ -18,12 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         protected OptionUpdater Updater { get; }
         protected string? Language { get; }
 
-        protected WhitespaceSetting(string description, OptionUpdater updater, SettingLocation location, string? language = null)
+        private readonly IEditorConfigData EditorConfigData;
+
+        protected WhitespaceSetting(string description, OptionUpdater updater, SettingLocation location, IEditorConfigData editorConfigData, ImmutableDictionary<string, string>? valuesDocumentation = null, string? language = null)
         {
             Description = description ?? throw new ArgumentNullException(nameof(description));
             Updater = updater;
             Location = location;
             Language = language;
+            ValuesDocumentation = valuesDocumentation;
+            EditorConfigData = editorConfigData;
         }
 
         public string Description { get; }
@@ -33,12 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract void SetValue(object value);
         public abstract object? GetValue();
         public abstract bool IsDefinedInEditorConfig { get; }
-        public abstract string? GetSettingName();
-        public abstract string GetDocumentation();
-        public abstract ImmutableArray<string>? GetSettingValues();
-        public abstract bool AllowsMultipleValues();
 
         public SettingLocation Location { get; protected set; }
+        public ImmutableDictionary<string, string>? ValuesDocumentation { get; }
 
         public static PerLanguageWhitespaceSetting<int> Create(PerLanguageOption2<int> option,
                                                                             AnalyzerConfigOptions editorConfigOptions,
@@ -138,7 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             description ??= editorConfigData.GetSettingNameDocumentation();
             return new StringWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
         }
-
         public static WhitespaceSetting<T> Create<T>(Option2<T> option,
                                                          AnalyzerConfigOptions editorConfigOptions,
                                                          OptionSet visualStudioOptions,
@@ -152,6 +152,31 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
             description ??= editorConfigData.GetSettingNameDocumentation();
             return new EnumWhitespaceSetting<T>(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public string? GetSettingName()
+        {
+            return EditorConfigData.GetSettingName();
+        }
+
+        public string GetDocumentation()
+        {
+            return EditorConfigData.GetSettingNameDocumentation();
+        }
+
+        public ImmutableArray<string>? GetSettingValues()
+        {
+            return EditorConfigData.GetAllSettingValues();
+        }
+
+        public string? GetValueDocumentation(string value)
+        {
+            return EditorConfigData.GetSettingValueDocumentation(value);
+        }
+
+        public bool AllowsMultipleValues()
+        {
+            return EditorConfigData.GetAllowsMultipleValues();
         }
     }
 }

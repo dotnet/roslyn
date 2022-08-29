@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -13,11 +14,13 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     internal class AnalyzerEditorConfigData : EditorConfigData<DiagnosticSeverity>
     {
         private readonly BidirectionalMap<string, DiagnosticSeverity> ValueToSettingName;
+        private readonly Dictionary<string, string> ValuesDocumentation;
 
-        public AnalyzerEditorConfigData(string settingName, BidirectionalMap<string, DiagnosticSeverity> valueToSettingName, bool allowsMultipleValues = false)
+        public AnalyzerEditorConfigData(string settingName, BidirectionalMap<string, DiagnosticSeverity> valueToSettingName, Dictionary<string, string> valuesDocumentation, bool allowsMultipleValues = false)
             : base(settingName, "", allowsMultipleValues)
         {
             ValueToSettingName = valueToSettingName;
+            ValuesDocumentation = valuesDocumentation;
         }
 
         public override string GetSettingName() => SettingName;
@@ -30,10 +33,14 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         {
             return ValueToSettingName.Keys.ToImmutableArray();
         }
+        public override string[] GetAllSettingValuesDocumentation()
+        {
+            return ValuesDocumentation.Values.ToArray<string>();
+        }
 
         public override string? GetSettingValueDocumentation(string key)
         {
-            throw new NotImplementedException();
+            return ValuesDocumentation[key];
         }
 
         public override string GetEditorConfigStringFromValue(DiagnosticSeverity value)

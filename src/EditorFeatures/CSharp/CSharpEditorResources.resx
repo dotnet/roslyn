@@ -123,9 +123,6 @@
   <data name="Complete_statement_on_semicolon" xml:space="preserve">
     <value>Complete statement on ;</value>
   </data>
-  <data name="Press_TAB_to_insert" xml:space="preserve">
-    <value>     (Press TAB to insert)</value>
-  </data>
   <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
   </data>
@@ -182,9 +179,6 @@
     <value>Add Missing Usings on Paste</value>
     <comment>"usings" is a language specific term and should not be localized</comment>
   </data>
-  <data name="Outside_namespace" xml:space="preserve">
-    <value>Outside namespace</value>
-  </data>
   <data name="Split_raw_string" xml:space="preserve">
     <value>Split raw string</value>
   </data>
@@ -193,15 +187,6 @@
   </data>
   <data name="Fixing_string_literal_after_paste" xml:space="preserve">
     <value>Fixing string literal after paste</value>
-  </data>
-  <data name="Block_scoped" xml:space="preserve">
-    <value>Block scoped</value>
-  </data>
-  <data name="Discard" xml:space="preserve">
-    <value>Discard</value>
-  </data>
-  <data name="File_scoped" xml:space="preserve">
-    <value>File scoped</value>
   </data>
   <data name="Ignore_spaces_around_binary_operators" xml:space="preserve">
     <value>Ignore spaces around binary operators</value>
@@ -214,12 +199,6 @@
   </data>
   <data name="Insert_space_within_parentheses_of_type_casts" xml:space="preserve">
     <value>Insert space within parentheses of type casts</value>
-  </data>
-  <data name="Inside_namespace" xml:space="preserve">
-    <value>Inside namespace</value>
-  </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
   </data>
   <data name="Place_open_brace_on_new_line_for_anonymous_methods" xml:space="preserve">
     <value>Place open brace on new line for anonymous methods</value>
@@ -251,28 +230,13 @@
   <data name="Place_query_expression_clauses_on_new_line" xml:space="preserve">
     <value>Place query expression clauses on new line</value>
   </data>
-  <data name="Prefer_explicit_type" xml:space="preserve">
-    <value>Prefer explicit type</value>
-  </data>
-  <data name="Prefer_var" xml:space="preserve">
-    <value>Prefer 'var'</value>
-  </data>
   <data name="Remove_spaces_before_and_after_binary_operators" xml:space="preserve">
     <value>Remove spaces before and after binary operators</value>
   </data>
-  <data name="Unused_local" xml:space="preserve">
-    <value>Unused local</value>
-  </data>
-  <data name="When_on_multiple_lines" xml:space="preserve">
-    <value>When on multiple lines</value>
-  </data>
-  <data name="When_on_single_line" xml:space="preserve">
-    <value>When on single line</value>
-  </data>
-  <data name="When_possible" xml:space="preserve">
-    <value>When possible</value>
-  </data>
   <data name="Insert_space_within_parentheses_of_expressions" xml:space="preserve">
     <value>Insert space within parentheses of expressions</value>
+  </data>
+  <data name="Press_TAB_to_insert" xml:space="preserve">
+    <value>     (Press TAB to insert)</value>
   </data>
 </root>

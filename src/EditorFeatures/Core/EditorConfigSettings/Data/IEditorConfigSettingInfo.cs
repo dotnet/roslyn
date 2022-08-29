@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data
         ImmutableArray<string>? GetSettingValues();
 
         /// <summary>
+        /// Gets the description of editorconfig setting values, returns null if the value doesn't have a description.
+        /// </summary>
+        string? GetValueDocumentation(string value);
+
+        /// <summary>
         /// Returns wether the setting can have multiple values.
         /// </summary>
         bool AllowsMultipleValues();

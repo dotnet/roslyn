@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 {
     internal class SettingsHelper
     {
