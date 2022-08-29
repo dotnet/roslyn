@@ -80,7 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             if (baseType != null && baseType.TryGetRecordPrimaryConstructor(out var basePrimary))
             {
                 return basePrimary.Parameters
-                    .SelectAsArray(param => param.GetAssociatedSynthesizedRecordProperty(cancellationToken)!);
+                    .Select(param => param.GetAssociatedSynthesizedRecordProperty(cancellationToken))
+                    .WhereNotNull()
+                    .AsImmutable();
             }
 
             return ImmutableArray<IPropertySymbol>.Empty;
