@@ -13,13 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
     internal class EntryPointFinder : AbstractEntryPointFinder
     {
-        private readonly INamedTypeSymbol? _task;
-        private readonly INamedTypeSymbol? _taskOf;
+        private readonly INamedTypeSymbol? _taskType;
+        private readonly INamedTypeSymbol? _taskOfType;
 
         public EntryPointFinder(Compilation? compilation)
         {
-            _task = compilation?.TaskType();
-            _taskOf = compilation?.TaskOfTType();
+            _taskType = compilation?.TaskType();
+            _taskOfType = compilation?.TaskOfTType();
         }
 
         [Obsolete("FindEntryPoints on a INamespaceSymbol is deprecated, please pass in the Compilation instead.")]
@@ -42,6 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         protected override bool IsEntryPoint(IMethodSymbol methodSymbol)
-            => methodSymbol.IsCSharpEntryPoint(_task, _taskOf);
+            => methodSymbol.IsCSharpEntryPoint(_taskType, _taskOfType);
     }
 }
