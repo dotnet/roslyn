@@ -3820,13 +3820,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
         }
 
-        protected override bool IsLanguageSpecificSupportedBuiltinOperatorType(ITypeSymbol type)
-        {
-            // ReadOnlySpan<byte> supports a builtin `+` operator.
-            return type.OriginalDefinition.Equals(this.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)?.GetISymbol(), SymbolEqualityComparer.ConsiderEverything) &&
-                ((INamedTypeSymbol)type).TypeArguments[0].SpecialType == SpecialType.System_Byte;
-        }
-
         protected override IMethodSymbol CommonCreateBuiltinOperator(
             string name,
             ITypeSymbol returnType,
@@ -3893,7 +3886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Actual delegates have several operators that can be used on them.
                 if (csharpLeftType.SpecialType is SpecialType.System_Delegate &&
-                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything)
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
                 {
                     // bool operator ==(SomeDelegate, SomeDelegate) is legal.
                     // bool operator !=(SomeDelegate, SomeDelegate) is legal.

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
             ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
-            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
+            BinaryOperatorKind kind = OperatorFacts.SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
             // make cascading errors.
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics,
             BoundExpression left, BoundExpression right, bool leaveUnconvertedIfInterpolatedString)
         {
-            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
+            BinaryOperatorKind kind = OperatorFacts.SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that would just
             // make cascading errors.
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
         {
-            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
+            BinaryOperatorKind kind = OperatorFacts.SyntaxKindToBinaryOperatorKind(node.Kind());
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
 
