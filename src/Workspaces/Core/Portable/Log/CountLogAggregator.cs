@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal class CountLogAggregator<TKey> : AbstractLogAggregator<TKey, CountLogAggregator<TKey>.Counter>
+    internal class CountLogAggregator<TKey> : AbstractLogAggregator<TKey, CountLogAggregator<TKey>.Counter> where TKey : notnull
     {
         protected override Counter CreateCounter()
             => new();
