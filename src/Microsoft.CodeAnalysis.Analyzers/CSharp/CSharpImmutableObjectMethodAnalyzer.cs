@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             var baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
             baseTypesAndSelf.Add(parentType);
 
-            if (!baseTypesAndSelf.Any(n => immutableTypeSymbols.Contains(n)))
+            if (!baseTypesAndSelf.Any(immutableTypeSymbols.Contains))
             {
                 return;
             }

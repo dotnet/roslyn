@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var syntax = decl.GetSyntax(cancellationToken);
 
                 // GetSyntax for VB returns the StatementSyntax instead of BlockSyntax node.
-                syntax = syntax.FirstAncestorOrSelf<SyntaxNode>(node => IsNamedTypeDeclarationBlock(node), ascendOutOfTrivia: false) ?? syntax;
+                syntax = syntax.FirstAncestorOrSelf<SyntaxNode>(IsNamedTypeDeclarationBlock, ascendOutOfTrivia: false) ?? syntax;
 
 #pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
                 var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var index = entry.IndexOf(EntryFieldSeparator, StringComparison.Ordinal);
             if (index > 0)
             {
-                ruleId = entry.Substring(0, index).Trim();
+                ruleId = entry[..index].Trim();
                 return true;
             }
 

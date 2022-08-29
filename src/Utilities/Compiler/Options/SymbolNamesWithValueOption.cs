@@ -290,7 +290,7 @@ namespace Analyzer.Utilities
 #pragma warning restore CS8762 // Parameter 'firstMatchValue' must have a non-null value when exiting with 'true'
             }
 
-            var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, s => GetDeclarationId(s));
+            var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, GetDeclarationId);
 
             // We start by trying to match with the most precise definition (prefix)...
             if (_wildcardNamesBySymbolKind.TryGetValue(symbol.Kind, out var names) &&

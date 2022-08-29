@@ -83,7 +83,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (commentStartIndex > 0)
                 {
                     var separatedNumbers = text[commentStartIndex..eolOrEofIndex];
-                    var numbers = separatedNumbers.Split(',').Select(s => removeWhiteSpace(s));
+                    var numbers = separatedNumbers.Split(',').Select(removeWhiteSpace);
                     foreach (var number in numbers)
                     {
                         if (string.IsNullOrEmpty(number))

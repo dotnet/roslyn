@@ -81,7 +81,7 @@ End Namespace";
                 },
                 SolutionTransforms =
                 {
-                    (solution, projectId) => ApplySolutionTransforms(solution, projectId),
+                    ApplySolutionTransforms,
                 },
             };
 
@@ -110,7 +110,7 @@ End Namespace";
                 },
                 SolutionTransforms =
                 {
-                    (solution, projectId) => ApplySolutionTransforms(solution, projectId),
+                    ApplySolutionTransforms,
                 },
             };
 
