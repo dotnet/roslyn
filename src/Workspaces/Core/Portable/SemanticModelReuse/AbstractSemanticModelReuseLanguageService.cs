@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                     {
                         // We can't report the actual contents of the syntax tree since it may contain private
                         // user information.
-                        throw new InvalidOperationException($@"Syntax trees should have been equivalent.");
+                        throw new InvalidOperationException("Syntax trees should have been equivalent.");
 
                     }
                     catch (Exception e) when (FatalError.ReportAndCatch(e))
