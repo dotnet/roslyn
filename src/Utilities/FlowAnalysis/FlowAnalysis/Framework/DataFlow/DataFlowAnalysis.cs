@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // CONSIDER: Currently we need to do a bunch of branch adjustments for branches to/from finally, catch and filter regions.
                     //           We should revisit the overall CFG API and the walker to avoid such adjustments.
                     var successorsWithAdjustedBranches = GetSuccessorsWithAdjustedBranches(block).ToArray();
-                    foreach ((BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch) in successorsWithAdjustedBranches)
+                    foreach ((BranchWithInfo successorWithBranch, BranchWithInfo? preadjustSuccessorWithBranch) in successorsWithAdjustedBranches)
                     {
                         // successorWithAdjustedBranch returns a pair of branches:
                         //  1. successorWithBranch - This is the adjusted branch for a branch from inside a try region to outside the try region, where we don't flow into finally region.

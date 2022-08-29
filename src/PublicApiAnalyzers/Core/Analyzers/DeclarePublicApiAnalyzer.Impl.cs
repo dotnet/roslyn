@@ -621,14 +621,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 var indexOfParamsList = apiLineText.IndexOf('(');
                 if (indexOfParamsList > 0)
                 {
-                    apiLineText = apiLineText.Substring(0, indexOfParamsList);
+                    apiLineText = apiLineText[..indexOfParamsList];
                 }
                 else
                 {
                     var indexOfReturnType = apiLineText.IndexOf("->", StringComparison.Ordinal);
                     if (indexOfReturnType > 0)
                     {
-                        apiLineText = apiLineText.Substring(0, indexOfReturnType);
+                        apiLineText = apiLineText[..indexOfReturnType];
                     }
                 }
 
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)
             {
-                return _typeCanBeExtendedCache.GetOrAdd(type, t => CanTypeBeExtendedPubliclyImpl(t));
+                return _typeCanBeExtendedCache.GetOrAdd(type, CanTypeBeExtendedPubliclyImpl);
             }
 
             private static bool CanTypeBeExtendedPubliclyImpl(ITypeSymbol type)

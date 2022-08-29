@@ -92,7 +92,7 @@ namespace Analyzer.Utilities.PooledObjects
         {
             var pool = keyComparer == null ?
                 s_poolInstance :
-                s_poolInstancesByComparer.GetOrAdd(keyComparer, c => CreatePool(c));
+                s_poolInstancesByComparer.GetOrAdd(keyComparer, CreatePool);
             var instance = pool.Allocate();
             Debug.Assert(instance.Count == 0);
             return instance;

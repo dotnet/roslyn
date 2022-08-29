@@ -41,7 +41,7 @@ namespace Analyzer.Utilities.Extensions
                         nameof(str));
             }
 
-            return str.Substring(0, str.Length - suffix.Length);
+            return str[..^suffix.Length];
         }
 
         public static bool IsASCII(this string value)

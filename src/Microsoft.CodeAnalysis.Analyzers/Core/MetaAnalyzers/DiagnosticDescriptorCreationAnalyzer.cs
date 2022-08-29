@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Debug.Assert(IsMultiSentences(s));
             var index = s.IndexOf(MultiSentenceSeparator, StringComparison.OrdinalIgnoreCase);
-            return s.Substring(0, index);
+            return s[..index];
         }
 
         private static bool EndsWithPeriod(string s)
@@ -879,12 +879,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             var lastChar = s[^1];
 
             return lastChar.Equals('.') || lastChar.Equals('!') || lastChar.Equals('?');
-        }
-
-        private static string RemoveTrailingPunctuation(string s)
-        {
-            Debug.Assert(EndsWithPunctuation(s));
-            return s[0..^1];
         }
 
         private static bool HasLeadingOrTrailingWhitespaces(string s)
@@ -1141,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            if (!ruleId[2..].All(c => char.IsDigit(c)))
+            if (!ruleId[2..].All(char.IsDigit))
             {
                 return false;
             }

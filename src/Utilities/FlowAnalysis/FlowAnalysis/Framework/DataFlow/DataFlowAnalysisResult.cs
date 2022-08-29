@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var isNestedLambdaOrLocalFunction = lambdaOrLocalFunctionOperation.IsWithinLambdaOrLocalFunction(out _);
 
-            foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _interproceduralResultsMap.Values)
+            foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _interproceduralResultsMap.Values.Cast<DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>>())
             {
                 if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
                 {
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (lambdaOrLocalFunctionOperation.Kind == OperationKind.LocalFunction)
             {
-                foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _standaloneLocalFunctionAnalysisResultsMap.Values)
+                foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _standaloneLocalFunctionAnalysisResultsMap.Values.Cast<DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>>())
                 {
                     if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
                     {
