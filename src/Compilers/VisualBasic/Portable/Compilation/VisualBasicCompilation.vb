@@ -2932,20 +2932,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonCreateBuiltinOperator(
                 name As String,
                 returnType As ITypeSymbol,
-                valueType As ITypeSymbol) As IMethodSymbol
+                operandType As ITypeSymbol) As IMethodSymbol
 
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
-            Dim vbValueType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(valueType))
+            Dim vbOperandType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(operandType))
 
-            If Not SynthesizedIntrinsicOperatorSymbol.IsCheckedUnaryOperator(name) Then
-                Dim opInfo = OverloadResolution.GetOperatorInfo(name)
-                If Not opInfo.IsUnary Then
-                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            Dim nameToCheck = If(SynthesizedIntrinsicOperatorSymbol.IsCheckedUnaryOperator(name), WellKnownMemberNames.UnaryNegationOperatorName, name)
+
+            Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+            If Not opInfo.IsUnary Then
+                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End If
+
+            CheckUnaryBuiltInOperator(name, vbReturnType, vbOperandType, opInfo)
+
+            Return New SynthesizedIntrinsicOperatorSymbol(vbOperandType, name, vbReturnType)
+        End Function
+
+        Private Shared Sub CheckUnaryBuiltInOperator(
+                name As String,
+                vbReturnType As TypeSymbol,
+                vbOperandType As NamedTypeSymbol,
+                opInfo As OverloadResolution.OperatorInfo)
+            ' 
+            If vbReturnType.IsErrorType() OrElse vbOperandType.IsErrorType() Then
+                Return
+            End If
+
+            ' Enums support the `Not` operator.
+            If vbOperandType.IsEnumType() AndAlso
+               opInfo.UnaryOperatorKind = UnaryOperatorKind.Not AndAlso
+               vbReturnType.Equals(vbOperandType, TypeCompareKind.ConsiderEverything) Then
+                Return
+            End If
+
+            ' Quick table access to determine if these types are legal.
+            If opInfo.UnaryOperatorKind = UnaryOperatorKind.Not OrElse
+               opInfo.UnaryOperatorKind = UnaryOperatorKind.Plus OrElse
+               opInfo.UnaryOperatorKind = UnaryOperatorKind.Minus Then
+
+                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, vbOperandType.SpecialType)
+                If resolved <> SpecialType.None AndAlso
+                   vbReturnType.SpecialType = resolved Then
+                    Return
                 End If
             End If
 
-            Return New SynthesizedIntrinsicOperatorSymbol(vbValueType, name, vbReturnType)
-        End Function
+            Throw New ArgumentException($"Unsupported built-in unary operator: {vbReturnType.ToDisplayString()} operator {name}({vbOperandType.ToDisplayString()})")
+        End Sub
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
             Get

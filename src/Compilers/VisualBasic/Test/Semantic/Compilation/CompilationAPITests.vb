@@ -1808,10 +1808,6 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         <InlineData(WellKnownMemberNames.UnaryPlusOperatorName, "Public Shared Operator +(value As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.UnaryNegationOperatorName, "Public Shared Operator -(value As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.OnesComplementOperatorName, "Public Shared Operator Not(value As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.ImplicitConversionName, "Public Shared Operator CType(value As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.ExplicitConversionName, "Public Shared Operator CType(value As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.TrueOperatorName, "Public Shared Operator IsTrue(value As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.FalseOperatorName, "Public Shared Operator IsFalse(value As Integer) As Integer")>
         Public Sub CreateBuiltinUnaryOperator_Supported(name As String, display As String)
             Dim compilation = CreateCompilation("")
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
@@ -1834,6 +1830,18 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             ' Nullable type 2
             Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, nullableIntType))
+
+            ' op_Implicit
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ImplicitConversionName, intType, intType))
+
+            ' op_Explicit
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ExplicitConversionName, intType, intType))
+
+            ' op_False
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType))
+
+            ' op_Truee
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType))
         End Sub
 
         <Fact>
