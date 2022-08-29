@@ -1737,8 +1737,6 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Theory>
         <InlineData(WellKnownMemberNames.AdditionOperatorName, "Public Shared Operator +(left As Integer, right As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.ConcatenateOperatorName, "Public Shared Operator &(left As Integer, right As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.LikeOperatorName, "Public Shared Operator Like(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.EqualityOperatorName, "Public Shared Operator =(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.InequalityOperatorName, "Public Shared Operator <>(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "Public Shared Operator <=(left As Integer, right As Integer) As Integer")>
@@ -1747,8 +1745,6 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         <InlineData(WellKnownMemberNames.GreaterThanOperatorName, "Public Shared Operator >(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.SubtractionOperatorName, "Public Shared Operator -(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.MultiplyOperatorName, "Public Shared Operator *(left As Integer, right As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.ExponentOperatorName, "Public Shared Operator ^(left As Integer, right As Integer) As Integer")>
-        <InlineData(WellKnownMemberNames.DivisionOperatorName, "Public Shared Operator /(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.ModulusOperatorName, "Public Shared Operator Mod(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.IntegerDivisionOperatorName, "Public Shared Operator \(left As Integer, right As Integer) As Integer")>
         <InlineData(WellKnownMemberNames.LeftShiftOperatorName, "Public Shared Operator <<(left As Integer, right As Integer) As Integer")>
@@ -1764,6 +1760,27 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             AssertEx.Equal(display, result)
         End Sub
 
+        <Theory>
+        <InlineData(WellKnownMemberNames.ConcatenateOperatorName, "Public Shared Operator &(left As String, right As String) As String")>
+        <InlineData(WellKnownMemberNames.LikeOperatorName, "Public Shared Operator Like(left As String, right As String) As String")>
+        Public Sub CreateBuiltinBinaryOperator_Supported_String(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim stringType = compilation.GetSpecialType(SpecialType.System_String)
+            Dim op = compilation.CreateBuiltinOperator(name, stringType, stringType, stringType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Theory>
+        <InlineData(WellKnownMemberNames.DivisionOperatorName, "Public Shared Operator /(left As Double, right As Double) As Double")>
+        <InlineData(WellKnownMemberNames.ExponentOperatorName, "Public Shared Operator ^(left As Double, right As Double) As Double")>
+        Public Sub CreateBuiltinBinaryOperator_Supported_Double(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim doubleType = compilation.GetSpecialType(SpecialType.System_Double)
+            Dim op = compilation.CreateBuiltinOperator(name, doubleType, doubleType, doubleType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
 
         Public Sub CreateBuiltinBinaryOperator_ErrorType()
             Dim compilation = CreateCompilation("")

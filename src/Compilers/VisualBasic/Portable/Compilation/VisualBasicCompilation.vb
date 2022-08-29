@@ -5,6 +5,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -2919,15 +2920,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
             Dim vbRightType = rightType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
 
-            If Not SynthesizedIntrinsicOperatorSymbol.IsCheckedBinaryOperator(name) Then
-                Dim opInfo = OverloadResolution.GetOperatorInfo(name)
-                If Not opInfo.IsBinary Then
-                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
-                End If
+            Dim nameToCheck = name
+            Select Case name
+                Case WellKnownMemberNames.CheckedAdditionOperatorName
+                    nameToCheck = WellKnownMemberNames.AdditionOperatorName
+                Case WellKnownMemberNames.CheckedDivisionOperatorName
+                    nameToCheck = WellKnownMemberNames.DivisionOperatorName
+                Case WellKnownMemberNames.CheckedMultiplyOperatorName
+                    nameToCheck = WellKnownMemberNames.MultiplyOperatorName
+                Case WellKnownMemberNames.CheckedSubtractionOperatorName
+                    nameToCheck = WellKnownMemberNames.SubtractionOperatorName
+            End Select
+
+            Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+            If Not opInfo.IsBinary Then
+                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
             End If
+
+            CheckBinaryBuiltInOperator(name, vbReturnType, vbLeftType, vbRightType, opInfo)
 
             Return New SynthesizedIntrinsicOperatorSymbol(vbLeftType, name, vbRightType, vbReturnType)
         End Function
+
+        Private Shared Sub CheckBinaryBuiltInOperator(
+                name As String,
+                returnType As TypeSymbol,
+                leftType As NamedTypeSymbol,
+                rightType As TypeSymbol,
+                opInfo As OverloadResolution.OperatorInfo)
+
+            ' Built in enum binary operators
+            If leftType.IsEnumType() AndAlso
+               leftType.Equals(rightType, TypeCompareKind.ConsiderEverything) AndAlso
+               leftType.Equals(returnType, TypeCompareKind.ConsiderEverything) Then
+                If opInfo.BinaryOperatorKind = BinaryOperatorKind.Xor OrElse
+                   opInfo.BinaryOperatorKind = BinaryOperatorKind.And OrElse
+                   opInfo.BinaryOperatorKind = BinaryOperatorKind.Or Then
+                    Return
+                End If
+            End If
+
+            ' Quick table access to determine if these types are legal.
+            If opInfo.BinaryOperatorKind = BinaryOperatorKind.Add OrElse
+                opInfo.BinaryOperatorKind = BinaryOperatorKind.Subtract OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Multiply OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Modulo OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Divide OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.IntegerDivide OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Power OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.LeftShift OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.RightShift OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.OrElse OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.AndAlso OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Concatenate OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Like OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Xor OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Or OrElse
+                    opInfo.BinaryOperatorKind = BinaryOperatorKind.And Then
+
+                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicBinaryOperator(opInfo.BinaryOperatorKind, leftType.SpecialType, rightType.SpecialType)
+                If resolved <> SpecialType.None AndAlso
+                   returnType.SpecialType = resolved Then
+                    Return
+                End If
+            End If
+
+            Throw New ArgumentException($"Unsupported built-in binary operator: {returnType.ToDisplayString()} operator {name}({leftType.ToDisplayString()}, {rightType.ToDisplayString()})")
+        End Sub
 
         Protected Overrides Function CommonCreateBuiltinOperator(
                 name As String,
@@ -2951,18 +3016,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Sub CheckUnaryBuiltInOperator(
                 name As String,
-                vbReturnType As TypeSymbol,
-                vbOperandType As NamedTypeSymbol,
+                returnType As TypeSymbol,
+                operandType As NamedTypeSymbol,
                 opInfo As OverloadResolution.OperatorInfo)
             ' 
-            If vbReturnType.IsErrorType() OrElse vbOperandType.IsErrorType() Then
+            If returnType.IsErrorType() OrElse operandType.IsErrorType() Then
                 Return
             End If
 
             ' Enums support the `Not` operator.
-            If vbOperandType.IsEnumType() AndAlso
+            If operandType.IsEnumType() AndAlso
                opInfo.UnaryOperatorKind = UnaryOperatorKind.Not AndAlso
-               vbReturnType.Equals(vbOperandType, TypeCompareKind.ConsiderEverything) Then
+               returnType.Equals(operandType, TypeCompareKind.ConsiderEverything) Then
                 Return
             End If
 
@@ -2971,14 +3036,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                opInfo.UnaryOperatorKind = UnaryOperatorKind.Plus OrElse
                opInfo.UnaryOperatorKind = UnaryOperatorKind.Minus Then
 
-                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, vbOperandType.SpecialType)
+                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, operandType.SpecialType)
                 If resolved <> SpecialType.None AndAlso
-                   vbReturnType.SpecialType = resolved Then
+                   returnType.SpecialType = resolved Then
                     Return
                 End If
             End If
 
-            Throw New ArgumentException($"Unsupported built-in unary operator: {vbReturnType.ToDisplayString()} operator {name}({vbOperandType.ToDisplayString()})")
+            Throw New ArgumentException($"Unsupported built-in unary operator: {returnType.ToDisplayString()} operator {name}({operandType.ToDisplayString()})")
         End Sub
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
