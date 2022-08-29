@@ -82,6 +82,39 @@ namespace Microsoft.CodeAnalysis.Emit
             return ToInternalSymbolArray(deleted);
         }
 
+        public ImmutableArray<ISymbolInternal> GetDeletedProperties(IDefinition containingType)
+        {
+            var containingSymbol = containingType.GetInternalSymbol()?.GetISymbol();
+            if (containingSymbol is null)
+            {
+                return ImmutableArray<ISymbolInternal>.Empty;
+            }
+
+            if (!_deletedMembers.TryGetValue(containingSymbol, out var deleted))
+            {
+                return ImmutableArray<ISymbolInternal>.Empty;
+            }
+
+            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
+
+            // Use a hashset to make sure we don't return the same property twice, if both accessors are deleted
+            var seenProperties = new HashSet<IPropertySymbol>(ReferenceEqualityComparer.Instance);
+            foreach (var symbol in deleted)
+            {
+                if (symbol is IMethodSymbol { AssociatedSymbol: IPropertySymbol propertySymbol } &&
+                    seenProperties.Add(propertySymbol))
+                {
+                    var internalSymbol = GetISymbolInternalOrNull(propertySymbol);
+                    if (internalSymbol is not null)
+                    {
+                        internalSymbols.Add(internalSymbol);
+                    }
+                }
+            }
+
+            return internalSymbols.ToImmutableAndFree();
+        }
+
         private ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
         {
             var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
@@ -494,6 +527,23 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return symbol;
+        }
+
+        internal IPropertyDefinition? GetPropertyForBackingField(IFieldDefinition fieldDefinition)
+        {
+            var field = fieldDefinition.GetInternalSymbol()?.GetISymbol();
+            if (field is null)
+            {
+                return null;
+            }
+
+            var containingSymbol = GetContainingSymbol(field);
+            if (containingSymbol is IPropertySymbol)
+            {
+                return GetISymbolInternalOrNull(containingSymbol)?.GetCciAdapter() as IPropertyDefinition;
+            }
+
+            return null;
         }
     }
 }
