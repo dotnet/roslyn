@@ -1137,6 +1137,11 @@
         <target state="translated">El operador definido por el usuario '{0}' no se puede declarar como comprobado</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Una variable out no se puede declarar como ref local</target>
@@ -1815,6 +1820,11 @@
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="translated">patrón que coincide con ReadOnly/Span&lt;char&gt; en una cadena constante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="new">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

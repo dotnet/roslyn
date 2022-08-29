@@ -4577,6 +4577,49 @@ F<T>(MyFunc<T> f, string format, params object[] args)
         }
 
         [Fact]
+        public void OverloadResolution_49()
+        {
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate void D2(int i = 2);
+    static int F(D1 d) => 1;
+    static object F(D2 d) => 2;
+    static void Main()
+    {
+        int y = F((int x = 2) => { });
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,17): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         int y = F((int x = 2) => { });
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F((int x = 2) => { })").WithArguments("object", "int").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void OverloadResolution_50()
+        {
+
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    static int F(D1 d) => 1;
+    static void Main()
+    {
+        int y = F((int x = 2) => { });
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,24): error CS9067: Parameter 1 has default value '2' in lambda and '1' in the target delegate type.
+                //         int y = F((int x = 2) => { });
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(7, 24));
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
@@ -11905,7 +11948,6 @@ class Program
         [Fact]
         public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch()
         {
-
             var source = """
 using System;
 
@@ -11919,10 +11961,35 @@ class Program
     }
 }
 """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,20): error CS9067: Parameter 1 has default value '1000' in lambda and '1' in the target delegate type.
+                //         D d = (int x = 1000) => x + x;
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "1").WithLocation(8, 20));
+        }
 
-            // PROTOTYPE: we want to have a warning here, because the default value when calling the named delegate will come from the delegate
-            // itself and not the underlying lambda which could be confusing.
-            CompileAndVerify(source, expectedOutput: "2");
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch_WithParameterError()
+        {
+
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    static int f(int x) => 2 * x;
+
+    public static void Main()
+    {
+        D d = (int x = f(1)) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         D d = (int x = f(1)) => x + x;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1)").WithArguments("x").WithLocation(10, 24));
         }
 
         [Fact]
@@ -11937,16 +12004,56 @@ class Program
     {
         // lambda has optional parameter x
         D d = (int x = 1000) => x + x;
-        d();
     }
 }
 """;
-            // PROTOTYPE: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
-            // to a named delegate WITHOUT one, so the default value was useless to specify in code.
             CreateCompilation(source).VerifyDiagnostics(
-                    // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Program.D'
-                    //         d();
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("x", "Program.D").WithLocation(9, 9));
+                // (8,20): error CS9067: Parameter 1 has default value '1000' in lambda and '<missing>' in the target delegate type.
+                //         D d = (int x = 1000) => x + x;
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "<missing>").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch_WithParameterError()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    delegate int D(int x);
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        D d = (int x = f(1000)) => x + x;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         D d = (int x = f(1000)) => x + x;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_WithParameterError_EmptyBody()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam = (int x = f(1000)) => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         var lam = (int x = f(1000)) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
         }
 
         [Fact]
@@ -12267,6 +12374,124 @@ class Program
             CompileAndVerify(source, targetFramework: TargetFramework.Net60,
                                      verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
                                      expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
+        }
+
+        [Fact]
+        public void LambdaDefaultParameterMatchesDelegateAfterBinding()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 7);
+    const int num = 4;
+
+    public static void Main()
+    {
+        D d = (int x = num + 3) => x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "7");
+        }
+
+        [Fact]
+        public void ImplicitLambdaDefaultParameter_NamedDelegateConversion()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 3);
+    public static void Main()
+    {
+        D d = (x = 3) => x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS9065: Implicitly typed lambda parameter 'x' cannot have a default value.
+                //         D d = (x = 3) => x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void LambdaDefaultDiscardParameter_DelegateConversion_OptionalRequiredMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x, int y);
+    public static void Main()
+    {
+        D d = (int _, int _ = 3) => 10;
+        Console.WriteLine(d(4));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,27): error CS9067: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
+                //         D d = (int _, int _ = 3) => 10;
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
+                // (9,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                //         Console.WriteLine(d(4));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(9, 27));
+        }
+
+        [Fact]
+        public void LambdaDefaultDisardParameter_DelegateConversion_DefaultValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x, int y = 7);
+    public static void Main()
+    {
+        D d = (int _, int _ = 3) => 10;
+        Console.WriteLine(d(4));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,27): error CS9067: Parameter 2 has default value '3' in lambda and '7' in the target delegate type.
+                //         D d = (int _, int _ = 3) => 10;
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "7").WithLocation(8, 27));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypeConversionWarning_ErrorInLambdaBody()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate void D(int x, int y);
+    public static void Main()
+    {
+        D d = (int x, int y = 4) => {
+            string s = 5;
+        };
+
+        Console.WriteLine(d(4));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,27): error CS9067: Parameter 2 has default value '4' in lambda and '<missing>' in the target delegate type.
+                //         D d = (int x, int y = 4) => {
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "y").WithArguments("2", "4", "<missing>").WithLocation(8, 27),
+                // (12,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                //         Console.WriteLine(d(4));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
         }
     }
 }

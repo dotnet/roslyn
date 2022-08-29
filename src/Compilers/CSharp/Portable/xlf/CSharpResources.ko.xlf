@@ -1137,6 +1137,11 @@
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">출력 변수는 참조 로컬로 선언할 수 없습니다.</target>
@@ -1815,6 +1820,11 @@
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="translated">상수 문자열에서 ReadOnly/Span&lt;char&gt;과 일치하는 패턴</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="new">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

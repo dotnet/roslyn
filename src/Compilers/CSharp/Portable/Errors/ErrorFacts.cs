@@ -2215,6 +2215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ImplicitlyTypedDefaultParameter:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
+                case ErrorCode.ERR_OptionalParamValueMismatch:
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
                     return false;

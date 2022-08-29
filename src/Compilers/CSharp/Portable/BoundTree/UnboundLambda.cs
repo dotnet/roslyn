@@ -399,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = new UnboundLambda(syntax, data, functionType, withDependencies, hasErrors: hasErrors);
             data.SetUnboundLambda(lambda);
             functionType?.SetExpression(lambda.WithNoCache());
+
             return lambda;
         }
 
@@ -442,6 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda SuppressIfNeeded(BoundLambda lambda)
             => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
+
+        public LambdaSymbol? LambdaForParameterDefaultValues => Data.LambdaForParameterDefaultValues;
 
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
@@ -606,15 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return invokeMethod.ReturnTypeWithAnnotations;
         }
 
-        internal NamedTypeSymbol? InferDelegateType()
+        internal (ImmutableArray<RefKind>, ImmutableArray<DeclarationScope>, ImmutableArray<TypeWithAnnotations>) CollectParameterProperties()
         {
-            Debug.Assert(Binder.ContainingMemberOrLambda is { });
-
-            if (!HasExplicitlyTypedParameterList)
-            {
-                return null;
-            }
-
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
             var parameterScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
@@ -637,6 +633,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
 
+            return (parameterRefKinds, parameterScopes, parameterTypes);
+        }
+
+        internal NamedTypeSymbol? InferDelegateType()
+        {
+            Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
+            if (!HasExplicitlyTypedParameterList)
+            {
+                return null;
+            }
+
+            var (parameterRefKinds, parameterScopes, parameterTypes) = CollectParameterProperties();
             var lambdaSymbol = new LambdaSymbol(
                 Binder,
                 Binder.Compilation,
@@ -826,6 +835,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 refKind,
                 returnType);
+
+        // PROTOTYPE: If possible, re-use the default values from this temporary field if they are already bound
+        private LambdaSymbol? _lambdaForParameterDefaultValues = null;
+
+
+        // On certain code paths(such as target type conversion), we need to instantiate a temporary lambda symbol
+        // for binding default parameter values, and this may cause diagnostics to be produced if there is an error
+        // related to a default value. We then need those diagnostics to persist, so we have to store our temporary
+        // lambda symbol on the unbound lambda itself so that we can access the diagnostics later and copy them over.
+        // This also allows us to prevent some level of rebinding of the default parameters, at least for the purposes
+        // of checking for target-type compatibility.
+        internal LambdaSymbol? LambdaForParameterDefaultValues
+        {
+            get
+            {
+                if (_lambdaForParameterDefaultValues is null)
+                {
+                    Interlocked.CompareExchange(ref _lambdaForParameterDefaultValues, createLambda(), null);
+                }
+
+                return _lambdaForParameterDefaultValues;
+
+                LambdaSymbol? createLambda()
+                {
+                    Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
+                    if (!HasExplicitlyTypedParameterList)
+                    {
+                        return null;
+                    }
+
+                    var (parameterRefKinds, _, parameterTypes) = CollectParameterProperties();
+                    var lambdaSymbol = new LambdaSymbol(
+                        Binder,
+                        Binder.Compilation,
+                        Binder.ContainingMemberOrLambda,
+                        _unboundLambda,
+                        parameterTypes,
+                        parameterRefKinds,
+                        refKind: default,
+                        returnType: default);
+
+                    return lambdaSymbol;
+                }
+            }
+        }
 
         internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol)
         {

@@ -4850,7 +4850,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                    // (7,68): error CS9067: Parameter 1 has default value '2' in lambda and '<missing>' in the target delegate type.
+                    //         Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7554,7 +7557,51 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
 
+        [Fact]
+        public void Lambda_BadDefault_ExplicitReturnType()
+        {
+            var source = """
+class Program
+{
+    static int f(int x) => 2 * x;
+    public static void Main(string[] args)
+    {
+        var lam = int (int p = f(3)) => p;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,32): error CS1736: Default parameter value for 'p' must be a compile-time constant
+                //         var lam = int (int p = f(3)) => p;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(3)").WithArguments("p").WithLocation(6, 32));
+        }
+
+        [Fact]
+        public void LambdaDefault_LongString()
+        {
+            var longString = "";
+            for (int i = 0; i < 100; i++)
+            {
+                longString += i.ToString();
+            }
+
+            var source = $@"
+class Program
+{{
+    delegate void Del(string s = ""abc"");
+    public static void Main(string[] args)
+    {{
+        Del del = (string s = ""{longString}"") => {{ }};
+    }}
+}}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,27): error CS9067: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
+                //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
         }
     }
 }
