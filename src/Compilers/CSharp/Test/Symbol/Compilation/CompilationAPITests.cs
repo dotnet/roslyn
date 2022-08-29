@@ -2919,19 +2919,28 @@ class C
         [InlineData(WellKnownMemberNames.CheckedUnaryNegationOperatorName, "int.operator checked -(int)")]
         [InlineData(WellKnownMemberNames.UnaryNegationOperatorName, "int.operator -(int)")]
         [InlineData(WellKnownMemberNames.OnesComplementOperatorName, "int.operator ~(int)")]
-        [InlineData(WellKnownMemberNames.LogicalNotOperatorName, "int.operator !(int)")]
         [InlineData(WellKnownMemberNames.CheckedIncrementOperatorName, "int.operator checked ++(int)")]
         [InlineData(WellKnownMemberNames.IncrementOperatorName, "int.operator ++(int)")]
         [InlineData(WellKnownMemberNames.CheckedDecrementOperatorName, "int.operator checked --(int)")]
         [InlineData(WellKnownMemberNames.DecrementOperatorName, "int.operator --(int)")]
-        [InlineData(WellKnownMemberNames.TrueOperatorName, "int.operator true(int)")]
-        [InlineData(WellKnownMemberNames.FalseOperatorName, "int.operator false(int)")]
         public void CreateBuiltinUnaryOperator_Supported(
             string name, string display)
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
             var op = compilation.CreateBuiltinOperator(name, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Theory]
+        [InlineData(WellKnownMemberNames.LogicalNotOperatorName, "bool.operator !(bool)")]
+        public void CreateBuiltinUnaryOperator_Supported_Bool(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, boolType, boolType);
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
         }

@@ -3837,11 +3837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntaxKind = SyntaxFacts.GetOperatorKind(name);
             if (syntaxKind == SyntaxKind.None)
-                throw new ArgumentException($"Illegal operator name '{name}'.", nameof(name));
+                throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
             var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (binaryOperatorName != name)
-                throw new ArgumentException($"'{name}' was not a valid binary operator name.", nameof(name));
+                throw new ArgumentException($"'{name}' was not a valid binary operator name", nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
             checkOperatorKinds();
@@ -4014,24 +4014,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                throw new ArgumentException($"Unsupported built-in operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
+                throw new ArgumentException($"Unsupported built-in binary operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
             }
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
             string name,
             ITypeSymbol returnType,
-            ITypeSymbol valueType)
+            ITypeSymbol operandType)
         {
             var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
-            var csharpValueType = valueType.EnsureCSharpSymbolOrNull(nameof(valueType));
+            var csharpOperandType = operandType.EnsureCSharpSymbolOrNull(nameof(operandType));
 
             // caller already checked all of these were not null.
             Debug.Assert(csharpReturnType is not null);
-            Debug.Assert(csharpValueType is not null);
+            Debug.Assert(csharpOperandType is not null);
 
             var syntaxKind = SyntaxFacts.GetOperatorKind(name);
-            if (syntaxKind == SyntaxKind.None)
+            if (syntaxKind == SyntaxKind.None || name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
             var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
@@ -4041,7 +4041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Lang specific checks to ensure this is an acceptable operator.
             checkOperatorKinds();
 
-            return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType).GetPublicSymbol();
+            return new SynthesizedIntrinsicOperatorSymbol(csharpOperandType, name, csharpReturnType).GetPublicSymbol();
 
             static bool isDynamicOrError(TypeSymbol type)
                 => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
@@ -4050,24 +4050,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
                 if (isDynamicOrError(csharpReturnType) ||
-                    isDynamicOrError(csharpValueType))
+                    isDynamicOrError(csharpOperandType))
                 {
                     return;
                 }
 
                 // Use fast-path check to see if this types are ok.
                 var unaryKind = OperatorFacts.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
-                var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpValueType);
+                var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpOperandType);
 
                 if (easyOutUnaryKind != UnaryOperatorKind.Error)
                 {
                     var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
                     if (TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything) &&
-                        TypeSymbol.Equals(csharpValueType, signature.OperandType, TypeCompareKind.ConsiderEverything))
+                        TypeSymbol.Equals(csharpOperandType, signature.OperandType, TypeCompareKind.ConsiderEverything))
                     {
                         return;
                     }
                 }
+
+                // EnumType operator++(EnumType)
+                // EnumType operator~(EnumType)
+                if (csharpOperandType.IsEnumType() &&
+                    unaryKind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement or UnaryOperatorKind.BitwiseComplement &&
+                    TypeSymbol.Equals(csharpOperandType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator++(T*)
+                if (csharpOperandType.IsPointerType() &&
+                    unaryKind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement &&
+                    TypeSymbol.Equals(csharpOperandType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                throw new ArgumentException($"Unsupported built-in unary operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})");
             }
         }
 
