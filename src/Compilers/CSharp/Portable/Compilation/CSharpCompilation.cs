@@ -3999,6 +3999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                // ROS<byte> operator+(ROS<byte>, ROS<byte>). Legal because of utf8 strings.
                 if (binaryKind is BinaryOperatorKind.Addition &&
                     this.IsReadOnlySpanType(csharpReturnType) &&
                     this.IsReadOnlySpanType(csharpLeftType) &&
