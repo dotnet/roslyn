@@ -3950,15 +3950,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // void* has several comparison operators built in.
-                if (csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
-                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
-                    csharpReturnType.SpecialType == SpecialType.System_Boolean &&
-                    binaryKind is BinaryOperatorKind.Equal or
+                if (binaryKind is BinaryOperatorKind.Equal or
                                   BinaryOperatorKind.NotEqual or
                                   BinaryOperatorKind.GreaterThan or
                                   BinaryOperatorKind.LessThan or
                                   BinaryOperatorKind.GreaterThanOrEqual or
-                                  BinaryOperatorKind.LessThanOrEqual)
+                                  BinaryOperatorKind.LessThanOrEqual &&
+                    csharpReturnType.SpecialType == SpecialType.System_Boolean &&
+                    csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void }
+                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
                 {
                     return;
                 }
