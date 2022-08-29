@@ -2726,16 +2726,10 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [InlineData(WellKnownMemberNames.BitwiseAndOperatorName, "int.operator &(int, int)")]
         [InlineData(WellKnownMemberNames.CheckedDivisionOperatorName, "int.operator checked /(int, int)")]
         [InlineData(WellKnownMemberNames.DivisionOperatorName, "int.operator /(int, int)")]
-        [InlineData(WellKnownMemberNames.EqualityOperatorName, "int.operator ==(int, int)")]
-        [InlineData(WellKnownMemberNames.GreaterThanOperatorName, "int.operator >(int, int)")]
-        [InlineData(WellKnownMemberNames.GreaterThanOrEqualOperatorName, "int.operator >=(int, int)")]
         [InlineData(WellKnownMemberNames.LeftShiftOperatorName, "int.operator <<(int, int)")]
-        [InlineData(WellKnownMemberNames.LessThanOperatorName, "int.operator <(int, int)")]
-        [InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "int.operator <=(int, int)")]
         [InlineData(WellKnownMemberNames.CheckedMultiplyOperatorName, "int.operator checked *(int, int)")]
         [InlineData(WellKnownMemberNames.MultiplyOperatorName, "int.operator *(int, int)")]
         [InlineData(WellKnownMemberNames.BitwiseOrOperatorName, "int.operator |(int, int)")]
-        [InlineData(WellKnownMemberNames.InequalityOperatorName, "int.operator !=(int, int)")]
         [InlineData(WellKnownMemberNames.ModulusOperatorName, "int.operator %(int, int)")]
         [InlineData(WellKnownMemberNames.RightShiftOperatorName, "int.operator >>(int, int)")]
         [InlineData(WellKnownMemberNames.UnsignedRightShiftOperatorName, "int.operator >>>(int, int)")]
@@ -2748,6 +2742,24 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
             var op = compilation.CreateBuiltinOperator(name, intType, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Theory]
+        [InlineData(WellKnownMemberNames.EqualityOperatorName, "int.operator ==(int, int)")]
+        [InlineData(WellKnownMemberNames.GreaterThanOperatorName, "int.operator >(int, int)")]
+        [InlineData(WellKnownMemberNames.GreaterThanOrEqualOperatorName, "int.operator >=(int, int)")]
+        [InlineData(WellKnownMemberNames.LessThanOperatorName, "int.operator <(int, int)")]
+        [InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "int.operator <=(int, int)")]
+        [InlineData(WellKnownMemberNames.InequalityOperatorName, "int.operator !=(int, int)")]
+        public void CreateBuiltinBinaryOperator_Supported_BoolReturnType(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, boolType, intType, intType);
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
         }

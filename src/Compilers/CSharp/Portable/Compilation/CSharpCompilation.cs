@@ -3848,11 +3848,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
 
+            static bool isDynamicOrError(TypeSymbol type)
+                => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
+
             void checkOperatorKinds()
             {
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
-                if (csharpReturnType.TypeKind is TypeKind.Dynamic || csharpLeftType.TypeKind is TypeKind.Dynamic || csharpRightType.TypeKind is TypeKind.Dynamic)
+                if (isDynamicOrError(csharpReturnType) ||
+                    isDynamicOrError(csharpLeftType) ||
+                    isDynamicOrError(csharpRightType))
+                {
                     return;
+                }
 
                 checkNullableType(csharpReturnType, nameof(returnType));
                 checkNullableType(csharpLeftType, nameof(leftType));
