@@ -489,7 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // Syntax token in structure trivia would be renamed when the token is visited.
                 if (!trivia.HasStructure && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var subSpanToReplacementText))
                 {
-                    // var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts);
                     return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText);
                 }
 

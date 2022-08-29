@@ -879,6 +879,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
+            /// <summary>
+            /// Get a map which contains the old symbol to its mapping new symbol in solution after renaming. Only valid renamed symbol would be in the map.
+            /// </summary>
             private async Task<ImmutableDictionary<ISymbol, ISymbol>> GetValidRenamedSymbolsMapInCurrentSolutionAsync(MutableConflictResolution conflictResolution)
             {
                 using var _ = PooledDictionary<ISymbol, ISymbol>.GetInstance(out var originalSymbolToNewSymbolBuilder);
@@ -903,6 +906,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return originalSymbolToNewSymbolBuilder.ToImmutableDictionary();
             }
 
+            /// <summary>
+            /// Get a map which contains the old symbol to its mapping new symbol in solution after renaming if the old symbol is declared in the <param name="projectId"/>.
+            /// </summary>
             private async Task<ImmutableDictionary<ISymbol, ISymbol>> GetDeclarationChangedSymbolsMapAsync(
                 MutableConflictResolution conflictResolution,
                 ProjectId projectId)
@@ -912,7 +918,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     if (declarationDocumentId.ProjectId.Equals(projectId))
                     {
-
                         var renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution, declarationDocumentId, declarationLocation).ConfigureAwait(false);
                         if (renamedSymbolInNewSolution != null)
                         {
