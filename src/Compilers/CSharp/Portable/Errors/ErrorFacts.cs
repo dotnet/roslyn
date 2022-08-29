@@ -2217,6 +2217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
+                case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
