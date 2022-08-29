@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 internal partial record DocumentRenameInfo(
     ImmutableDictionary<TextSpan, LocationRenameContext> TextSpanToLocationContexts,
     ImmutableDictionary<SymbolKey, RenamedSymbolContext> RenamedSymbolContexts,
-    ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> TextSpanToStringAndCommentRenameContexts,
+    ImmutableDictionary<TextSpan, ImmutableSortedDictionary<TextSpan, string>> TextSpanToStringAndCommentRenameContexts,
     ImmutableHashSet<string> AllReplacementTexts,
     ImmutableHashSet<string> AllOriginalText,
     // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar

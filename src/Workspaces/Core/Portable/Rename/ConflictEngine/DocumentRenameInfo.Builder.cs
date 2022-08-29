@@ -20,7 +20,7 @@ internal partial record DocumentRenameInfo
     {
         private readonly PooledDictionary<TextSpan, LocationRenameContext> _textSpanToLocationContexts;
         private readonly PooledDictionary<SymbolKey, RenamedSymbolContext> _renameSymbolContexts;
-        private readonly PooledDictionary<TextSpan, HashSet<StringAndCommentRenameContext>> _textSpanToStringAndCommentContexts;
+        private readonly PooledDictionary<TextSpan, SortedDictionary<TextSpan, string>> _textSpanToStringAndCommentContexts;
         private readonly PooledHashSet<string> _allReplacementTexts;
         private readonly PooledHashSet<string> _allOriginalTexts;
         private readonly PooledHashSet<string> _allPossibleConflictNames;
@@ -29,7 +29,7 @@ internal partial record DocumentRenameInfo
         {
             _textSpanToLocationContexts = PooledDictionary<TextSpan, LocationRenameContext>.GetInstance();
             _renameSymbolContexts = PooledDictionary<SymbolKey, RenamedSymbolContext>.GetInstance();
-            _textSpanToStringAndCommentContexts = PooledDictionary<TextSpan, HashSet<StringAndCommentRenameContext>>.GetInstance();
+            _textSpanToStringAndCommentContexts = PooledDictionary<TextSpan, SortedDictionary<TextSpan, string>>.GetInstance();
             _allReplacementTexts = PooledHashSet<string>.GetInstance();
             _allOriginalTexts = PooledHashSet<string>.GetInstance();
             _allPossibleConflictNames = PooledHashSet<string>.GetInstance();
@@ -82,24 +82,51 @@ internal partial record DocumentRenameInfo
         public bool AddStringAndCommentRenameContext(StringAndCommentRenameContext stringAndCommentRenameContext)
         {
             RoslynDebug.Assert(stringAndCommentRenameContext.RenameLocation.IsRenameInStringOrComment);
-            var containLocation = stringAndCommentRenameContext.RenameLocation.ContainingLocationForStringOrComment;
-            if (_textSpanToStringAndCommentContexts.TryGetValue(containLocation, out var subLocationSet))
+            var containingLocation = stringAndCommentRenameContext.RenameLocation.ContainingLocationForStringOrComment;
+
+            var subLocation = stringAndCommentRenameContext.RenameLocation.Location;
+            RoslynDebug.Assert(subLocation.IsInSource);
+
+            var sourceSpan = subLocation.SourceSpan;
+            // SourceSpan should be a part of the containing location.
+            RoslynDebug.Assert(sourceSpan.Start >= containingLocation.Start);
+            RoslynDebug.Assert(sourceSpan.End <= containingLocation.End);
+
+            var subSpan = new TextSpan(sourceSpan.Start - containingLocation.Start, sourceSpan.Length);
+            var replacementText = stringAndCommentRenameContext.ReplacementText;
+            if (_textSpanToStringAndCommentContexts.TryGetValue(containingLocation, out var subLocationToReplacementText))
             {
-                if (subLocationSet.Contains(stringAndCommentRenameContext))
+                if (subLocationToReplacementText.TryGetValue(subSpan, out var existingReplacementText)
+                    && existingReplacementText != replacementText)
                 {
-                    // We are tyring to rename a same location with different rename context.
+                    // Two symbols try to rename a same subSpan,
+                    // Example:
+                    //      // Comment Hello
+                    // class Hello
+                    // {
+                    //
+                    // }
+                    // class World
+                    // {
+                    //    void Hello() { }
+                    // }
+                    // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'. So both of them will try to rename
+                    // 'Comment Hello'.
                     return true;
                 }
                 else
                 {
-                    subLocationSet.Add(stringAndCommentRenameContext);
+                    subLocationToReplacementText[subSpan] = replacementText;
                     return false;
                 }
             }
             else
             {
-                _textSpanToStringAndCommentContexts[containLocation] =
-                    new HashSet<StringAndCommentRenameContext>() { stringAndCommentRenameContext };
+                _textSpanToStringAndCommentContexts[containingLocation] =
+                    new SortedDictionary<TextSpan, string>
+                    {
+                        { subSpan, replacementText }
+                    };
                 return false;
             }
         }
@@ -122,13 +149,13 @@ internal partial record DocumentRenameInfo
                 allOriginalTexts,
                 allPossibleConflictNames);
 
-            static ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> ToImmutable(
-                PooledDictionary<TextSpan, HashSet<StringAndCommentRenameContext>> builder)
+            static ImmutableDictionary<TextSpan, ImmutableSortedDictionary<TextSpan, string>> ToImmutable(
+                PooledDictionary<TextSpan, SortedDictionary<TextSpan, string>> builder)
             {
-                var dictionaryBuilder = ImmutableDictionary.CreateBuilder<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>>();
+                var dictionaryBuilder = ImmutableDictionary.CreateBuilder<TextSpan, ImmutableSortedDictionary<TextSpan, string>>();
                 foreach (var pair in builder)
                 {
-                    dictionaryBuilder[pair.Key] = pair.Value.ToImmutableHashSet();
+                    dictionaryBuilder[pair.Key] = pair.Value.ToImmutableSortedDictionary();
                 }
 
                 return dictionaryBuilder.ToImmutableDictionary();

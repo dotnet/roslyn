@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             /// It is created by using a regex in to find the matched text when renaming inside a string/identifier.
             /// </summary>
-            private readonly ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> _stringAndCommentRenameContexts;
+            private readonly ImmutableDictionary<TextSpan, ImmutableSortedDictionary<TextSpan, string>> _stringAndCommentRenameContexts;
 
             private readonly ImmutableHashSet<string> _replacementTexts;
             private readonly ImmutableHashSet<string> _originalTexts;
@@ -487,9 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             {
                 var newTrivia = base.VisitTrivia(trivia);
                 // Syntax token in structure trivia would be renamed when the token is visited.
-                if (!trivia.HasStructure && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var textSpanRenameContexts))
+                if (!trivia.HasStructure && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var subSpanToReplacementText))
                 {
-                    var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts);
+                    // var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts);
                     return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText);
                 }
 
@@ -691,13 +691,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxToken RenameWithinToken(SyntaxToken token, SyntaxToken newToken)
             {
                 if (_isProcessingComplexifiedSpans
-                    || !_stringAndCommentRenameContexts.TryGetValue(token.Span, out var textSpanSymbolContexts)
-                    || textSpanSymbolContexts.Count == 0)
+                    || !_stringAndCommentRenameContexts.TryGetValue(token.Span, out var subSpanToReplacementText)
+                    || subSpanToReplacementText.Count == 0)
                 {
                     return newToken;
                 }
 
-                var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanSymbolContexts);
                 // Rename in string
                 if (newToken.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken))
                 {

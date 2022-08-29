@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' <summary>
             ''' Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             ''' </summary>
-            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, ImmutableHashSet(Of StringAndCommentRenameContext))
+            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, ImmutableSortedDictionary(Of TextSpan, String))
 
             ''' <summary>
             ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
@@ -402,9 +402,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
 
-                Dim textSpanRenameContexts As ImmutableHashSet(Of StringAndCommentRenameContext) = Nothing
-                If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
-                    Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts)
+                Dim subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String) = Nothing
+                If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, subSpanToReplacementText) Then
                     Return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText)
                 End If
 
@@ -707,12 +706,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                Dim locationSymbolContexts As ImmutableHashSet(Of StringAndCommentRenameContext) = Nothing
-                If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, locationSymbolContexts) OrElse locationSymbolContexts.Count = 0 Then
+                Dim subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String) = Nothing
+                If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, subSpanToReplacementText) OrElse subSpanToReplacementText.Count = 0 Then
                     Return newToken
                 End If
-
-                Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(locationSymbolContexts)
 
                 Dim kind = newToken.Kind()
                 If kind = SyntaxKind.StringLiteralToken Then
