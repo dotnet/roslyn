@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -219,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                                 break;
 
+                            case OperationKindEx.Attribute:
                             case OperationKind.None:
                                 // Skip non-applicable attributes.
                                 if (!applicableAttributeNodes.Contains(node))
