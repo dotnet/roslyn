@@ -67,14 +67,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 
         public FSharpWorkspaceProjectContext CreateProjectContext(string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
             => new(_threadingContext.JoinableTaskFactory.Run(() => _factory.CreateProjectContextAsync(
+                id: projectGuid,
+                uniqueName: projectUniqueName,
                 languageName: LanguageNames.FSharp,
-                projectUniqueName: projectUniqueName,
-                projectFilePath: projectFilePath,
-                projectGuid: projectGuid,
-                hierarchy,
-                binOutputPath,
-                assemblyName: null,
+                data: new FSharpEvaluationData(projectFilePath, binOutputPath),
+                hostObject: hierarchy,
                 CancellationToken.None)));
+
+        private sealed class FSharpEvaluationData : EvaluationData
+        {
+            private readonly string _projectFilePath;
+            private readonly string? _binOutputPath;
+
+            public FSharpEvaluationData(string projectFilePath, string? binOutputPath)
+            {
+                _projectFilePath = projectFilePath;
+                _binOutputPath = binOutputPath;
+            }
+
+            public override string GetPropertyValue(string name)
+                => name switch
+                {
+                    BuildPropertyNames.MSBuildProjectFullPath => _projectFilePath,
+                    BuildPropertyNames.TargetPath => _binOutputPath ?? "",
+                    _ => "",
+                };
+        }
     }
 
     internal sealed class FSharpWorkspaceProjectContext : IFSharpWorkspaceProjectContext

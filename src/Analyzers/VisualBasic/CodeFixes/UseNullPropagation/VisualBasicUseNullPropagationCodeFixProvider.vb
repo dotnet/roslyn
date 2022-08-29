@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             InvocationExpressionSyntax,
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax,
+            MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             MultiLineIfBlockSyntax,
             ExpressionStatementSyntax,
