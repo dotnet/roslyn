@@ -3982,7 +3982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (binaryKind is BinaryOperatorKind.Addition &&
                     csharpRightType.IsPointerType() &&
                     csharpLeftType.IsIntegralType() &&
-                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                    TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                 {
                     return;
                 }
