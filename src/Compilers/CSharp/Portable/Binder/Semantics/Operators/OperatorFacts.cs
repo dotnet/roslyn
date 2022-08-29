@@ -212,57 +212,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
-        {
-            switch (kind)
+            => kind switch
             {
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.MultiplyExpression: return BinaryOperatorKind.Multiplication;
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.DivideExpression: return BinaryOperatorKind.Division;
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.ModuloExpression: return BinaryOperatorKind.Remainder;
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.AddExpression: return BinaryOperatorKind.Addition;
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.SubtractExpression: return BinaryOperatorKind.Subtraction;
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.RightShiftExpression: return BinaryOperatorKind.RightShift;
-                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
-                case SyntaxKind.UnsignedRightShiftExpression: return BinaryOperatorKind.UnsignedRightShift;
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.LeftShiftExpression: return BinaryOperatorKind.LeftShift;
-                case SyntaxKind.EqualsExpression: return BinaryOperatorKind.Equal;
-                case SyntaxKind.NotEqualsExpression: return BinaryOperatorKind.NotEqual;
-                case SyntaxKind.GreaterThanExpression: return BinaryOperatorKind.GreaterThan;
-                case SyntaxKind.LessThanExpression: return BinaryOperatorKind.LessThan;
-                case SyntaxKind.GreaterThanOrEqualExpression: return BinaryOperatorKind.GreaterThanOrEqual;
-                case SyntaxKind.LessThanOrEqualExpression: return BinaryOperatorKind.LessThanOrEqual;
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.BitwiseAndExpression: return BinaryOperatorKind.And;
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.BitwiseOrExpression: return BinaryOperatorKind.Or;
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.ExclusiveOrExpression: return BinaryOperatorKind.Xor;
-                case SyntaxKind.LogicalAndExpression: return BinaryOperatorKind.LogicalAnd;
-                case SyntaxKind.LogicalOrExpression: return BinaryOperatorKind.LogicalOr;
-                default: throw ExceptionUtilities.UnexpectedValue(kind);
-            }
-        }
+                SyntaxKind.MultiplyAssignmentExpression or SyntaxKind.MultiplyExpression => BinaryOperatorKind.Multiplication,
+                SyntaxKind.DivideAssignmentExpression or SyntaxKind.DivideExpression => BinaryOperatorKind.Division,
+                SyntaxKind.ModuloAssignmentExpression or SyntaxKind.ModuloExpression => BinaryOperatorKind.Remainder,
+                SyntaxKind.AddAssignmentExpression or SyntaxKind.AddExpression => BinaryOperatorKind.Addition,
+                SyntaxKind.SubtractAssignmentExpression or SyntaxKind.SubtractExpression => BinaryOperatorKind.Subtraction,
+                SyntaxKind.RightShiftAssignmentExpression or SyntaxKind.RightShiftExpression => BinaryOperatorKind.RightShift,
+                SyntaxKind.UnsignedRightShiftAssignmentExpression or SyntaxKind.UnsignedRightShiftExpression => BinaryOperatorKind.UnsignedRightShift,
+                SyntaxKind.LeftShiftAssignmentExpression or SyntaxKind.LeftShiftExpression => BinaryOperatorKind.LeftShift,
+                SyntaxKind.EqualsExpression => BinaryOperatorKind.Equal,
+                SyntaxKind.NotEqualsExpression => BinaryOperatorKind.NotEqual,
+                SyntaxKind.GreaterThanExpression => BinaryOperatorKind.GreaterThan,
+                SyntaxKind.LessThanExpression => BinaryOperatorKind.LessThan,
+                SyntaxKind.GreaterThanOrEqualExpression => BinaryOperatorKind.GreaterThanOrEqual,
+                SyntaxKind.LessThanOrEqualExpression => BinaryOperatorKind.LessThanOrEqual,
+                SyntaxKind.AndAssignmentExpression or SyntaxKind.BitwiseAndExpression => BinaryOperatorKind.And,
+                SyntaxKind.OrAssignmentExpression or SyntaxKind.BitwiseOrExpression => BinaryOperatorKind.Or,
+                SyntaxKind.ExclusiveOrAssignmentExpression or SyntaxKind.ExclusiveOrExpression => BinaryOperatorKind.Xor,
+                SyntaxKind.LogicalAndExpression => BinaryOperatorKind.LogicalAnd,
+                SyntaxKind.LogicalOrExpression => BinaryOperatorKind.LogicalOr,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
 
         public static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
-        {
-            switch (kind)
+            => kind switch
             {
-                case SyntaxKind.PreIncrementExpression: return UnaryOperatorKind.PrefixIncrement;
-                case SyntaxKind.PostIncrementExpression: return UnaryOperatorKind.PostfixIncrement;
-                case SyntaxKind.PreDecrementExpression: return UnaryOperatorKind.PrefixDecrement;
-                case SyntaxKind.PostDecrementExpression: return UnaryOperatorKind.PostfixDecrement;
-                case SyntaxKind.UnaryPlusExpression: return UnaryOperatorKind.UnaryPlus;
-                case SyntaxKind.UnaryMinusExpression: return UnaryOperatorKind.UnaryMinus;
-                case SyntaxKind.LogicalNotExpression: return UnaryOperatorKind.LogicalNegation;
-                case SyntaxKind.BitwiseNotExpression: return UnaryOperatorKind.BitwiseComplement;
-                default: throw ExceptionUtilities.UnexpectedValue(kind);
-            }
-        }
+                SyntaxKind.PreIncrementExpression => UnaryOperatorKind.PrefixIncrement,
+                SyntaxKind.PostIncrementExpression => UnaryOperatorKind.PostfixIncrement,
+                SyntaxKind.PreDecrementExpression => UnaryOperatorKind.PrefixDecrement,
+                SyntaxKind.PostDecrementExpression => UnaryOperatorKind.PostfixDecrement,
+                SyntaxKind.UnaryPlusExpression => UnaryOperatorKind.UnaryPlus,
+                SyntaxKind.UnaryMinusExpression => UnaryOperatorKind.UnaryMinus,
+                SyntaxKind.LogicalNotExpression => UnaryOperatorKind.LogicalNegation,
+                SyntaxKind.BitwiseNotExpression => UnaryOperatorKind.BitwiseComplement,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
     }
 }
