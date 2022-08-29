@@ -248,5 +248,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
+
+        public static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.PreIncrementExpression: return UnaryOperatorKind.PrefixIncrement;
+                case SyntaxKind.PostIncrementExpression: return UnaryOperatorKind.PostfixIncrement;
+                case SyntaxKind.PreDecrementExpression: return UnaryOperatorKind.PrefixDecrement;
+                case SyntaxKind.PostDecrementExpression: return UnaryOperatorKind.PostfixDecrement;
+                case SyntaxKind.UnaryPlusExpression: return UnaryOperatorKind.UnaryPlus;
+                case SyntaxKind.UnaryMinusExpression: return UnaryOperatorKind.UnaryMinus;
+                case SyntaxKind.LogicalNotExpression: return UnaryOperatorKind.LogicalNegation;
+                case SyntaxKind.BitwiseNotExpression: return UnaryOperatorKind.BitwiseComplement;
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
     }
 }

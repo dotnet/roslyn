@@ -2193,7 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
 
             BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement), diagnostics);
-            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
+            UnaryOperatorKind kind = OperatorFacts.SyntaxKindToUnaryOperatorKind(node.Kind());
 
             // If the operand is bad, avoid generating cascading errors.
             if (operand.HasAnyErrors)
@@ -2632,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, BindingDiagnosticBag diagnostics)
         {
-            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
+            UnaryOperatorKind kind = OperatorFacts.SyntaxKindToUnaryOperatorKind(node.Kind());
 
             bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsImplicitObjectCreation();
             if (isOperandNullOrNew)
@@ -2913,22 +2913,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        private static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.PreIncrementExpression: return UnaryOperatorKind.PrefixIncrement;
-                case SyntaxKind.PostIncrementExpression: return UnaryOperatorKind.PostfixIncrement;
-                case SyntaxKind.PreDecrementExpression: return UnaryOperatorKind.PrefixDecrement;
-                case SyntaxKind.PostDecrementExpression: return UnaryOperatorKind.PostfixDecrement;
-                case SyntaxKind.UnaryPlusExpression: return UnaryOperatorKind.UnaryPlus;
-                case SyntaxKind.UnaryMinusExpression: return UnaryOperatorKind.UnaryMinus;
-                case SyntaxKind.LogicalNotExpression: return UnaryOperatorKind.LogicalNegation;
-                case SyntaxKind.BitwiseNotExpression: return UnaryOperatorKind.BitwiseComplement;
-                default: throw ExceptionUtilities.UnexpectedValue(kind);
-            }
         }
 
         private static BindValueKind GetBinaryAssignmentKind(SyntaxKind kind)

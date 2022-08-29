@@ -4038,7 +4038,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (unaryOperatorName != name)
                 throw new ArgumentException($"'{name}' was not a valid unary operator name", nameof(name));
 
+            // Lang specific checks to ensure this is an acceptable operator.
+            checkOperatorKinds();
+
             return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType).GetPublicSymbol();
+
+            static bool isDynamicOrError(TypeSymbol type)
+                => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
+
+            void checkOperatorKinds()
+            {
+                // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
+                if (isDynamicOrError(csharpReturnType) ||
+                    isDynamicOrError(csharpValueType))
+                {
+                    return;
+                }
+
+                // Use fast-path check to see if this types are ok.
+                var unaryKind = OperatorFacts.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
+                var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpValueType);
+
+                if (easyOutUnaryKind != UnaryOperatorKind.Error)
+                {
+                    var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
+                    if (TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything) &&
+                        TypeSymbol.Equals(csharpValueType, signature.OperandType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+                }
+            }
         }
 
         protected override ITypeSymbol CommonDynamicType

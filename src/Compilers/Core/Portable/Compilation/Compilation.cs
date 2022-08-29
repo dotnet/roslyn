@@ -1525,59 +1525,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
         /// <param name="returnType">The return type of the unary operator.</param>
-        /// <param name="valueType">The type the operator applies to.</param>
-        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType)
+        /// <param name="operandType">The type the operator applies to.</param>
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol operandType)
         {
             // Can't check 'name' here as VB and C# support a different subset of names.
 
             if (returnType is null)
                 throw new ArgumentNullException(nameof(returnType));
 
-            if (valueType is null)
-                throw new ArgumentNullException(nameof(valueType));
+            if (operandType is null)
+                throw new ArgumentNullException(nameof(operandType));
 
-            checkSupportedUnaryOperatorType(returnType, nameof(returnType));
-            checkSupportedUnaryOperatorType(valueType, nameof(valueType));
-
-            return CommonCreateBuiltinOperator(name, returnType, valueType);
-
-            static void checkSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
-            {
-                // Operators on dynamic are always allowed.
-                // Unary operators are supported on enums.
-                // Pointers have operators automatically synthesized for them.
-                //
-                // For error types, we don't bother checking.  The type was already in error, so fine to create an error
-                // builtin wrapping it.
-                if (type.TypeKind is TypeKind.Dynamic or TypeKind.Enum or TypeKind.Error or TypeKind.Pointer)
-                    return;
-
-                switch (type.OriginalDefinition.SpecialType)
-                {
-                    case SpecialType.System_SByte:
-                    case SpecialType.System_Byte:
-                    case SpecialType.System_Int16:
-                    case SpecialType.System_UInt16:
-                    case SpecialType.System_Int32:
-                    case SpecialType.System_UInt32:
-                    case SpecialType.System_Int64:
-                    case SpecialType.System_UInt64:
-                    case SpecialType.System_IntPtr:
-                    case SpecialType.System_UIntPtr:
-                    case SpecialType.System_Char:
-                    case SpecialType.System_Single:
-                    case SpecialType.System_Double:
-                    case SpecialType.System_Decimal:
-                    case SpecialType.System_Boolean:
-                    case SpecialType.System_Object:
-                        return;
-                }
-
-                throw new ArgumentException($"Unsupported built-in operator type: {type.ToDisplayString()}", paramName);
-            }
+            return CommonCreateBuiltinOperator(name, returnType, operandType);
         }
 
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol operandType);
 
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
