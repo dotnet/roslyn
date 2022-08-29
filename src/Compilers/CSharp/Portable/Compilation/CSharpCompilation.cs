@@ -3877,140 +3877,133 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
+                // bool operator ==(object, object) is legal.
+                // bool operator !=(object, object) is legal.
+                // bool operator ==(Delegate, Delegate) is legal.
+                // bool operator !=(Delegate, Delegate) is legal.
+                if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
+                    csharpReturnType.SpecialType is SpecialType.System_Boolean)
                 {
                     if ((csharpLeftType.SpecialType is SpecialType.System_Object && csharpRightType.SpecialType is SpecialType.System_Object) ||
                         (csharpLeftType.SpecialType is SpecialType.System_Delegate && csharpRightType.SpecialType is SpecialType.System_Delegate))
                     {
-                        // bool operator ==(object, object) is legal.
-                        // bool operator !=(object, object) is legal.
-                        // bool operator ==(Delegate, Delegate) is legal.
-                        // bool operator !=(Delegate, Delegate) is legal.
-                        if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
-                            throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
-
                         return;
                     }
                 }
 
-                if (csharpLeftType.SpecialType is SpecialType.System_Delegate && csharpRightType.SpecialType is SpecialType.System_Delegate)
+                // Actual delegates have several operators that can be used on them.
+                if (csharpLeftType.SpecialType is SpecialType.System_Delegate &&
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything)
                 {
-                    // Delegates have ==, !=, + and -
-                    if (!TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
-                        throw new ArgumentException("Built-in operator parameter types must be the same type if either is a Delegate type.", nameof(leftType));
-
-                    if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
+                    // bool operator ==(SomeDelegate, SomeDelegate) is legal.
+                    // bool operator !=(SomeDelegate, SomeDelegate) is legal.
+                    if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
+                        csharpReturnType.SpecialType == SpecialType.System_Boolean)
                     {
-                        if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
-                            throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
-
                         return;
                     }
 
-                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                    // SomeDelegate operator +(SomeDelegate, SomeDelegate) is legal.
+                    // SomeDelegate operator -(SomeDelegate, SomeDelegate) is legal.
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction &&
+                        TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                     {
-                        if (!TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
-                            throw new ArgumentException("Built-in operator return type must be the same type as the parameter types when the parameters are a Delegate type.", nameof(returnType));
-
                         return;
                     }
                 }
 
                 if (csharpLeftType.IsEnumType() || csharpRightType.IsEnumType())
                 {
+                    // bool operator ==(SomeEnum, SomeEnum) is legal.
                     if (binaryKind is BinaryOperatorKind.Equal or
                                       BinaryOperatorKind.NotEqual or
                                       BinaryOperatorKind.GreaterThan or
                                       BinaryOperatorKind.LessThan or
                                       BinaryOperatorKind.GreaterThanOrEqual or
-                                      BinaryOperatorKind.LessThanOrEqual)
+                                      BinaryOperatorKind.LessThanOrEqual &&
+                        csharpReturnType.SpecialType is SpecialType.System_Boolean &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
                     {
-                        if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
-                            throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
-
-                        if (!TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
-                            throw new ArgumentException("Built-in operator parameter type must be the same type if the other is an Enum type.", nameof(rightType));
-
                         return;
                     }
 
+                    // SomeEnum operator &(SomeEnum, SomeEnum) is legal.
                     if (binaryKind is BinaryOperatorKind.And or
                                       BinaryOperatorKind.Or or
-                                      BinaryOperatorKind.Xor)
+                                      BinaryOperatorKind.Xor &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) &&
+                        TypeSymbol.Equals(csharpReturnType, csharpRightType, TypeCompareKind.ConsiderEverything))
                     {
-                        if (!TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
-                            throw new ArgumentException("Built-in operator parameter type must be the same type if the other is an Enum type.", nameof(rightType));
-
-                        if (!TypeSymbol.Equals(csharpReturnType, csharpRightType, TypeCompareKind.ConsiderEverything))
-                            throw new ArgumentException($"Built-in operator return type must be the same type as the parameter types.", nameof(returnType));
-
                         return;
                     }
 
+                    // SomeEnum operator+(SomeEnum, int)
+                    // SomeEnum operator+(int, SomeEnum)
+                    // SomeEnum operator+(SomeEnum, SomeEnum)
                     if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
                     {
-                        if (csharpLeftType.IsEnumType() &&
-                            !TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        if (csharpLeftType.IsEnumType() && csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                            return;
+
+                        if (csharpRightType.IsEnumType() && csharpLeftType.IsIntegralType() && TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                            return;
+
+                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) &&
+                            TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                         {
-                            throw new ArgumentException("Built-in operator return type must be the same type as parameter type.", nameof(leftType));
+                            return;
                         }
-
-                        if (csharpRightType.IsEnumType() &&
-                            !TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
-                        {
-                            throw new ArgumentException("Built-in operator return type must be the same type as parameter type.", nameof(rightType));
-                        }
-
-                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
-                            return;
-
-                        if (csharpRightType.IsIntegralType())
-                            return;
-
-                        if (csharpLeftType.IsIntegralType())
-                            return;
                     }
                 }
 
+                // void* has several comparison operators built in.
                 if (csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
-                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
+                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
+                    csharpReturnType.SpecialType == SpecialType.System_Boolean &&
+                    binaryKind is BinaryOperatorKind.Equal or
+                                  BinaryOperatorKind.NotEqual or
+                                  BinaryOperatorKind.GreaterThan or
+                                  BinaryOperatorKind.LessThan or
+                                  BinaryOperatorKind.GreaterThanOrEqual or
+                                  BinaryOperatorKind.LessThanOrEqual)
                 {
-                    if (csharpReturnType.SpecialType != SpecialType.System_Boolean)
-                        throw new ArgumentException($"Built-in operator return type must be '{this.GetSpecialType(SpecialType.System_Boolean).ToDisplayString()}'.", nameof(returnType));
-
-                    if (binaryKind is BinaryOperatorKind.Equal or
-                                      BinaryOperatorKind.NotEqual or
-                                      BinaryOperatorKind.GreaterThan or
-                                      BinaryOperatorKind.LessThan or
-                                      BinaryOperatorKind.GreaterThanOrEqual or
-                                      BinaryOperatorKind.LessThanOrEqual)
-                    {
-                        return;
-                    }
+                    return;
                 }
 
-                if (csharpLeftType.IsPointerType() || csharpRightType.IsPointerType())
+                // T* operator+(T*, int i)
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    csharpLeftType.IsPointerType() &&
+                    csharpRightType.IsIntegralType() &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                 {
-                    if (binaryKind == BinaryOperatorKind.Addition)
-                    {
-                        if (!csharpLeftType.IsIntegralType() && !csharpRightType.IsIntegralType())
-                            throw new ArgumentException($"Built-in operator parameter type must be an integral type if the other type is a pointer type.");
+                    return;
+                }
 
-                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
-                            return;
-                    }
+                // T* operator+(int i, T&)
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    csharpRightType.IsPointerType() &&
+                    csharpLeftType.IsIntegralType() &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
 
-                    if (binaryKind == BinaryOperatorKind.Subtraction)
-                    {
-                        if (!csharpLeftType.IsPointerType())
-                            throw new ArgumentException($"Built-in operator parameter type must be an pointer type.", nameof(leftType));
+                // T* operator-(T*, int i)
+                if (binaryKind is BinaryOperatorKind.Subtraction &&
+                    csharpLeftType.IsPointerType() &&
+                    csharpRightType.IsIntegralType() &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
 
-                        if (csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
-                            return;
-
-                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) && csharpReturnType.SpecialType is SpecialType.System_Int64)
-                            return;
-                    }
+                // long operator-(T*, T*)
+                if (binaryKind is BinaryOperatorKind.Subtraction &&
+                    csharpLeftType.IsPointerType() &&
+                    csharpReturnType.SpecialType is SpecialType.System_Int64 &&
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
                 }
 
                 if (binaryKind is BinaryOperatorKind.Addition &&
