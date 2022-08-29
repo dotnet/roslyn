@@ -15,9 +15,15 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 {
     internal abstract class AbstractBraceCompletionService : IBraceCompletionService
     {
-        protected abstract char OpeningBrace { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
 
+        protected abstract char OpeningBrace { get; }
         protected abstract char ClosingBrace { get; }
+
+        /// <summary>
+        /// Whether or not this brace completion session actually needs semantics to work (and thus should get a semantic model).
+        /// </summary>
+        protected virtual bool NeedsSemantics => false;
 
         /// <summary>
         /// Returns if the token is a valid opening token kind for this brace completion service.
@@ -35,28 +41,36 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         {
             var closingPoint = braceCompletionContext.ClosingPoint;
             if (closingPoint < 1)
-            {
                 return null;
-            }
 
             var openingPoint = braceCompletionContext.OpeningPoint;
             var document = braceCompletionContext.Document;
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (sourceText[openingPoint] != OpeningBrace)
-            {
                 return null;
-            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(openingPoint, findInsideTrivia: true);
-            var validOpeningPoint = await IsValidOpenBraceTokenAtPositionAsync(token, openingPoint, document, cancellationToken).ConfigureAwait(false);
-            if (!validOpeningPoint)
+
+            if (NeedsSemantics)
             {
-                return null;
+                // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
+                // operation.  We don't want to wait on things like source generators to figure things out.
+                var validOpeningPoint = await IsValidOpenBraceTokenAtPositionAsync(
+                     document.WithFrozenPartialSemantics(cancellationToken), token, openingPoint, cancellationToken).ConfigureAwait(false);
+                if (!validOpeningPoint)
+                    return null;
+            }
+            else
+            {
+                var validOpeningPoint = IsValidOpenBraceTokenAtPosition(sourceText, token, openingPoint);
+                if (!validOpeningPoint)
+                    return null;
             }
 
             var braceTextEdit = new TextChange(TextSpan.FromBounds(closingPoint, closingPoint), ClosingBrace.ToString());
+
             // The caret location should be in between the braces.
             var originalOpeningLinePosition = sourceText.Lines.GetLinePosition(openingPoint);
             var caretLocation = new LinePosition(originalOpeningLinePosition.Line, originalOpeningLinePosition.Character + 1);
@@ -98,19 +112,20 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         }
 
         /// <summary>
+        /// Only called if <see cref="NeedsSemantics"/> returns true;
+        /// </summary>
+        protected virtual ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+        {
+            // Subclass should have overridden this.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        /// <summary>
         /// Checks if the already inserted token is a valid opening token at the position in the document.
         /// By default checks that the opening token is a valid token at the position and not in skipped token trivia.
         /// </summary>
-        protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
-        {
-            if (token.SpanStart != position)
-            {
-                return SpecializedTasks.False;
-            }
-
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return Task.FromResult(IsValidOpeningBraceToken(token) && !ParentIsSkippedTokensTriviaOrNull(syntaxFactsService, token));
-        }
+        protected virtual bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
+            => token.SpanStart == position && IsValidOpeningBraceToken(token) && !ParentIsSkippedTokensTriviaOrNull(this.SyntaxFacts, token);
 
         /// <summary>
         /// Returns true when the current position is inside user code (e.g. not strings) and the closing token
@@ -136,8 +151,8 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken);
         }
 
-        protected static bool ParentIsSkippedTokensTriviaOrNull(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
-            => token.Parent == null || syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
+        protected static bool ParentIsSkippedTokensTriviaOrNull(ISyntaxFacts syntaxFacts, SyntaxToken token)
+            => token.Parent == null || syntaxFacts.IsSkippedTokensTrivia(token.Parent);
 
         /// <summary>
         /// Checks that the token at the closing position is a valid closing token.

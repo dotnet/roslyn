@@ -2872,7 +2872,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try", "finally").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
                 // (6,21): error CS1514: { expected
                 //         try { } [A] finally { }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
@@ -3060,7 +3060,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try", "catch").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
                 // (6,21): error CS1514: { expected
                 //         try { } [A] catch { }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
@@ -6695,7 +6695,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
                 // (6,25): error CS1003: Syntax error, ',' expected
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",").WithLocation(6, 25),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
                 //         [A]int this[int i] => 0;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25),

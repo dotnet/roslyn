@@ -40,8 +40,6 @@
       "src\\Dependencies\\PooledObjects\\Microsoft.CodeAnalysis.PooledObjects.shproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Package.csproj",
-      "src\\NuGet\\Microsoft.NETCore.Compilers\\Microsoft.NETCore.Compilers.Package.csproj",
-      "src\\NuGet\\Microsoft.Net.Compilers\\Microsoft.Net.Compilers.Package.csproj",
       "src\\Test\\PdbUtilities\\Roslyn.Test.PdbUtilities.csproj",
       "src\\Compilers\\Test\\Core\\Microsoft.CodeAnalysis.Test.Utilities.csproj",
       "src\\Tools\\AnalyzerRunner\\AnalyzerRunner.csproj",

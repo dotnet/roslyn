@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -138,21 +139,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(
-            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
+            return GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
         }
 
-        internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             return codeFixes.SelectMany(fix => fix.Action.NestedCodeActions)
                             .OfType<PragmaWarningCodeAction>()
                             .ToImmutableArray();
         }
 
         private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (suppressionTargetInfo == null)
@@ -161,13 +162,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             return await GetSuppressionsAsync(
-                documentOpt: document, project: document.Project, diagnostics: diagnostics,
-                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: skipSuppressMessage,
-                skipUnsuppress: skipUnsuppress, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, document.Project, diagnostics, suppressionTargetInfo, fallbackOptions, skipSuppressMessage, skipUnsuppress, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<CodeFix>> GetFixesAsync(
-            Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {
@@ -177,13 +176,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var suppressionTargetInfo = new SuppressionTargetInfo() { TargetSymbol = compilation.Assembly };
             return await GetSuppressionsAsync(
-                documentOpt: null, project: project, diagnostics: diagnostics,
-                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: false,
-                skipUnsuppress: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                documentOpt: null, project, diagnostics, suppressionTargetInfo,
+                fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-            Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+            Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, CodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             // We only care about diagnostics that can be suppressed/unsuppressed.
             diagnostics = diagnostics.Where(IsFixableDiagnostic);
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
                         // pragma warning disable.
-                        lazyFormattingOptions ??= await SyntaxFormattingOptions.FromDocumentAsync(documentOpt, cancellationToken).ConfigureAwait(false);
+                        lazyFormattingOptions ??= await documentOpt.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                         nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, lazyFormattingOptions, diagnostic, this));
                     }
 
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         // global assembly-level suppress message attribute.
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(
-                            suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this));
+                            suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this, fallbackOptions));
 
                         // local suppress message attribute
                         // please note that in order to avoid issues with existing unit tests referencing the code fix
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
                 else if (!skipUnsuppress)
                 {
-                    var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
+                    var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (codeAction != null)
                     {
                         result.Add(new CodeFix(project, codeAction, diagnostic));

@@ -337,8 +337,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <remarks>
         /// internal for unit testing
         /// </remarks>
-        internal static bool IsBinary(string text)
+        internal static bool IsBinary(ReadOnlySpan<char> text)
         {
+#if NETCOREAPP
+            // On .NET Core, Contains has an optimized vectorized implementation, much faster than a custom loop.
+            return text.Contains("\0\0", StringComparison.Ordinal);
+#else
             // PERF: We can advance two chars at a time unless we find a NUL.
             for (int i = 1; i < text.Length;)
             {
@@ -358,7 +362,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return false;
+#endif
         }
+
+        /// <inheritdoc cref="IsBinary(ReadOnlySpan{char})" />
+        internal static bool IsBinary(string text) => IsBinary(text.AsSpan());
 
         /// <summary>
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.

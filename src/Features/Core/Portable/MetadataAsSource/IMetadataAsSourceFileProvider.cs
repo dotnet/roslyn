@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 
@@ -37,5 +38,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// Maps from a document to its project for the purposes of symbol mapping via <see cref="ISymbolMappingService"/>
         /// </summary>
         Project? MapDocument(Document document);
+
+        /// <summary>
+        /// Called to determine if the file should be collapsed by default when opened for the first time
+        /// </summary>
+        bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions);
     }
 }

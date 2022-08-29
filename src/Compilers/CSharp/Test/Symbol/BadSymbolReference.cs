@@ -287,6 +287,12 @@ interface I1<T>
                 // (137,15): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     interface I2 : CL3_I1, I1<CL3_I1>
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "I2").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(137, 15),
+                // (140,11): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     class C5 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C5").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(140, 11),
+                // (137,15): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     interface I2 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "I2").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(137, 15),
                 // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         CL3_C1 x1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
@@ -474,6 +480,12 @@ public interface CL3_I1 : CL2_I1
                 // (133,16): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
                 //     class C4 : CL3_S1
                 Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "CL3_S1").WithArguments("Module1.C4", "CL3_S1").WithLocation(133, 16),
+                // (137,15): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     interface I2 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("CL2_I1").WithLocation(137, 15),
+                // (140,11): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     class C5 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C5").WithArguments("CL2_I1").WithLocation(140, 11),
                 // (137,15): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     interface I2 : CL3_I1, I1<CL3_I1>
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("CL2_I1").WithLocation(137, 15),

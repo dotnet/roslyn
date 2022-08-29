@@ -3587,10 +3587,10 @@ class C
                 // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
                 //         Action ptr1 = (Action)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
-                // (9,23): error CS8811: Cannot convert &method group 'M' to delegate type 'M'.
+                // (9,23): error CS8811: Cannot convert &method group 'M' to delegate type 'Action'.
                 //         Action ptr2 = (Action)(&M);
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "(Action)(&M)").WithArguments("M", "System.Action").WithLocation(9, 23),
-                // (10,23): error CS8811: Cannot convert &method group 'M' to delegate type 'M'.
+                // (10,23): error CS8811: Cannot convert &method group 'M' to delegate type 'Action'.
                 //         Action ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
             );
@@ -3750,6 +3750,34 @@ unsafe class C
                 // (8,41): error CS1944: An expression tree may not contain an unsafe pointer operation
                 //         Expression<Action> a = () => M2(ptr);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "ptr").WithLocation(8, 41)
+            );
+        }
+
+        [Fact, WorkItem(59454, "https://github.com/dotnet/roslyn/issues/59454")]
+        public void FunctionPointerInvocationInExpressionTree()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+using System.Linq.Expressions;
+namespace test
+{
+    unsafe class Program
+    {
+        static double f() => 0;
+        static delegate*<double> fp() => &f;
+        static void Main()
+        {
+            Expression<Func<double>> h = static () => fp()();
+            Console.WriteLine(h);
+        }
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (12,55): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //             Expression<Func<double>> h = static () => fp()();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "fp()()").WithLocation(12, 55)
             );
         }
 
@@ -5203,6 +5231,7 @@ unsafe
         [InlineData("%")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("&&")]
         [InlineData("||")]
         [InlineData("&")]
@@ -7787,10 +7816,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
-                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
             );
@@ -8806,10 +8835,10 @@ class Test
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6),
-                // (10,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (10,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(10, 6)
             );
@@ -8836,10 +8865,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -8921,7 +8950,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     static int Prop { [UnmanagedCallersOnly] get {} }
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 28)
             );
@@ -9061,10 +9090,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -9142,7 +9171,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9204,7 +9233,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9342,7 +9371,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(12, 6)
             );
@@ -9374,7 +9403,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
             );
@@ -9882,7 +9911,7 @@ namespace System.Runtime.InteropServices
                 // (7,10): error CS8893: 'UnmanagedCallersOnlyAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithArguments("System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute").WithLocation(7, 10),
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10)
             );
@@ -10465,7 +10494,7 @@ class A
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Expression", isSuppressed: false).WithArguments("Expression").WithLocation(5, 59),
                 // (5,69): error CS1003: Syntax error, ',' expected
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(Bad, Expression) })]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",", ")").WithLocation(5, 69),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",").WithLocation(5, 69),
                 // (9,43): error CS8786: Calling convention of 'A.F()' is not compatible with 'Unmanaged'.
                 //         delegate* unmanaged<void> ptr2 = &F;
                 Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "F", isSuppressed: false).WithArguments("A.F()", "Unmanaged").WithLocation(9, 43)
@@ -11213,9 +11242,9 @@ unsafe
                 // (10,16): error CS8347: Cannot use a result of 'delegate*<Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ptr(s);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(s)").WithArguments("delegate*<System.Span<int>, System.Span<int>>", "0").WithLocation(10, 16),
-                // (10,20): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,20): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ptr(s);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(10, 20)
             );
         }
 

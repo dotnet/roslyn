@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(
                     Compilation.Assembly.GlobalNamespace, identifierValueText, 0,
-                    new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound)));
+                    new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound, identifierValueText)));
             }
 
             var errorResult = CreateErrorIfLookupOnTypeParameter(node.Parent, qualifierOpt, identifierValueText, 0, diagnostics);
@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
-            if ((object)symbol == null)
+            if (symbol is null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));
                         return (object)forwardedToAssembly == null
-                            ? diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFound, location, whereText, qualifierOpt)
+                            ? diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFound, location, whereText)
                             : diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly);
                     }
                     else
@@ -2419,6 +2419,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        internal static ContextualAttributeBinder TryGetContextualAttributeBinder(Binder binder)
+        {
+            if ((binder.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            {
+                do
+                {
+                    if (binder is ContextualAttributeBinder contextualAttributeBinder)
+                    {
+                        return contextualAttributeBinder;
+                    }
+
+                    binder = binder.Next;
+                }
+                while (binder != null);
+                Debug.Assert(false);
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Look for a type forwarder for the given type in the containing assembly and any referenced assemblies.
         /// </summary>
@@ -2442,28 +2462,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might require us to examine types forwarded by this assembly, thus binding assembly level
             // attributes again. And the cycle continues.
             // So, we won't do the analysis in this case, at the expense of better diagnostics.
-            if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            var contextualAttributeBinder = TryGetContextualAttributeBinder(this);
+            if (contextualAttributeBinder is { AttributeTarget: { Kind: SymbolKind.Assembly } })
             {
-                var current = this;
-
-                do
-                {
-                    var contextualAttributeBinder = current as ContextualAttributeBinder;
-
-                    if (contextualAttributeBinder != null)
-                    {
-                        if ((object)contextualAttributeBinder.AttributeTarget != null &&
-                            contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.Assembly)
-                        {
-                            return null;
-                        }
-
-                        break;
-                    }
-
-                    current = current.Next;
-                }
-                while (current != null);
+                return null;
             }
 
             // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is

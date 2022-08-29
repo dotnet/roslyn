@@ -153,4 +153,19 @@
   <data name="Add_blank_line_after_block" xml:space="preserve">
     <value>Add blank line after block</value>
   </data>
+  <data name="Make_class_abstract" xml:space="preserve">
+    <value>Make class 'abstract'</value>
+  </data>
+  <data name="Make_member_static" xml:space="preserve">
+    <value>Make static</value>
+  </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
+  </data>
+  <data name="Alias_ambiguous_type_0" xml:space="preserve">
+    <value>Alias ambiguous type '{0}'</value>
+  </data>
+  <data name="Convert_type_to_0" xml:space="preserve">
+    <value>Convert type to '{0}'</value>
+  </data>
 </root>

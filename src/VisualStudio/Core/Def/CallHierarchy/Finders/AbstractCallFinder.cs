@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 {
@@ -159,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     if (caller.CallingSymbol.Kind == SymbolKind.Field)
                     {
                         initializerLocations.AddRange(caller.Locations.Select(
-                            l => new CallHierarchyDetail(this.Provider.ThreadingContext, l, project.Solution.Workspace)));
+                            loc => new CallHierarchyDetail(this.Provider, loc, project.Solution.Workspace)));
                     }
                     else
                     {
                         var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly, cancellationToken);
-                        var item = await Provider.CreateItemAsync(caller.CallingSymbol, callingProject, caller.Locations, cancellationToken).ConfigureAwait(false);
+                        var item = await Provider.CreateItemAsync(caller.CallingSymbol, callingProject, caller.Locations.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
                         callback.AddResult(item);
                         cancellationToken.ThrowIfCancellationRequested();
                     }

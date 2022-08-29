@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedMarkup,
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedDocumentName,
             CodeAction action)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
             return await TestAddDocument(
                 workspace,
                 expectedMarkup,

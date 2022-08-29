@@ -34,6 +34,19 @@ $$#Region ""Goo""
                 Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function RegionsShouldBeCollapsedByDefault(collapseRegionsByDefault As Boolean) As Task
+            Const code = "
+{|span:$$#Region ""Goo""
+#End Region|}
+"
+
+            Dim options = New BlockStructureOptions() With {.CollapseRegionsWhenFirstOpened = collapseRegionsByDefault}
+
+            Await VerifyBlockSpansAsync(code, options,
+                Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=collapseRegionsByDefault))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function RegionWithNoBanner1() As Task
             Const code = "

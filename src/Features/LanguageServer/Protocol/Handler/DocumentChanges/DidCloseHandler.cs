@@ -12,9 +12,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DidCloseHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidCloseName)]
-    internal class DidCloseHandler : AbstractStatelessRequestHandler<LSP.DidCloseTextDocumentParams, object?>
+    internal class DidCloseHandler : IRequestHandler<LSP.DidCloseTextDocumentParams, object?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override bool MutatesSolutionState => true;
-        public override bool RequiresLSPSolution => false;
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => false;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
 
-        public override Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
             context.TraceInformation($"didClose for {request.TextDocument.Uri}");

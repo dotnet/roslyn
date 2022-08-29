@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -33,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
 
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly ISet<MemberAccessExpressionSyntax> memberAccessNodes;
+            private readonly ISet<MemberAccessExpressionSyntax> _memberAccessNodes;
 
             public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
-                => this.memberAccessNodes = memberAccessNodes;
+                => _memberAccessNodes = memberAccessNodes;
 
-            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-                => memberAccessNodes.Contains(node)
+            public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+                => _memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
         }

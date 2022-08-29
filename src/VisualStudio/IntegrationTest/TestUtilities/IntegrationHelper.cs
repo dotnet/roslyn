@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
@@ -224,8 +223,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // NOTE: This assumes that Visual Studio is the active foreground window.
 
-            LogKeyboardInputs(inputs);
-
             var eventsInserted = NativeMethods.SendInput((uint)inputs.Length, inputs, NativeMethods.SizeOf_INPUT);
 
             if (eventsInserted == 0)
@@ -233,159 +230,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var hresult = Marshal.GetHRForLastWin32Error();
                 throw new ExternalException("Sending input failed because input was blocked by another thread.", hresult);
             }
-        }
-
-        [Conditional("DEBUG")]
-        private static void LogKeyboardInputs(NativeMethods.INPUT[] inputs)
-        {
-            foreach (var input in inputs)
-            {
-                switch (input.Type)
-                {
-                    case NativeMethods.INPUT_KEYBOARD:
-                        LogKeyboardInput(input.Input.ki);
-                        break;
-                    case NativeMethods.INPUT_MOUSE:
-                        Debug.WriteLine("UNEXPECTED: Encountered mouse input");
-                        break;
-                    case NativeMethods.INPUT_HARDWARE:
-                        Debug.WriteLine("UNEXPECTED: Encountered hardware input");
-                        break;
-                    default:
-                        Debug.WriteLine($"ERROR: Encountered illegal input type: {input.Type}");
-                        break;
-                }
-            }
-        }
-
-        [Conditional("DEBUG")]
-        private static void LogKeyboardInput(NativeMethods.KEYBDINPUT input)
-        {
-            var isExtendedKey = (input.dwFlags & NativeMethods.KEYEVENTF_EXTENDEDKEY) != 0;
-            var isKeyUp = (input.dwFlags & NativeMethods.KEYEVENTF_KEYUP) != 0;
-            var isUnicode = (input.dwFlags & NativeMethods.KEYEVENTF_UNICODE) != 0;
-            var isScanCode = (input.dwFlags & NativeMethods.KEYEVENTF_SCANCODE) != 0;
-
-            if (isUnicode && input.wVk != 0)
-            {
-                Debug.WriteLine("UNEXPECTED: if KEYEVENTF_UNICODE flag is specified then wVk must be 0.");
-                return;
-            }
-
-            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
-
-            builder.Append("Send Key: ");
-
-            char ch;
-            if (isUnicode || isScanCode)
-            {
-                builder.Append(input.wScan.ToString("x4"));
-                ch = (char)input.wScan;
-            }
-            else
-            {
-                builder.Append(input.wVk.ToString("x4"));
-                ch = (char)(NativeMethods.MapVirtualKey(input.wVk, NativeMethods.MAPVK_VK_TO_CHAR) & 0x0000ffff);
-            }
-
-            // Append code and printable character
-            builder.Append(' ');
-            AppendPrintableChar(ch, builder);
-
-            if (!isUnicode && !isScanCode && input.wVk <= byte.MaxValue)
-            {
-                AppendVirtualKey((byte)input.wVk, builder);
-            }
-
-            // Append flags
-            if (input.dwFlags == 0)
-            {
-                builder.Append("[none]");
-            }
-            else
-            {
-                builder.Append('[');
-
-                if (isExtendedKey)
-                {
-                    AppendFlag("extended", builder);
-                }
-
-                if (isKeyUp)
-                {
-                    AppendFlag("key up", builder);
-                }
-
-                if (isUnicode)
-                {
-                    AppendFlag("unicode", builder);
-                }
-
-                if (isScanCode)
-                {
-                    AppendFlag("scan code", builder);
-                }
-
-                builder.Append(']');
-            }
-
-            Debug.WriteLine(builder.ToString());
-
-            SharedPools.Default<StringBuilder>().ClearAndFree(builder);
-        }
-
-        private static void AppendPrintableChar(char ch, StringBuilder builder)
-        {
-            var text = GetPrintableCharText(ch);
-
-            if (text != null)
-            {
-                builder.Append("'");
-                builder.Append(text);
-                builder.Append("' ");
-            }
-        }
-
-        private static string? GetPrintableCharText(char ch)
-        {
-            switch (ch)
-            {
-                case '\r':
-                    return @"\r";
-                case '\n':
-                    return @"\n";
-                case '\t':
-                    return @"\t";
-                case '\f':
-                    return @"\f";
-                case '\v':
-                    return @"\v";
-                default:
-                    return !char.IsControl(ch)
-                        ? new string(ch, 1)
-                        : null;
-            }
-        }
-
-        private static void AppendVirtualKey(byte virtualKey, StringBuilder builder)
-        {
-            if (Enum.IsDefined(typeof(VirtualKey), virtualKey))
-            {
-                builder.Append('(');
-                builder.Append(Enum.GetName(typeof(VirtualKey), virtualKey));
-                builder.Append(") ");
-            }
-        }
-
-        [Conditional("DEBUG")]
-        private static void AppendFlag(string flagText, StringBuilder builder)
-        {
-            if (builder.Length > 0 && builder[builder.Length - 1] != '[')
-            {
-                builder.Append(", ");
-            }
-
-            builder.Append(flagText);
         }
 
         public static bool TryDeleteDirectoryRecursively(string path)

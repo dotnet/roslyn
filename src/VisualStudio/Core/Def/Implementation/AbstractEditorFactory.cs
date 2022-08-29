@@ -9,8 +9,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -309,6 +311,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     name: nameof(FormatDocumentCreatedFromTemplate),
                     assemblyName: nameof(FormatDocumentCreatedFromTemplate),
                     language: LanguageName);
+
+                // We have to discover .editorconfig files ourselves to ensure that code style rules are followed.
+                // Normally the project system would tell us about these.
+                projectToAddTo = AddEditorConfigFiles(projectToAddTo, Path.GetDirectoryName(filePath));
             }
 
             // We need to ensure that decisions made during new document formatting are based on the right language
@@ -320,25 +326,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
 
             var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
-            var addedDocument = forkedSolution.GetDocument(documentId)!;
+            var addedDocument = forkedSolution.GetRequiredDocument(documentId);
+
+            var globalOptions = _componentModel.GetService<IGlobalOptionService>();
+            var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(true);
 
             // Call out to various new document formatters to tweak what they want
             var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
             {
-                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cleanupOptions, cancellationToken).ConfigureAwait(true);
             }
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
-            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, formattingOptions, cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, cleanupOptions.FormattingOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = formattingOptions.NewLine;
+            var targetLineEnding = cleanupOptions.FormattingOptions.NewLine;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)
@@ -360,6 +368,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
                 formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
+        }
+
+        private static Project AddEditorConfigFiles(Project projectToAddTo, string projectFolder)
+        {
+            do
+            {
+                projectToAddTo = AddEditorConfigFile(projectToAddTo, projectFolder, out var foundRoot);
+
+                if (foundRoot)
+                    break;
+
+                projectFolder = Path.GetDirectoryName(projectFolder);
+            }
+            while (projectFolder is not null);
+
+            return projectToAddTo;
+
+            static Project AddEditorConfigFile(Project project, string folder, out bool foundRoot)
+            {
+                const string EditorConfigFileName = ".editorconfig";
+
+                foundRoot = false;
+
+                var editorConfigFile = Path.Combine(folder, EditorConfigFileName);
+
+                var text = IOUtilities.PerformIO(() =>
+                {
+                    using var stream = File.OpenRead(editorConfigFile);
+                    return SourceText.From(stream);
+                });
+
+                if (text is null)
+                    return project;
+
+                return project.AddAnalyzerConfigDocument(EditorConfigFileName, text, filePath: editorConfigFile).Project;
+            }
         }
     }
 }

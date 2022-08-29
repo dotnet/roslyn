@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -105,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (symbolInfo.Symbol == null)
                 return false;
 
-            return await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+            return await GoToDefinitionHelpers.TryNavigateToLocationAsync(
                 symbolInfo.Symbol, currentProject.Solution,
                 _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
         }

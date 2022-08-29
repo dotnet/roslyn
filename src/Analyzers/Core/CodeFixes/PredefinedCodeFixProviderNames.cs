@@ -34,9 +34,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConsecutiveStatementPlacement = nameof(ConsecutiveStatementPlacement);
         public const string ConstructorInitializerPlacement = nameof(ConstructorInitializerPlacement);
         public const string ConvertNamespace = nameof(ConvertNamespace);
+        public const string ConvertToProgramMain = nameof(ConvertToProgramMain);
         public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
+        public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
         public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
@@ -44,9 +46,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string EmbeddedStatementPlacement = nameof(EmbeddedStatementPlacement);
         public const string FileHeader = nameof(FileHeader);
         public const string FixFormatting = nameof(FixFormatting);
+        public const string FixIncorrectConstraint = nameof(FixIncorrectConstraint);
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
         public const string FixIncorrectFunctionReturnType = nameof(FixIncorrectFunctionReturnType);
         public const string FixReturnType = nameof(FixReturnType);
+        public const string ForEachCast = nameof(ForEachCast);
         public const string FullyQualify = nameof(FullyQualify);
         public const string GenerateConstructor = nameof(GenerateConstructor);
         public const string GenerateConversion = nameof(GenerateConversion);
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryDiscardDesignation = nameof(RemoveUnnecessaryDiscardDesignation);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
+        public const string RemoveUnnecessaryNullableDirective = nameof(RemoveUnnecessaryNullableDirective);
         public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
         public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
@@ -136,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseInterpolatedVerbatimString = nameof(UseInterpolatedVerbatimString);
         public const string UseIsNotExpression = nameof(UseIsNotExpression);
         public const string UseIsNullCheck = nameof(UseIsNullCheck);
-        public const string UseParameterNullChecking = nameof(UseParameterNullChecking);
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
         public const string UseLocalFunction = nameof(UseLocalFunction);
@@ -153,5 +157,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string UseTupleSwap = nameof(UseTupleSwap);
+        public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
     }
 }

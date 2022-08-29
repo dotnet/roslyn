@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' from the <see cref="CommonConversion"/> struct.
         ''' </remarks>
         Public Function ToCommonConversion() As CommonConversion Implements IConvertibleConversion.ToCommonConversion
-            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol)
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol, constrainedToType:=Nothing)
         End Function
 
         ''' <summary>

@@ -5191,7 +5191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                         hasError = True
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException, exceptionType)
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException)
                     End If
 
                     diagnostics.Add(node, useSiteInfo)

@@ -146,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expandedNamespace;
         }
 
+        public bool IsEmpty => UsingAliases.IsEmpty && Usings.IsEmpty && ExternAliases.IsEmpty;
+
         public static Imports Create(
             ImmutableDictionary<string, AliasAndUsingDirective> usingAliases,
             ImmutableArray<NamespaceOrTypeAndUsingDirective> usings,

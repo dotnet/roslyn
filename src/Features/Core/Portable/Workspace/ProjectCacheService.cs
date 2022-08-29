@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly object _gate = new();
 
         private readonly Workspace? _workspace;
-        private readonly ISyntaxTreeConfigurationService? _configurationService;
+        private readonly IWorkspaceConfigurationService? _configurationService;
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Host
         public ProjectCacheService(Workspace? workspace)
         {
             _workspace = workspace;
-            _configurationService = workspace?.Services.GetService<ISyntaxTreeConfigurationService>();
+            _configurationService = workspace?.Services.GetService<IWorkspaceConfigurationService>();
         }
 
         public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Recoverable trees only save significant memory for larger trees.
         /// </summary>
         public int MinimumLengthForRecoverableTree
-            => (_configurationService?.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
+            => (_configurationService?.Options.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
 
         public bool IsImplicitCacheEmpty
         {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private bool IsEnabled
-            => _configurationService?.DisableProjectCacheService != true;
+            => _configurationService?.Options.DisableProjectCacheService != true;
 
         private bool PartOfP2PReferences(ProjectId key)
         {

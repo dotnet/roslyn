@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IThreadingContext),
                     globalOptions,
+                    visibilityTracker:=Nothing,
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)

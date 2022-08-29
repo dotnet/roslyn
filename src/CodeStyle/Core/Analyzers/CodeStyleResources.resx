@@ -123,29 +123,11 @@
   <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
     <value>A language name must be specified for this option.</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="Fix_formatting" xml:space="preserve">
-    <value>Fix formatting</value>
-  </data>
   <data name="Indentation_and_spacing" xml:space="preserve">
     <value>Indentation and spacing</value>
   </data>
   <data name="New_line_preferences" xml:space="preserve">
     <value>New line preferences</value>
-  </data>
-  <data name="None" xml:space="preserve">
-    <value>None</value>
-  </data>
-  <data name="Refactoring_Only" xml:space="preserve">
-    <value>Refactoring Only</value>
-  </data>
-  <data name="Suggestion" xml:space="preserve">
-    <value>Suggestion</value>
-  </data>
-  <data name="Warning" xml:space="preserve">
-    <value>Warning</value>
   </data>
   <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
     <value>Arrays with more than one dimension cannot be serialized.</value>

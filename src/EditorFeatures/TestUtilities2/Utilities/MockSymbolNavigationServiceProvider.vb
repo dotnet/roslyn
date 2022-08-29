@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public TryNavigateToSymbolProvidedSymbol As ISymbol
             Public TryNavigateToSymbolProvidedProject As Project
-            Public TryNavigateToSymbolProvidedOptions As NavigationOptions
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
             Public TrySymbolNavigationNotifyProvidedProject As Project
@@ -46,11 +45,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public NavigationLineNumberReturnValue As Integer
             Public NavigationCharOffsetReturnValue As Integer
 
-            Public Function TryNavigateToSymbolAsync(symbol As ISymbol, project As Project, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TryNavigateToSymbolAsync
+            Public Function GetNavigableLocationAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements ISymbolNavigationService.GetNavigableLocationAsync
                 Me.TryNavigateToSymbolProvidedSymbol = symbol
                 Me.TryNavigateToSymbolProvidedProject = project
-                Me.TryNavigateToSymbolProvidedOptions = options
-                Return SpecializedTasks.True
+                Return NavigableLocation.TestAccessor.Create(True)
             End Function
 
             Public Function TrySymbolNavigationNotifyAsync(

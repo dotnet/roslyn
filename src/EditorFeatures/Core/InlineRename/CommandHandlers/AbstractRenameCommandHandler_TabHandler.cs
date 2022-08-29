@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // If the Dashboard is focused, just navigate through its UI.
-            if (DashboardShouldReceiveKeyboardNavigation(args.TextView))
+            if (AdornmentShouldReceiveKeyboardNavigation(args.TextView))
             {
-                SetDashboardFocusToNextElement(args.TextView);
+                SetAdornmentFocusToNextElement(args.TextView);
                 return;
             }
 
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // If the Dashboard is focused, just navigate through its UI.
-            if (DashboardShouldReceiveKeyboardNavigation(args.TextView))
+            if (AdornmentShouldReceiveKeyboardNavigation(args.TextView))
             {
-                SetDashboardFocusToPreviousElement(args.TextView);
+                SetAdornmentFocusToPreviousElement(args.TextView);
                 return;
             }
             else

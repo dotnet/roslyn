@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class CompilationUnitSyntaxExtensions
+    internal static partial class CompilationUnitSyntaxExtensions
     {
         public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {

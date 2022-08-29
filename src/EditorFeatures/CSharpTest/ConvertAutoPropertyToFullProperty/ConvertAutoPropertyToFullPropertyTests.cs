@@ -1227,7 +1227,7 @@ partial class Program
 
             using var testWorkspace = TestWorkspace.Create(xmlString);
             // refactor file1 and check
-            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+            var (_, action) = await GetCodeActionsAsync(testWorkspace);
             await TestActionAsync(
                 testWorkspace,
                 file1AfterRefactor,
@@ -1236,7 +1236,7 @@ partial class Program
                 renameSpans: ImmutableArray<TextSpan>.Empty,
                 warningSpans: ImmutableArray<TextSpan>.Empty,
                 navigationSpans: ImmutableArray<TextSpan>.Empty,
-                parameters: default);
+                parameters: null);
         }
 
         [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
@@ -1271,7 +1271,7 @@ partial class Program
 
             using var testWorkspace = TestWorkspace.Create(xmlString);
             // refactor file2 and check
-            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+            var (_, action) = await GetCodeActionsAsync(testWorkspace);
             await TestActionAsync(
                 testWorkspace,
                 file2AfterRefactor,
@@ -1280,7 +1280,7 @@ partial class Program
                 renameSpans: ImmutableArray<TextSpan>.Empty,
                 warningSpans: ImmutableArray<TextSpan>.Empty,
                 navigationSpans: ImmutableArray<TextSpan>.Empty,
-                parameters: default);
+                parameters: null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]

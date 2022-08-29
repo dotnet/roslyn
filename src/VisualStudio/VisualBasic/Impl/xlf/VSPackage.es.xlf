@@ -29,19 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
         <target state="translated">Subrayar variables reasignadas;Mostrar sugerencias alineadas;Insertar automáticamente las construcciones finales;Cambiar configuración de la lista descriptiva;Cambiar el modo de esquematización;Inserción automática de miembros Interface y MustOverride; Mostrar u ocultar separadores de línea de procedimiento;Activar o desactivar las sugerencias de corrección de errores; Activar o desactivar el resaltado de referencias y palabras clave;
 Expresión regular;
 expresiones regulares;
 componentes relacionados bajo el cursor;
 Notificar las expresiones regulares no válidas;
-Expresión regular;
-Expresión regular;
+regex;
+expresión regular;
 JSON;
 Colorear las cadenas JSON;
 Notificar las cadenas JSON no válidas;
 Detectar y ofrecer las características de editor para las cadenas JSON;
-Usar colores mejorados; Combinación de colores del editor;Margen de herencia;Directivas de importación;</target>
+Contraer #regions al abrir archivos;
+Contraer importaciones al abrir archivos;
+Contraer implementaciones de metadatos al abrir archivos;
+Usar colores mejorados;Combinación de colores del editor;Margen de herencia;Directivas de importación;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

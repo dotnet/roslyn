@@ -616,5 +616,73 @@ $@"class C
                 await VerifyItemExistsAsync(markup, "nameof");
             }
         }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public async Task SuggestRequiredInClassOrStruct(string type)
+        {
+            var markup = $$"""
+                {{type}} C
+                {
+                    $$
+                """;
+
+            await VerifyItemExistsAsync(markup, "required");
+        }
+
+        [Fact]
+        public async Task DoNotSuggestRequiredInInterface()
+        {
+            var markup = $$"""
+                interface I
+                {
+                    public $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "required");
+        }
+
+        [Theory]
+        [InlineData("static")]
+        [InlineData("const")]
+        [InlineData("readonly")]
+        public async Task DoNotSuggestRequiredOnFilteredKeywordMembers(string keyword)
+        {
+            var markup = $$"""
+                class C 
+                {
+                    {{keyword}} $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "required");
+        }
+
+        [Theory]
+        [InlineData("static")]
+        [InlineData("const")]
+        [InlineData("readonly")]
+        public async Task DoNotSuggestFilteredKeywordsOnRequiredMembers(string keyword)
+        {
+            var markup = $$"""
+                class C 
+                {
+                    required $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, keyword);
+        }
+
+        [Fact]
+        public async Task DoNotSuggestRequiredOnRequiredMembers()
+        {
+            var markup = $$"""
+                class C 
+                {
+                    required $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "required");
+        }
     }
 }

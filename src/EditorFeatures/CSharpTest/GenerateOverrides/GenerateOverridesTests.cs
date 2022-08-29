@@ -250,5 +250,31 @@ class D : C
     }
 }", new[] { "M" });
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestRequiredProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public virtual required int Property { get; set; }
+}
+
+class Derived : Base
+{
+     [||]
+}",
+@"
+class Base
+{
+    public virtual required int Property { get; set; }
+}
+
+class Derived : Base
+{
+    public override required int Property { get => base.Property; set => base.Property = value; }
+}", new[] { "Property" });
+        }
     }
 }

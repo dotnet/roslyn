@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             return true;
         }
 
-        private static async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
+        private async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
             ITextView textView,
             Document document,
             SnapshotSpan selectionSpan,
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var textSnapshot = selectionSpan.Snapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
             var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
             var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
             return (replacementSpan, replacementText);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         }
 
         private static string GetReplacementText(
-            ITextView textView, DocumentOptionSet options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
+            ITextView textView, LineFormattingOptions options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
         {
             // We're inside a comment.  Instead of inserting just a newline here, insert
             // 1. a newline
@@ -199,12 +199,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
             var commentStartColumn = triviaLine.GetColumnFromLineOffset(trivia.SpanStart - triviaLine.Start, textView.Options);
 
-            var useTabs = options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = options.GetOption(FormattingOptions.TabSize);
-
             var prefix = GetCommentPrefix(triviaLine.Snapshot, trivia, position);
-            var replacementText = options.GetOption(FormattingOptions.NewLine) +
-                commentStartColumn.CreateIndentationString(useTabs, tabSize) +
+            var replacementText = options.NewLine +
+                commentStartColumn.CreateIndentationString(options.UseTabs, options.TabSize) +
                 prefix +
                 GetWhitespaceAfterCommentPrefix(trivia, triviaLine, prefix, position);
 

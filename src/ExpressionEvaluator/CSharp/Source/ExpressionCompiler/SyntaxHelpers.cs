@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal static class SyntaxHelpers
     {
-        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CurrentVersion);
+        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CSharpNext); // Used to be LanguageVersionFacts.CurrentVersion
 
         /// <summary>
         /// Parse expression. Returns null if there are any errors.

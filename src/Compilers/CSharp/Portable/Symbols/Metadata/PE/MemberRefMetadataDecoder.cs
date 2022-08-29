@@ -138,9 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return null;
                         }
 
-                        ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                        TypeSymbol type = this.DecodeFieldSignature(ref signaturePointer, out customModifiers);
-                        return FindFieldBySignature(_containingType, memberName, customModifiers, type);
+                        FieldInfo<TypeSymbol> fieldInfo = this.DecodeFieldSignature(ref signaturePointer);
+                        return FindFieldBySignature(_containingType, memberName, fieldInfo);
 
                     default:
                         // error: unexpected calling convention
@@ -153,16 +152,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private static FieldSymbol FindFieldBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers, TypeSymbol type)
+        private static FieldSymbol FindFieldBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, in FieldInfo<TypeSymbol> fieldInfo)
         {
             foreach (Symbol member in targetTypeSymbol.GetMembers(targetMemberName))
             {
                 var field = member as FieldSymbol;
                 TypeWithAnnotations fieldType;
 
+                // Ensure the field symbol matches the { IsByRef, RefCustomModifiers, Type, CustomModifiers } from metadata.
                 if ((object)field != null &&
-                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, type, TypeCompareKind.CLRSignatureCompareOptions) &&
-                    CustomModifiersMatch(fieldType.CustomModifiers, customModifiers))
+                    (field.RefKind != RefKind.None) == fieldInfo.IsByRef &&
+                    CustomModifiersMatch(field.RefCustomModifiers, fieldInfo.RefCustomModifiers) &&
+                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, fieldInfo.Type, TypeCompareKind.CLRSignatureCompareOptions) &&
+                    CustomModifiersMatch(fieldType.CustomModifiers, fieldInfo.CustomModifiers))
                 {
                     // Behavior in the face of multiple matching signatures is
                     // implementation defined - we'll just pick the first one.

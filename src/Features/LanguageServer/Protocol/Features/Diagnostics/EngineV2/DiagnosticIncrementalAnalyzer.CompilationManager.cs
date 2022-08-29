@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return CompilationWithAnalyzer for given project with given stateSets
         /// </summary>
-        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {
                 return null;
             }
 
-            var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+            var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
             if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers) &&
                 ((WorkspaceAnalyzerOptions)compilationWithAnalyzers!.AnalysisOptions.Options!).IdeOptions == ideOptions)
@@ -60,10 +61,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // we basically eagarly clear the cache on some known changes
             // to let CompilationWithAnalyzer go.
 
-            // we create new conditional weak table every time, it turns out 
-            // only way to clear ConditionalWeakTable is re-creating it.
-            // also, conditional weak table has a leak - https://github.com/dotnet/coreclr/issues/665
+            // we create new conditional weak table every time netstandard as that's the only way it has to clear it.
+#if NETSTANDARD
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
+#else
+            _projectCompilationsWithAnalyzers.Clear();
+#endif
         }
 
         [Conditional("DEBUG")]

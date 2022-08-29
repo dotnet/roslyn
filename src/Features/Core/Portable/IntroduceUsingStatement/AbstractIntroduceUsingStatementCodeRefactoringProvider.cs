@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -41,9 +42,10 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             if (declarationSyntax != null)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         CodeActionTitle,
-                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken)),
+                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken),
+                        CodeActionTitle),
                     declarationSyntax.Span);
             }
         }
@@ -309,14 +311,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 }
 
                 AddReferencedLocalVariables(referencedVariables, childNode, localVariables, semanticModel, syntaxFactsService, cancellationToken);
-            }
-        }
-
-        private sealed class MyCodeAction : DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

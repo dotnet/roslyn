@@ -4,24 +4,23 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.InlineHints
-{
-    [DataContract]
-    internal readonly record struct InlineParameterHintsOptions(
-        [property: DataMember(Order = 0)] bool EnabledForParameters = false,
-        [property: DataMember(Order = 1)] bool ForLiteralParameters = true,
-        [property: DataMember(Order = 2)] bool ForIndexerParameters = true,
-        [property: DataMember(Order = 3)] bool ForObjectCreationParameters = true,
-        [property: DataMember(Order = 4)] bool ForOtherParameters = false,
-        [property: DataMember(Order = 5)] bool SuppressForParametersThatDifferOnlyBySuffix = true,
-        [property: DataMember(Order = 6)] bool SuppressForParametersThatMatchMethodIntent = true,
-        [property: DataMember(Order = 7)] bool SuppressForParametersThatMatchArgumentName = true)
-    {
-        public InlineParameterHintsOptions()
-            : this(EnabledForParameters: false)
-        {
-        }
+namespace Microsoft.CodeAnalysis.InlineHints;
 
-        public static readonly InlineParameterHintsOptions Default = new();
+[DataContract]
+internal readonly record struct InlineParameterHintsOptions
+{
+    [DataMember] public bool EnabledForParameters { get; init; } = false;
+    [DataMember] public bool ForLiteralParameters { get; init; } = true;
+    [DataMember] public bool ForIndexerParameters { get; init; } = true;
+    [DataMember] public bool ForObjectCreationParameters { get; init; } = true;
+    [DataMember] public bool ForOtherParameters { get; init; } = false;
+    [DataMember] public bool SuppressForParametersThatDifferOnlyBySuffix { get; init; } = true;
+    [DataMember] public bool SuppressForParametersThatMatchMethodIntent { get; init; } = true;
+    [DataMember] public bool SuppressForParametersThatMatchArgumentName { get; init; } = true;
+
+    public InlineParameterHintsOptions()
+    {
     }
+
+    public static readonly InlineParameterHintsOptions Default = new();
 }

@@ -145,6 +145,46 @@
     <value>Place colon on following line</value>
   </data>
   <data name="Fix_record_declaration" xml:space="preserve">
-    <value>Fix_record_declaration</value>
+    <value>Fix record declaration</value>
+  </data>
+  <data name="Fix_constraint" xml:space="preserve">
+    <value>Fix constraint</value>
+  </data>
+  <data name="Change_return_type_from_0_to_1" xml:space="preserve">
+    <value>Change return type from {0} to {1}</value>
+  </data>
+  <data name="Hide_base_member" xml:space="preserve">
+    <value>Hide base member</value>
+  </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add [Obsolete]</value>
+  </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
+  <data name="Unseal_class_0" xml:space="preserve">
+    <value>Unseal class '{0}'</value>
+  </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add 'await'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_to_0" xml:space="preserve">
+    <value>Assign to '{0}'</value>
+  </data>
+  <data name="Compare_to_0" xml:space="preserve">
+    <value>Compare to '{0}'</value>
+  </data>
+  <data name="Fix_return_type" xml:space="preserve">
+    <value>Fix return type</value>
+  </data>
+  <data name="Replace_return_with_yield_return" xml:space="preserve">
+    <value>Replace return with yield return</value>
+  </data>
+  <data name="Declare_as_nullable" xml:space="preserve">
+    <value>Declare as nullable</value>
   </data>
 </root>

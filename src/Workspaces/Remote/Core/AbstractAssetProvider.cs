@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public abstract Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken);
 
-        public async Task<(SolutionInfo, SerializableOptionSet)> CreateSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
             var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
-            var info = SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
-            var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksums.Options, cancellationToken).ConfigureAwait(false);
-            return (info, options);
+            return SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
         }
 
         public async Task<ProjectInfo> CreateProjectInfoAsync(Checksum projectChecksum, CancellationToken cancellationToken)

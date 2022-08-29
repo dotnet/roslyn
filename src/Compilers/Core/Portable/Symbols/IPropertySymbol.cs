@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis
         bool IsWriteOnly { get; }
 
         /// <summary>
+        /// True if this property is required to be set in an object initializer during construction.
+        /// </summary>
+        bool IsRequired { get; }
+
+        /// <summary>
         /// Returns true if this property is an auto-created WithEvents property that takes place of
         /// a field member when the field is marked as WithEvents.
         /// </summary>

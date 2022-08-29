@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(refKeyword, ReadOnlyKeyword, type);
         }
+
+        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        {
+            return Update(refKeyword, readOnlyKeyword, ScopedKeyword, type);
+        }
     }
 }
 
@@ -23,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
         {
             return RefType(refKeyword, readOnlyKeyword: default, type);
+        }
+
+        /// <summary>Creates a new RefTypeSyntax instance.</summary>
+        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        {
+            return RefType(refKeyword, readOnlyKeyword, scopedKeyword: default, type);
         }
     }
 }

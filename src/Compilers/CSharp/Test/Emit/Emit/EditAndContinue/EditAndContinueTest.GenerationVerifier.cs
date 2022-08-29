@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
 
@@ -18,12 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             private readonly int _ordinal;
             private readonly MetadataReader _metadataReader;
             private readonly IEnumerable<MetadataReader> _readers;
+            private readonly GenerationInfo _generationInfo;
 
-            public GenerationVerifier(int ordinal, MetadataReader metadataReader, IEnumerable<MetadataReader> readers)
+            public GenerationVerifier(int ordinal, GenerationInfo generationInfo, IEnumerable<MetadataReader> readers)
             {
                 _ordinal = ordinal;
-                _metadataReader = metadataReader;
+                _metadataReader = generationInfo.MetadataReader;
                 _readers = readers;
+                _generationInfo = generationInfo;
             }
 
             private string GetAssertMessage(string message)
@@ -90,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             internal void VerifyCustomAttributes(IEnumerable<CustomAttributeRow> expected)
             {
                 AssertEx.Equal(expected, _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+            }
+
+            internal void VerifyIL(string expectedIL)
+            {
+                _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
             }
         }
     }

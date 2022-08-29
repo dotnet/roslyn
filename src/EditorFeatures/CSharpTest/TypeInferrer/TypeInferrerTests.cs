@@ -199,6 +199,13 @@ var q = s || [|Goo()|];", "global::System.Boolean", mode);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestBinaryOperator3(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"var q = x >>> [|Goo()|];", "global::System.Int32", mode);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestAssignmentOperator3(TestMode mode)
         {
             await TestInMethodAsync(

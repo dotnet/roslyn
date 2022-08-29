@@ -14,14 +14,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Public ReadOnly Workspace As TestWorkspace
         Private ReadOnly _visualStudioWorkspace As VisualStudioWorkspace
         Private ReadOnly _rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel)
-        Private ReadOnly _fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
+        Private ReadOnly _fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)?
         Private ReadOnly _codeModelService As ICodeModelService
 
         Public Sub New(
             workspace As TestWorkspace,
             visualStudioWorkspace As VisualStudioWorkspace,
             rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel),
-            fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel),
+            fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)?,
             codeModelService As ICodeModelService
         )
 
@@ -48,13 +48,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Public ReadOnly Property FileCodeModel As EnvDTE80.FileCodeModel2
             Get
-                Return _fileCodeModel.Handle
+                Return _fileCodeModel.Value.Handle
             End Get
         End Property
 
         Public ReadOnly Property FileCodeModelObject As FileCodeModel
             Get
-                Return _fileCodeModel.Object
+                Return _fileCodeModel.Value.Object
             End Get
         End Property
 

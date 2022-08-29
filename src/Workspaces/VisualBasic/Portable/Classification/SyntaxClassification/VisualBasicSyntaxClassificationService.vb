@@ -7,8 +7,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
@@ -44,6 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
         Public Overrides Function FixClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
             Return ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan)
+        End Function
+
+        Public Overrides Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
+            Return ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier)
         End Function
     End Class
 End Namespace

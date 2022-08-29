@@ -35,7 +35,7 @@ internal abstract class SnippetFunctionService : ILanguageService
     /// For a specified snippet field, replace it with the fully qualified name then simplify in the context of the document
     /// in order to retrieve the simplified type name.
     /// </summary>
-    public static async Task<string?> GetSimplifiedTypeNameAsync(Document document, TextSpan fieldSpan, string fullyQualifiedTypeName, CancellationToken cancellationToken)
+    public static async Task<string?> GetSimplifiedTypeNameAsync(Document document, TextSpan fieldSpan, string fullyQualifiedTypeName, SimplifierOptions simplifierOptions, CancellationToken cancellationToken)
     {
         // Insert the function parameter (fully qualified type name) into the document.
         var updatedTextSpan = new TextSpan(fieldSpan.Start, fullyQualifiedTypeName.Length);
@@ -45,7 +45,7 @@ internal abstract class SnippetFunctionService : ILanguageService
         var documentWithFullyQualifiedTypeName = document.WithText(text.WithChanges(textChange));
 
         // Simplify
-        var simplifiedTypeName = await GetSimplifiedTypeNameAtSpanAsync(documentWithFullyQualifiedTypeName, updatedTextSpan, cancellationToken).ConfigureAwait(false);
+        var simplifiedTypeName = await GetSimplifiedTypeNameAtSpanAsync(documentWithFullyQualifiedTypeName, updatedTextSpan, simplifierOptions, cancellationToken).ConfigureAwait(false);
         return simplifiedTypeName;
     }
 
@@ -53,7 +53,7 @@ internal abstract class SnippetFunctionService : ILanguageService
     /// For a document with the default switch snippet inserted, generate the expanded set of cases based on the value
     /// of the field currently inserted into the switch statement.
     /// </summary>
-    public async Task<string?> GetSwitchExpansionAsync(Document document, TextSpan caseGenerationLocation, TextSpan switchExpressionLocation, CancellationToken cancellationToken)
+    public async Task<string?> GetSwitchExpansionAsync(Document document, TextSpan caseGenerationLocation, TextSpan switchExpressionLocation, SimplifierOptions simplifierOptions, CancellationToken cancellationToken)
     {
         var typeSymbol = await GetEnumSymbolAsync(document, switchExpressionLocation, cancellationToken).ConfigureAwait(false);
         if (typeSymbol?.TypeKind != TypeKind.Enum)
@@ -69,7 +69,7 @@ internal abstract class SnippetFunctionService : ILanguageService
 
         // Find and use the most simplified legal version of the enum type name in this context
         var fullyQualifiedEnumName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        var simplifiedTypeName = await GetSimplifiedEnumNameAsync(document, fullyQualifiedEnumName, enumFields.First().Name, caseGenerationLocation, cancellationToken).ConfigureAwait(false);
+        var simplifiedTypeName = await GetSimplifiedEnumNameAsync(document, fullyQualifiedEnumName, enumFields.First().Name, caseGenerationLocation, simplifierOptions, cancellationToken).ConfigureAwait(false);
         if (simplifiedTypeName == null)
         {
             return null;
@@ -126,17 +126,18 @@ internal abstract class SnippetFunctionService : ILanguageService
         string fullyQualifiedTypeName,
         string firstEnumMemberName,
         TextSpan caseGenerationLocation,
+        SimplifierOptions simplifierOptions,
         CancellationToken cancellationToken)
     {
         // Insert switch with enum case into the document.
         var (documentWithFullyQualified, fullyQualifiedTypeLocation) = await GetDocumentWithEnumCaseAsync(document, fullyQualifiedTypeName, firstEnumMemberName, caseGenerationLocation, cancellationToken).ConfigureAwait(false);
 
         // Simplify enum case.
-        var simplifiedEnum = await GetSimplifiedTypeNameAtSpanAsync(documentWithFullyQualified, fullyQualifiedTypeLocation, cancellationToken).ConfigureAwait(false);
+        var simplifiedEnum = await GetSimplifiedTypeNameAtSpanAsync(documentWithFullyQualified, fullyQualifiedTypeLocation, simplifierOptions, cancellationToken).ConfigureAwait(false);
         return simplifiedEnum;
     }
 
-    private static async Task<string?> GetSimplifiedTypeNameAtSpanAsync(Document documentWithFullyQualifiedTypeName, TextSpan fullyQualifiedTypeSpan, CancellationToken cancellationToken)
+    private static async Task<string?> GetSimplifiedTypeNameAtSpanAsync(Document documentWithFullyQualifiedTypeName, TextSpan fullyQualifiedTypeSpan, SimplifierOptions simplifierOptions, CancellationToken cancellationToken)
     {
         // Simplify
         var typeAnnotation = new SyntaxAnnotation();
@@ -151,7 +152,7 @@ internal abstract class SnippetFunctionService : ILanguageService
         var updatedRoot = syntaxRoot.ReplaceNode(nodeToReplace, nodeToReplace.WithAdditionalAnnotations(typeAnnotation, Simplifier.Annotation));
         var documentWithAnnotations = documentWithFullyQualifiedTypeName.WithSyntaxRoot(updatedRoot);
 
-        var simplifiedDocument = await Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var simplifiedDocument = await Simplifier.ReduceAsync(documentWithAnnotations, simplifierOptions, cancellationToken).ConfigureAwait(false);
         var simplifiedRoot = await simplifiedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var simplifiedTypeName = simplifiedRoot.GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
         return simplifiedTypeName;

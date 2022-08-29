@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
+        public string DirectoryName
+            => _inProc.DirectoryName;
+
         public void CloseSolution(bool saveFirst = false)
             => _inProc.CloseSolution(saveFirst);
 

@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         protected abstract bool TryWrapWithUnchecked(
             ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements);
 
-        public async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>()) };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var formattedDocument = await Formatter.FormatAsync(
                 document, s_specializedFormattingAnnotation,
-                options: null, rules: rules, cancellationToken: cancellationToken).ConfigureAwait(false);
+                options, rules, cancellationToken).ConfigureAwait(false);
             return formattedDocument;
         }
 

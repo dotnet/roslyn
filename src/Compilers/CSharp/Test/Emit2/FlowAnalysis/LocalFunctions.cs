@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -704,7 +705,7 @@ class C
         [Fact]
         public void UnassignedInStruct()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 struct S
 {
     int _x;
@@ -717,20 +718,27 @@ struct S
         }
         Local();
     }
-}");
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (10,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             s._x = _x;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(10, 20),
-                // (7,17): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+                // (7,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         var s = this;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(7, 17),
-                // (12,9): error CS0170: Use of possibly unassigned field '_x'
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(7, 17),
+                // (12,9): error CS9015: Use of possibly unassigned field '_x'. Consider updating to language version 'preview' to auto-default the field.
                 //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(12, 9),
-                // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "preview").WithLocation(12, 9),
+                // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S(int x)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S._x").WithLocation(5, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S._x", "preview").WithLocation(5, 12));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //             s._x = _x;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(10, 20));
         }
 
         [Fact]
@@ -1470,7 +1478,7 @@ struct S
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor2()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 struct S
 {
     public int _x;
@@ -1486,14 +1494,21 @@ struct S
         Local();
         _x = 0;
     }
-}");
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (12,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             S s2 = this;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
-                // (14,9): error CS0170: Use of possibly unassigned field '_x'
+                // (14,9): error CS9014: Use of possibly unassigned field '_x'. Consider updating to language version 'preview' to auto-default the field.
                 //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(14, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "preview").WithLocation(14, 9));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (12,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //             S s2 = this;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20));
         }
 
         [Fact]

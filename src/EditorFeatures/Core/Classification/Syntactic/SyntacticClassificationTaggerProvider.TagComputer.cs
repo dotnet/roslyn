@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// will determine which sections of the file changed and we will use that to notify the editor
         /// about what needs to be reclassified.
         /// </summary>
-        internal partial class TagComputer : ForegroundThreadAffinitizedObject
+        internal partial class TagComputer
         {
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
             private readonly ITextBuffer2 _subjectBuffer;
@@ -82,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 IAsynchronousOperationListener asyncListener,
                 IClassificationTypeMap typeMap,
                 TimeSpan diffTimeout)
-                : base(taggerProvider.ThreadingContext, assertIsForeground: false)
             {
                 _taggerProvider = taggerProvider;
                 _subjectBuffer = subjectBuffer;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     asyncListener,
                     _disposalCancellationSource.Token);
 
-                _lastLineCache = new LastLineCache(taggerProvider.ThreadingContext);
+                _lastLineCache = new LastLineCache(taggerProvider._threadingContext);
 
                 _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
                 _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 try
                 {
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_disposalCancellationSource.Token);
+                    await _taggerProvider._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_disposalCancellationSource.Token);
 
                     // We both try to connect synchronously, and register for workspace registration events.
                     // It's possible (particularly in tests), to connect in the startup path, but then get a
@@ -153,13 +153,13 @@ namespace Microsoft.CodeAnalysis.Classification
 
             internal void IncrementReferenceCount()
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 _taggerReferenceCount++;
             }
 
             internal void DecrementReferenceCount()
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 _taggerReferenceCount--;
 
                 if (_taggerReferenceCount == 0)
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ConnectToWorkspace(Workspace workspace)
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                 _workspace = workspace;
                 _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public void DisconnectFromWorkspace()
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                 lock (_gate)
                 {
@@ -265,11 +265,11 @@ namespace Microsoft.CodeAnalysis.Classification
             /// the editor.  Calls to <see cref="ProcessChangesAsync"/> are serialized by <see cref="AsyncBatchingWorkQueue{TItem}"/>
             /// so we don't need to worry about multiple calls to this happening concurrently.
             /// </summary>
-            private async ValueTask ProcessChangesAsync(ImmutableArray<ITextSnapshot> snapshots, CancellationToken cancellationToken)
+            private async ValueTask ProcessChangesAsync(ImmutableSegmentedList<ITextSnapshot> snapshots, CancellationToken cancellationToken)
             {
                 // We have potentially heard about several changes to the subject buffer.  However
                 // we only need to process the latest once.
-                Contract.ThrowIfTrue(snapshots.IsDefaultOrEmpty);
+                Contract.ThrowIfTrue(snapshots.IsDefault || snapshots.IsEmpty);
                 var currentSnapshot = GetLatest(snapshots);
 
                 var classificationService = TryGetClassificationService(currentSnapshot);
@@ -300,10 +300,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 return;
 
-                static ITextSnapshot GetLatest(ImmutableArray<ITextSnapshot> snapshots)
+                static ITextSnapshot GetLatest(ImmutableSegmentedList<ITextSnapshot> snapshots)
                 {
                     var latest = snapshots[0];
-                    for (var i = 1; i < snapshots.Length; i++)
+                    for (var i = 1; i < snapshots.Count; i++)
                     {
                         var snapshot = snapshots[i];
                         if (snapshot.Version.VersionNumber > latest.Version.VersionNumber)
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                 using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
                 {
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private IEnumerable<ITagSpan<IClassificationTag>>? GetTagsWorker(NormalizedSnapshotSpanCollection spans)
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 if (spans.Count == 0 || _workspace == null)
                     return null;
 
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 void AddClassifications(SnapshotSpan span)
                 {
-                    this.AssertIsForeground();
+                    _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                     // First, get the tree and snapshot that we'll be operating over.
                     var (lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot) = GetLastProcessedData();
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifiedSpans)
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                 classificationService.AddLexicalClassifications(
                     span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 IClassificationService classificationService, SnapshotSpan span,
                 Document document, SyntaxNode? root, ArrayBuilder<ClassifiedSpan> classifiedSpans)
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
                 var cancellationToken = CancellationToken.None;
 
                 if (_lastLineCache.TryUseCache(span, classifiedSpans))
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 ITextSnapshot lastProcessedSnapshot, Document lastProcessedDocument, SyntaxNode? lastProcessedRoot,
                 ArrayBuilder<ClassifiedSpan> classifiedSpans)
             {
-                this.AssertIsForeground();
+                _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
                 // Slightly more complicated case.  They're asking for the classifications for a
                 // different snapshot than what we have a parse tree for.  So we first translate the span

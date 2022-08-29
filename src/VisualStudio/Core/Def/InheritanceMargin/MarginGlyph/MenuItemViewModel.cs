@@ -23,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public string AutomationName { get; }
 
-        protected MenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName)
+        protected MenuItemViewModel(string displayContent, ImageMoniker imageMoniker)
         {
             ImageMoniker = imageMoniker;
             DisplayContent = displayContent;
-            AutomationName = automationName;
+            AutomationName = displayContent;
         }
     }
 }

@@ -1766,7 +1766,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 74)
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
                 );
 
             var m = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
@@ -1798,7 +1798,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
                 // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 74)
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 74)
                 );
         }
 
@@ -1820,7 +1820,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (4,60): error CS8419: The body of an async-iterator method must contain a 'yield' statement.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 60)
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, "M").WithLocation(4, 60)
                 );
         }
 
@@ -1849,7 +1849,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
                 // (4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 60)
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithLocation(4, 60)
                 );
         }
 

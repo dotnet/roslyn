@@ -20,6 +20,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
 
         /// <summary>
+        /// Gets an optional <see cref="FixAllProvider"/> that can apply multiple occurrences of code refactoring(s)
+        /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
+        /// Return null if the provider doesn't support fix all operation.
+        /// </summary>
+        /// <remarks>
+        /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
+        /// </remarks>
+        internal virtual FixAllProvider? GetFixAllProvider()
+            => null;
+
+        /// <summary>
         /// What priority this provider should run at.
         /// </summary>
         internal CodeActionRequestPriority RequestPriority

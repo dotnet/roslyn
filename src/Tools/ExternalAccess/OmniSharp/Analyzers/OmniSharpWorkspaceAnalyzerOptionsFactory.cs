@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
     internal static class OmniSharpWorkspaceAnalyzerOptionsFactory
     {
         public static AnalyzerOptions Create(Solution solution, AnalyzerOptions options)
-            => new WorkspaceAnalyzerOptions(options, solution, IdeAnalyzerOptions.Default);
+            => new WorkspaceAnalyzerOptions(options, solution, IdeAnalyzerOptions.GetDefault(solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp)));
     }
 }

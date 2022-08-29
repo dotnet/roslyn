@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
 
-                private readonly NonReentrantLock _workGate;
-                private readonly Dictionary<DocumentId, Data> _pendingWork;
+                private readonly NonReentrantLock _workGate = new();
+                private readonly Dictionary<DocumentId, Data> _pendingWork = new();
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -52,9 +52,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
 
-                    _workGate = new NonReentrantLock();
-                    _pendingWork = new Dictionary<DocumentId, Data>();
-
                     Start();
 
                     // Register a clean-up task to ensure pending work items are flushed from the queue if they will
@@ -66,13 +63,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         TaskScheduler.Default);
                 }
 
-                public override Task AsyncProcessorTask
+                protected override void OnPaused()
                 {
-                    get
-                    {
-                        return Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
-                    }
                 }
+
+                public override Task AsyncProcessorTask
+                    => Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _gate.WaitAsync(cancellationToken);
@@ -339,8 +335,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
 
-                    private readonly NonReentrantLock _workGate;
-                    private readonly Dictionary<ProjectId, Data> _pendingWork;
+                    private readonly NonReentrantLock _workGate = new();
+                    private readonly Dictionary<ProjectId, Data> _pendingWork = new();
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
@@ -355,9 +351,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _gate = new SemaphoreSlim(initialCount: 0);
 
-                        _workGate = new NonReentrantLock();
-                        _pendingWork = new Dictionary<ProjectId, Data>();
-
                         Start();
 
                         // Register a clean-up task to ensure pending work items are flushed from the queue if they will
@@ -367,6 +360,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             CancellationToken.None,
                             TaskContinuationOptions.ExecuteSynchronously,
                             TaskScheduler.Default);
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)

@@ -19,13 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal sealed class CompletionSessionData
     {
         private const string RoslynCompletionSessionData = nameof(RoslynCompletionSessionData);
-        public bool TargetTypeFilterExperimentEnabled { get; set; }
         public bool TargetTypeFilterSelected { get; set; }
         public bool HasSuggestionItemOptions { get; set; }
 
         public SnapshotPoint? ExpandedItemTriggerLocation { get; set; }
         public TextSpan? CompletionListSpan { get; set; }
-        public ImmutableArray<CompletionItem>? CombinedSortedList { get; set; }
+        public CompletionList<CompletionItem>? CombinedSortedList { get; set; }
         public Task<(CompletionContext, RoslynCompletionList)>? ExpandedItemsTask { get; set; }
 
         private CompletionSessionData()

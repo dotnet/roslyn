@@ -418,7 +418,7 @@ End Class
             source = "
 Class C
     Async Function M() As Task(Of Integer)
-        <span>Await expr</span>
+        <span>Await</span> expr
     End Function
 End Class
 "

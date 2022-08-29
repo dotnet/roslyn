@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
@@ -30,17 +30,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         protected abstract void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractJsonDetectionAnalyzer.DiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    FeaturesResources.Enable_all_JSON_editor_features,
+                    GetDocumentUpdater(context),
+                    nameof(FeaturesResources.Enable_all_JSON_editor_features)),
                 context.Diagnostics);
-
             return Task.CompletedTask;
         }
 
@@ -58,20 +58,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
                 Fix(editor, diagnostic, cancellationToken);
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Enable_all_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_all_JSON_editor_features))
-            {
-            }
         }
     }
 }

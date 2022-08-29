@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VisualBasic_Interactive_Window = 268,
 
         NonFatalWatson = 269,
-        GlobalOperationRegistration = 270,
+        // GlobalOperationRegistration = 270, No longer fired.
         CommandHandler_FindAllReference = 271,
 
         CodefixInfobar_Enable = 272,
@@ -541,5 +541,19 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         StackTraceToolWindow_ShowOnActivated = 540,
 
         CodeModel_FileCodeModel_Create = 550,
+
+        Refactoring_FixAllOccurrencesSession = 560,
+        Refactoring_FixAllOccurrencesContext = 561,
+        Refactoring_FixAllOccurrencesComputation = 562,
+        Refactoring_FixAllOccurrencesPreviewChanges = 563,
+
+        LSP_UsedForkedSolution = 571,
+
+        SpellCheckFixer_CouldNotFindDocument = 580,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 581,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 582,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 583,
+        SpellCheckFixer_ReplacementTextInvalid = 584,
+        SpellCheckFixer_TryApplyChangesFailure = 585,
     }
 }

@@ -3418,7 +3418,7 @@ unsafe class C
             CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,50): error CS0211: Cannot take the address of the given expression
                 //         var z = from x in new int[2] select Goo(&x);
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x"));
         }
 
         [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
@@ -3612,7 +3612,7 @@ enum Color
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local++").WithLocation(38, 15),
                 // (39,14): error CS0211: Cannot take the address of the given expression
                 //         p = &this[0]; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this[0]").WithArguments("C.this[int]").WithLocation(39, 14),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this[0]").WithLocation(39, 14),
                 // (40,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(() => 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
@@ -3624,7 +3624,7 @@ enum Color
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),
                 // (43,14): error CS0211: Cannot take the address of the given expression
                 //         p = &P; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithArguments("C.P").WithLocation(43, 14),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithLocation(43, 14),
                 // (44,14): error CS0211: Cannot take the address of the given expression
                 //         p = &sizeof(int); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "sizeof(int)").WithLocation(44, 14),
@@ -3666,7 +3666,7 @@ enum Color
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array ?? array").WithLocation(59, 19),
                 // (60,19): error CS0211: Cannot take the address of the given expression
                 //         var aa = &this; //CS0208
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this").WithArguments("this").WithLocation(60, 19),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this").WithLocation(60, 19),
                 // (61,19): error CS0211: Cannot take the address of the given expression
                 //         var bb = &typeof(int); //CS0208, CS0211 (managed)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "typeof(int)").WithLocation(61, 19),
@@ -5961,6 +5961,8 @@ unsafe class C
         var r14 = i | p;
         var r15 = p ^ i;
         var r16 = i ^ p;
+        var r17 = p >>> i;
+        var r18 = i >>> p;
     }
 }
 ";
@@ -6013,7 +6015,14 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p ^ i").WithArguments("^", "byte*", "int"),
                 // (21,19): error CS0019: Operator '^' cannot be applied to operands of type 'int' and 'byte*'
                 //         var r16 = i ^ p;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i ^ p").WithArguments("^", "int", "byte*"));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i ^ p").WithArguments("^", "int", "byte*"),
+                // (22,19): error CS0019: Operator '>>>' cannot be applied to operands of type 'byte*' and 'int'
+                //         var r17 = p >>> i;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p >>> i").WithArguments(">>>", "byte*", "int").WithLocation(22, 19),
+                // (23,19): error CS0019: Operator '>>>' cannot be applied to operands of type 'int' and 'byte*'
+                //         var r18 = i >>> p;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i >>> p").WithArguments(">>>", "int", "byte*").WithLocation(23, 19)
+                );
         }
 
         [Fact]
@@ -7459,7 +7468,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
                 // (4,21): error CS1003: Syntax error, ',' expected
                 //     int F1 = sizeof(null);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(","),
                 // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //     int F1 = sizeof(null);
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));

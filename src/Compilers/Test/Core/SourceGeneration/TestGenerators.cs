@@ -43,6 +43,31 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
+    /// <summary>
+    /// A generator that produces diagnostics against existng source trees, rather than generating new content.
+    /// </summary>
+    internal class DiagnosticProducingGenerator : ISourceGenerator
+    {
+        public static readonly DiagnosticDescriptor Descriptor =
+            new DiagnosticDescriptor(nameof(DiagnosticProducingGenerator), "Diagnostic Title", "Diagnostic Format", "Test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        private readonly Func<GeneratorExecutionContext, Location> _produceLocation;
+
+        public DiagnosticProducingGenerator(Func<GeneratorExecutionContext, Location> produceLocation)
+        {
+            _produceLocation = produceLocation;
+        }
+
+        public void Initialize(GeneratorInitializationContext context)
+        {
+        }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, _produceLocation(context)));
+        }
+    }
+
     internal class SingleFileTestGenerator2 : SingleFileTestGenerator
     {
         public SingleFileTestGenerator2(string content, string hintName = "generatedFile") : base(content, hintName)

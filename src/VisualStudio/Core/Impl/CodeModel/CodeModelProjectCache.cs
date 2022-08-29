@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -32,7 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal CodeModelState State { get; }
 
-        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(
+            IThreadingContext threadingContext,
+            ProjectId projectId,
+            ICodeModelInstanceFactory codeModelInstanceFactory,
+            ProjectCodeModelFactory projectFactory,
+            IServiceProvider serviceProvider,
+            HostLanguageServices languageServices,
+            VisualStudioWorkspace workspace)
         {
             State = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
             _projectId = projectId;
@@ -101,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Check that we know about this file!
             var documentId = State.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
-            if (documentId == null)
+            if (documentId == null || State.Workspace.CurrentSolution.GetDocument(documentId) == null)
             {
                 // Matches behavior of native (C#) implementation
                 throw Exceptions.ThrowENotImpl();

@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             For Each frame In _frames.Values
-                CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
+                CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics), stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
             Next
         End Sub
 
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim syntax = lambda.Syntax
 
                     ' add its ctor
-                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics))
+                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics), stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
 
                     ' add cctor
                     ' Frame.inst = New Frame()
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 F.[New](frame.Constructor)),
                             F.Return())
 
-                    CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body)
+                    CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
                 End If
             End If
 
@@ -874,7 +874,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="method">Method symbol for the rewritten lambda body.</param>
         ''' <param name="lambda">Original lambda node.</param>
         ''' <returns>Lambda body rewritten as a body of the given method symbol.</returns>
-        Public Function RewriteLambdaAsMethod(method As SynthesizedLambdaMethod, lambda As BoundLambda) As BoundBlock
+        Public Function RewriteLambdaAsMethod(method As SynthesizedLambdaMethod,
+                                              lambda As BoundLambda,
+                                              stateMachineStateDebugInfosBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
+                                              <Out> ByRef stateMachineType As StateMachineTypeSymbol) As BoundBlock
 
             ' report use site errors for attributes that are needed later on in the rewriter
             Dim lambdaSyntax = lambda.Syntax
@@ -895,14 +898,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 loweredBody = RewriteBlock(node)
             End If
 
-            Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
-
             ' In case of async/iterator lambdas, the method has already been uniquely named, so there is no need to
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
             Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics.DiagnosticBag)
-            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
+            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, stateMachineStateDebugInfosBuilder, slotAllocatorOpt, stateMachineType)
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
@@ -1104,8 +1105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _currentLambdaBodyTypeSubstitution = TypeSubstitution.Create(_topLevelMethod, _topLevelMethod.TypeParameters, _currentMethod.TypeArguments)
             End If
 
-            Dim body = DirectCast(RewriteLambdaAsMethod(synthesizedMethod, node), BoundStatement)
-            CompilationState.AddSynthesizedMethod(synthesizedMethod, body)
+            Dim stateMachineStateDebugInfosBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
+            Dim stateMachineType As StateMachineTypeSymbol = Nothing
+            Dim body = DirectCast(RewriteLambdaAsMethod(synthesizedMethod, node, stateMachineStateDebugInfosBuilder, stateMachineType), BoundStatement)
+            CompilationState.AddSynthesizedMethod(synthesizedMethod, body, stateMachineType, stateMachineStateDebugInfosBuilder.ToImmutableAndFree())
 
             ' return to old method
 

@@ -27,6 +27,21 @@ End Class
                 Region("span", "Imports ...", autoCollapse:=True))
         End Function
 
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function ImportsShouldBeCollapsedByDefault(collapseUsingsByDefault As Boolean) As Task
+            Const code = "
+{|span:$$Imports System
+Imports System.Linq|}
+Class C1
+End Class
+"
+
+            Dim options = New BlockStructureOptions() With {.CollapseImportsWhenFirstOpened = collapseUsingsByDefault}
+
+            Await VerifyBlockSpansAsync(code, options,
+                Region("span", "Imports ...", autoCollapse:=True, isDefaultCollapsed:=collapseUsingsByDefault))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestImportsAliases() As Task
             Const code = "

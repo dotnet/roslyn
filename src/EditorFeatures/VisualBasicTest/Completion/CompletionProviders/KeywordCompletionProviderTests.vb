@@ -37,6 +37,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TestNoTypeKeywordsInAsyncMemberDeclaration() As Task
+            Dim code = <Text>
+Class C
+    Public Async Function Test() As $$
+        
+    End Function
+End Class
+</Text>.Value
+
+            Await VerifyItemIsAbsentAsync(code, "Boolean")
+            Await VerifyItemIsAbsentAsync(code, "Byte")
+            Await VerifyItemIsAbsentAsync(code, "Char")
+            Await VerifyItemIsAbsentAsync(code, "Date")
+            Await VerifyItemIsAbsentAsync(code, "Decimal")
+            Await VerifyItemIsAbsentAsync(code, "Double")
+            Await VerifyItemIsAbsentAsync(code, "Integer")
+            Await VerifyItemIsAbsentAsync(code, "Long")
+            Await VerifyItemIsAbsentAsync(code, "Object")
+            Await VerifyItemIsAbsentAsync(code, "SByte")
+            Await VerifyItemIsAbsentAsync(code, "Short")
+            Await VerifyItemIsAbsentAsync(code, "Single")
+            Await VerifyItemIsAbsentAsync(code, "String")
+            Await VerifyItemIsAbsentAsync(code, "UInteger")
+            Await VerifyItemIsAbsentAsync(code, "ULong")
+            Await VerifyItemIsAbsentAsync(code, "UShort")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestNotInInactiveCode() As Task
             Dim code = <Text>
 Class C

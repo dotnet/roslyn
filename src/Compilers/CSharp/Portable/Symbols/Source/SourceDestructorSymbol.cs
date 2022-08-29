@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location, this);
+                diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location);
             }
             else if (!containingType.IsReferenceType)
             {
-                diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location, this);
+                diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location);
             }
 
             CheckForBlockAndExpressionBody(
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: ContainingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 

@@ -31,44 +31,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
         {
-            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
+            _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSInternalServerCapabilities();
-
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
-            if (isLspEditorEnabled)
-            {
-                serverCapabilities = (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
-            }
-            else
-            {
-                // Even if the flag is off, we want to include text sync capabilities.
-                serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
+
+            var serverCapabilities = isLspEditorEnabled
+                ? (VSInternalServerCapabilities)_experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities)
+                : new VSInternalServerCapabilities()
                 {
-                    Change = TextDocumentSyncKind.Incremental,
-                    OpenClose = true,
+                    // Even if the flag is off, we want to include text sync capabilities.
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        Change = TextDocumentSyncKind.Incremental,
+                        OpenClose = true,
+                    },
                 };
-            }
 
             serverCapabilities.ProjectContextProvider = true;
             serverCapabilities.BreakableRangeProvider = true;
@@ -101,11 +97,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
-                        TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                        TokenTypes = SemanticTokensHelpers.AllTokenTypes.ToArray(),
                         TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                     }
                 };
             }
+
+            serverCapabilities.SpellCheckingProvider = true;
 
             return serverCapabilities;
         }

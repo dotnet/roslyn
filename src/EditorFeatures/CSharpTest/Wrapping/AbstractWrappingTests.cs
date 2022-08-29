@@ -20,34 +20,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private protected static CodeActionOptions GetIndentionColumn(int column)
-            => new(SymbolSearchOptions.Default,
-                   ImplementTypeOptions.Default,
-                   ExtractMethodOptions.Default,
-                   WrappingColumn: column);
+        private protected TestParameters GetIndentionColumn(int column)
+            => new(globalOptions: Option(CodeActionOptionsStorage.WrappingColumn, column));
 
         protected Task TestAllWrappingCasesAsync(
             string input,
             params string[] outputs)
         {
-            return TestAllWrappingCasesAsync(input, options: CodeActionOptions.Default, outputs);
+            return TestAllWrappingCasesAsync(input, parameters: null, outputs);
         }
 
         private protected Task TestAllWrappingCasesAsync(
             string input,
-            CodeActionOptions options,
+            TestParameters parameters,
             params string[] outputs)
         {
-            var parameters = new TestParameters(codeActionOptions: options);
-            return TestAllInRegularAndScriptAsync(input, parameters, outputs);
-        }
-
-        private protected Task TestAllWrappingCasesAsync(
-            string input,
-            OptionsCollection options,
-            params string[] outputs)
-        {
-            var parameters = new TestParameters(options: options);
             return TestAllInRegularAndScriptAsync(input, parameters, outputs);
         }
     }

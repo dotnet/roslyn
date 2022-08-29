@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
             {
                 var property = (IPropertySymbol)method.AssociatedSymbol;
-                if (property.Parameters.Any(p => p.Name == symbol.Name))
+                if (property.Parameters.Any(static (p, symbol) => p.Name == symbol.Name, symbol))
                 {
                     containingSymbol = property;
                 }

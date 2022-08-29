@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+            var semanticModel = syntaxContext.SemanticModel;
 
             var options = context.CompletionOptions.ToRecommendationServiceOptions();
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(syntaxContext, options, cancellationToken);
 
             AddUnnamedSymbols(context, position, semanticModel, recommendedSymbols.UnnamedSymbols, cancellationToken);
         }

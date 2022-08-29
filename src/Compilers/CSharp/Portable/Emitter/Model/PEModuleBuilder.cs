@@ -1667,7 +1667,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SynthesizedAttributeData SynthesizeNativeIntegerAttribute(Symbol symbol, TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(type.ContainsNativeInteger());
+            Debug.Assert(type.ContainsNativeIntegerWrapperType());
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1701,6 +1702,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal virtual SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
+
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+        }
+
+        internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(ParameterSymbol symbol, DeclarationScope scope)
+        {
+            Debug.Assert(scope != DeclarationScope.Unscoped);
+            Debug.Assert(symbol.RefKind != RefKind.Out || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(!symbol.IsThis);
+
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            var booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
+            Debug.Assert((object)booleanType != null);
+            return SynthesizeLifetimeAnnotationAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+                ImmutableArray.Create(
+                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.RefScoped),
+                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.ValueScoped)));
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
@@ -1776,7 +1807,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureNativeIntegerAttributeExists()
         {
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
+        }
+
+        internal void EnsureLifetimeAnnotationAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute);
         }
 
 #nullable enable

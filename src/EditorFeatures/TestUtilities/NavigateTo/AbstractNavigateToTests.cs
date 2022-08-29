@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.EditorUtilities.NavigateTo;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -74,6 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             FirstVisible,
             FirstActiveAndVisible,
         }
+
+        private protected static NavigateToItemProvider CreateProvider(TestWorkspace workspace)
+            => new NavigateToItemProvider(
+                workspace,
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<IUIThreadOperationExecutor>(),
+                AsynchronousOperationListenerProvider.NullListener);
 
         protected async Task TestAsync(TestHost testHost, Composition composition, string content, Func<TestWorkspace, Task> body)
         {
@@ -143,7 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         internal void InitializeWorkspace(TestWorkspace workspace)
         {
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = new NavigateToItemProvider(
+                workspace,
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<IUIThreadOperationExecutor>(),
+                AsynchronousOperationListenerProvider.NullListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 

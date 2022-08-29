@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (symbols.Count > 1)
             {
-                return string.Join("|", symbols.Select(s => EncodeSymbol(s)));
+                return string.Join("|", symbols.Select(EncodeSymbol));
             }
             else if (symbols.Count == 1)
             {

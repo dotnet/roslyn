@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -142,6 +143,28 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
+        public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
+        {
+            if (filePath is null)
+                return false;
+
+            using (_gate.DisposableWait())
+            {
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    Contract.ThrowIfNull(_workspace);
+
+                    if (provider.Value.ShouldCollapseOnOpen(filePath, blockStructureOptions))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         private void InitializeWorkspace(Project project)
         {
             if (_workspace == null)
@@ -254,7 +277,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
-            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            if (!symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 return false;
             }

@@ -35,14 +35,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
         {
             var obj = _underlyingObject;
-            return _threadingProvider.Service.Run(() => obj.TryNavigateToPositionAsync(workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken));
+            return _threadingProvider.Service.Run(async () =>
+            {
+                var location = await obj.GetLocationForPositionAsync(
+                    workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+                return location != null &&
+                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+            });
         }
 
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToPositionAsync"/>
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var obj = _underlyingObject;
-            return _threadingProvider.Service.Run(() => obj.TryNavigateToPositionAsync(workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken));
+            return _threadingProvider.Service.Run(async () =>
+            {
+                var location = await obj.GetLocationForPositionAsync(
+                    workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+                return location != null &&
+                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+            });
         }
     }
 }

@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 
-            LoadComponentsBackgroundAsync(cancellationToken).Forget();
+            LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
         }
 
         // Overrides for VSSDK003 fix 
@@ -364,17 +364,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
             var gate = new object();
-            GlobalOperationRegistration? localRegistration = null;
+            IDisposable? localRegistration = null;
 
-            BulkFileOperation.End += (s, a) =>
-            {
-                StopBulkFileOperationNotification();
-            };
+            BulkFileOperation.Begin += (s, a) => StartBulkFileOperationNotification();
+            BulkFileOperation.End += (s, a) => StopBulkFileOperationNotification();
 
-            BulkFileOperation.Begin += (s, a) =>
-            {
-                StartBulkFileOperationNotification();
-            };
+            return;
 
             void StartBulkFileOperationNotification()
             {

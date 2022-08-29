@@ -1090,7 +1090,7 @@ nextm:
             If body.Kind <> BoundKind.Block Then
                 body = Me.Block(body)
             End If
-            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body)
+            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
             Me.CurrentMethod = Nothing
         End Sub
 
