@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             {
                 if (result.IsInherited)
                 {
+                    // skip inherited params because they were declared elsewhere.
+                    // We don't need to add or remove a declaration
                     continue;
                 }
 
@@ -180,17 +182,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     {
                         // non-primary, non-copy constructor, add ": this(...)" initializers to each
                         // and try to use assignments in the body to determine the values, otherwise default or null
-                        var (thisArgs, statementsToRemove) = ConvertToRecordHelpers
+                        var (thisArgs, expressionsToRemove) = ConvertToRecordHelpers
                             .GetInitializerValuesForNonPrimaryConstructor(constructorOperation, positionalParamSymbols);
 
+                        // take the parent ExpressionStatementSyntax so we take the semicolon too
+                        var expressionStatementsToRemove = expressionsToRemove
+                            .Select(expression =>
+                                (expression.Parent as AssignmentExpressionSyntax)?.Parent as ExpressionStatementSyntax)
+                            .WhereNotNull()
+                            .AsImmutable();
                         var removalOptions = SyntaxRemoveOptions.KeepExteriorTrivia |
                             SyntaxRemoveOptions.KeepDirectives |
                             SyntaxRemoveOptions.AddElasticMarker;
                         var modifiedConstructor = constructor
-                            .RemoveNodes(statementsToRemove
-                                    // take the parent ExpressionStatementSyntax so we take the semicolon too
-                                    .SelectAsArray(assignment => assignment.GetAncestor<ExpressionStatementSyntax>()),
-                                removalOptions)!
+                            .RemoveNodes(expressionStatementsToRemove, removalOptions)!
                             .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer,
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(thisArgs))));
 
@@ -310,15 +315,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var baseList = typeDeclaration.BaseList;
             if (baseList != null)
             {
-                var typeList = baseList.Types.AsImmutable();
+                var typeList = baseList.Types;
 
                 if (iEquatable != null)
                 {
-                    typeList = typeList.WhereAsArray(baseItem
-                        => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+                    var iEquatableItem = typeList.FirstOrDefault(baseItem
+                        => iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+                    if (iEquatableItem != null)
+                    {
+                        typeList = typeList.Remove(iEquatableItem);
+                    }
                 }
 
-                if (typeList.IsEmpty)
+                if (typeList.IsEmpty())
                 {
                     baseList = null;
                 }
@@ -326,8 +335,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 {
                     if (positionalParameterInfos.Any(info => info.IsInherited))
                     {
-                        // replace first element (base record) with one that uses primary constructor params
-                        // Move trailing trivia to end of arg list
+                        // if we have an inherited param, then we know we're inheriting from
+                        // a record with a primary constructor.
+                        // something like: public class C : B {...}
+                        // where B is: public record B(int Foo, bool Bar);
+                        // We created a parameter list with all the properties that shadow the inherited ones.
+                        // Now we need to associate the parameters declared in the class
+                        // with the ones the base record uses.
+                        // Example: public record C(int Foo, int Bar, int OtherProp) : B(Foo, Bar) {...}
                         var baseRecord = typeList.First();
                         var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
                         // get the positional parameters in the order they are declared from the base record
@@ -342,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                 .WithTrailingTrivia(baseTrailingTrivia)));
                     }
 
-                    baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
+                    baseList = baseList.WithTypes(typeList);
                 }
             }
 
@@ -382,7 +397,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         {
             if (result.IsInherited || result.KeepAsOverride)
             {
-                // for both of these, the attributes on the other definition track so we don't need to redeclare
+                // if the property is declared elsewhere (base class or because we keep the property definition),
+                // then any attributes associated with the property don't need to be redeclared
+                // on the primary constructor parameter because the primary constructor parameter is no longer the
+                // only/first definition. So we can just have an empty attribute list.
+                // For example, if we want to move:
+                // [SomeAttribute]
+                // public int Foo { get; private set; }
+                // but then decide that we want to keep the definition, then the attribute can stay on the original
+                // definition, and our primary constructor param can associate that attribute when we add:
+                // public int Foo { get; private set; } = Foo;
                 return SyntaxFactory.List<AttributeListSyntax>();
             }
 
@@ -411,40 +435,40 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var symbolReferences = await SymbolFinder
                 .FindReferencesAsync(type, solutionEditor.OriginalSolution, cancellationToken).ConfigureAwait(false);
             var referenceLocations = symbolReferences.SelectMany(reference => reference.Locations);
-            var projLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Project.Id);
-            foreach (var (projID, projLocs) in projLookup)
+            var projectLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Project.Id);
+            foreach (var (projectID, projectLocations) in projectLookup)
             {
                 // organize by project first, so we can solve one project at a time
-                var project = solutionEditor.OriginalSolution.GetRequiredProject(projID);
+                var project = solutionEditor.OriginalSolution.GetRequiredProject(projectID);
                 if (project.Language != LanguageNames.CSharp)
                 {
-                    // skip non-CSharp projects that reference records
+                    // since this is a CSharp-dependent file, we can't fix VB projects that 
                     continue;
                 }
 
                 var compilation = await project
                     .GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var docLookup = projLocs.ToLookup(refLoc => refLoc.Document.Id);
-                foreach (var (docID, docLocs) in docLookup)
+                var docLookup = projectLocations.ToLookup(refLoc => refLoc.Document.Id);
+                foreach (var (documentID, documentLocations) in docLookup)
                 {
                     var documentEditor = await solutionEditor
-                        .GetDocumentEditorAsync(docID, cancellationToken).ConfigureAwait(false);
+                        .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
                     var syntaxTree = await documentEditor.OriginalDocument
                         .GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                    var nodes = docLocs
+                    var objectCreationExpressions = documentLocations
                         // we should find the identifier node of an object creation expression
-                        .Select(refLoc => refLoc.Location.FindNode(cancellationToken).Parent)
+                        .Select(referenceLocations => referenceLocations.Location.FindNode(cancellationToken).Parent)
                         .OfType<ObjectCreationExpressionSyntax>();
-                    foreach (var node in nodes)
+                    foreach (var objectCreationExpression in objectCreationExpressions)
                     {
                         var (constructorArgs, nodesToRemove) =
                             ConvertToRecordHelpers.GetConstructorArgumentsFromObjectCreation(
-                                node, positionalParameters, semanticModel, cancellationToken);
+                                objectCreationExpression, positionalParameters, semanticModel, cancellationToken);
 
                         if (!constructorArgs.IsDefaultOrEmpty)
                         {
-                            var initializerExpressions = node.Initializer!.Expressions;
+                            var initializerExpressions = objectCreationExpression.Initializer!.Expressions;
                             // need to get all indices and then remove because otherwise nodes change
                             var removalIndices = nodesToRemove
                                 .SelectAsArray(initializerExpressions.IndexOf)
@@ -455,24 +479,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                 initializerExpressions = initializerExpressions.RemoveAt(nodeIndex);
                             }
 
+                            // if there are no more assignments other than the ones that
+                            // could go in the primary constructor, we can remove the block entirely
                             var initializerBlock = initializerExpressions.IsEmpty()
                                 ? null
-                                : node.Initializer!.WithExpressions(initializerExpressions);
+                                : objectCreationExpression.Initializer!.WithExpressions(initializerExpressions);
 
+                            // replace: new C { Foo = 0; Bar = false; };
+                            // with: new C(0, false);
                             var replacementNode = SyntaxFactory.ObjectCreationExpression(
-                                node.NewKeyword,
-                                node.Type.WithoutTrailingTrivia(),
+                                objectCreationExpression.NewKeyword,
+                                objectCreationExpression.Type.WithoutTrailingTrivia(),
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArgs
                                     .Select(expr => expr.WithoutTrivia()))),
                                 initializerBlock);
 
-                            documentEditor.ReplaceNode(node, replacementNode);
+                            documentEditor.ReplaceNode(objectCreationExpression, replacementNode);
                         }
                     }
                 }
-
-                // We keep the compilation until we are done with the project
-                GC.KeepAlive(compilation);
             }
         }
 

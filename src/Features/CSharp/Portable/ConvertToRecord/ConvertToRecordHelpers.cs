@@ -252,14 +252,38 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 assignedValues.SetEquals(fields);
         }
 
+        /// <summary>
+        /// Given a non-primary, non-copy constructor, get expressions that are assigned to properties
+        /// via simple assignment, and give values for each paramter in the primary constructor. 
+        /// </summary>
+        /// <param name="operation">The constructor body operation</param>
+        /// <param name="positionalParams">the primary constructor parameters</param>
+        /// <returns>
+        /// 1. Arguments for the primary constructor taken from assignments (or default/null if not found)
+        /// 2. Expressions from the arguments that we created that can now be removed.
+        /// </returns>
+        /// <remarks>
+        /// Example (assume we decided on positional parameters int Foo, bool Bar, int Baz):
+        /// <code>
+        /// public C(int foo, bool bar)
+        /// {
+        ///     Foo = foo;
+        ///     Bar = bar;
+        ///     Mumble = 0;
+        /// }
+        /// </code>
+        /// we would give the expressions for Foo, Bar, and Baz in the primary constructor as follows:
+        /// Foo: foo, Bar: bar, Baz: default
+        /// We would add the expressions using foo and bar in the body to the removal statements.
+        /// </remarks>
         public static (ImmutableArray<ArgumentSyntax> initializerArguments,
-            ImmutableArray<SyntaxNode> assignmentsToRemove)
+            ImmutableArray<ExpressionSyntax> assignmentsToRemove)
         GetInitializerValuesForNonPrimaryConstructor(
             IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> positionalParams)
         {
-            var _1 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var initializerBuilder);
-            var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
+            using var _1 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var initializerBuilder);
+            using var _2 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var removalBuilder);
 
             // make sure the assignment wouldn't reference local variables we may have declared
             var assignmentValues = GetAssignmentValuesForConstructor(operation,
@@ -272,6 +296,33 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             return (initializerBuilder.AsImmutable(), removalBuilder.AsImmutable());
         }
 
+        /// <summary>
+        /// Given an object creation with a block initializer and a parameterless constructor declaration,
+        /// finds values for the primary constructor from the initializer block and tracks the nodes
+        /// we use from those assignments so that we can remove them
+        /// </summary>
+        /// <param name="expressionNode">Object creation expression node</param>
+        /// <param name="positionalParams">primary constructor parameters</param>
+        /// <param name="semanticModel">Semantic model</param>
+        /// <param name="cancellationToken">cancellation token</param>
+        /// <returns>
+        /// 1. Arguments to fill in for the primary constructor.
+        /// 2. Assignments that can be removed because they are assigned to using the primary constructor
+        /// </returns>
+        /// <remarks>
+        ///  Example (assume we decided on positional parameters int Foo, bool Bar, int Baz):
+        /// <code>
+        /// var c = new C
+        /// {
+        ///     Foo = 10;
+        ///     Bar = true;
+        ///     Mumble = 0;
+        /// };
+        /// </code>
+        /// we would give the expressions for Foo, Bar, and Baz in the primary constructor as follows:
+        /// Foo: 0, Bar: true, Baz: default
+        /// We would add the expressions under the assignments to Foo and Bar in the body to the removal statements.
+        /// </remarks>
         public static (ImmutableArray<ArgumentSyntax> initializerArguments,
             ImmutableArray<AssignmentExpressionSyntax> assignmentsToRemove)
         GetConstructorArgumentsFromObjectCreation(
@@ -290,15 +341,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var operation = semanticModel.GetRequiredOperation(expressionNode, cancellationToken);
             if (operation is IObjectCreationOperation
                 {
-                    Arguments: ImmutableArray<IArgumentOperation> args,
+                    Arguments: ImmutableArray<IArgumentOperation> { IsEmpty: true },
                     Initializer: IObjectOrCollectionInitializerOperation initializer,
                     Constructor: IMethodSymbol { IsImplicitlyDeclared: true }
-                } && args.IsDefaultOrEmpty)
+                })
             {
                 using var _1 = ArrayBuilder<(ISymbol left, ExpressionSyntax right)>
                     .GetInstance(out var assignmentValuesBuilder);
                 using var _2 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var argumentBuilder);
-                using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
+                using var _3 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var removalBuilder);
 
                 foreach (var assignment in initializer.Initializers)
                 {
@@ -317,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
                 return (argumentBuilder.ToImmutable(),
                     removalBuilder
-                    .Select(node => node.GetAncestor<AssignmentExpressionSyntax>())
+                    .Select(node => node.Parent as AssignmentExpressionSyntax)
                     .WhereNotNull()
                     .AsImmutable());
             }
@@ -331,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             Func<IOperation, T?> captureAssignedSymbol)
         {
             var body = GetBlockOfMethodBody(constructorOperation);
-            var _ = ArrayBuilder<(ISymbol left, T right)>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<(ISymbol left, T right)>.GetInstance(out var builder);
 
             // We expect the constructor to have exactly one statement per property,
             // where the statement is a simple assignment from the parameter's property to the property
@@ -404,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             ImmutableArray<(ISymbol left, ExpressionSyntax right)> assignmentValues,
             ImmutableArray<IPropertySymbol> positionalParams,
             ArrayBuilder<ArgumentSyntax> initializerBuilder,
-            ArrayBuilder<SyntaxNode> removalBuilder)
+            ArrayBuilder<ExpressionSyntax> removalBuilder)
         {
             foreach (var property in positionalParams)
             {
@@ -465,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
             var bodyOps = body.Operations;
             var parameter = methodSymbol.Parameters.First();
-            var _1 = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
+            using var _1 = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
             ISymbol? otherC = null;
             IEnumerable<IOperation>? statementsToCheck = null;
 
