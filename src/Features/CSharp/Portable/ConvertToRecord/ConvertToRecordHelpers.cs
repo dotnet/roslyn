@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
     internal static class ConvertToRecordHelpers
     {
@@ -183,22 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             ref ImmutableArray<IPropertySymbol> properties,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            var body = GetBlockOfMethodBody(operation);
-
-            // We expect the constructor to have exactly one statement per parameter,
-            // where the statement is a simple assignment from the parameter to the property
-            if (body == null || body.Operations.Length != parameters.Length)
-                return false;
-
-            var assignmentValues = GetAssignmentValuesForConstructor<IParameterSymbol>(body.Operations,
+            var assignmentValues = GetAssignmentValuesForConstructor(operation,
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
             var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
             var assignedParameters = assignmentValues.SelectAsArray(value => value.right);
 
             if (assignmentValues.All(value => value != default && value.left is IPropertySymbol) &&
-                !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
-                !assignedParameters.HasDuplicates(SymbolEqualityComparer.Default) &&
+                assignmentValues.Length == assignedProperties.Length &&
                 assignedProperties.SetEquals(properties) &&
                 assignedParameters.SetEquals(parameters))
             {
@@ -230,14 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             ImmutableArray<IFieldSymbol> fields,
             IParameterSymbol parameter)
         {
-            var body = GetBlockOfMethodBody(operation);
-
-            // We expect the constructor to have exactly one statement per property,
-            // where the statement is a simple assignment from the parameter's property to the property
-            if (body == null || body.Operations.Length != fields.Length)
-                return false;
-
-            var assignmentValues = GetAssignmentValuesForConstructor<IFieldSymbol>(body.Operations,
+            var assignmentValues = GetAssignmentValuesForConstructor(operation,
                 assignment => assignment switch
                 {
                     IPropertyReferenceOperation
@@ -267,25 +252,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         }
 
         public static (ImmutableArray<ArgumentSyntax> initializerArguments, ImmutableArray<SyntaxNode> assignmentsToRemove)
-            GetInitializerValuesForNonPrimaryConstructor(
+        GetInitializerValuesForNonPrimaryConstructor(
             IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> positionalParams)
         {
-            var body = GetBlockOfMethodBody(operation);
-            var bodyOps = body?.Operations ?? ImmutableArray<IOperation>.Empty;
             var _1 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var initializerBuilder);
             var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
 
             // make sure the assignment wouldn't reference local variables we may have declared
-            var assignmentValues = GetAssignmentValuesForConstructor(bodyOps,
+            var assignmentValues = GetAssignmentValuesForConstructor(operation,
                 assignment => IsSafeAssignment(assignment)
                     ? assignment.Syntax as ExpressionSyntax
                     : null);
 
             foreach (var property in positionalParams)
             {
-                var assignmentIndex = assignmentValues.IndexOf(value => property.Equals(value.left));
-                if (assignmentIndex == -1)
+                var assignmentValue = assignmentValues.FirstOrDefault(value => property.Equals(value.left));
+                if (assignmentValue == default)
                 {
                     // no assignment found, use "default" (or "null" for nullable types)
                     initializerBuilder.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
@@ -297,8 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 {
                     // found a valid assignment to the parameter, add the expression it was assigned to
                     // to the initializer list, and add the eniter statement to be deleted
-                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValues[assignmentIndex].right));
-                    removalBuilder.Add(bodyOps[assignmentIndex].Syntax);
+                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValue.right));
+                    // don't need to remove argument syntaxes as the base initializer will already get removed
+                    if (assignmentValue.right.Parent is not ArgumentSyntax)
+                    {
+                        removalBuilder.Add(assignmentValue.right.GetAncestor<ExpressionStatementSyntax>()!);
+                    }
                 }
             }
 
@@ -306,34 +293,78 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         }
 
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
-            ImmutableArray<IOperation> operations,
+            IConstructorBodyOperation constructorOperation,
             Func<IOperation, T?> captureAssignedSymbol)
-        => operations.SelectAsArray<IOperation, (ISymbol, T)>(operation =>
         {
-            if (operation is IExpressionStatementOperation
-                {
-                    Operation: ISimpleAssignmentOperation
-                    {
-                        Target: IOperation assignee,
-                        Value: IOperation assignment
-                    }
-                } &&
-                captureAssignedSymbol(assignment) is T capturedSymbol)
+            var body = GetBlockOfMethodBody(constructorOperation);
+            var _ = ArrayBuilder<(ISymbol left, T right)>.GetInstance(out var builder);
+
+            // We expect the constructor to have exactly one statement per property,
+            // where the statement is a simple assignment from the parameter's property to the property
+            if (body == null)
             {
-                return assignee switch
-                {
-                    IFieldReferenceOperation
-                    { Instance: IInstanceReferenceOperation, Field: IFieldSymbol field }
-                        => (field, capturedSymbol),
-                    IPropertyReferenceOperation
-                    { Instance: IInstanceReferenceOperation, Property: IPropertySymbol property }
-                        => (property, capturedSymbol),
-                    _ => default,
-                };
+                return builder.ToImmutable();
             }
 
-            return default;
-        });
+            if (constructorOperation.Initializer is
+                IInvocationOperation { Arguments: ImmutableArray<IArgumentOperation> args })
+            {
+                // in a "base" or "this" initializer
+                foreach (var arg in args)
+                {
+                    if (arg is { Parameter: IParameterSymbol param, Value: IOperation value } &&
+                        captureAssignedSymbol(value) is T captured)
+                    {
+                        // We're looking to see if this initializer is a primary constructor,
+                        // i.e. the parameters are declared as auto-implemented properties in the record definition.
+                        // Since there's no way to associate positional parameters (from the primary constructor)
+                        // to the properties that they declare other than by comparing their declaration locations,
+                        // we have to do this rather convoluted comparison.
+                        // Note: We can use AssociatedSymbol once this is implemented:
+                        // https://github.com/dotnet/roslyn/issues/54286
+                        var positionalParam = param.ContainingSymbol.ContainingType.GetMembers().FirstOrDefault(member
+                                => member.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() ==
+                                    param.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());
+                        if (positionalParam is IPropertySymbol property)
+                        {
+                            builder.Add((property, captured));
+                        }
+                    }
+                }
+                builder.Add(default);
+            }
+
+            foreach (var operation in body.Operations)
+            {
+                if (operation is IExpressionStatementOperation
+                    {
+                        Operation: ISimpleAssignmentOperation
+                        {
+                            Target: IOperation assignee,
+                            Value: IOperation assignment
+                        }
+                    } &&
+                    captureAssignedSymbol(assignment) is T captured)
+                {
+                    builder.Add(assignee switch
+                    {
+                        IFieldReferenceOperation
+                        { Instance: IInstanceReferenceOperation, Field: IFieldSymbol field }
+                            => (field, captured),
+                        IPropertyReferenceOperation
+                        { Instance: IInstanceReferenceOperation, Property: IPropertySymbol property }
+                            => (property, captured),
+                        _ => default,
+                    });
+                }
+                else
+                {
+                    builder.Add(default);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
 
         /// <summary>
         /// Determines whether the operation is safe to move into the "this(...)" initializer

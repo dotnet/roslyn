@@ -2,45 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
-    internal sealed class CSharpConvertToRecordRefactoringProvider : CodeRefactoringProvider
+    internal static class ConvertToRecordCommon
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConvertToRecordRefactoringProvider()
-        {
-        }
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public static async Task<CodeAction?> GetCodeActionAsync(
+            Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
         {
-            var (document, span, cancellationToken) = context;
-
-            var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
-            if (typeDeclaration == null ||
-                // any type declared partial requires complex movement, don't offer refactoring
-                typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
+            // any type declared partial requires complex movement, don't offer refactoring
+            if (typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
             {
-                return;
+                return null;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -54,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     IsStatic: false,
                 } type)
             {
-                return;
+                return null;
             }
 
             var positionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
@@ -67,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 cancellationToken);
             if (positionalParameterInfos.IsEmpty)
             {
-                return;
+                return null;
             }
 
             var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
@@ -82,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
             // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
-            context.RegisterRefactoring(positional);
+            return positional;
         }
 
         private static async Task<Document> ConvertToPositionalRecordAsync(
@@ -111,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // or keep them as overrides and link the positional param to the original property
             foreach (var result in positionalParameterInfos)
             {
+                if (result.IsInherited)
+                {
+                    continue;
+                }
+
                 var property = result.Declaration;
                 if (result.KeepAsOverride)
                 {
@@ -249,15 +241,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var lineFormattingOptions = await document
                 .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
             var modifiedClassTrivia = GetModifiedClassTrivia(
-                positionalParameterInfos.SelectAsArray(p => p.Declaration), typeDeclaration, lineFormattingOptions);
+                positionalParameterInfos, typeDeclaration, lineFormattingOptions);
 
-            var propertiesToAddAsParams = positionalParameterInfos.ZipAsArray(defaults, (p, @default) =>
-                SyntaxFactory.Parameter(
-                    GetModifiedAttributeListsForProperty(p.Declaration),
+            var propertiesToAddAsParams = positionalParameterInfos.Zip(defaults, (result, @default) =>
+            {
+                // if inherited we generate nodes and tokens for the type and identifier
+                var type = result.IsInherited
+                    ? result.Symbol.Type.GenerateTypeSyntax()
+                    : result.Declaration.Type;
+                var identifier = result.IsInherited
+                    ? SyntaxFactory.Identifier(result.Symbol.Name)
+                    : result.Declaration.Identifier;
+
+                return SyntaxFactory.Parameter(
+                    GetModifiedAttributeListsForProperty(result),
                     modifiers: default,
-                    p.Declaration.Type,
-                    p.Declaration.Identifier,
-                    @default: @default));
+                    type,
+                    identifier,
+                    @default: @default);
+            });
 
             // if we have a class, move trivia from class keyword to record keyword
             // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
@@ -300,17 +302,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // delete IEquatable if it's explicit because it is implicit on records
             var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, type);
             var baseList = typeDeclaration.BaseList;
-            if (baseList != null && iEquatable != null)
+            if (baseList != null)
             {
-                var typeList = baseList.Types.Where(baseItem
-                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+                var typeList = baseList.Types.AsImmutable();
 
-                if (typeList.IsEmpty())
+                if (iEquatable != null)
+                {
+                    typeList = typeList.WhereAsArray(baseItem
+                        => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+                }
+
+                if (typeList.IsEmpty)
                 {
                     baseList = null;
                 }
                 else
                 {
+                    if (positionalParameterInfos.Any(info => info.IsInherited))
+                    {
+                        // replace first element (base record) with one that uses primary constructor params
+                        // Move trailing trivia to end of arg list
+                        var baseRecord = typeList.First();
+                        var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
+                        // get the positional parameters in the order they are declared from the base record
+                        var inheritedPositionalParams = PositionalParameterInfo
+                            .GetInheritedPositionalParams(type, cancellationToken)
+                            .SelectAsArray(prop =>
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
+
+                        typeList = typeList.Replace(baseRecord,
+                            SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
+                                .WithTrailingTrivia(baseTrailingTrivia)));
+                    }
+
                     baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
                 }
             }
@@ -345,8 +370,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return changedDocument;
         }
 
-        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PropertyDeclarationSyntax p)
-            => SyntaxFactory.List(p.AttributeLists.SelectAsArray(attributeList =>
+        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
+        {
+            if (result.IsInherited || result.KeepAsOverride)
+            {
+                // for both of these, the attributes on the other definition track so we don't need to redeclare
+                return SyntaxFactory.List<AttributeListSyntax>();
+            }
+
+            return SyntaxFactory.List(result.Declaration.AttributeLists.SelectAsArray(attributeList =>
             {
                 if (attributeList.Target == null)
                 {
@@ -360,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     return attributeList.WithoutTrivia();
                 }
             }));
+        }
 
         #region TriviaMovement
         // format should be:
@@ -369,15 +402,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         // 4. Property summary documentation (as param)
         // 5. Rest of class documentation comments
         private static SyntaxTriviaList GetModifiedClassTrivia(
-            ImmutableArray<PropertyDeclarationSyntax> properties,
+            ImmutableArray<PositionalParameterInfo> propertyResults,
             TypeDeclarationSyntax typeDeclaration,
             LineFormattingOptions lineFormattingOptions)
         {
             var classTrivia = typeDeclaration.GetLeadingTrivia().Where(trivia => !trivia.IsWhitespace()).AsImmutable();
 
-            var propertyNonDocComments = properties
-                .SelectMany(p =>
+            var propertyNonDocComments = propertyResults
+                .SelectMany(result =>
                 {
+                    if (result.IsInherited)
+                    {
+                        return ImmutableArray<SyntaxTrivia>.Empty;
+                    }
+
+                    var p = result.Declaration;
                     var leadingPropTrivia = p.GetLeadingTrivia()
                         .Where(trivia => !trivia.IsDocComment() && !trivia.IsWhitespace());
                     // since we remove attributes and reformat, we want to take any comments
@@ -399,7 +438,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // this variable doubles as a flag to see if we need to generate doc comments at all, as
             // if it is still null, we found no meaningful doc comments anywhere
             var exteriorTrivia = GetExteriorTrivia(typeDeclaration) ??
-                properties.SelectAsArray(GetExteriorTrivia).FirstOrDefault(t => t != null);
+                propertyResults
+                .Where(result => !result.IsInherited)
+                .Select(result => GetExteriorTrivia(result.Declaration!))
+                .FirstOrDefault(trivia => trivia != null);
 
             if (exteriorTrivia == null)
             {
@@ -407,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return SyntaxFactory.TriviaList(classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic()));
             }
 
-            var propertyParamComments = CreateParamComments(properties, exteriorTrivia!.Value, lineFormattingOptions);
+            var propertyParamComments = CreateParamComments(propertyResults, exteriorTrivia!.Value, lineFormattingOptions);
             var classDocComment = classTrivia.FirstOrNull(trivia => trivia.IsDocComment());
             DocumentationCommentTriviaSyntax newClassDocComment;
 
@@ -427,10 +469,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             {
                 // no class doc comment, if we have non-single line parameter comments we need a start and end
                 // we must have had at least one property with a doc comment
-                if (properties
-                        .SelectAsArray(p => p.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment()))
-                        .Where(t => t != null)
-                        .First()?.GetStructure() is DocumentationCommentTriviaSyntax propDoc &&
+                if (propertyResults
+                        .SelectAsArray(result => !result.IsInherited,
+                            result => result.Declaration!.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment()))
+                        .FirstOrDefault(t => t != null)?.GetStructure() is DocumentationCommentTriviaSyntax propDoc &&
                     propDoc.IsMultilineDocComment())
                 {
                     // add /** and */
@@ -499,109 +541,121 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 }
             }
             return null;
+        }
 
-            // potentially recurse into elements to find the first exterior trivia of the element that is after a newline token
-            // since we can only find newlines in TextNodes, we need to look inside element contents for text
-            static SyntaxTriviaList? SearchInNodes(SyntaxList<XmlNodeSyntax> nodes)
+        // potentially recurse into elements to find the first exterior trivia of the element that is after a newline token
+        // since we can only find newlines in TextNodes, we need to look inside element contents for text
+        private static SyntaxTriviaList? SearchInNodes(SyntaxList<XmlNodeSyntax> nodes)
+        {
+            foreach (var node in nodes)
             {
-                foreach (var node in nodes)
+                switch (node)
                 {
-                    switch (node)
-                    {
-                        case XmlElementSyntax element:
-                            var potentialResult = SearchInNodes(element.Content);
-                            if (potentialResult != null)
+                    case XmlElementSyntax element:
+                        var potentialResult = SearchInNodes(element.Content);
+                        if (potentialResult != null)
+                        {
+                            return potentialResult;
+                        }
+                        break;
+                    case XmlTextSyntax text:
+                        SyntaxToken prevToken = default;
+                        // find first text token after a newline
+                        foreach (var token in text.TextTokens)
+                        {
+                            if (prevToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
                             {
-                                return potentialResult;
+                                return token.LeadingTrivia;
                             }
-                            break;
-                        case XmlTextSyntax text:
-                            SyntaxToken prevToken = default;
-                            // find first text token after a newline
-                            foreach (var token in text.TextTokens)
-                            {
-                                if (prevToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
-                                {
-                                    return token.LeadingTrivia;
-                                }
-                                prevToken = token;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                            prevToken = token;
+                        }
+                        break;
+                    default:
+                        break;
                 }
-                return null;
             }
+            return null;
         }
 
         private static IEnumerable<XmlNodeSyntax> CreateParamComments(
-            ImmutableArray<PropertyDeclarationSyntax> properties,
+            ImmutableArray<PositionalParameterInfo> propertyResults,
             SyntaxTriviaList exteriorTrivia,
             LineFormattingOptions lineFormattingOptions)
         {
-            foreach (var property in properties)
+            foreach (var result in propertyResults)
             {
-                // get the documentation comment
-                var potentialDocComment = property.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
-                var paramContent = ImmutableArray<XmlNodeSyntax>.Empty;
-                if (potentialDocComment?.GetStructure() is DocumentationCommentTriviaSyntax docComment)
-                {
-                    // get the summary node if there is one
-                    var summaryNode = docComment.Content.FirstOrDefault(node =>
-                        node is XmlElementSyntax element &&
-                        element.StartTag?.Name.LocalName.ValueText == DocumentationCommentXmlNames.SummaryElementName);
-
-                    if (summaryNode != null)
-                    {
-                        // construct a parameter element from the contents of the property summary
-                        // right now we throw away all other documentation parts of the property, because we don't really know where they should go
-                        var summaryContent = ((XmlElementSyntax)summaryNode).Content;
-                        paramContent = summaryContent.Select((node, index) =>
-                        {
-                            if (node is XmlTextSyntax text)
-                            {
-                                // any text token that is not on it's own line should have replaced trivia
-                                var tokens = text.TextTokens.SelectAsArray(token =>
-                                    token.IsKind(SyntaxKind.XmlTextLiteralToken)
-                                        ? token.WithLeadingTrivia(exteriorTrivia)
-                                        : token);
-
-                                if (index == 0 &&
-                                    tokens.Length >= 2 &&
-                                    tokens[0].IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
-                                {
-                                    // remove the starting line and trivia from the first line
-                                    tokens = tokens.RemoveAt(0);
-                                    tokens = tokens.Replace(tokens[0], tokens[0].WithoutLeadingTrivia());
-                                }
-
-                                if (index == summaryContent.Count - 1 &&
-                                    tokens.Length >= 2 &&
-                                    tokens[^1].IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                                    tokens[^1].Text.GetFirstNonWhitespaceIndexInString() == -1 &&
-                                    tokens[^2].IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
-                                {
-                                    // the last text token contains a new line, then a whitespace only text (which would start the closing tag)
-                                    // remove the new line and the trivia from the extra text
-                                    tokens = tokens.RemoveAt(tokens.Length - 2);
-                                    tokens = tokens.Replace(tokens[^1], tokens[^1].WithoutLeadingTrivia());
-                                }
-
-                                return text.WithTextTokens(SyntaxFactory.TokenList(tokens));
-                            }
-                            return node;
-                        }).AsImmutable();
-                    }
-                }
-
                 // add an extra line and space with the exterior trivia, so that our params start on the next line and each
                 // param goes on a new line with the continuation trivia
                 // when adding a new line, the continue flag adds a single line documentation trivia, but we don't necessarily want that
                 yield return SyntaxFactory.XmlText(
                     SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
                     SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
-                yield return SyntaxFactory.XmlParamElement(property.Identifier.ValueText, paramContent.AsArray());
+
+                if (result.IsInherited)
+                {
+                    // generate a param comment with an inherited doc
+                    yield return SyntaxFactory.XmlParamElement(result.Symbol.Name, SyntaxFactory.XmlEmptyElement(
+                            SyntaxFactory.XmlName(DocumentationCommentXmlNames.InheritdocElementName)));
+                }
+                else
+                {
+                    // get the documentation comment
+                    var potentialDocComment = result.Declaration.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
+                    var paramContent = ImmutableArray<XmlNodeSyntax>.Empty;
+                    if (potentialDocComment?.GetStructure() is DocumentationCommentTriviaSyntax docComment)
+                    {
+                        // get the summary node if there is one
+                        var summaryNode = docComment.Content.FirstOrDefault(node =>
+                            node is XmlElementSyntax element &&
+                            element.StartTag?.Name.LocalName.ValueText == DocumentationCommentXmlNames.SummaryElementName);
+
+                        if (summaryNode != null)
+                        {
+                            // construct a parameter element from the contents of the property summary
+                            // right now we throw away all other documentation parts of the property, because we don't really know where they should go
+                            var summaryContent = ((XmlElementSyntax)summaryNode).Content;
+                            paramContent = summaryContent.Select((node, index) =>
+                            {
+                                if (node is XmlTextSyntax text)
+                                {
+                                    // any text token that is not on it's own line should have replaced trivia
+                                    var tokens = text.TextTokens.SelectAsArray(token =>
+                                        token.IsKind(SyntaxKind.XmlTextLiteralToken)
+                                            ? token.WithLeadingTrivia(exteriorTrivia)
+                                            : token);
+
+                                    if (index == 0 &&
+                                        tokens.Length >= 2 &&
+                                        tokens[0].IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                                    {
+                                        // remove the starting line and trivia from the first line
+                                        tokens = tokens.RemoveAt(0);
+                                    }
+
+                                    // remove trivia from first statement because it should never be on a separate line
+                                    tokens = tokens.Replace(tokens[0], tokens[0].WithoutLeadingTrivia());
+
+                                    if (index == summaryContent.Count - 1 &&
+                                        tokens.Length >= 2 &&
+                                        tokens[^1].IsKind(SyntaxKind.XmlTextLiteralToken) &&
+                                        tokens[^1].Text.GetFirstNonWhitespaceIndexInString() == -1 &&
+                                        tokens[^2].IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                                    {
+                                        // the last text token contains a new line, then a whitespace only text (which would start the closing tag)
+                                        // remove the new line and the trivia from the extra text
+                                        tokens = tokens.RemoveAt(tokens.Length - 2);
+                                        tokens = tokens.Replace(tokens[^1], tokens[^1].WithoutLeadingTrivia());
+                                    }
+
+                                    return text.WithTextTokens(SyntaxFactory.TokenList(tokens));
+                                }
+                                return node;
+                            }).AsImmutable();
+                        }
+                    }
+
+                    yield return SyntaxFactory.XmlParamElement(result.Declaration.Identifier.ValueText, paramContent.AsArray());
+                }
             }
         }
         #endregion

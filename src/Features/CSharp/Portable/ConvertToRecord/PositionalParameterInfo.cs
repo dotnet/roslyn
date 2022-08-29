@@ -3,41 +3,89 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
-    internal record PositionalParameterInfo(PropertyDeclarationSyntax Declaration, IPropertySymbol Symbol, bool KeepAsOverride)
+    /// <summary>
+    /// Represents a property that should be added as a positional parameter
+    /// </summary>
+    /// <param name="Declaration">Original declaration, null iff IsInherited is true
+    /// Null iff <see cref="IsInherited"/> is true</param>
+    /// <param name="Symbol">Symbol of the property</param>
+    /// <param name="KeepAsOverride">Whether we should keep the original declaration present</param>
+    internal record PositionalParameterInfo(
+        PropertyDeclarationSyntax? Declaration,
+        IPropertySymbol Symbol,
+        bool KeepAsOverride)
     {
+        /// <summary>
+        /// Whether this property is inherited from another base record
+        /// </summary>
+        [MemberNotNullWhen(false, nameof(Declaration))]
+        public bool IsInherited => Declaration == null;
+
         public static ImmutableArray<PositionalParameterInfo> GetPropertiesForPositionalParameters(
             ImmutableArray<PropertyDeclarationSyntax> properties,
             INamedTypeSymbol type,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // first get all property symbols
+            using var _ = ArrayBuilder<PositionalParameterInfo>.GetInstance(out var resultBuilder);
+
+            // get all declared property symbols, put inherited property symbols first
             var symbols = properties
                 .SelectAsArray(p => (IPropertySymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
+
+            // add inherited properties from a potential base record first
+            var inheritedProperties = GetInheritedPositionalParams(type, cancellationToken);
+            resultBuilder.AddRange(inheritedProperties.Select(property => new PositionalParameterInfo(
+                Declaration: null,
+                property,
+                KeepAsOverride: false)));
 
             // The user may not know about init or be converting code from before init was introduced.
             // In this case we can convert set properties to init ones
             var allowSetToInitConversion = !symbols
                 .Any(symbol => symbol.SetMethod is IMethodSymbol { IsInitOnly: true });
 
-            return properties.ZipAsArray(symbols, (syntax, symbol)
+            resultBuilder.AddRange(properties.Zip(symbols, (syntax, symbol)
                 => ShouldConvertProperty(syntax, symbol, type) switch
                 {
                     ConvertStatus.DoNotConvert => null,
-                    ConvertStatus.Override => new PositionalParameterInfo(syntax, symbol, true),
+                    ConvertStatus.Override
+                        => new PositionalParameterInfo(syntax, symbol, KeepAsOverride: true),
                     ConvertStatus.OverrideIfConvertingSetToInit
                         => new PositionalParameterInfo(syntax, symbol, !allowSetToInitConversion),
-                    ConvertStatus.AlwaysConvert => new PositionalParameterInfo(syntax, symbol, false),
+                    ConvertStatus.AlwaysConvert
+                        => new PositionalParameterInfo(syntax, symbol, KeepAsOverride: false),
                     _ => throw ExceptionUtilities.Unreachable,
-                }).WhereNotNull().AsImmutable();
+                }).WhereNotNull());
+
+            return resultBuilder.ToImmutable();
+        }
+
+        public static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(
+            INamedTypeSymbol currentType,
+            CancellationToken cancellationToken)
+        {
+            var baseType = currentType.BaseType;
+            if (baseType != null && baseType.TryGetRecordPrimaryConstructor(out var basePrimary))
+            {
+                return basePrimary.Parameters
+                    .Select(param => param.GetAssociatedSynthesizedRecordProperty(cancellationToken))
+                    .WhereNotNull()
+                    .AsImmutable();
+            }
+
+            return ImmutableArray<IPropertySymbol>.Empty;
         }
 
         /// <summary>
