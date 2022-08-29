@@ -92,13 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (result != null)
             {
 #if DEBUG
+                // We require that if 'force: true' is passed, then we must not have already loaded the default instance.
+                // We want to avoid a scenario where calling multiple times with 'force: false' could cause the caller to observe different instances.
+                Debug.Assert(!force || result != s_noUncommonProperties);
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
 #endif
-                // Avoid returning the default instance when caller passes 'force: true'.
-                if (!force || result != s_noUncommonProperties)
-                {
-                    return result;
-                }
+                return result;
             }
 
             if (force || this.IsUncommon())

@@ -2878,6 +2878,7 @@ class Program
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                    case ErrorCode.ERR_FileTypeNonUniquePath:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

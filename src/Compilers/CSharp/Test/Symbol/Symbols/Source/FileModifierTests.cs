@@ -801,7 +801,14 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(1, 5),
             // ?.cs(3,12): error CS9068: File-local type 'C' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD800 at index 0 to specified code page.      
             // file class C { } // 2
-            Diagnostic(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, "C").WithArguments("C", @"Unable to translate Unicode character \\uD800 at index 0 to specified code page.").WithLocation(3, 12));
+            Diagnostic(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, "C")
+                .WithArguments(
+                    "C",
+                    ExecutionConditionUtil.IsCoreClr
+                        ? @"Unable to translate Unicode character \\uD800 at index 0 to specified code page."
+                        : @"Unable to translate Unicode character \uD800 at index 0 to specified code page.")
+                .WithLocation(3, 12)
+            );
 
         var classC = comp.GetMember("C");
         Assert.Equal("<_>F<no checksum>__C", classC.MetadataName);
