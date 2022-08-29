@@ -3859,12 +3859,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 checkNullableType(csharpRightType, nameof(rightType));
 
                 // Use fast-path check to see if this types are ok.
-                var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(syntaxKind);
-                OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
+                var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
+                var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
 
-                if (binaryKind != BinaryOperatorKind.Error)
+                if (easyOutBinaryKind != BinaryOperatorKind.Error)
                 {
-                    var signature = this.builtInOperators.GetSignature(binaryKind);
+                    var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
                     if (!TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything))
                         throw new ArgumentException($"Built-in operator return type must be '{signature.ReturnType.ToDisplayString()}'.", nameof(returnType));
                     return;
