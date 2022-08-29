@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             _textFactory = services.GetRequiredService<ITextFactoryService>();
         }
 
-        public override SourceText CreateText(Stream stream, CancellationToken cancellationToken)
+        protected override SourceText CreateText(Stream stream, CancellationToken cancellationToken)
             => _textFactory.CreateText(stream, DefaultEncoding, CancellationToken.None);
     }
 }

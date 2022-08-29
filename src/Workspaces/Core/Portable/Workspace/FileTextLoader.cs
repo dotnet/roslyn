@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
-        public virtual SourceText CreateText(Stream stream, CancellationToken cancellationToken)
+        protected virtual SourceText CreateText(Stream stream, CancellationToken cancellationToken)
             => s_dummySourceText;
 
         private SourceText CreateTextImpl(Stream stream, CancellationToken cancellationToken)
