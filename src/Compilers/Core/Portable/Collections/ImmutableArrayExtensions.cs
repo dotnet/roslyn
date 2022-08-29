@@ -420,15 +420,10 @@ namespace Microsoft.CodeAnalysis
 
         public static bool Any<T, TArg1, TArg2>(this ImmutableArray<T> array, Func<T, TArg1, TArg2, bool> predicate, TArg1 arg1, TArg2 arg2)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var value in array)
             {
-                var a = array[i];
-
-                if (predicate(a, arg1, arg2))
-                {
+                if (predicate(value, arg1, arg2))
                     return true;
-                }
             }
 
             return false;
