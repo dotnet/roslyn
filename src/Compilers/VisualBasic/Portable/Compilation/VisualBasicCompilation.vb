@@ -2909,10 +2909,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
         End Function
 
-        Protected Overrides Function IsLanguageSpecificSupportedBuiltinOperatorType(type As ITypeSymbol) As Boolean
-            Return False
-        End Function
-
         Protected Overrides Function CommonCreateBuiltinOperator(
                 name As String,
                 returnType As ITypeSymbol,

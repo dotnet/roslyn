@@ -4008,7 +4008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                throw new ArgumentException($"Unsupported built-in operator kind: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
+                throw new ArgumentException($"Unsupported built-in operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
             }
 
             void checkNullableType(TypeSymbol type, string paramName)
