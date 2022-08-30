@@ -1729,7 +1729,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58449")]
         public void AssignMethodGroup()
         {
             var source =
@@ -4187,7 +4187,7 @@ class C
             Assert.Equal("error CS1618: Cannot create delegate with 'C.F()' because it or a method it overrides has a Conditional attribute", error);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58449")]
         public void StaticDelegate()
         {
             var source =
@@ -6982,7 +6982,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463")]
         public void RefField()
         {
             var source =

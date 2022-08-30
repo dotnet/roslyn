@@ -190,6 +190,9 @@ namespace Microsoft.CodeAnalysis.Emit
             // otherwise members from the current compilation have already been merged into the baseline.
             var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
 
+            Debug.Assert(module.EncSymbolChanges is not null);
+            var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.GetAllDeletedMethods() : _previousGeneration.DeletedMembers;
+
             var currentGenerationOrdinal = _previousGeneration.Ordinal + 1;
 
             var addedTypes = _typeDefs.GetAdded();
@@ -231,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousDelegates: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegates(),
                 anonymousDelegatesWithFixedTypes: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegatesWithFixedTypes(),
                 synthesizedMembers: synthesizedMembers,
-                deletedMembers: _previousGeneration.DeletedMembers,
+                deletedMembers: deletedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
                 debugInformationProvider: _previousGeneration.DebugInformationProvider,
                 localSignatureProvider: _previousGeneration.LocalSignatureProvider);

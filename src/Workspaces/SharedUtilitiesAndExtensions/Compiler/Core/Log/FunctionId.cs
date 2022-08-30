@@ -549,11 +549,32 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         LSP_UsedForkedSolution = 571,
 
-        SpellCheckFixer_CouldNotFindDocument = 580,
-        SpellCheckFixer_LanguageDoesNotSupportRename = 581,
-        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 582,
-        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 583,
-        SpellCheckFixer_ReplacementTextInvalid = 584,
-        SpellCheckFixer_TryApplyChangesFailure = 585,
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange = 583,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange = 584,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument = 585,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange = 586,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
+
+        Completion_SemanticSnippets = 589,
+        // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
+
+        SpellCheckFixer_CouldNotFindDocument = 600,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 601,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 602,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
+        SpellCheckFixer_ReplacementTextInvalid = 604,
+        SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621
     }
 }

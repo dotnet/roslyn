@@ -1134,6 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method.Parameters,
                     args,
+                    argRefKinds,
                     argsToParams,
                     this.LocalScopeDepth,
                     diagnostics);
@@ -2065,6 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverOpt: null,
                     funcPtr.Signature.Parameters,
                     args,
+                    refKinds,
                     methodResult.Result.ArgsToParamsOpt,
                     LocalScopeDepth,
                     diagnostics);

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -155,6 +155,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 delimiters = startingNode.GetBrackets();
             }
 
+            if (delimiters == default)
+            {
+                delimiters = startingNode.GetBraces();
+            }
+
             var (openingDelimiter, closingDelimiter) = delimiters;
             if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
@@ -194,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.CheckedExpression,
                 SyntaxKind.UncheckedExpression,
                 SyntaxKind.TypeOfExpression,
-                SyntaxKind.TupleExpression))
+                SyntaxKind.TupleExpression,
+                SyntaxKind.SwitchExpression))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -460,7 +466,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
             return currentNode.GetBrackets().closeBracket.IsMissing ||
-                currentNode.GetParentheses().closeParen.IsMissing;
+                currentNode.GetParentheses().closeParen.IsMissing ||
+                currentNode.GetBraces().closeBrace.IsMissing;
         }
     }
 }

@@ -26,14 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
-            _textView.LostAggregateFocus += TextView_LostFocus;
-            _textView.Caret.PositionChanged += TextView_CursorChanged;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
-                Focus();
-                MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+                IdentifierTextBox.Focus();
+                IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
+
+                // Don't hook up our close events until we're done loading and have focused within the textbox
+                _textView.LostAggregateFocus += TextView_LostFocus;
+                LostFocus += RenameFlyout_LostFocus;
             };
 
             InitializeComponent();
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
-        private void TextView_CursorChanged(object sender, CaretPositionChangedEventArgs e)
+        private void RenameFlyout_LostFocus(object sender, RoutedEventArgs e)
             => _viewModel.Cancel();
 
         private void TextView_LostFocus(object sender, EventArgs e)
@@ -79,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
             _textView.LostAggregateFocus -= TextView_LostFocus;
-            _textView.Caret.PositionChanged -= TextView_CursorChanged;
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)

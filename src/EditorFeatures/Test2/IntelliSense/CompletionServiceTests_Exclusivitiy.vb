@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim completionService = New TestCompletionService(workspace)
+                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices)
 
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
@@ -52,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Class TestCompletionService
             Inherits CompletionService
 
-            Public Sub New(workspace As Workspace)
-                MyBase.New(workspace)
+            Public Sub New(services As SolutionServices)
+                MyBase.New(services)
             End Sub
 
             Public Overrides ReadOnly Property Language As String

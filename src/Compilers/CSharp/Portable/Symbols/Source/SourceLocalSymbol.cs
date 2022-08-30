@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this._refKind = refTypeSyntax.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
-                this._scope = refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword ?
-                    DeclarationScope.ValueScoped :
-                    (hasScopedModifier ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                this._scope = hasScopedModifier ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
             }
             else
             {
@@ -117,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // | scoped Span<int> s     | current method     | current method |
         // | ref Span<int> s        | calling method     | calling method |
         // | scoped ref Span<int> s | current method     | calling method |
-        // | ref scoped Span<int> s | current method     | current method |
 
         internal sealed override uint RefEscapeScope
         {

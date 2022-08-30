@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_conversions == null)
                 {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this).Conversions, null);
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedSyntaxTree: null).Conversions, null);
                 }
 
                 return _conversions;
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
+        protected internal override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {

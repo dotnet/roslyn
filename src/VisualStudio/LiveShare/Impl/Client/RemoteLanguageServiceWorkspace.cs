@@ -85,12 +85,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             SVsServiceProvider serviceProvider,
             IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(globalOptions, threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -146,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// this means that the remote workpace roots have also changed and need to be updated.
         /// This will not be called concurrently.
         /// </summary>
-        private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
+        private async Task OnActiveWorkspaceChangedAsync(object? sender, EventArgs args)
         {
             if (IsRemoteSession)
             {

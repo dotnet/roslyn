@@ -124,7 +124,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
-            => _inProc.SaveAll();
+        {
+            _inProc.SaveAll();
+
+            // Wait for async save operations to complete before proceeding
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
 
         /// <summary>
         /// Selects an item named by the <paramref name="itemName"/> parameter.

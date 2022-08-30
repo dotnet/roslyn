@@ -6,13 +6,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RunTests
 {
@@ -126,23 +126,23 @@ namespace RunTests
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
-            var testExecutor = CreateTestExecutor(options);
+            var testExecutor = new ProcessTestExecutor();
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
-            var assemblyInfoList = GetAssemblyList(options);
-            if (assemblyInfoList.Count == 0)
+            var workItems = await GetWorkItemsAsync(options, cancellationToken);
+            if (workItems.Length == 0)
             {
+                WriteLogFile(options);
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
                 return ExitFailure;
             }
 
-            var assemblyCount = assemblyInfoList.GroupBy(x => x.AssemblyPath).Count();
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-            ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
+            ConsoleUtil.WriteLine($"Running tests in {workItems.Length} partitions");
 
             var result = options.UseHelix
-                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
-                : await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
+                ? await testRunner.RunAllOnHelixAsync(workItems, options, cancellationToken).ConfigureAwait(true)
+                : await testRunner.RunAllAsync(workItems, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
@@ -253,16 +253,16 @@ namespace RunTests
                 }
             }
 
-            if (options.CollectDumps && GetProcDumpInfo(options) is { } procDumpInfo)
+            if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
                 ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
 
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = procDumpInfo.DumpDirectory;
+                    var dumpDir = options.LogFilesDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, procDumpInfo.ProcDumpFilePath, dumpFilePath);
+                    await DumpProcess(proc, options.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
             }
@@ -270,84 +270,84 @@ namespace RunTests
             WriteLogFile(options);
         }
 
-        private static ProcDumpInfo? GetProcDumpInfo(Options options)
-        {
-            if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
-            {
-                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory);
-            }
-
-            return null;
-        }
-
-        private static List<AssemblyInfo> GetAssemblyList(Options options)
+        private static async Task<ImmutableArray<WorkItemInfo>> GetWorkItemsAsync(Options options, CancellationToken cancellationToken)
         {
             var scheduler = new AssemblyScheduler(options);
-            var list = new List<AssemblyInfo>();
             var assemblyPaths = GetAssemblyFilePaths(options);
-
-            foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
-            {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
-            }
-
-            return list;
+            var workItems = await scheduler.ScheduleAsync(assemblyPaths, cancellationToken);
+            return workItems;
         }
 
-        private static List<(string FilePath, string TargetFramework)> GetAssemblyFilePaths(Options options)
+        private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)
         {
-            var list = new List<(string, string)>();
+            var list = new List<AssemblyInfo>();
             var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
             foreach (var project in Directory.EnumerateDirectories(binDirectory, "*", SearchOption.TopDirectoryOnly))
             {
                 var name = Path.GetFileName(project);
-                var include = false;
-                foreach (var pattern in options.IncludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        include = true;
-                    }
-                }
-
-                if (!include)
+                if (!shouldInclude(name, options) || shouldExclude(name, options))
                 {
                     continue;
                 }
 
-                foreach (var pattern in options.ExcludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        continue;
-                    }
-                }
-
                 var fileName = $"{name}.dll";
+                // Find the dlls matching the request configuration and target frameworks.
                 foreach (var targetFramework in options.TargetFrameworks)
                 {
-                    var fileContainingDirectory = Path.Combine(project, options.Configuration, targetFramework);
-                    var filePath = Path.Combine(fileContainingDirectory, fileName);
+                    var targetFrameworkDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    var filePath = Path.Combine(targetFrameworkDirectory, fileName);
                     if (File.Exists(filePath))
                     {
-                        list.Add((filePath, targetFramework));
+                        list.Add(new AssemblyInfo(filePath));
                     }
-                    else if (Directory.Exists(fileContainingDirectory) && Directory.GetFiles(fileContainingDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
+                    else if (Directory.Exists(targetFrameworkDirectory) && Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
                     {
                         // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
                         // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
                         // For example, one unit test project might be referencing another unit test project.
                         if (matches.Length > 1)
                         {
-                            var message = $"Multiple unit test assemblies found in '{fileContainingDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
+                            var message = $"Multiple unit test assemblies found in '{targetFrameworkDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
                             throw new Exception(message);
                         }
-                        list.Add((matches[0], targetFramework));
+                        list.Add(new AssemblyInfo(matches[0]));
                     }
                 }
             }
 
-            return list;
+            if (list.Count == 0)
+            {
+                throw new InvalidOperationException($"Did not find any test assemblies");
+            }
+
+            list.Sort();
+            return list.ToImmutableArray();
+
+            static bool shouldInclude(string name, Options options)
+            {
+                foreach (var pattern in options.IncludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static bool shouldExclude(string name, Options options)
+            {
+                foreach (var pattern in options.ExcludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
@@ -376,19 +376,6 @@ namespace RunTests
                     ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
                 }
             }
-        }
-
-        private static ProcessTestExecutor CreateTestExecutor(Options options)
-        {
-            var testExecutionOptions = new TestExecutionOptions(
-                dotnetFilePath: options.DotnetFilePath,
-                procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
-                testResultsDirectory: options.TestResultsDirectory,
-                testFilter: options.TestFilter,
-                includeHtml: options.IncludeHtml,
-                retry: options.Retry,
-                collectDumps: options.CollectDumps);
-            return new ProcessTestExecutor(testExecutionOptions);
         }
 
         /// <summary>

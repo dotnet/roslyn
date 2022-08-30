@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 //
                 // In essence, this says "i can be replaced with an expression as long as I'm not being
                 // written to".
-                var semanticFacts = Document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = Document.Project.Services.GetService<ISemanticFactsService>();
                 return semanticFacts.CanReplaceWithRValue(Document.SemanticModel, Expression, cancellationToken);
             }
 

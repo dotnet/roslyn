@@ -4,15 +4,18 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports System.Collections.Immutable
+Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
     <[UseExportProvider]>
@@ -295,17 +298,21 @@ public class $$MyClass
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
-                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 Dim extractableMembers = DirectCast(symbol, INamedTypeSymbol).GetMembers().Where(Function(s) Not (TypeOf s Is IMethodSymbol) OrElse DirectCast(s, IMethodSymbol).MethodKind <> MethodKind.Constructor)
 
+                Dim memberViewModels = extractableMembers.Select(Function(member As ISymbol)
+                                                                     Return New MemberSymbolViewModel(member, Nothing)
+                                                                 End Function)
+
                 Return New ExtractInterfaceDialogViewModel(
-                    workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(),
-                    glyphService:=Nothing,
+                    workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(),
                     notificationService:=New TestNotificationService(),
+                    uiThreadOperationExecutor:=Nothing,
                     defaultInterfaceName:=defaultInterfaceName,
-                    extractableMembers:=extractableMembers.ToList(),
                     conflictingTypeNames:=If(conflictingTypeNames, New List(Of String)),
+                    memberViewModels:=memberViewModels.ToImmutableArray(),
                     defaultNamespace:=defaultNamespace,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
                     languageName:=doc.Project.Language)

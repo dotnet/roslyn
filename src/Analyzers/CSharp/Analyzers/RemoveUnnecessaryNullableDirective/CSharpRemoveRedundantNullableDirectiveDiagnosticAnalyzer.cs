@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
-        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
                 EnforceOnBuildValues.RemoveRedundantNullableDirective,
                 option: null,
+                fadingOption: null,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_redundant_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_redundant), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                isUnnecessary: true)
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_redundant), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

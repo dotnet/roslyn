@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -117,10 +118,10 @@ class Implementation : IEnumerable
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
             RoslynDebug.AssertNotNull(document);
-            Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
+            Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/62286")]
         public async Task TestNavigateToDifferentProjects()
         {
             await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageNames.CSharp, cancellationToken: HangMitigatingCancellationToken);
@@ -159,7 +160,7 @@ class Implementation : IBar
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
             RoslynDebug.AssertNotNull(document);
-            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
+            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
         }
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -168,6 +169,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             propertyName = null;
+            return false;
+        }
+
+        // A full metadata name for a generic file-local type looks like:
+        // <ContainingFile>FN__ClassName`A
+        // where 'N' is the syntax tree ordinal, 'A' is the arity,
+        // and 'ClassName' is the source name of the type.
+        //
+        // The "unmangled" name of a generic file-local type looks like:
+        // <ContainingFile>FN__ClassName
+        private static readonly Regex s_fileTypeOrdinalPattern = new Regex(@"<([a-zA-Z_0-9]*)>F(\d)+__", RegexOptions.Compiled);
+
+        /// <remarks>
+        /// This method will work with either unmangled or mangled type names as input, but it does not remove any arity suffix if present.
+        /// </remarks>
+        internal static bool TryParseFileTypeName(string generatedName, [NotNullWhen(true)] out string? displayFileName, out int ordinal, [NotNullWhen(true)] out string? originalTypeName)
+        {
+            if (s_fileTypeOrdinalPattern.Match(generatedName) is Match { Success: true, Groups: var groups, Index: var index, Length: var length }
+                && int.TryParse(groups[2].Value, out ordinal))
+            {
+                displayFileName = groups[1].Value;
+
+                var prefixEndsAt = index + length;
+                originalTypeName = generatedName.Substring(prefixEndsAt);
+                return true;
+            }
+
+            ordinal = -1;
+            displayFileName = null;
+            originalTypeName = null;
             return false;
         }
     }

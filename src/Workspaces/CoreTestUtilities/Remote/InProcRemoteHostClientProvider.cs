@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 => _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new InProcRemoteHostClientProvider(workspaceServices, _callbackDispatchers);
+                => new InProcRemoteHostClientProvider(workspaceServices.SolutionServices, _callbackDispatchers);
         }
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                         // We want to allow references to source generators to be shared between the "in proc" and "remote" workspaces and
                         // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
                         ((IMefHostExportProvider)hostServices).GetExportedValue<TestSerializerService.Factory>().SharedTestGeneratorReferences = sharedTestGeneratorReferences;
-                        return new RemoteWorkspace(hostServices, WorkspaceKind.RemoteWorkspace);
+                        return new RemoteWorkspace(hostServices);
                     });
             }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 => LazyWorkspace.Value;
         }
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly Lazy<WorkspaceManager> _lazyManager;
         private readonly Lazy<RemoteHostClient> _lazyClient;
 
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public Type[]? AdditionalRemoteParts { get; set; }
         public TraceListener? TraceListener { get; set; }
 
-        public InProcRemoteHostClientProvider(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
+        public InProcRemoteHostClientProvider(SolutionServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
 
-            var testSerializerServiceFactory = ((IMefHostExportProvider)services.HostServices).GetExportedValue<TestSerializerService.Factory>();
+            var testSerializerServiceFactory = services.ExportProvider.GetExportedValue<TestSerializerService.Factory>();
 
             _lazyManager = new Lazy<WorkspaceManager>(
                 () => new WorkspaceManager(

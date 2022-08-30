@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Microsoft.CodeAnalysis.Editor;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -22,7 +24,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
@@ -46,61 +47,63 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            IGlobalOptionService globalOptions,
+            EditorOptionsService editorOptionsService,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         // If we are under high contrast mode, the editor ignores classification tags that fade things out,
         // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.
         protected internal override bool IsEnabled
-            => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
+            => !_editorOptionsService.Factory.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
+
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We only support push diagnostics.  When pull diagnostics are on, diagnostic fading is handled by the lsp client.
+            return mode == DiagnosticMode.Push;
+        }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData data)
-            => data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+        {
+            if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+            {
+                // All unnecessary code diagnostics should have the 'Unnecessary' custom tag.
+                // Below assert ensures that we do no report unnecessary code diagnostics that
+                // want to fade out multiple locations which are encoded as
+                // additional location indices in the diagnostic's property bag
+                // without the 'Unnecessary' custom tag. 
+                Debug.Assert(!data.TryGetUnnecessaryLocationIndices(out _));
+
+                return false;
+            }
+
+            // Do not fade if user has disabled the fading option corresponding to this diagnostic.
+            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedFadingOption(data.Id, out var fadingOption))
+            {
+                return data.Language != null
+                    && _editorOptionsService.GlobalOptions.GetOption(fadingOption, data.Language);
+            }
+
+            return true;
+        }
 
         protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
-            // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
-            if (diagnosticData.AdditionalLocations.Length > 0
-                && diagnosticData.Properties != null
-                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices)
-                && unnecessaryIndices is object)
+            if (diagnosticData.TryGetUnnecessaryDataLocations(out var locationsToTag))
             {
-                using var _ = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
-
-                foreach (var index in GetLocationIndices(unnecessaryIndices))
-                    locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
-
-                return locationsToTag.ToImmutable();
+                return locationsToTag.Value;
             }
 
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
-
-            static IEnumerable<int> GetLocationIndices(string indicesProperty)
-            {
-                try
-                {
-                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
-                    var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
-                    var result = serializer.ReadObject(stream) as IEnumerable<int>;
-                    return result ?? Array.Empty<int>();
-                }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
-                {
-                    return ImmutableArray<int>.Empty;
-                }
-            }
         }
     }
 }

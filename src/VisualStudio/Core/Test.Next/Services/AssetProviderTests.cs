@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class AssetProviderTests
     {
         private static Workspace CreateRemoteWorkspace()
-            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
+            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCSharpParseOptionsSynchronization()
@@ -55,8 +55,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(new[] { checksum }, CancellationToken.None);
-            Assert.Equal(1, stored2.Count);
+            var stored2 = await provider.GetAssetsAsync<object>(new HashSet<Checksum> { checksum }, CancellationToken.None);
+            Assert.Equal(1, stored2.Length);
 
             Assert.Equal(checksum, stored2[0].Item1);
             Assert.Equal(data, stored2[0].Item2);
@@ -135,7 +135,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
+            await service.SynchronizeProjectAssetsAsync(new HashSet<Checksum> { await project.State.GetChecksumAsync(CancellationToken.None) }, CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

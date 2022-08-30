@@ -28,7 +28,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         private IGlobalOptionService _globalOptions;
         private IThreadingContext _threadingContext;
-        private HostWorkspaceServices _workspaceServices;
+        private SolutionServices _workspaceServices;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _workspaceServices = workspace.Services;
+                _workspaceServices = workspace.Services.SolutionServices;
             }
 
             return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             SetLoggers(_globalOptions, _threadingContext, _workspaceServices);
         }
 
-        public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, HostWorkspaceServices workspaceServices)
+        public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
         {
             var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
 

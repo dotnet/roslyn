@@ -4,9 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -64,10 +65,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(
-                symbol, state,
-                static (state, token, _) => IsPotentialReference(state.SyntaxFacts, token),
-                cancellationToken);
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .WhereAsArray(
+                    static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
+                    state);
+
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
 
         private static bool IsPotentialReference(

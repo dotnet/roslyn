@@ -542,8 +542,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
                         {
-                            return SymbolInfo.None;
+                            var varTypeInfo = GetTypeInfoWorker(expression, cancellationToken);
+                            if (varTypeInfo.Type is { TypeKind: not TypeKind.Error })
+                            {
+                                return GetSymbolInfoFromSymbolOrNone(varTypeInfo.Type.GetPublicSymbol());
+                            }
+
+                            return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type.GetPublicSymbol());
                         }
+
                         break;
                 }
             }
@@ -966,8 +973,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         if (((TypeSyntax)expression).IsVar)
                         {
-                            return CSharpTypeInfo.None;
+                            var varTypeInfo = GetTypeInfoWorker(expression, cancellationToken);
+                            if (varTypeInfo.Type is { TypeKind: not TypeKind.Error })
+                            {
+                                return varTypeInfo;
+                            }
+
+                            return GetTypeInfoWorker(parent, cancellationToken);
                         }
+
                         break;
                 }
             }
@@ -3769,8 +3783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryOperatorKind op = unaryOperator.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type.StrippedType(),
                                                                                                  OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: unaryOperator.OperatorKind.IsChecked()),
-                                                                                                 unaryOperator.Type.StrippedType(),
-                                                                                                 unaryOperator.OperatorKind.IsChecked()));
+                                                                                                 unaryOperator.Type.StrippedType()));
                 resultKind = unaryOperator.ResultKind;
             }
         }
@@ -3793,8 +3806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
                                                                                                  OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
-                                                                                                 increment.Type.StrippedType(),
-                                                                                                 increment.OperatorKind.IsChecked()));
+                                                                                                 increment.Type.StrippedType()));
                 resultKind = increment.ResultKind;
             }
         }
@@ -3828,8 +3840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(objectType,
                                                                                              OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked: binaryOperator.OperatorKind.IsChecked()),
                                                                                              objectType,
-                                                                                             binaryOperator.Type,
-                                                                                             binaryOperator.OperatorKind.IsChecked()));
+                                                                                             binaryOperator.Type));
                 }
                 else
                 {
@@ -3870,8 +3881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedIntrinsicOperatorSymbol(leftType,
                                                           OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
                                                           rightType,
-                                                          returnType,
-                                                          isChecked);
+                                                          returnType);
         }
 
         private static void GetSymbolsAndResultKind(BoundCompoundAssignmentOperator compoundAssignment, out bool isDynamic, ref LookupResultKind resultKind, ref ImmutableArray<Symbol> symbols)
@@ -5300,8 +5310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var imports = chain.Imports;
                 if (imports.IsEmpty)
                     continue;
-
-                Debug.Assert(imports.Usings.All(static u => u.UsingDirectiveReference != null));
 
                 // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
                 // node corresponding to this set of imports and chain it to that.

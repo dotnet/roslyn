@@ -88,9 +88,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
             End Sub
 
-            Protected Overrides ReadOnly Property FirstIncreasingResumableState As Integer
+            Protected Overrides ReadOnly Property FirstIncreasingResumableState As StateMachineState
                 Get
-                    Return StateMachineStates.FirstResumableAsyncState
+                    Return StateMachineState.FirstResumableAsyncState
                 End Get
             End Property
 
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 exceptionLocal,
                                 Me.F.Block(
                                     SyntheticBoundNodeFactory.HiddenSequencePoint(),
-                                    Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
+                                    Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineState.FinishedState)),
                                     Me.F.ExpressionStatement(
                                         Me._owner.GenerateMethodCall(
                                             Me.F.Field(Me.F.Me(), Me._builder, False),
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' STMT:   state = cachedState = finishedState
                 Dim stateDone = Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineState.FinishedState)))
                 Dim block As MethodBlockSyntax = TryCast(body.Syntax, MethodBlockSyntax)
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)

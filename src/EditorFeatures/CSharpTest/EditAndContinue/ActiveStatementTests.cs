@@ -2442,8 +2442,14 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.auto_property, "a")));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.a")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         #endregion
@@ -8713,6 +8719,56 @@ class C
         }
 
         [Fact]
+        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
+        public void Lambdas_EditAroundTry_WithActiveStatement()
+        {
+            var src1 =
+                """
+                Action F = () =>
+                {
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                };
+
+                <AS:0>F();</AS:0>
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+            var src2 =
+                """
+                Action F = () =>
+                {
+                    System.Console.WriteLine(1);
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                };
+                
+                <AS:0>F();</AS:0>
+                
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
         public void Lambdas_StatementsToExpression()
         {
             var src1 = @"
@@ -9925,6 +9981,56 @@ class C
         }
 
         [Fact]
+        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
+        public void LocalFunction_EditAroundTry_WithActiveStatement()
+        {
+            var src1 =
+                """
+                <AS:0>F();</AS:0>
+
+                void F()
+                {
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                }
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+            var src2 =
+                """
+                <AS:0>F();</AS:0>
+
+                void F()
+                {
+                    System.Console.WriteLine(1);
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                }
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
         [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunctionToAsyncLocalFunction_ExpressionBody_WithActiveStatement()
         {
@@ -10677,13 +10783,13 @@ class C
                 new[]
                 {
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcA1, srcA2, path: "0"),
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F2")),
                         }),
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"))
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1))
                 });
         }
 
@@ -10701,17 +10807,17 @@ class C
             var srcB2 = "<AS:0>partial class C</AS:0> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[] { GetTopEdits(srcA1, srcA2, documentIndex: 0), GetTopEdits(srcB1, srcB2, documentIndex: 1) },
                 new[]
                 {
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcA1, srcA2, path: "0"),
+                        activeStatements: GetActiveStatements(srcA1, srcA2, documentIndex: 0),
                         semanticEdits: new[]
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
                         }),
                     DocumentResults(
-                        activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"),
+                        activeStatements: GetActiveStatements(srcB1, srcB2, documentIndex: 1),
                         // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
                         diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });

@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(originalSyntaxTreeOptionsProvider);
 
-            var defaultOptions = solution.Projects.Single().LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            var defaultOptions = solution.Projects.Single().Services.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             Assert.Null(defaultOptions.SyntaxTreeOptionsProvider);
 
             solution = solution.WithProjectCompilationOptions(projectId, defaultOptions);
@@ -1943,14 +1943,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
                 observedText.AssertReleased();
             }
             else
             {
                 // If this assertion fails, it means a new target supports the true temporary storage service, and the
                 // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
             }
 
             // if we ask for the same text again we should get the original content
@@ -2803,7 +2803,7 @@ public class C : A {
             var solution = workspace.CurrentSolution;
             var dummyProject = solution.AddProject("dummy", "dummy", LanguageNames.CSharp);
 
-            var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
+            var factory = dummyProject.Services.GetService<ISyntaxTreeFactoryService>();
 
             // create the origin tree
             var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), CancellationToken.None);
@@ -3144,7 +3144,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3165,7 +3165,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);

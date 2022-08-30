@@ -69,6 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
+        public static string Option_Enable_navigation_to_sourcelink_and_embedded_sources
+            => ServicesVSResources.Enable_navigation_to_sourcelink_and_embedded_sources;
+
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
@@ -383,5 +386,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Rename_asynchronously_experimental
             => ServicesVSResources.Rename_asynchronously_experimental;
+
+        public static string Where_should_the_rename_UI_be_shown
+            => ServicesVSResources.Where_should_the_rename_UI_be_shown;
+
+        public static string Option_Show_UI_inline
+            => ServicesVSResources.Show_UI_inline;
+
+        public static string Option_Show_UI_as_dashboard_in_top_right
+            => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
     }
 }

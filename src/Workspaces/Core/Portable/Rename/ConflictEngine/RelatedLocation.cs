@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public RelatedLocation WithType(RelatedLocationType type)
             => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is RelatedLocation location && Equals(location);
 
         public bool Equals(RelatedLocation other)

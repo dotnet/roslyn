@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 document.WithSyntaxRoot(result.GetFormattedRoot(cancellationToken));
         }
 
-        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
         {
             var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(root.Language);
             var result = formatter.GetFormattingResult(root, spans, options, _rules, cancellationToken);

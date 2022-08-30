@@ -1167,6 +1167,8 @@ tryAgain:
                             return DeclarationModifiers.Required;
                         case SyntaxKind.ScopedKeyword:
                             return DeclarationModifiers.Scoped;
+                        case SyntaxKind.FileKeyword:
+                            return DeclarationModifiers.File;
                     }
 
                     goto default;
@@ -1210,10 +1212,8 @@ tryAgain:
                             nextToken.Kind == SyntaxKind.DelegateKeyword ||
                             (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
                         {
-                            // Misplaced partial
-                            // TODO(https://github.com/dotnet/roslyn/issues/22439):
-                            // We should consider moving this check into binding, but avoid holding on to trees
-                            modTok = AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_PartialMisplaced);
+                            // Error reported in ModifierUtils.
+                            modTok = ConvertToKeyword(this.EatToken());
                         }
                         else
                         {
@@ -1248,8 +1248,18 @@ tryAgain:
                             break;
                         }
 
+                    case DeclarationModifiers.File:
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureFileTypes) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        // LangVersion errors for 'file' modifier are given during binding.
+                        modTok = ConvertToKeyword(EatToken());
+                        break;
+
                     case DeclarationModifiers.Async:
-                        if (!ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
@@ -1263,7 +1273,7 @@ tryAgain:
                         // machinery to make a conservative guess as to whether the user meant required to be a keyword, so that they get a good langver
                         // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
                         // where the user could conceivably have a local named required. For these locations, we need to disambiguate as well.
-                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
@@ -1273,7 +1283,7 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Scoped:
-                        if (!ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
@@ -1308,16 +1318,16 @@ tryAgain:
             }
         }
 
-        private bool ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(bool parsingStatementNotDeclaration)
+        private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.ScopedKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
 
             // Adapted from CParser::IsAsyncMethod.
 
             if (IsNonContextualModifier(PeekToken(1)))
             {
                 // If the next token is a (non-contextual) modifier keyword, then this token is
-                // definitely the async or required keyword
+                // definitely a modifier
                 return true;
             }
 
@@ -1328,7 +1338,7 @@ tryAgain:
 
             try
             {
-                this.EatToken(); //move past contextual 'async' or 'required'
+                this.EatToken(); //move past contextual token
 
                 if (!parsingStatementNotDeclaration &&
                     (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
@@ -1336,13 +1346,12 @@ tryAgain:
                     this.EatToken(); // "partial" doesn't affect our decision, so look past it.
                 }
 
-                // Comment directly from CParser::IsAsyncMethod.
-                // ... 'async' [partial] <typedecl> ...
-                // ... 'async' [partial] <event> ...
-                // ... 'async' [partial] <implicit> <operator> ...
-                // ... 'async' [partial] <explicit> <operator> ...
-                // ... 'async' [partial] <typename> <operator> ...
-                // ... 'async' [partial] <typename> <membername> ...
+                // ... 'TOKEN' [partial] <typedecl> ...
+                // ... 'TOKEN' [partial] <event> ...
+                // ... 'TOKEN' [partial] <implicit> <operator> ...
+                // ... 'TOKEN' [partial] <explicit> <operator> ...
+                // ... 'TOKEN' [partial] <typename> <operator> ...
+                // ... 'TOKEN' [partial] <typename> <membername> ...
                 // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
                 // anything other than async methods are detected as erroneous later, during the define phase
                 // The comments in general were not updated to add "async or required" everywhere to preserve
@@ -1361,56 +1370,56 @@ tryAgain:
 
                 if (ScanType() != ScanTypeFlags.NotType)
                 {
-                    // We've seen "async TypeName".  Now we have to determine if we should we treat 
-                    // 'async' as a modifier.  Or is the user actually writing something like 
-                    // "public async Goo" where 'async' is actually the return type.
+                    // We've seen "TOKEN TypeName".  Now we have to determine if we should we treat 
+                    // 'TOKEN' as a modifier.  Or is the user actually writing something like 
+                    // "public TOKEN Goo" where 'TOKEN' is actually the return type.
 
                     if (IsPossibleMemberName())
                     {
-                        // we have: "async Type X" or "async Type this", 'async' is definitely a 
+                        // we have: "TOKEN Type X" or "TOKEN Type this", 'TOKEN' is definitely a 
                         // modifier here.
                         return true;
                     }
 
                     var currentTokenKind = this.CurrentToken.Kind;
 
-                    // The file ends with "async TypeName", it's not legal code, and it's much 
+                    // The file ends with "TOKEN TypeName", it's not legal code, and it's much 
                     // more likely that this is meant to be a modifier.
                     if (currentTokenKind == SyntaxKind.EndOfFileToken)
                     {
                         return true;
                     }
 
-                    // "async TypeName }".  In this case, we just have an incomplete member, and 
-                    // we should definitely default to 'async' being considered a return type here.
+                    // "TOKEN TypeName }".  In this case, we just have an incomplete member, and 
+                    // we should definitely default to 'TOKEN' being considered a return type here.
                     if (currentTokenKind == SyntaxKind.CloseBraceToken)
                     {
                         return true;
                     }
 
-                    // "async TypeName void". In this case, we just have an incomplete member before
-                    // an existing member.  Treat this 'async' as a keyword.
+                    // "TOKEN TypeName void". In this case, we just have an incomplete member before
+                    // an existing member.  Treat this 'TOKEN' as a keyword.
                     if (SyntaxFacts.IsPredefinedType(this.CurrentToken.Kind))
                     {
                         return true;
                     }
 
-                    // "async TypeName public".  In this case, we just have an incomplete member before
-                    // an existing member.  Treat this 'async' as a keyword.
+                    // "TOKEN TypeName public".  In this case, we just have an incomplete member before
+                    // an existing member.  Treat this 'TOKEN' as a keyword.
                     if (IsNonContextualModifier(this.CurrentToken))
                     {
                         return true;
                     }
 
-                    // "async TypeName class". In this case, we just have an incomplete member before
-                    // an existing type declaration.  Treat this 'async' as a keyword.
+                    // "TOKEN TypeName class". In this case, we just have an incomplete member before
+                    // an existing type declaration.  Treat this 'TOKEN' as a keyword.
                     if (IsTypeDeclarationStart())
                     {
                         return true;
                     }
 
-                    // "async TypeName namespace". In this case, we just have an incomplete member before
-                    // an existing namespace declaration.  Treat this 'async' as a keyword.
+                    // "TOKEN TypeName namespace". In this case, we just have an incomplete member before
+                    // an existing namespace declaration.  Treat this 'TOKEN' as a keyword.
                     if (currentTokenKind == SyntaxKind.NamespaceKeyword)
                     {
                         return true;
@@ -2688,7 +2697,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.ScopedKeyword) &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.ScopedKeyword or SyntaxKind.FileKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -7293,25 +7302,19 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                SyntaxToken scopedKeyword = null;
+                SyntaxToken misplacedScoped = null;
                 if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
                 {
-                    var resetPoint = this.GetResetPoint();
-
-                    this.EatToken();
-                    bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
-
-                    if (shouldTreatAsModifier)
-                    {
-                        scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
-                    }
+                    misplacedScoped = this.AddError(this.EatContextualToken(SyntaxKind.ScopedKeyword), ErrorCode.ERR_MisplacedScoped);
                 }
 
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
-                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, scopedKeyword, type);
+                if (misplacedScoped is not null)
+                {
+                    type = AddLeadingSkippedSyntax(type, misplacedScoped);
+                }
+
+                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
             return ParseTypeCore(mode);
@@ -8099,13 +8102,13 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             if (tk == SyntaxKind.ScopedKeyword &&
-                ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: true))
+                ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true))
             {
                 return true;
             }
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
-                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredOrScopedBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk != SyntaxKind.AsyncKeyword || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleAttributeOrModifier)
             {
                 return true;
@@ -12742,10 +12745,14 @@ tryAgain:
         {
             if (this.IsComplexElementInitializer())
             {
+                // { ... }
                 return this.ParseComplexElementInitializer();
             }
             else if (IsDictionaryInitializer())
             {
+                // [...] = { ... }
+                // [...] = ref <expr>
+                // [...] = <expr>
                 isObjectInitializer = true;
                 var initializer = this.ParseDictionaryInitializer();
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureDictionaryInitializer);
@@ -12753,12 +12760,17 @@ tryAgain:
             }
             else if (this.IsNamedAssignment())
             {
+                // Name = { ... }
+                // Name = ref <expr>
+                // Name =  <expr>
                 isObjectInitializer = true;
                 return this.ParseObjectInitializerNamedAssignment();
             }
             else
             {
-                return this.ParseExpressionCore();
+                // <expr>
+                // ref <expr>
+                return this.ParsePossibleRefExpression();
             }
         }
 
@@ -12782,7 +12794,7 @@ tryAgain:
             }
             else
             {
-                expression = this.ParseExpressionCore();
+                expression = this.ParsePossibleRefExpression();
             }
 
             return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
@@ -12794,7 +12806,7 @@ tryAgain:
             var equal = this.EatToken(SyntaxKind.EqualsToken);
             var expression = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 ? this.ParseObjectOrCollectionInitializer()
-                : this.ParseExpressionCore();
+                : this.ParsePossibleRefExpression();
 
             var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
             return _syntaxFactory.AssignmentExpression(
