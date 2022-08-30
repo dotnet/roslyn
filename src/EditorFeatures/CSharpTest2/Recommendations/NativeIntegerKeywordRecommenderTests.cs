@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         protected NativeIntegerKeywordRecommenderTests()
         {
-            RecommendKeywordsAsync = (position, context) => Task.FromResult(Recommender!.RecommendKeywords(position, context, CancellationToken.None));
+            RecommendKeywordsAsync = (position, context) => Task.FromResult(Recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
