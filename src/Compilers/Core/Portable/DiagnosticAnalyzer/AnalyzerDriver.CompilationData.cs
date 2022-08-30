@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal class CompilationData
         {
-            private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
+            private readonly record struct SyntaxReferenceAndSymbol(SyntaxReference Declaration, ISymbol Symbol);
+            private readonly Dictionary<(ISymbol, int), DeclarationAnalysisData> _declarationAnalysisDataMap;
 
             public CompilationData(Compilation compilation)
             {
@@ -21,14 +22,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 SemanticModelProvider = (CachingSemanticModelProvider)compilation.SemanticModelProvider;
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(compilation);
-                _declarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
+                _declarationAnalysisDataMap = new Dictionary<(ISymbol, int), DeclarationAnalysisData>();
             }
 
             public CachingSemanticModelProvider SemanticModelProvider { get; }
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
 
             internal DeclarationAnalysisData GetOrComputeDeclarationAnalysisData(
-                SyntaxReference declaration,
+                ISymbol declaredSymbol,
+                int declarationIndex,
                 Func<DeclarationAnalysisData> computeDeclarationAnalysisData,
                 bool cacheAnalysisData)
             {
@@ -37,9 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return computeDeclarationAnalysisData();
                 }
 
+                var key = (declaredSymbol, declarationIndex);
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out var cachedData))
+                    if (_declarationAnalysisDataMap.TryGetValue(key, out var cachedData))
                     {
                         return cachedData;
                     }
@@ -49,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out var existingData))
+                    if (!_declarationAnalysisDataMap.TryGetValue(key, out var existingData))
                     {
-                        _declarationAnalysisDataMap.Add(declaration, data);
+                        _declarationAnalysisDataMap.Add(key, data);
                     }
                     else
                     {
@@ -62,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return data;
             }
 
-            internal void ClearDeclarationAnalysisData(SyntaxReference declaration)
+            internal void ClearDeclarationAnalysisData(ISymbol declaredSymbol, int declarationIndex)
             {
                 lock (_declarationAnalysisDataMap)
                 {
-                    _declarationAnalysisDataMap.Remove(declaration);
+                    _declarationAnalysisDataMap.Remove((declaredSymbol, declarationIndex));
                 }
             }
         }
