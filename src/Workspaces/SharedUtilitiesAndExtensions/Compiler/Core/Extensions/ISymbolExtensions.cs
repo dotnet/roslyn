@@ -159,9 +159,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ContainingType;
         }
 
-        public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IPointerTypeSymbol;
-
         public static bool IsErrorType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 

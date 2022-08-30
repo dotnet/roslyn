@@ -184,6 +184,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                     isReferenceAssembly = assemblyLocation is null;
                 }
+                catch (IOException)
+                {
+                    // If we get an IO exception we can safely ignore it, and the system will show the metadata view of the reference assembly.
+                }
                 catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
                 }

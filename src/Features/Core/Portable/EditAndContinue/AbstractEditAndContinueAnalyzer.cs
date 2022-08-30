@@ -3289,6 +3289,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
+            // We don't (for now) support parameter inserts/deletes on properties or indexers
+            if (containingSymbol is not IMethodSymbol)
+            {
+                return false;
+            }
+
             // Find the node that matches this declaration
             SyntaxNode otherContainingNode;
             var containingNode = containingSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
@@ -3888,9 +3894,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     hasGeneratedAttributeChange = true;
                 }
-                else if (newParameter.ContainingType.IsDelegateType())
+                else if (newParameter.ContainingType.IsDelegateType() || newParameter.ContainingSymbol is not IMethodSymbol)
                 {
-                    // We don't allow changing parameter types in delegates
+                    // We don't allow changing parameter types in delegates, or in properties or indexers
                     rudeEdit = RudeEditKind.TypeUpdate;
                 }
                 else if (AllowsDeletion(newParameter.ContainingSymbol))

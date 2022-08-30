@@ -30,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
 
         Private Shared Async Function TestAsync(expected As String, workspace As TestWorkspace) As Task
             Dim hostDocument = workspace.Documents.First()
-            Dim buffer = hostDocument.GetTextBuffer()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
 
@@ -42,9 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
                 ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()),
                 CancellationToken.None)
 
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None)
-
-            Dim actual = buffer.CurrentSnapshot.GetText()
+            Dim actual = newDocument.GetTextSynchronously(CancellationToken.None).ToString()
             Assert.Equal(expected, actual)
         End Function
 
