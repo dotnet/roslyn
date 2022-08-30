@@ -4018,9 +4018,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ROS<byte> operator+(ROS<byte>, ROS<byte>). Legal because of utf8 strings.
                 if (binaryKind is BinaryOperatorKind.Addition &&
-                    this.IsReadOnlySpanType(csharpReturnType) &&
-                    this.IsReadOnlySpanType(csharpLeftType) &&
-                    this.IsReadOnlySpanType(csharpRightType))
+                    isReadOnlySpanOfByteType(csharpReturnType) &&
+                    isReadOnlySpanOfByteType(csharpLeftType) &&
+                    isReadOnlySpanOfByteType(csharpRightType))
                 {
                     return;
                 }
@@ -4030,6 +4030,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isAllowedPointerArithmeticIntegralType(TypeSymbol type)
                 => type.SpecialType is SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64;
+
+            bool isReadOnlySpanOfByteType(TypeSymbol type)
+                => IsReadOnlySpanType(type) && ((INamedTypeSymbol)type).TypeArguments[0].SpecialType == SpecialType.System_Byte;
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
