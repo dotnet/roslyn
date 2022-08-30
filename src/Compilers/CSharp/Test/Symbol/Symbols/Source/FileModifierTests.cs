@@ -785,7 +785,7 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void BadFileNames_04()
     {
         var source1 = """
