@@ -3939,7 +3939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SomeEnum operator+(SomeEnum, int)
                     // SomeEnum operator+(int, SomeEnum)
                     // SomeEnum operator-(SomeEnum, int)
-                    // SomeEnum operator-(int, int)
+                    // SomeEnum operator-(int, SomeEnum)
                     if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
                     {
                         if (csharpLeftType.IsEnumType() && csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
