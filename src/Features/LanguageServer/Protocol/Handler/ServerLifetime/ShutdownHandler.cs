@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportGeneralStatelessLspService(typeof(ShutdownHandler)), Shared]
 [Method(Methods.ShutdownName)]
 internal class ShutdownHandler : ILspServiceNotificationHandler
 {

@@ -74,21 +74,19 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         _handlerProvider = handlerProvider;
     }
 
-    public void Start(ILspServices lspServices)
+    public void Start()
     {
         // Start the queue processing
-        _queueProcessingTask = ProcessQueueAsync(lspServices);
+        _queueProcessingTask = ProcessQueueAsync();
     }
 
-    protected object? GetTextDocumentIdentifier<TRequestType, TResponseType>(
-        TRequestType request,
-        string methodName)
+    protected ITextDocumentIdentifierHandler? GetTextDocumentIdentifierHandler<TRequestType, TResponseType>(string methodName)
     {
         var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
 
-        object? textDocument = null;
-        if (handler is ITextDocumentIdentifierHandler<TRequestType> textDocumentIdentifierHandler)
-            textDocument = textDocumentIdentifierHandler.GetTextDocumentIdentifier(request);
+        ITextDocumentIdentifierHandler? textDocument = null;
+        if (handler is ITextDocumentIdentifierHandler textDocumentIdentifierHandler)
+            textDocument = textDocumentIdentifierHandler;
 
         return textDocument;
     }
@@ -119,7 +117,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
-        var textDocumentIdentifier = GetTextDocumentIdentifier<TRequestType, TResponseType>(request, methodName);
+        var textDocumentIdentifierHandler = GetTextDocumentIdentifierHandler<TRequestType, TResponseType>(methodName);
 
         var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
         // Create a combined cancellation token so either the client cancelling it's token or the queue
@@ -129,9 +127,10 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var (item, resultTask) = CreateQueueItem<TRequestType, TResponseType>(
             handler.MutatesSolutionState,
             methodName,
-            textDocumentIdentifier,
+            textDocumentIdentifierHandler,
             request,
             handler,
+            lspServices,
             combinedCancellationToken);
 
         // Run a continuation to ensure the cts is disposed of.
@@ -152,9 +151,10 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     internal (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
         bool mutatesSolutionState,
         string methodName,
-        object? textDocumentIdentifier,
+        ITextDocumentIdentifierHandler? textDocumentIdentifier,
         TRequestType request,
         IMethodHandler handler,
+        ILspServices lspServices,
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
@@ -162,11 +162,12 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
             textDocumentIdentifier,
             request,
             handler,
+            lspServices,
             _logger,
             cancellationToken);
     }
 
-    private async Task ProcessQueueAsync(ILspServices lspServices)
+    private async Task ProcessQueueAsync()
     {
         try
         {
@@ -190,15 +191,13 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
                 {
                     var (work, cancellationToken) = queueItem;
 
-                    var requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
-                    var context = await requestContextFactory.CreateRequestContextAsync(work, cancellationTokenSource.Token).ConfigureAwait(false);
 
                     if (work.MutatesDocumentState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
+                        await work.StartRequestAsync(cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -207,7 +206,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => work.StartRequestAsync(cancellationToken), cancellationToken);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)

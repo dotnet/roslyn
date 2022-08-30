@@ -17,10 +17,8 @@ internal class VSTypeScriptLspServiceProvider : AbstractLspServiceProvider
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VSTypeScriptLspServiceProvider(
         [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
-        [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories,
-        [ImportMany(ProtocolConstants.GeneralLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> generalLspServices,
-        [ImportMany(ProtocolConstants.GeneralLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> generalLspServiceFactories)
-    : base(lspServices, lspServiceFactories, generalLspServices, generalLspServiceFactories)
+        [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories)
+    : base(lspServices, lspServiceFactories)
     {
     }
 }

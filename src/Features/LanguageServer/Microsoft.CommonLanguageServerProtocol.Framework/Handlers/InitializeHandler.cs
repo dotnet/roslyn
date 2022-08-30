@@ -22,11 +22,6 @@ public class InitializeHandler<RequestType, ResponseType, RequestContextType>
 
     public static bool RequiresLSPSolution => false;
 
-    public object? GetTextDocumentIdentifier(RequestType request)
-    {
-        return null;
-    }
-
     public Task<ResponseType> HandleRequestAsync(RequestType request, RequestContextType context, CancellationToken cancellationToken)
     {
         _capabilitiesManager.SetInitializeParams(request);

@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportGeneralStatelessLspService(typeof(InitializedHandler)), Shared]
 [Method(Methods.InitializedName)]
 internal class InitializedHandler : ILspServiceNotificationHandler<InitializedParams>
 {

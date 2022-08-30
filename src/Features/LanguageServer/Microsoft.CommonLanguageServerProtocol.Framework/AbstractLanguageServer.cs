@@ -126,13 +126,11 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
     protected virtual IRequestExecutionQueue<RequestContextType> ConstructRequestExecutionQueue()
     {
-        var lspServices = GetLspServices();
-
         var handlerProvider = GetHandlerProvider();
         var queue = new RequestExecutionQueue<RequestContextType>(_logger, handlerProvider);
         queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
-        queue.Start(lspServices);
+        queue.Start();
 
         return queue;
     }

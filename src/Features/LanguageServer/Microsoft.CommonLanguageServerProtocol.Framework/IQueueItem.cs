@@ -17,7 +17,7 @@ public interface IQueueItem<RequestContextType>
     /// <summary>
     /// Begins executing the work specified by this queue item.
     /// </summary>
-    Task StartRequestAsync(RequestContextType context, CancellationToken cancellationToken);
+    Task StartRequestAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Indicates that this request may mutate the document state, so that the queue may handle its execution appropriatly.
@@ -29,10 +29,10 @@ public interface IQueueItem<RequestContextType>
     /// </summary>
     string MethodName { get; }
 
-    /// <summary>
-    /// The document identifier that will be used to find the solution and document for this request.
-    /// This comes from the TextDocumentIdentifier returned from the handler itself via a call to 
-    /// <see cref="ITextDocumentIdentifierHandler{RequestType}.GetTextDocumentIdentifier(RequestType)"/>.
-    /// </summary>
-    object? TextDocumentIdentifier { get; }
+    ITextDocumentIdentifierHandler? TextDocumentIdentifierHandler { get; }
+}
+
+public interface IQueueItem<RequestContextType, RequestParamType> : IQueueItem<RequestContextType>
+{
+    RequestParamType RequestParams { get; }
 }

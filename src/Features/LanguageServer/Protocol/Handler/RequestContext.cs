@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -51,9 +52,14 @@ internal readonly struct RequestContext
     public readonly string ServerKind;
 
     /// <summary>
-    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="ITextDocumentIdentifierHandler{RequestType}.GetTextDocumentIdentifier(RequestType)"/>.
+    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
     public readonly Document? Document;
+
+    /// <summary>
+    /// The method this request is targeting.
+    /// </summary>
+    public readonly string Method;
 
     /// <summary>
     /// The languages supported by the server making the request.
@@ -70,6 +76,7 @@ internal readonly struct RequestContext
     public RequestContext(
         Solution? solution,
         ILspLogger logger,
+        string method,
         ClientCapabilities? clientCapabilities,
         string serverKind,
         Document? document,
@@ -89,14 +96,24 @@ internal readonly struct RequestContext
         _trackedDocuments = trackedDocuments;
         _lspServices = lspServices;
         QueueCancellationToken = queueCancellationToken;
+        Method = method;
     }
 
-    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(ClientCapabilities))]
+    [MemberNotNull(nameof(ClientCapabilities))]
     public void RequireClientCapabilities()
     {
         if (ClientCapabilities is null)
         {
-            throw new ArgumentNullException($"{nameof(ClientCapabilities)} is null when it was required");
+            throw new ArgumentNullException($"{nameof(ClientCapabilities)} is null when it was required for {Method}");
+        }
+    }
+
+    [MemberNotNull(nameof(Document))]
+    public void RequireDocument()
+    {
+        if (Document is null)
+        {
+            throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}");
         }
     }
 
@@ -108,6 +125,7 @@ internal readonly struct RequestContext
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         ILspLogger logger,
+        string method,
         CancellationToken cancellationToken)
     {
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
@@ -132,6 +150,7 @@ internal readonly struct RequestContext
         var context = new RequestContext(
             workspaceSolution,
             logger,
+            method,
             clientCapabilities,
             serverKind,
             document,

@@ -67,10 +67,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 ILspServices lspServices,
                 CancellationToken cancellationToken)
             {
-                var textDocument = GetTextDocumentIdentifier<TRequestType, TResponseType>(request, methodName);
+                var methodHandler = GetMethodHandler(lspServices, methodName);
+                TextDocumentIdentifier? textDocument = null;
+                if (methodHandler is ITextDocumentIdentifierHandler txtDocumentIdentifierHandler)
+                {
+                    if (txtDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier> t)
+                    {
+                        textDocument = t.GetTextDocumentIdentifier(request);
+                    }
+                }
 
                 DocumentId? documentId = null;
-                if (textDocument as TextDocumentIdentifier is { Uri: { IsAbsoluteUri: true } documentUri })
+                if (textDocument is { Uri: { IsAbsoluteUri: true } documentUri })
                 {
                     documentId = _projectService.TrackOpenDocument(documentUri.LocalPath);
                 }
@@ -89,6 +97,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                         requestScope?.RecordFailure(e);
                         throw;
                     }
+                }
+
+                static IMethodHandler GetMethodHandler(ILspServices lspServices, string methodName)
+                {
+                    var handlerProvider = lspServices.GetRequiredService<IHandlerProvider>();
+                    var requestType = typeof(TRequestType);
+                    var responseType = typeof(TResponseType);
+
+                    var handler = handlerProvider.GetMethodHandler(methodName, requestType, responseType);
+
+                    return handler;
                 }
             }
         }

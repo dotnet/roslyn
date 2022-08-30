@@ -26,6 +26,4 @@ public abstract class InitializedHandler<RequestType, RequestContextType> : INot
 
         return Task.CompletedTask;
     }
-
-    public abstract object? GetTextDocumentIdentifier(RequestType request);
 }

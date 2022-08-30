@@ -478,7 +478,7 @@ namespace Roslyn.Test.Utilities
                }
            };
 
-        internal sealed class TestLspServer : IAsyncDisposable, IDisposable
+        internal sealed class TestLspServer : IAsyncDisposable
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
@@ -670,22 +670,15 @@ namespace Roslyn.Test.Utilities
 
             internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.ToImmutableArray();
 
-            public ValueTask DisposeAsync()
-            {
-                Dispose();
-
-                return new ValueTask();
-            }
-
-            public void Dispose()
+            public async ValueTask DisposeAsync()
             {
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
                 if (!LanguageServer.HasShutdownStarted)
                 {
-                    LanguageServer.GetTestAccessor().ShutdownServerAsync();
+                    await LanguageServer.GetTestAccessor().ShutdownServerAsync();
                 }
 
-                LanguageServer.GetTestAccessor().ExitServerAsync();
+                await LanguageServer.GetTestAccessor().ExitServerAsync();
                 TestWorkspace.Dispose();
                 _clientRpc.Dispose();
             }

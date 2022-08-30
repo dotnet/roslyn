@@ -14,11 +14,3 @@ internal class ExportCSharpVisualBasicStatelessLspServiceAttribute : ExportState
     {
     }
 }
-
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
-internal class ExportGeneralStatelessLspServiceAttribute : ExportStatelessLspServiceAttribute
-{
-    public ExportGeneralStatelessLspServiceAttribute(Type type, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any) : base(type, ProtocolConstants.GeneralLspLanguagesContract, serverKind)
-    {
-    }
-}

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -17,15 +16,10 @@ internal class AbstractLspServiceProvider
 
     public AbstractLspServiceProvider(
         IEnumerable<Lazy<ILspService, LspServiceMetadataView>> specificLspServices,
-        IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> specificLspServiceFactories,
-        IEnumerable<Lazy<ILspService, LspServiceMetadataView>> generalLspServices,
-        IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> generalLspServiceFactories)
+        IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> specificLspServiceFactories)
     {
-        var joinsedLspServices = specificLspServices.Concat(generalLspServices);
-        _lspServices = joinsedLspServices.ToImmutableArray();
-
-        var joinedLspServiceFactories = specificLspServiceFactories.Concat(generalLspServiceFactories);
-        _lspServiceFactories = joinedLspServiceFactories.ToImmutableArray();
+        _lspServices = specificLspServices.ToImmutableArray();
+        _lspServiceFactories = specificLspServiceFactories.ToImmutableArray();
     }
 
     public LspServices CreateServices(string serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices, IServiceCollection serviceCollection)

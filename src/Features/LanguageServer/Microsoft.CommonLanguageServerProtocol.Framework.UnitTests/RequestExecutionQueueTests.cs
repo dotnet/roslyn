@@ -24,7 +24,7 @@ public class RequestExecutionQueueTests
 
         handlerProvider.Setup(h => h.GetMethodHandler(MethodName, TestMethodHandler.RequestType, TestMethodHandler.ResponseType)).Returns(handler);
         var executionQueue = new RequestExecutionQueue<TestRequestContext>(NoOpLspLogger.Instance, handlerProvider.Object);
-        executionQueue.Start(GetLspServices());
+        executionQueue.Start();
 
         return executionQueue;
     }
@@ -32,7 +32,7 @@ public class RequestExecutionQueueTests
     private static ILspServices GetLspServices()
     {
         var requestContextFactory = new Mock<IRequestContextFactory<TestRequestContext>>(MockBehavior.Strict);
-        requestContextFactory.Setup(f => f.CreateRequestContextAsync(It.IsAny<IQueueItem<TestRequestContext>>(), It.IsAny<CancellationToken>()))
+        requestContextFactory.Setup(f => f.CreateRequestContextAsync<int>(It.IsAny<IQueueItem<TestRequestContext>>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(new TestRequestContext()));
         var services = new List<(Type, object)> { (typeof(IRequestContextFactory<TestRequestContext>), requestContextFactory.Object) };
         var lspServices = new TestLspServices(services, supportsRequiredServices: true, supportsGetRegisteredServices: false);
@@ -61,11 +61,6 @@ public class RequestExecutionQueueTests
     public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
     {
         public bool MutatesSolutionState => false;
-
-        public object? GetTextDocumentIdentifier(int request)
-        {
-            return null;
-        }
 
         public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
         {

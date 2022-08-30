@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
             _serverKind = serverKind.ToConvertableString();
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-            var lifeCycleManager = new RoslynLifeCycleManager(this);
+            var lifeCycleManager = new LspServiceLifeCycleManager(this);
             _baseServices = GetBaseServices();
             _serviceCollection = GetServiceCollection(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager, serverKind.ToConvertableString(), supportedLanguages);
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
             IClientCapabilitiesProvider clientCapabilitiesProvider,
             ILspServiceLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
-            RoslynLifeCycleManager lifeCycleManager,
+            LspServiceLifeCycleManager lifeCycleManager,
             string serverKind,
             ImmutableArray<string> supportedLanguages)
         {
@@ -71,8 +71,17 @@ namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
                 .AddSingleton<IRequestContextFactory<RequestContext>, RequestContextFactory>()
                 .AddSingleton<IRequestExecutionQueue<RequestContext>>((serviceProvider) => GetRequestExecutionQueue())
                 .AddSingleton<IClientCapabilitiesManager, ClientCapabilitiesManager>();
+            AddHandler<InitializeHandler>(serviceCollection);
+            AddHandler<InitializedHandler>(serviceCollection);
+            AddHandler<ShutdownHandler>(serviceCollection);
+            AddHandler<ExitHandler>(serviceCollection);
 
             return serviceCollection;
+        }
+
+        private static void AddHandler<THandler>(IServiceCollection serviceCollection) where THandler : class, IMethodHandler
+        {
+            _ = serviceCollection.AddSingleton<IMethodHandler, THandler>();
         }
 
         private static ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> GetBaseServices()

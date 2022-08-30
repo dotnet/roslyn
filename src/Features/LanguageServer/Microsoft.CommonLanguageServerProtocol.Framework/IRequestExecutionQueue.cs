@@ -36,8 +36,7 @@ public interface IRequestExecutionQueue<RequestContextType> : IAsyncDisposable
     /// <summary>
     /// Start the queue accepting requests once any event handlers have been attached.
     /// </summary>
-    /// <param name="lspServices"><see cref="ILspServices"/> used by the queue.</param>
-    void Start(ILspServices lspServices);
+    void Start();
 
     /// <summary>
     /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state

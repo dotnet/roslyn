@@ -22,7 +22,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : ILspServiceRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
+    internal class SemanticTokensRangeHandler : ILspServiceDocumentRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _notificationManager = notificationManager;
         }
 
-        public object? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;

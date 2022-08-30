@@ -24,6 +24,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
 
     private readonly TRequestType _request;
     private readonly IMethodHandler _handler;
+    private readonly ILspServices _lspServices;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
@@ -35,14 +36,15 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
 
     public string MethodName { get; }
 
-    public object? TextDocumentIdentifier { get; }
+    public ITextDocumentIdentifierHandler? TextDocumentIdentifierHandler { get; }
 
     private QueueItem(
         bool mutatesSolutionState,
         string methodName,
-        object? textDocumentIdentifier,
+        ITextDocumentIdentifierHandler? textDocumentIdentifierHandler,
         TRequestType request,
         IMethodHandler handler,
+        ILspServices lspServices,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
@@ -52,27 +54,30 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         _handler = handler;
         _logger = logger;
         _request = request;
+        _lspServices = lspServices;
+        TextDocumentIdentifierHandler = textDocumentIdentifierHandler;
 
         MutatesDocumentState = mutatesSolutionState;
         MethodName = methodName;
-        TextDocumentIdentifier = textDocumentIdentifier;
     }
 
     public static (IQueueItem<RequestContextType>, Task<TResponseType>) Create(
         bool mutatesSolutionState,
         string methodName,
-        object? textDocumentIdentifier,
+        ITextDocumentIdentifierHandler? textDocumentIdentifierHandler,
         TRequestType request,
         IMethodHandler handler,
+        ILspServices lspServices,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
         var queueItem = new QueueItem<TRequestType, TResponseType, RequestContextType>(
             mutatesSolutionState,
             methodName,
-            textDocumentIdentifier,
+            textDocumentIdentifierHandler,
             request,
             handler,
+            lspServices,
             logger,
             cancellationToken);
 
@@ -84,15 +89,17 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    /// <param name="context">The context for the request. If null the request will return emediatly. The context may be null when for example document context could not be resolved.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The result of the request.</returns>
-    public async Task StartRequestAsync(RequestContextType? context, CancellationToken cancellationToken)
+    public async Task StartRequestAsync(CancellationToken cancellationToken)
     {
         await _logger.LogStartContextAsync($"{MethodName}", cancellationToken).ConfigureAwait(false);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var requestContextFactory = _lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
+            var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
 
             if (context is null)
             {

@@ -26,13 +26,14 @@ public interface INotificationHandler<RequestType, RequestContextType> : IMethod
     Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken);
 }
 
-public interface ITextDocumentIdentifierHandler<RequestType>
+public interface ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifierType> : ITextDocumentIdentifierHandler
 {
     /// <summary>
     /// Gets the identifier of the document from the request, if the request provides one.
     /// </summary>
-    /// <remarks>Despite a return type of <see cref="object"/>, you are advised to severly restrict variety of possible return values.
-    /// It is left open here to allow for flexibility and variability in finding the TextDocumentIdentifier.
-    /// For example, some Param types only have a URI instead of a "TextDocumentIdenfier" object, and others have custom TDI's, or choose to parse JSON.</remarks>
-    object? GetTextDocumentIdentifier(RequestType request);
+    TextDocumentIdentifierType GetTextDocumentIdentifier(RequestType request);
+}
+
+public interface ITextDocumentIdentifierHandler
+{
 }

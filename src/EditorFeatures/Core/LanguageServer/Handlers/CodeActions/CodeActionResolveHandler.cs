@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentIdentifier(LSP.CodeAction request)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CodeAction request)
             => ((JToken)request.Data!).ToObject<CodeActionResolveData>()?.TextDocument;
 
         public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)

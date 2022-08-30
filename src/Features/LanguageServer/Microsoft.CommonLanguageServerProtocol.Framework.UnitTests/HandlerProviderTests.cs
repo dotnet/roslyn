@@ -105,11 +105,6 @@ public partial class HandlerProviderTests
 
         public static Type ResponseType = typeof(string);
 
-        public object? GetTextDocumentIdentifier(int request)
-        {
-            return null;
-        }
-
         public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
         {
             return Task.FromResult("stuff");

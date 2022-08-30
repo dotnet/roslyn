@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportGeneralStatelessLspService(typeof(InitializeHandler)), Shared]
 [Method(Methods.InitializeName)]
 internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
 {
@@ -22,11 +21,6 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
     }
 
     public bool MutatesSolutionState => true;
-
-    public object? GetTextDocumentIdentifier(InitializeParams request)
-    {
-        return null;
-    }
 
     public async Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {

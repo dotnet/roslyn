@@ -15,6 +15,5 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
         public const string RetriggerCompletionCommand = "editor.action.triggerSuggest";
 
         public const string XamlLspLanguagesContract = "XamlLspLanguages";
-        public const string GeneralLspLanguagesContract = "GeneralLanguages";
     }
 }

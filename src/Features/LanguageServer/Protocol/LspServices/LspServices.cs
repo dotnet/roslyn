@@ -76,7 +76,9 @@ internal class LspServices : ILspServices
 
     public IEnumerable<T> GetRequiredServices<T>()
     {
-        throw new NotImplementedException();
+        // TODO: This is incomplete because it only includes things from IServiceProvider and not MEF
+        var services = _serviceProvider.GetServices<T>();
+        return services;
     }
 
     public object? TryGetService(Type type)

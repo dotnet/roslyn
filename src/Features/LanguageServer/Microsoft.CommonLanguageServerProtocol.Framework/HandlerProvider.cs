@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -75,6 +76,13 @@ internal class HandlerProvider : IHandlerProvider
 
                 // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                 // and then lookup the correct handler for the specified method.
+
+                var dupHandlers = requestHandlerDictionary.Where(kvp => string.Equals(kvp.Key.MethodName, method, StringComparison.InvariantCulture));
+                if (dupHandlers.Any())
+                {
+                    throw new InvalidOperationException($"Method {method} was implemented by both {handlerType} and {dupHandlers.First().Key}");
+                }
+
                 requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() =>
                     {
                         var lspService = lspServices.TryGetService(handlerType);
@@ -87,19 +95,19 @@ internal class HandlerProvider : IHandlerProvider
                     }));
             }
         }
-        else
+
+        var handlers = lspServices.GetRequiredServices<IMethodHandler>();
+
+        foreach (var handler in handlers)
         {
-            var handlers = lspServices.GetRequiredServices<IMethodHandler>();
+            var handlerType = handler.GetType();
+            var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+            var method = GetRequestHandlerMethod(handlerType);
 
-            foreach (var handler in handlers)
-            {
-                var handlerType = handler.GetType();
-                var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
-                var method = GetRequestHandlerMethod(handlerType);
-
-                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() => handler));
-            }
+            requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() => handler));
         }
+
+        VerifyHandlers(requestHandlerDictionary.Keys);
 
         return requestHandlerDictionary.ToImmutable();
 
@@ -137,7 +145,18 @@ internal class HandlerProvider : IHandlerProvider
         {
             return type.GetInterfaces().Contains(typeof(IMethodHandler));
         }
+
+        static void VerifyHandlers(IEnumerable<RequestHandlerMetadata> requestHandlerKeys)
+        {
+            var missingMethods = requestHandlerKeys.Where(meta => RequiredMethods.All(method => method == meta.MethodName));
+            if (missingMethods.Count() > 0)
+            {
+                throw new InvalidOperationException($"Language Server is missing required methods {string.Join(",", missingMethods)}");
+            }
+        }
     }
+
+    private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
 
     /// <summary>
     /// Retrieves the generic argument information from the request handler type without instantiating it.

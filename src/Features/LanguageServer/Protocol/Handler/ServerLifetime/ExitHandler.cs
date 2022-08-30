@@ -7,20 +7,18 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-internal class RoslynLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
+internal class LspServiceLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
 {
-    public RoslynLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
+    public LspServiceLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
     {
     }
 }
 
-[ExportGeneralStatelessLspService(typeof(ExitHandler)), Shared]
 [Method(Methods.ExitName)]
 internal class ExitHandler : ILspServiceNotificationHandler
 {
@@ -36,7 +34,7 @@ internal class ExitHandler : ILspServiceNotificationHandler
     {
         if (requestContext.ClientCapabilities is null)
             throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
-        var lifeCycleManager = requestContext.GetRequiredLspService<RoslynLifeCycleManager>();
+        var lifeCycleManager = requestContext.GetRequiredLspService<LspServiceLifeCycleManager>();
         await lifeCycleManager.ExitAsync().ConfigureAwait(false);
     }
 }

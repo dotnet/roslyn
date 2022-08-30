@@ -47,8 +47,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
+            context.RequireDocument();
+            context.RequireClientCapabilities();
+
             var document = context.Document;
-            Contract.ThrowIfNull(document);
 
             var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    var clientSupportsMarkdown = context.ClientCapabilities?.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                    var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
                     completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
                 }
             }

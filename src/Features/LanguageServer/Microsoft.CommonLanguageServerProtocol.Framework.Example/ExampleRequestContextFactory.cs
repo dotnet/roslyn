@@ -16,7 +16,7 @@ internal class ExampleRequestContextFactory : IRequestContextFactory<ExampleRequ
         _lspServices = lspServices;
     }
 
-    public Task<ExampleRequestContext> CreateRequestContextAsync(IQueueItem<ExampleRequestContext> queueItem, CancellationToken cancellationToken)
+    public Task<ExampleRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<ExampleRequestContext> queueItem, TRequestParam param, CancellationToken cancellationToken)
     {
         var logger = _lspServices.GetRequiredService<ILspLogger>();
 
