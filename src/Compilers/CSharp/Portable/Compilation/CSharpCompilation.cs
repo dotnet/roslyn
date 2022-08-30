@@ -4082,8 +4082,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (easyOutUnaryKind != UnaryOperatorKind.Error)
                 {
                     var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
-                    if (TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything) &&
-                        TypeSymbol.Equals(csharpOperandType, signature.OperandType, TypeCompareKind.ConsiderEverything))
+                    if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                        csharpOperandType.SpecialType == signature.OperandType.SpecialType)
                     {
                         return;
                     }
