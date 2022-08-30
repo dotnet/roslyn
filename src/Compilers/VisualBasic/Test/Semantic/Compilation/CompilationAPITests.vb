@@ -4,25 +4,22 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
-Imports System.Text
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
-Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
 Imports Roslyn.Test.Utilities.TestMetadata
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports CS = Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -1800,12 +1797,20 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             AssertEx.Equal(display, result)
         End Sub
 
-        Public Sub CreateBuiltinBinaryOperator_ErrorType()
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_BogusErrorType()
             Dim compilation = CreateCompilation("")
-            Dim intType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
+            Dim fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, fakeIntType, fakeIntType, fakeIntType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_RealErrorType()
+            Dim compilation = CreateCompilation("", references:={}, targetFramework:=TargetFramework.Empty)
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
             Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType)
             Dim result = op.ToDisplayString()
-            AssertEx.Equal("Public Shared Operator +(left As System.Int32, right As System.Int32) As System.Int32", result)
+            AssertEx.Equal("Public Shared Operator +(left As Integer, right As Integer) As Integer", result)
         End Sub
 
         <Fact>
