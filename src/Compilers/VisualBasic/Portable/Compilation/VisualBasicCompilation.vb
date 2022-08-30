@@ -2962,27 +2962,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Quick table access to determine if these types are legal.
             If opInfo.BinaryOperatorKind = BinaryOperatorKind.Add OrElse
-                opInfo.BinaryOperatorKind = BinaryOperatorKind.Subtract OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Multiply OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Modulo OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Divide OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.IntegerDivide OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Power OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.LeftShift OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.RightShift OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.OrElse OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.AndAlso OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Concatenate OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Like OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Xor OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.Or OrElse
-                    opInfo.BinaryOperatorKind = BinaryOperatorKind.And Then
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Subtract OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Multiply OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Modulo OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Divide OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.IntegerDivide OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Power OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.LeftShift OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.RightShift OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.OrElse OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.AndAlso OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Concatenate OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Like OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Xor OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.Or OrElse
+               opInfo.BinaryOperatorKind = BinaryOperatorKind.And Then
 
                 Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicBinaryOperator(opInfo.BinaryOperatorKind, leftType.SpecialType, rightType.SpecialType)
                 If resolved <> SpecialType.None AndAlso
