@@ -6,6 +6,8 @@
 
 using System;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,7 +32,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
         }
 
-        public Solution PreviewChanges(string title, string helpString, string description, string topLevelName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, bool showCheckBoxes = true)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => this;
+
+        public Solution PreviewChangesSynchronously(
+            string title,
+            string helpString,
+            string description,
+            string topLevelName,
+            Glyph topLevelGlyph,
+            Solution newSolution,
+            Solution oldSolution,
+            bool showCheckBoxes = true)
         {
             Called = true;
             Title = title;
@@ -43,7 +56,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return ReturnsNull ? null : newSolution;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => this;
+        public Task<Solution> PreviewChangesAsync(
+            string title,
+            string helpString,
+            string description,
+            string topLevelName,
+            Glyph topLevelGlyph,
+            Solution newSolution,
+            Solution oldSolution,
+            CancellationToken cancellationToken,
+            bool showCheckBoxes = true)
+            => Task.FromResult(PreviewChangesSynchronously(
+                title,
+                helpString,
+                description,
+                topLevelName,
+                topLevelGlyph,
+                newSolution,
+                oldSolution,
+                showCheckBoxes));
     }
 }

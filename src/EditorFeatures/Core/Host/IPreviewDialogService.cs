@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
@@ -13,6 +13,31 @@ namespace Microsoft.CodeAnalysis.Editor.Host
     /// </summary>
     internal interface IPreviewDialogService : IWorkspaceService
     {
+        /// <summary>
+        /// Presents the user a preview of the changes, based on a textual diff
+        /// between <paramref name="newSolution"/> and <paramref name="oldSolution"/>. 
+        /// Requires to be on the UI thread to run.
+        /// </summary>
+        /// <param name="title">The title of the preview changes dialog.</param>
+        /// <param name="helpString">The keyword used by F1 help in the dialog.</param>
+        /// <param name="description">Text to display above the treeview in the dialog.</param>
+        /// <param name="topLevelName">The name of the root item in the treeview in the dialog.</param>
+        /// <param name="topLevelGlyph">The <see cref="Glyph"/> of the root item in the treeview.</param>
+        /// <param name="newSolution">The changes to preview.</param>
+        /// <param name="oldSolution">The baseline solution.</param>
+        /// <param name="showCheckBoxes">Whether or not preview dialog should display item checkboxes.</param>
+        /// <returns>Returns <paramref name="oldSolution"/> with the changes selected in the dialog
+        /// applied. Returns null if cancelled.</returns>
+        Solution? PreviewChangesSynchronously(
+            string title,
+            string helpString,
+            string description,
+            string? topLevelName,
+            Glyph topLevelGlyph,
+            Solution newSolution,
+            Solution oldSolution,
+            bool showCheckBoxes = true);
+
         /// <summary>
         /// Presents the user a preview of the changes, based on a textual diff
         /// between <paramref name="newSolution"/> and <paramref name="oldSolution"/>.
@@ -27,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// <param name="showCheckBoxes">Whether or not preview dialog should display item checkboxes.</param>
         /// <returns>Returns <paramref name="oldSolution"/> with the changes selected in the dialog
         /// applied. Returns null if cancelled.</returns>
-        Solution PreviewChanges(
+        Task<Solution?> PreviewChangesAsync(
             string title,
             string helpString,
             string description,
@@ -35,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             Glyph topLevelGlyph,
             Solution newSolution,
             Solution oldSolution,
+            CancellationToken cancellationToken,
             bool showCheckBoxes = true);
     }
 }

@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
-                finalSolution = previewService.PreviewChanges(
+                finalSolution = previewService.PreviewChangesSynchronously(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                     "vs.csharp.refactoring.preview",
                     EditorFeaturesResources.Change_Signature_colon,

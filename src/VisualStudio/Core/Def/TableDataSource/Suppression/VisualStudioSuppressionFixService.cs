@@ -372,14 +372,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (showPreviewChangesDialog)
                     {
-                        newSolution = FixAllGetFixesService.PreviewChanges(
+                        newSolution = await FixAllGetFixesService.PreviewChangesAsync(
                             _workspace.CurrentSolution,
                             newSolution,
                             fixAllPreviewChangesTitle: title,
                             fixAllTopLevelHeader: title,
                             fixAllKind: FixAllKind.CodeFix,
                             languageOpt: languageServices?.Count == 1 ? languageServices.Single().Language : null,
-                            workspace: _workspace);
+                            workspace: _workspace,
+                            cancellationToken: cancellationToken).ConfigureAwait(false);
                         if (newSolution == null)
                         {
                             return;

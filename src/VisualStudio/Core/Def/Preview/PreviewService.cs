@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -37,16 +37,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => this;
 
-        public Solution PreviewChanges(
+        public async Task<Solution?> PreviewChangesAsync(
             string title,
             string helpString,
             string description,
-            string topLevelName,
+            string? topLevelName,
+            Glyph topLevelGlyph,
+            Solution newSolution,
+            Solution oldSolution,
+            CancellationToken cancellationToken,
+            bool showCheckBoxes = true)
+        {
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            return PreviewChangesSynchronously(
+                title,
+                helpString,
+                description,
+                topLevelName,
+                topLevelGlyph,
+                newSolution,
+                oldSolution,
+                showCheckBoxes);
+        }
+
+        public Solution? PreviewChangesSynchronously(
+            string title,
+            string helpString,
+            string description,
+            string? topLevelName,
             Glyph topLevelGlyph,
             Solution newSolution,
             Solution oldSolution,
             bool showCheckBoxes = true)
         {
+            AssertIsForeground();
+
             var engine = new PreviewEngine(
                 ThreadingContext,
                 title,
@@ -59,8 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _componentModel,
                 _imageService,
                 showCheckBoxes);
+
             _previewChanges.PreviewChanges(engine);
             engine.CloseWorkspace();
+
             return engine.FinalSolution;
         }
     }

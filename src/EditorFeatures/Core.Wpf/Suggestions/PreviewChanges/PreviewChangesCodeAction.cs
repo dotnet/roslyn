@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return ImmutableArray<CodeActionOperation>.Empty;
                     }
 
-                    var changedSolution = previewDialogService.PreviewChanges(
+                    var changedSolution = await previewDialogService.PreviewChangesAsync(
                         EditorFeaturesResources.Preview_Changes,
                         "vs.codefix.previewchanges",
                         _originalCodeAction.Title,
@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         CodeAnalysis.Glyph.OpenFolder,
                         _changeSummary.NewSolution,
                         _changeSummary.OldSolution,
-                        showCheckBoxes: false);
+                        cancellationToken,
+                        showCheckBoxes: false).ConfigureAwait(false);
 
                     if (changedSolution == null)
                     {

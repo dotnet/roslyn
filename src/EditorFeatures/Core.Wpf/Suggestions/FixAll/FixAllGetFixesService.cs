@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             if (showPreviewChangesDialog)
             {
-                newSolution = PreviewChanges(
+                newSolution = await PreviewChangesAsync(
                     fixAllState.Project.Solution,
                     newSolution,
                     FeaturesResources.Fix_all_occurrences,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     fixAllState.Project.Language,
                     workspace,
                     fixAllState.CorrelationId,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
                 if (newSolution == null)
                 {
                     return ImmutableArray<CodeActionOperation>.Empty;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return GetNewFixAllOperations(operations, newSolution, cancellationToken);
         }
 
-        internal static Solution PreviewChanges(
+        internal static async Task<Solution> PreviewChangesAsync(
             Solution currentSolution,
             Solution newSolution,
             string fixAllPreviewChangesTitle,
@@ -193,14 +193,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
 #endif
 
-                var changedSolution = previewService.PreviewChanges(
+                var changedSolution = await previewService.PreviewChangesAsync(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
                     "vs.codefix.fixall",
                     fixAllTopLevelHeader,
                     fixAllPreviewChangesTitle,
                     glyph,
                     newSolution,
-                    currentSolution);
+                    currentSolution,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (changedSolution == null)
                 {

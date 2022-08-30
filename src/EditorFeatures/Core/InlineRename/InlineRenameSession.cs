@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private string _replacementText;
         private SymbolRenameOptions _options;
         private bool _previewChanges;
-        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new();
 
         /// <summary>
         /// The original <see cref="SnapshotSpan"/> for the identifier that rename was triggered on
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// The cancellation source for <see cref="_conflictResolutionTask"/>.
         /// </summary>
-        private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
         private readonly IInlineRenameInfo _renameInfo;
 
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
-            Action propagateEditAction = delegate
+            void propagateEditAction()
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 QueueApplyReplacements();
 
                 asyncToken.Dispose();
-            };
+            }
 
             // Start the conflict resolution task but do not apply the results immediately. The
             // buffer changes performed in propagateEditAction can cause source control modal
@@ -812,14 +812,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();
 
-                    newSolution = previewService.PreviewChanges(
+                    newSolution = await previewService.PreviewChangesAsync(
                         string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
                         string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         newSolution,
-                        _triggerDocument.Project.Solution);
+                        _triggerDocument.Project.Solution,
+                        cancellationToken).ConfigureAwait(false);
 
                     if (newSolution == null)
                     {
@@ -943,7 +944,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => _openTextBuffers.ContainsKey(point.Snapshot.TextBuffer);
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         public struct TestAccessor
         {
