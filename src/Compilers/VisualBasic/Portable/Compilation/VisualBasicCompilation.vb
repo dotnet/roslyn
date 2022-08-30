@@ -3019,10 +3019,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 returnType As TypeSymbol,
                 operandType As NamedTypeSymbol,
                 opInfo As OverloadResolution.OperatorInfo)
-            ' 
-            If returnType.IsErrorType() OrElse operandType.IsErrorType() Then
-                Return
-            End If
 
             ' Enums support the `Not` operator.
             If operandType.IsEnumType() AndAlso
