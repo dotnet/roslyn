@@ -3943,10 +3943,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
                     {
                         if (csharpLeftType.IsEnumType() && csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
                             return;
+                        }
 
                         if (csharpRightType.IsEnumType() && csharpLeftType.IsIntegralType() && TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
                             return;
+                        }
                     }
 
                     // int operator-(SomeEnum, SomeEnum)
