@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var newClassDeclaration = originalClassDeclaration.WithCloseBraceToken(
                 originalClassDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 
-            var newRoot = root.ReplaceNode(originalClassDeclaration, newClassDeclaration.WithAdditionalAnnotations(_cursorAnnotation, _cursorAnnotation));
+            var newRoot = root.ReplaceNode(originalClassDeclaration, newClassDeclaration.WithAdditionalAnnotations(_cursorAnnotation, _findSnippetAnnotation));
             return document.WithSyntaxRoot(newRoot);
         }
 
