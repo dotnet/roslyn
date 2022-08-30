@@ -8,10 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class QuickInfoToStringConverter
     {
@@ -65,9 +66,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private static string GetStringFromTextBlock(TextBlock textBlock)
         {
             if (!string.IsNullOrEmpty(textBlock.Text))
-            {
                 return textBlock.Text;
-            }
 
             var sb = new StringBuilder();
             BuildStringFromInlineCollection(textBlock.Inlines, sb);
@@ -82,9 +81,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     var inlineText = GetStringFromInline(inline);
                     if (!string.IsNullOrEmpty(inlineText))
-                    {
                         sb.Append(inlineText);
-                    }
                 }
             }
         }
@@ -92,15 +89,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private static string? GetStringFromInline(Inline currentInline)
         {
             if (currentInline is LineBreak)
-            {
                 return Environment.NewLine;
-            }
 
             var run = currentInline as Run;
             if (run == null)
-            {
                 return null;
-            }
 
             return run.Text;
         }
