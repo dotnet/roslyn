@@ -2765,13 +2765,22 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
-        public void CreateBuiltinBinaryOperator_ErrorType()
+        public void CreateBuiltinBinaryOperator_BogusErrorType()
         {
             var compilation = CreateCompilation("");
-            var intType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
+            var fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, fakeIntType, fakeIntType, fakeIntType));
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_RealErrorType()
+        {
+            var compilation = CreateCompilation("", references: Array.Empty<MetadataReference>(), targetFramework: TargetFramework.Empty);
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
             var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType);
             var result = op.ToDisplayString();
-            AssertEx.Equal("System.Int32.operator +(System.Int32, System.Int32)", result);
+            AssertEx.Equal("int.operator +(int, int)", result);
         }
 
         [Fact]
@@ -2943,6 +2952,25 @@ class C
             var op = compilation.CreateBuiltinOperator(name, boolType, boolType);
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_BogusErrorType()
+        {
+            var compilation = CreateCompilation("");
+            var fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
+            Assert.Throws<ArgumentException>(() => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType));
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_RealErrorType()
+        {
+            var compilation = CreateCompilation("", references: Array.Empty<MetadataReference>(), targetFramework: TargetFramework.Empty);
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType);
+            var result = op.ToDisplayString();
+            AssertEx.Equal("int.operator +(int)", result);
         }
 
         [Fact]
