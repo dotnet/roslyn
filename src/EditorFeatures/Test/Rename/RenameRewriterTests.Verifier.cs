@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -101,9 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 var annotatedSpans = testHostDocument.AnnotatedSpans;
 
                 using var _1 = PooledHashSet<TextSpan>.GetInstance(out var conflictLocationSetBuilder);
-                using var _2 = ArrayBuilder<RenamedSymbolContext>.GetInstance(out var renamedSymbolContextsBuilder);
-                using var _3 = ArrayBuilder<LocationRenameContext>.GetInstance(out var tokenTextSpanRenameContextsBuilder);
-                using var _4 = ArrayBuilder<LocationRenameContext>.GetInstance(out var stringAndCommentsContextsBuilder);
+                using var documentRenameBuilder = new DocumentRenameInfo.Builder();
 
                 foreach (var (tag, spans) in annotatedSpans)
                 {
@@ -129,36 +126,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             }
 
                             var (replacementText, options) = replacementInfo;
+                            var replacementTextValid = renameRewriterService.IsIdentifierValid(replacementText, syntaxFacts);
                             var possibleNameConflicts = new List<string>();
 
                             renameRewriterService.TryAddPossibleNameConflicts(renameSymbol, replacementText, possibleNameConflicts);
-                            var symbolContext = new RenamedSymbolContext(
-                                    replacementText,
-                                    renameSymbol.Name,
-                                    possibleNameConflicts,
-                                    renameSymbol,
-                                    renameSymbol as IAliasSymbol,
-                                    renameRewriterService.IsIdentifierValid(replacementText, syntaxFacts));
-
-                            renamedSymbolContextsBuilder.Add(symbolContext);
+                            documentRenameBuilder.AddRenamedSymbol(renameSymbol, replacementText, replacementTextValid, possibleNameConflicts.ToImmutableArray());
 
                             var renameLocationsSet = await Renamer.FindRenameLocationsAsync(
                                 solution,
                                 renameSymbol,
                                 options,
-                                CodeActionOptions.DefaultProvider,
                                 cancellationToken).ConfigureAwait(false);
 
                             var locationsInDocument = renameLocationsSet.Locations.Where(location => location.DocumentId == document.Id).ToImmutableArray();
-                            var textSpanRenameContexts = locationsInDocument
+                            var locationRenameContexts = locationsInDocument
                                 .WhereAsArray(location => RenameUtilities.ShouldIncludeLocation(renameLocationsSet.Locations, location))
-                                .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
-                            tokenTextSpanRenameContextsBuilder.AddRange(textSpanRenameContexts);
+                                .SelectAsArray(location => new LocationRenameContext(location, replacementTextValid, replacementText, renameSymbol.Name));
+
+                            foreach (var locationRenameContext in locationRenameContexts)
+                            {
+                                documentRenameBuilder.AddLocationRenameContext(locationRenameContext);
+                            }
 
                             var stringAndCommentsRenameContexts = locationsInDocument
                                 .WhereAsArray(location => location.IsRenameInStringOrComment)
-                                .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
-                            stringAndCommentsContextsBuilder.AddRange(stringAndCommentsRenameContexts);
+                                .SelectAsArray(location => new StringAndCommentRenameContext(location, replacementText));
+                            foreach (var stringAndCommentRenameContext in stringAndCommentsRenameContexts)
+                            {
+                                documentRenameBuilder.AddStringAndCommentRenameContext(stringAndCommentRenameContext);
+                            }
                         }
                     }
                 }
@@ -168,15 +164,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 var parameters = new RenameRewriterParameters(
                     conflictLocationSetBuilder.ToImmutableHashSet(),
                     solution,
-                    syntaxTree,
                     _renamedSpansTracker,
                     syntaxTree.GetRoot(cancellationToken),
                     document,
                     semanticModel,
                     new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind),
-                    tokenTextSpanRenameContextsBuilder.ToImmutable(),
-                    stringAndCommentsContextsBuilder.ToImmutable(),
-                    renamedSymbolContextsBuilder.ToImmutable(),
+                    documentRenameBuilder.ToRenameInfo(),
                     cancellationToken);
 
                 return renameRewriterService.AnnotateAndRename(parameters);

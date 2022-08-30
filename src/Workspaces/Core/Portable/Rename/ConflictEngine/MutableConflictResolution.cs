@@ -35,31 +35,34 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Whether the text that was resolved with was even valid. This may be false if the
         /// identifier was not valid in some language that was involved in the rename.
         /// </summary>
-        public readonly bool ReplacementTextValid;
+        public readonly ImmutableDictionary<ISymbol, bool> SymbolToReplacementTextValid;
 
         /// <summary>
         /// The original text that is the rename replacement.
         /// </summary>
-        public readonly string ReplacementText;
+        public readonly ImmutableDictionary<ISymbol, string> SymbolToReplacementText;
 
         /// <summary>
         /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
         public Solution CurrentSolution { get; private set; }
 
-        private (DocumentId documentId, string newName) _renamedDocument;
+        /// <summary>
+        /// DocumentId of renamed document to the newName.
+        /// </summary>
+        private readonly Dictionary<DocumentId, string> RenamedDocuments = new();
 
         public MutableConflictResolution(
             Solution oldSolution,
             RenamedSpansTracker renamedSpansTracker,
-            string replacementText,
-            bool replacementTextValid)
+            ImmutableDictionary<ISymbol, string> symbolToReplacementText,
+            ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid)
         {
             OldSolution = oldSolution;
             CurrentSolution = oldSolution;
             _renamedSpansTracker = renamedSpansTracker;
-            ReplacementText = replacementText;
-            ReplacementTextValid = replacementTextValid;
+            SymbolToReplacementText = symbolToReplacementText;
+            SymbolToReplacementTextValid = symbolToReplacementTextValid;
             RelatedLocations = new List<RelatedLocation>();
         }
 
@@ -68,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             RelatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
             _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
+
+        internal bool IsDocumentChanged(DocumentId documentId)
+            => _renamedSpansTracker.IsDocumentChanged(documentId);
 
         internal void UpdateCurrentSolution(Solution solution)
             => CurrentSolution = solution;
@@ -102,10 +108,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return intermediateSolution;
         }
 
-        internal void RenameDocumentToMatchNewSymbol(Document document)
+        internal void RenameDocumentToMatchNewSymbol(ISymbol originalSymbol, Document document)
         {
+            var replacementText = SymbolToReplacementText[originalSymbol];
             var extension = Path.GetExtension(document.Name);
-            var newName = Path.ChangeExtension(ReplacementText, extension);
+            var newName = Path.ChangeExtension(replacementText, extension);
 
             // If possible, check that the new file name is unique to on disk files as well 
             // as solution items.
@@ -127,14 +134,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             return;
                         }
 
-                        var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
+                        var nameWithoutExtension = replacementText + $"_{versionNumber++}";
                         newName = Path.ChangeExtension(nameWithoutExtension, extension);
                         newDocumentFilePath = Path.Combine(directory, newName);
                     }
                 }
             });
 
-            _renamedDocument = (document.Id, newName);
+            if (!RenamedDocuments.TryGetValue(document.Id, out var existingNewName))
+            {
+                RenamedDocuments.Add(document.Id, newName);
+            }
+            else
+            {
+                // One document should not be renamed twice.
+                RoslynDebug.Assert(newName == existingNewName);
+            }
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)
@@ -167,8 +182,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return new ConflictResolution(
                 OldSolution,
                 CurrentSolution,
-                ReplacementTextValid,
-                _renamedDocument,
+                SymbolToReplacementTextValid,
+                RenamedDocuments.ToImmutableDictionaryOrEmpty(),
                 documentIds,
                 relatedLocations,
                 documentToModifiedSpansMap,

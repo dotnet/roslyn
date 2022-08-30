@@ -14,18 +14,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
         {
             private readonly ConflictResolution _conflicts;
+            private readonly ISymbol _renameSymbol;
 
-            public InlineRenameReplacementInfo(ConflictResolution conflicts)
+            public InlineRenameReplacementInfo(
+                ISymbol renameSymbol,
+                ConflictResolution conflicts)
             {
                 Contract.ThrowIfFalse(conflicts.IsSuccessful);
                 _conflicts = conflicts;
+                _renameSymbol = renameSymbol;
             }
 
             public IEnumerable<DocumentId> DocumentIds => _conflicts.DocumentIds;
 
             public Solution NewSolution => _conflicts.NewSolution!;
 
-            public bool ReplacementTextValid => _conflicts.ReplacementTextValid!.Value;
+            public bool ReplacementTextValid => _conflicts.SymbolToReplacementTextValid[_renameSymbol];
 
             public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
             {

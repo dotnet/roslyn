@@ -7,12 +7,11 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// RenameSymbolContext contains all the immutable context information to rename the RenamedSymbol/>.
+    /// RenameSymbolContext contains all the immutable context information to rename the RenamedSymbol.
     /// </summary>
     internal readonly record struct RenamedSymbolContext(
         string ReplacementText,
         string OriginalText,
-        ICollection<string> PossibleNameConflicts,
         ISymbol RenamedSymbol,
         IAliasSymbol? AliasSymbol,
         bool ReplacementTextValid);

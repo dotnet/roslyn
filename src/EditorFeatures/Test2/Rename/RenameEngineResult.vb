@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private ReadOnly _workspace As TestWorkspace
         Private ReadOnly _resolution As ConflictResolution
+        Private ReadOnly _renameSymbol As ISymbol
 
         ''' <summary>
         ''' The list of related locations that haven't been asserted about yet. Items are
@@ -38,13 +39,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private _failedAssert As Boolean
 
-        Private Sub New(workspace As TestWorkspace, resolution As ConflictResolution, renameTo As String)
+        Private Sub New(workspace As TestWorkspace, resolution As ConflictResolution, renameTo As String, renameSymbol As ISymbol)
             _workspace = workspace
             _resolution = resolution
 
             _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
 
             _renameTo = renameTo
+            _renameSymbol = renameSymbol
         End Sub
 
         Public Shared Function Create(
@@ -96,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Assert.Null(result.ErrorMessage)
                 End If
 
-                engineResult = New RenameEngineResult(workspace, result, renameTo)
+                engineResult = New RenameEngineResult(workspace, result, renameTo, symbol)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
                 success = True
             Finally
@@ -125,9 +127,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
 
-                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
             Else
                 ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
                 ' marshaled back.
@@ -278,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Public Sub AssertReplacementTextInvalid()
             Try
-                Assert.False(_resolution.ReplacementTextValid)
+                Assert.False(_resolution.SymbolToReplacementTextValid(_renameSymbol))
             Catch ex As XunitException
                 _failedAssert = True
                 Throw

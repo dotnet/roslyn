@@ -14,14 +14,11 @@ namespace Microsoft.CodeAnalysis.Rename
     internal readonly record struct RenameRewriterParameters(
         ISet<TextSpan> ConflictLocationSpans,
         Solution OriginalSolution,
-        SyntaxTree OriginalSyntaxTree,
         RenamedSpansTracker RenameSpansTracker,
         SyntaxNode SyntaxRoot,
         Document Document,
         SemanticModel SemanticModel,
         AnnotationTable<RenameAnnotation> RenameAnnotations,
-        ImmutableArray<LocationRenameContext> TokenTextSpanRenameContexts,
-        ImmutableArray<LocationRenameContext> StringAndCommentsTextSpanRenameContexts,
-        ImmutableArray<RenamedSymbolContext> RenameSymbolContexts,
+        DocumentRenameInfo DocumentRenameInfo,
         CancellationToken CancellationToken);
 }
