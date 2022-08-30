@@ -3862,17 +3862,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Use fast-path check to see if this types are ok.
-                var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
-                var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
-
-                if (easyOutBinaryKind != BinaryOperatorKind.Error)
+                if (csharpReturnType.SpecialType != SpecialType.None &&
+                    csharpLeftType.SpecialType != SpecialType.None &&
+                    csharpRightType.SpecialType != SpecialType.None)
                 {
-                    var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
-                    if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
-                        csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
-                        csharpRightType.SpecialType == signature.RightType.SpecialType)
+                    var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
+                    var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
+
+                    if (easyOutBinaryKind != BinaryOperatorKind.Error)
                     {
-                        return;
+                        var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
+                        if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                            csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
+                            csharpRightType.SpecialType == signature.RightType.SpecialType)
+                        {
+                            return;
+                        }
                     }
                 }
 
@@ -4076,16 +4081,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Use fast-path check to see if this types are ok.
-                var unaryKind = OperatorFacts.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
-                var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpOperandType);
-
-                if (easyOutUnaryKind != UnaryOperatorKind.Error)
+                if (csharpReturnType.SpecialType != SpecialType.None && csharpOperandType.SpecialType != SpecialType.None)
                 {
-                    var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
-                    if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
-                        csharpOperandType.SpecialType == signature.OperandType.SpecialType)
+                    var unaryKind = OperatorFacts.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
+                    var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpOperandType);
+
+                    if (easyOutUnaryKind != UnaryOperatorKind.Error)
                     {
-                        return;
+                        var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
+                        if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                            csharpOperandType.SpecialType == signature.OperandType.SpecialType)
+                        {
+                            return;
+                        }
                     }
                 }
 
