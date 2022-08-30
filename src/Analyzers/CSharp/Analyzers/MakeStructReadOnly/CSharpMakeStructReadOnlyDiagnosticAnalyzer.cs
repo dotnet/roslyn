@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 
@@ -29,69 +28,85 @@ internal class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeS
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
-
-    private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-        var option = context.GetCSharpAnalyzerOptions().PreferReadOnlyStruct;
-        if (!option.Value)
-            return;
-
-        var cancellationToken = context.CancellationToken;
-        var semanticModel = context.SemanticModel;
-        if (semanticModel.Compilation.LanguageVersion() < LanguageVersion.CSharp7_2)
-            return;
-
-        // if it's already syntactically readonly, nothing we need to do.
-        var typeDeclaration = (TypeDeclarationSyntax)context.Node;
-        if (typeDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
-            return;
-
-        // quickly check if there are mutable fields/properties in this declaration (note: there may be other parts,
-        // so this is not a sufficient test on its own).  If so, we def can't make this readonly.
-        foreach (var member in typeDeclaration.Members)
+        => context.RegisterSymbolStartAction(context =>
         {
-            if (member is FieldDeclarationSyntax field && !field.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+            var compilation = context.Compilation;
+            if (compilation.LanguageVersion() < LanguageVersion.CSharp7_2)
                 return;
 
-            if (member is PropertyDeclarationSyntax { AccessorList.Accessors: var accessors } &&
-                accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) && a.SemicolonToken != default))
-            {
+            // First, see if this at least strongly looks like a struct that could be converted.
+            if (!IsCandidate(context, out var typeDeclaration, out var option))
                 return;
+
+            // Looks good.  However, we have to make sure that the struct has no code which actually overwrites 'this'
+
+            var writesToThis = false;
+            context.RegisterSyntaxNodeAction(context =>
+            {
+                var semanticModel = context.SemanticModel;
+                var thisExpression = (ThisExpressionSyntax)context.Node;
+                var cancellationToken = context.CancellationToken;
+                writesToThis = writesToThis || thisExpression.IsWrittenTo(semanticModel, cancellationToken);
+            }, SyntaxKind.ThisExpression);
+
+            context.RegisterSymbolEndAction(context =>
+            {
+                // if we wrote to 'this', then we cannot convert this struct.
+                if (writesToThis)
+                    return;
+
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
+                    typeDeclaration.Identifier.GetLocation(),
+                    option.Notification.Severity,
+                    additionalLocations: ImmutableArray.Create(typeDeclaration.GetLocation()),
+                    properties: null));
+            });
+        }, SymbolKind.NamedType);//.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
+
+    private static bool IsCandidate(
+        SymbolStartAnalysisContext context,
+        [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration,
+        [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+    {
+        var typeSymbol = (INamedTypeSymbol)context.Symbol;
+        var cancellationToken = context.CancellationToken;
+
+        typeDeclaration = null;
+        option = null;
+        if (typeSymbol.TypeKind is not TypeKind.Struct)
+            return false;
+
+        if (typeSymbol.IsReadOnly)
+            return false;
+
+        if (typeSymbol.DeclaringSyntaxReferences.Length == 0)
+            return false;
+
+        typeDeclaration = typeSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as TypeDeclarationSyntax;
+        if (typeDeclaration is null)
+            return false;
+
+        var options = new CSharpAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(typeDeclaration.SyntaxTree), context.Options);
+        option = options.PreferReadOnlyStruct;
+        if (!option.Value)
+            return false;
+
+        // Now, ensure we have at least one field and that all fields are readonly.
+        var hasField = false;
+        foreach (var member in typeSymbol.GetMembers())
+        {
+            if (member is IFieldSymbol field)
+            {
+                hasField = true;
+                if (!field.IsReadOnly)
+                    return false;
             }
         }
 
-        // Only bother showing this for structs that have at least one declared data member.  We don't want to
-        // aggressively offer this on empty structs that the user is just about to add members to.
-        if (!typeDeclaration.Members.Any(m => m is FieldDeclarationSyntax or PropertyDeclarationSyntax) &&
-            typeDeclaration is not RecordDeclarationSyntax { ParameterList.Parameters.Count: > 0 })
-        {
-            return;
-        }
+        if (!hasField)
+            return false;
 
-        // Ok, syntactically this looks viable.  Now go to semantics to ensure this really can be made readonly.
-
-        var typeSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
-        Contract.ThrowIfNull(typeSymbol);
-
-        // This may have been partial, with another part already marking this struct as readonly.  Check again and
-        // bail if so.
-        if (typeSymbol.IsReadOnly)
-            return;
-
-        // Now, ensure we have at least one field and that all fields are readonly.
-        var fields = typeSymbol.GetMembers().OfType<IFieldSymbol>().ToImmutableArray();
-        if (fields.Length == 0)
-            return;
-
-        if (fields.Any(f => !f.IsReadOnly))
-            return;
-
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            typeDeclaration.Identifier.GetLocation(),
-            option.Notification.Severity,
-            additionalLocations: ImmutableArray.Create(typeDeclaration.GetLocation()),
-            properties: null));
+        return true;
     }
 }

@@ -472,4 +472,220 @@ readonly record struct S
     int P { get; set; }
 }");
     }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingOnStructThatWritesToThis1()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        this = default;
+    }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingOnStructThatWritesToThis2()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        this.ByRef();
+    }
+}
+
+static class Extensions
+{
+    public static void ByRef(ref this S s) { }
+}
+");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingOnStructThatWritesToThis3()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        Goo(ref this);
+    }
+
+    void Goo(ref S s) { }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingOnStructThatWritesToThis4()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        Goo(out this);
+    }
+
+    void Goo(out S s) { s = default; }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingOnStructThatWritesToThis5()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        ref S s = ref this;
+    }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingOnStructThatWritesToThis6()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        this++;
+    }
+
+    public static S operator++(S s) => default;
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestOnStructThatReadsFromThis1()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    void M()
+    {
+        Goo(in this);
+    }
+
+    void Goo(in S s) { }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        Goo(in this);
+    }
+
+    void Goo(in S s) { }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestOnStructThatReadsFromThis2()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    void M()
+    {
+        this.Goo();
+    }
+
+    void Goo() { }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        this.Goo();
+    }
+
+    void Goo() { }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestOnStructThatReadsFromThis3()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    void M()
+    {
+        this.Goo();
+    }
+}
+
+static class Extensions
+{
+    public static void Goo(this S s) { }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        this.Goo();
+    }
+}
+
+static class Extensions
+{
+    public static void Goo(this S s) { }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestOnStructThatReadsFromThis4()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    void M()
+    {
+        ref readonly S s = ref this;
+    }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    void M()
+    {
+        ref readonly S s = ref this;
+    }
+}");
+    }
 }
