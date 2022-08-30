@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             var field = typeof(SyntaxKind).GetField(kindName);
             var kind = (SyntaxKind)field.GetValue(null);
-            computedKeywordText = SyntaxFacts.GetText(kind);
+            KeywordText = SyntaxFacts.GetText(kind);
 
             s_recommenderMap.TryGetValue(kind, out var recommender);
             Assert.NotNull(recommender);
