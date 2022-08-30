@@ -6,7 +6,6 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
-
     internal class SyntaxTreeException : Exception
     {
         // Used for analyzing dumps
