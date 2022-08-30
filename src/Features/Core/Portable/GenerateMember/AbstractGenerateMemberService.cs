@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 {
                     var typeInfo = semanticModel.GetTypeInfo(beforeArrowExpression, cancellationToken);
 
-                    if (typeInfo.Type.IsPointerType())
+                    if (typeInfo.Type is IPointerTypeSymbol pointerType)
                     {
-                        typeToGenerateIn = ((IPointerTypeSymbol)typeInfo.Type).PointedAtType as INamedTypeSymbol;
+                        typeToGenerateIn = pointerType.PointedAtType as INamedTypeSymbol;
                         isStatic = false;
                     }
                 }

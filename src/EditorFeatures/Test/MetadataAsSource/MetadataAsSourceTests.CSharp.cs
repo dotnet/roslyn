@@ -758,7 +758,11 @@ public class C
             public async Task TestRequiredProperty(bool signaturesOnly)
             {
                 var metadataSource = """
-                    public class C { public required int Property { get; set; } }
+                    public class C
+                    {
+                        public required int Property { get; set; }
+                        public required int Field;
+                    }
                     namespace System.Runtime.CompilerServices
                     {
                         public sealed class RequiredMemberAttribute : Attribute { }
@@ -783,14 +787,12 @@ public class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
-
-[RequiredMember]
 public class [|C|]
 {{
+    public required int Field;
+
     public C();
 
-    [RequiredMember]
     public required int Property {{ get; set; }}
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -804,6 +806,9 @@ using System.Runtime.CompilerServices;
 [RequiredMember]
 public class [|C|]
 {{
+    [RequiredMember]
+    public int Field;
+
     [RequiredMember]
     public int Property {{ get; set; }}
 

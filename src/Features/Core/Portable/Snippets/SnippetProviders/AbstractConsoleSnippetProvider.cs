@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        {
+            return syntaxFacts.IsExpressionStatement;
+        }
+
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Tries to get the location after the open parentheses in the argument list.
         /// If it can't, then we default to the end of the snippet's span.
         /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
             var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
             if (invocationExpression is null)
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
             if (snippetExpressionNode is null)
             {
                 return root;
@@ -139,10 +144,17 @@ namespace Microsoft.CodeAnalysis.Snippets
             return openParenToken;
         }
 
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
+        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
+        {
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
+            return symbol;
+        }
+
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
+            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(isCorrectContainer);
             if (nearestExpressionStatement is null)
             {
                 return null;
@@ -157,13 +169,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             return nearestExpressionStatement;
-        }
-
-        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
-        {
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
-            return symbol;
         }
     }
 }

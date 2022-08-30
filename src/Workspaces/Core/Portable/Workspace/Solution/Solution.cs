@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -56,10 +56,6 @@ namespace Microsoft.CodeAnalysis
         public SolutionServices Services => _state.Services.SolutionServices;
 
         internal string? WorkspaceKind => _state.WorkspaceKind;
-
-        internal BranchId BranchId => _state.BranchId;
-
-        internal bool IsFromPrimaryBranch => _state.BranchId == _state.PrimaryBranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 

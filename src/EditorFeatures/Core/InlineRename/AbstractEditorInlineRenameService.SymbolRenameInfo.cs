@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfo
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
                 if (RenameSymbol.Kind == SymbolKind.NamedType &&
-                    _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+                    _document.Project.Solution.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
                 {
                     if (RenameSymbol.Locations.Length > 1)
                     {
