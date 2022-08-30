@@ -3002,7 +3002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbOperandType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(operandType))
 
-            Dim nameToCheck = If(SynthesizedIntrinsicOperatorSymbol.IsCheckedUnaryOperator(name), WellKnownMemberNames.UnaryNegationOperatorName, name)
+            Dim nameToCheck = If(name = WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName, name)
 
             Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
             If Not opInfo.IsUnary Then

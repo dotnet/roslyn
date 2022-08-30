@@ -29,26 +29,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "value")}).AsImmutableOrNull()
         End Sub
 
-        Public Shared Function IsCheckedUnaryOperator(name As String) As Boolean
-            Return name Is WellKnownMemberNames.CheckedUnaryNegationOperatorName
-        End Function
-
-        Public Shared Function IsCheckedBinaryOperator(name As String) As Boolean
-            Select Case name
-                Case WellKnownMemberNames.CheckedAdditionOperatorName,
+        Public Overrides ReadOnly Property IsCheckedBuiltin As Boolean
+            Get
+                Select Case Name
+                    Case WellKnownMemberNames.CheckedUnaryNegationOperatorName,
+                     WellKnownMemberNames.CheckedAdditionOperatorName,
                      WellKnownMemberNames.CheckedDivisionOperatorName,
                      WellKnownMemberNames.CheckedMultiplyOperatorName,
                      WellKnownMemberNames.CheckedSubtractionOperatorName
-                    Return True
+                        Return True
 
-                Case Else
-                    Return False
-            End Select
-        End Function
-
-        Public Overrides ReadOnly Property IsCheckedBuiltin As Boolean
-            Get
-                Return IsCheckedUnaryOperator(Name) OrElse IsCheckedBinaryOperator(Name)
+                    Case Else
+                        Return False
+                End Select
             End Get
         End Property
 
