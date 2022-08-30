@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
             ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
-            BinaryOperatorKind kind = OperatorFacts.SyntaxKindToBinaryOperatorKind(node.Kind());
+            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
             // make cascading errors.
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics,
             BoundExpression left, BoundExpression right, bool leaveUnconvertedIfInterpolatedString)
         {
-            BinaryOperatorKind kind = OperatorFacts.SyntaxKindToBinaryOperatorKind(node.Kind());
+            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that would just
             // make cascading errors.
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
         {
-            BinaryOperatorKind kind = OperatorFacts.SyntaxKindToBinaryOperatorKind(node.Kind());
+            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
 
@@ -2188,12 +2188,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
+        private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.MultiplyExpression: return BinaryOperatorKind.Multiplication;
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.DivideExpression: return BinaryOperatorKind.Division;
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.ModuloExpression: return BinaryOperatorKind.Remainder;
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.AddExpression: return BinaryOperatorKind.Addition;
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.SubtractExpression: return BinaryOperatorKind.Subtraction;
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.RightShiftExpression: return BinaryOperatorKind.RightShift;
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftExpression: return BinaryOperatorKind.UnsignedRightShift;
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.LeftShiftExpression: return BinaryOperatorKind.LeftShift;
+                case SyntaxKind.EqualsExpression: return BinaryOperatorKind.Equal;
+                case SyntaxKind.NotEqualsExpression: return BinaryOperatorKind.NotEqual;
+                case SyntaxKind.GreaterThanExpression: return BinaryOperatorKind.GreaterThan;
+                case SyntaxKind.LessThanExpression: return BinaryOperatorKind.LessThan;
+                case SyntaxKind.GreaterThanOrEqualExpression: return BinaryOperatorKind.GreaterThanOrEqual;
+                case SyntaxKind.LessThanOrEqualExpression: return BinaryOperatorKind.LessThanOrEqual;
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.BitwiseAndExpression: return BinaryOperatorKind.And;
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.BitwiseOrExpression: return BinaryOperatorKind.Or;
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.ExclusiveOrExpression: return BinaryOperatorKind.Xor;
+                case SyntaxKind.LogicalAndExpression: return BinaryOperatorKind.LogicalAnd;
+                case SyntaxKind.LogicalOrExpression: return BinaryOperatorKind.LogicalOr;
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
         private BoundExpression BindIncrementOperator(CSharpSyntaxNode node, ExpressionSyntax operandSyntax, SyntaxToken operatorToken, BindingDiagnosticBag diagnostics)
         {
             operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
 
             BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement), diagnostics);
-            UnaryOperatorKind kind = OperatorFacts.SyntaxKindToUnaryOperatorKind(node.Kind());
+            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             // If the operand is bad, avoid generating cascading errors.
             if (operand.HasAnyErrors)
@@ -2632,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, BindingDiagnosticBag diagnostics)
         {
-            UnaryOperatorKind kind = OperatorFacts.SyntaxKindToUnaryOperatorKind(node.Kind());
+            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsImplicitObjectCreation();
             if (isOperandNullOrNew)
@@ -2913,6 +2951,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.PreIncrementExpression: return UnaryOperatorKind.PrefixIncrement;
+                case SyntaxKind.PostIncrementExpression: return UnaryOperatorKind.PostfixIncrement;
+                case SyntaxKind.PreDecrementExpression: return UnaryOperatorKind.PrefixDecrement;
+                case SyntaxKind.PostDecrementExpression: return UnaryOperatorKind.PostfixDecrement;
+                case SyntaxKind.UnaryPlusExpression: return UnaryOperatorKind.UnaryPlus;
+                case SyntaxKind.UnaryMinusExpression: return UnaryOperatorKind.UnaryMinus;
+                case SyntaxKind.LogicalNotExpression: return UnaryOperatorKind.LogicalNegation;
+                case SyntaxKind.BitwiseNotExpression: return UnaryOperatorKind.BitwiseComplement;
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
+            }
         }
 
         private static BindValueKind GetBinaryAssignmentKind(SyntaxKind kind)
