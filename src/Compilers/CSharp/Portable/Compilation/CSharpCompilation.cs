@@ -17,6 +17,7 @@ using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Compilation;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1020,9 +1021,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             catch (KeyNotFoundException)
             {
-                // Explicitly catching and re-throwing exception so we don't send the syntax
-                // tree (potentially containing private user information) to telemetry.
-                throw new KeyNotFoundException("Syntax tree not found.");
+                // Explicitly catching exception so we don't send the syntax tree
+                // (potentially containing private user information) to telemetry.
+                // Instead, the tree is stored in the below type so we can analyze
+                // it in dumps.
+                throw new SyntaxTreeException("Syntax tree not found.", tree);
             }
         }
 
