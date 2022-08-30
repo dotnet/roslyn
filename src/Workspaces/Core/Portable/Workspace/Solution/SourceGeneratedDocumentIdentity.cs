@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis
 
             writer.WriteString(HintName);
             writer.WriteString(Generator.AssemblyName);
+            writer.WriteString(Generator.AssemblyVersion.ToString());
             writer.WriteString(Generator.TypeName);
             writer.WriteString(FilePath);
         }
@@ -71,10 +72,15 @@ namespace Microsoft.CodeAnalysis
 
             var hintName = reader.ReadString();
             var generatorAssemblyName = reader.ReadString();
+            var generatorAssemblyVersion = Version.Parse(reader.ReadString());
             var generatorTypeName = reader.ReadString();
             var filePath = reader.ReadString();
 
-            return new SourceGeneratedDocumentIdentity(documentId, hintName, new SourceGeneratorIdentity(generatorAssemblyName, generatorTypeName), filePath);
+            return new SourceGeneratedDocumentIdentity(
+                documentId,
+                hintName,
+                new SourceGeneratorIdentity(generatorAssemblyName, generatorAssemblyVersion, generatorTypeName),
+                filePath);
         }
     }
 }
