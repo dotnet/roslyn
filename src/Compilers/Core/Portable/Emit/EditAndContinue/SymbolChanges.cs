@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     continue;
                 }
 
-                var internalSymbols = GetDeletedMemberInternalSymbols(deletedMembers, includeMethods: true, includeProperties: true);
+                var internalSymbols = GetDeletedMemberInternalSymbols(deletedMembers, includeMethods: true, includeProperties: true, includeEvents: true);
 
                 builder.Add(typeSymbol, internalSymbols);
 
@@ -71,24 +71,33 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<ISymbolInternal> GetDeletedMemberInternalSymbols(ISet<ISymbol> deletedMembers, bool includeMethods, bool includeProperties)
+        private ImmutableArray<ISymbolInternal> GetDeletedMemberInternalSymbols(ISet<ISymbol> deletedMembers, bool includeMethods, bool includeProperties, bool includeEvents)
         {
             var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
 
-            // Use a hashset to make sure we don't return the same property twice, if both accessors are deleted
-            var seenProperties = new HashSet<IPropertySymbol>(ReferenceEqualityComparer.Instance);
             foreach (var symbol in deletedMembers)
             {
                 if (GetISymbolInternalOrNull(symbol) is { } internalSymbol)
                 {
                     if (includeProperties &&
                         symbol is IMethodSymbol { AssociatedSymbol: IPropertySymbol propertySymbol } &&
-                        seenProperties.Add(propertySymbol))
+                        (propertySymbol.GetMethod is null || propertySymbol.GetMethod == symbol))
                     {
                         var internalPropertySymbol = GetISymbolInternalOrNull(propertySymbol);
                         if (internalPropertySymbol is not null)
                         {
                             internalSymbols.Add(internalPropertySymbol);
+                        }
+                    }
+
+                    if (includeEvents &&
+                        symbol is IMethodSymbol { AssociatedSymbol: IEventSymbol eventSymbol } &&
+                        eventSymbol.AddMethod == symbol)
+                    {
+                        var internalEventSymbol = GetISymbolInternalOrNull(eventSymbol);
+                        if (internalEventSymbol is not null)
+                        {
+                            internalSymbols.Add(internalEventSymbol);
                         }
                     }
 
@@ -115,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return GetDeletedMemberInternalSymbols(deleted, includeMethods: true, includeProperties: false);
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: true, includeProperties: false, includeEvents: false);
         }
 
         public ImmutableArray<ISymbolInternal> GetDeletedProperties(IDefinition containingType)
@@ -131,24 +140,23 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return GetDeletedMemberInternalSymbols(deleted, includeMethods: false, includeProperties: true);
-
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: false, includeProperties: true, includeEvents: false);
         }
 
-        private ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)
+        public ImmutableArray<ISymbolInternal> GetDeletedEvents(IDefinition containingType)
         {
-            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
-
-            foreach (var symbol in symbols)
+            var containingSymbol = containingType.GetInternalSymbol()?.GetISymbol();
+            if (containingSymbol is null)
             {
-                var internalSymbol = GetISymbolInternalOrNull(symbol);
-                if (internalSymbol is not null)
-                {
-                    internalSymbols.Add(internalSymbol);
-                }
+                return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return internalSymbols.ToImmutableAndFree();
+            if (!_deletedMembers.TryGetValue(containingSymbol, out var deleted))
+            {
+                return ImmutableArray<ISymbolInternal>.Empty;
+            }
+
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: false, includeProperties: false, includeEvents: true);
         }
 
         public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
@@ -549,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return symbol;
         }
 
-        internal IPropertyDefinition? GetPropertyForBackingField(IFieldDefinition fieldDefinition)
+        internal IDefinition? GetContainingDefinitionForBackingField(IFieldDefinition fieldDefinition)
         {
             var field = fieldDefinition.GetInternalSymbol()?.GetISymbol();
             if (field is null)
@@ -558,9 +566,9 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var containingSymbol = GetContainingSymbol(field);
-            if (containingSymbol is IPropertySymbol)
+            if (containingSymbol is not null)
             {
-                return GetISymbolInternalOrNull(containingSymbol)?.GetCciAdapter() as IPropertyDefinition;
+                return GetISymbolInternalOrNull(containingSymbol)?.GetCciAdapter() as IDefinition;
             }
 
             return null;
