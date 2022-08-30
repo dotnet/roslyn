@@ -69,6 +69,11 @@
         <target state="translated">添加的源文件的 hintName“{0}”在生成器中必须唯一。</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="Illegal_operator_name_0">
+        <source>Illegal operator name '{0}'</source>
+        <target state="new">Illegal operator name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
         <target state="translated">其他文件不属于基础 "CompilationWithAnalyzers"。</target>
@@ -317,6 +322,11 @@
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
         <target state="translated">抑制器不支持已报告的 ID 为“{0}”的诊断。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_built_in_operator_0">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="new">Unsupported built-in operator: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -1016,6 +1026,11 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">警告: 无法启用 multicore JIT，因为存在异常: {0}。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_was_not_a_valid_operator_name">
+        <source>'{0}' was not a valid operator name</source>
+        <target state="new">'{0}' was not a valid operator name</target>
         <note />
       </trans-unit>
     </body>

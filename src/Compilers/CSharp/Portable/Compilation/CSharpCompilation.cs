@@ -3837,11 +3837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntaxKind = SyntaxFacts.GetOperatorKind(name);
             if (syntaxKind == SyntaxKind.None)
-                throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.Illegal_operator_name_0, name), nameof(name));
 
             var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (binaryOperatorName != name)
-                throw new ArgumentException($"'{name}' was not a valid binary operator name", nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources._0_was_not_a_valid_operator_name, name), nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
             validateSignature();
@@ -3943,14 +3943,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
                     {
                         if (csharpLeftType.IsEnumType() &&
-                            csharpRightType.SpecialType == csharpLeftType.GetEnumUnderlyingType().SpecialType &&
+                            csharpRightType.SpecialType == csharpLeftType.GetEnumUnderlyingType()?.SpecialType &&
                             TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                         {
                             return;
                         }
 
                         if (csharpRightType.IsEnumType() &&
-                            csharpLeftType.SpecialType == csharpRightType.GetEnumUnderlyingType().SpecialType &&
+                            csharpLeftType.SpecialType == csharpRightType.GetEnumUnderlyingType()?.SpecialType &&
                             TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                         {
                             return;
@@ -3959,7 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // EnumUnderlyingInt operator-(SomeEnum, SomeEnum)
                     if (binaryKind is BinaryOperatorKind.Subtraction &&
-                        csharpReturnType.SpecialType == csharpLeftType.GetEnumUnderlyingType().SpecialType &&
+                        csharpReturnType.SpecialType == csharpLeftType.GetEnumUnderlyingType()?.SpecialType &&
                         TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
                     {
                         return;
@@ -4025,7 +4025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                throw new ArgumentException($"Unsupported built-in binary operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.Unsupported_built_in_operator_0, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})"));
             }
 
             bool isAllowedPointerArithmeticIntegralType(TypeSymbol type)
@@ -4052,11 +4052,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Currently compiler does not generate built-ins for `operator true/false`.  If that changes, this check
             // can be relaxed.
             if (syntaxKind == SyntaxKind.None || name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
-                throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.Illegal_operator_name_0, name), nameof(name));
 
             var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (unaryOperatorName != name)
-                throw new ArgumentException($"'{name}' was not a valid unary operator name", nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources._0_was_not_a_valid_operator_name, name), nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
             validateSignature();
@@ -4106,7 +4106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                throw new ArgumentException($"Unsupported built-in unary operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.Unsupported_built_in_operator_0,  $"{csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})"));
             }
         }
 
