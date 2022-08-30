@@ -3844,14 +3844,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException($"'{name}' was not a valid binary operator name", nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
-            checkOperatorKinds();
+            validateSignature();
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
 
             static bool isDynamicOrError(TypeSymbol type)
                 => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
 
-            void checkOperatorKinds()
+            void validateSignature()
             {
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
                 if (isDynamicOrError(csharpReturnType) ||
@@ -4042,14 +4042,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException($"'{name}' was not a valid unary operator name", nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
-            checkOperatorKinds();
+            validateSignature();
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpOperandType, name, csharpReturnType).GetPublicSymbol();
 
             static bool isDynamicOrError(TypeSymbol type)
                 => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
 
-            void checkOperatorKinds()
+            void validateSignature()
             {
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
                 if (isDynamicOrError(csharpReturnType) ||
