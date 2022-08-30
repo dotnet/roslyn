@@ -18,6 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStructReadOnlyDiagnosticAnalyzer,
     CSharpMakeStructReadOnlyCodeFixProvider>;
 
+[Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
 public class MakeStructReadOnlyTests
 {
     private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
@@ -33,7 +34,7 @@ public class MakeStructReadOnlyTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task ShouldNotTriggerForCSharp7_1()
     {
         await TestMissingAsync(
@@ -43,7 +44,7 @@ public class MakeStructReadOnlyTests
 }", LanguageVersion.CSharp7_1);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task ShouldTriggerFor7_2()
     {
         await TestAsync(
@@ -58,7 +59,7 @@ public class MakeStructReadOnlyTests
 LanguageVersion.CSharp7_2);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithAlreadyReadOnlyStruct()
     {
         await TestMissingAsync(
@@ -68,7 +69,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithAlreadyReadOnlyRecordStruct()
     {
         await TestMissingAsync(
@@ -78,7 +79,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutableField()
     {
         await TestMissingAsync(
@@ -88,7 +89,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutableFieldRecordStruct()
     {
         await TestMissingAsync(
@@ -98,7 +99,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutableAndReadOnlyField()
     {
         await TestMissingAsync(
@@ -109,7 +110,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutableAndReadOnlyFieldRecordStruct1()
     {
         await TestMissingAsync(
@@ -120,7 +121,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutableAndReadOnlyFieldRecordStruct2()
     {
         await TestMissingAsync(
@@ -130,7 +131,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutableProperty()
     {
         await TestMissingAsync(
@@ -140,7 +141,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutablePropertyRecordStruct1()
     {
         await TestMissingAsync(
@@ -150,7 +151,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithMutablePropertyRecordStruct2()
     {
         await TestMissingAsync(
@@ -160,7 +161,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithEmptyStruct()
     {
         await TestMissingAsync(
@@ -169,7 +170,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithEmptyRecordStruct()
     {
         await TestMissingAsync(
@@ -178,7 +179,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithEmptyStructPrimaryConstructor()
     {
         await TestMissingAsync(
@@ -187,7 +188,7 @@ LanguageVersion.CSharp7_2);
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingWithOtherReadonlyPartialPart()
     {
         await TestMissingAsync(
@@ -202,7 +203,7 @@ readonly partial struct S
 ");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructWithReadOnlyField()
     {
         await TestAsync(
@@ -216,7 +217,7 @@ readonly partial struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnRecordStructWithReadOnlyField()
     {
         await TestAsync(
@@ -230,7 +231,7 @@ readonly partial struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructWithGetOnlyProperty()
     {
         await TestAsync(
@@ -244,7 +245,7 @@ readonly partial struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnRecordStructWithGetOnlyProperty()
     {
         await TestAsync(
@@ -258,7 +259,7 @@ readonly partial struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructWithInitOnlyProperty()
     {
         await TestAsync(
@@ -286,7 +287,7 @@ namespace System.Runtime.CompilerServices
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnRecordStructWithInitOnlyProperty()
     {
         await TestAsync(
@@ -314,7 +315,7 @@ namespace System.Runtime.CompilerServices
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnRecordStructWithReadOnlyField2()
     {
         await TestAsync(
@@ -328,7 +329,7 @@ namespace System.Runtime.CompilerServices
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingRecordStructWithPrimaryConstructorField()
     {
         await TestMissingAsync(
@@ -337,7 +338,7 @@ namespace System.Runtime.CompilerServices
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnRecordStructWithPrimaryConstructorFieldAndNormalField()
     {
         await TestMissingAsync(
@@ -347,7 +348,7 @@ namespace System.Runtime.CompilerServices
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestNestedStructs1()
     {
         await TestAsync(
@@ -371,7 +372,7 @@ namespace System.Runtime.CompilerServices
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestDocComments1()
     {
         await TestAsync(
@@ -387,7 +388,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestDocComments2()
     {
         await TestAsync(
@@ -409,7 +410,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestExistingModifier1()
     {
         await TestAsync(
@@ -423,7 +424,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestExistingModifier2()
     {
         await TestAsync(
@@ -443,7 +444,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructWithReadOnlyFieldAndMutableNormalProp()
     {
         await TestAsync(
@@ -461,7 +462,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructWithReadOnlyFieldAndMutableAutoProp()
     {
         await TestMissingAsync(
@@ -473,7 +474,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnStructThatWritesToThis1()
     {
         await TestMissingAsync(
@@ -488,7 +489,7 @@ readonly record struct S
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnStructThatWritesToThis2()
     {
         await TestMissingAsync(
@@ -509,7 +510,7 @@ static class Extensions
 ");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnStructThatWritesToThis3()
     {
         await TestMissingAsync(
@@ -526,7 +527,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnStructThatWritesToThis4()
     {
         await TestMissingAsync(
@@ -543,7 +544,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnStructThatWritesToThis5()
     {
         await TestMissingAsync(
@@ -558,7 +559,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestMissingOnStructThatWritesToThis6()
     {
         await TestMissingAsync(
@@ -575,7 +576,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructThatReadsFromThis1()
     {
         await TestAsync(
@@ -603,7 +604,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructThatReadsFromThis2()
     {
         await TestAsync(
@@ -631,7 +632,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructThatReadsFromThis3()
     {
         await TestAsync(
@@ -665,7 +666,7 @@ static class Extensions
 }");
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    [Fact]
     public async Task TestOnStructThatReadsFromThis4()
     {
         await TestAsync(
