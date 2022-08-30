@@ -442,4 +442,34 @@ readonly record struct S
     }
 }");
     }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestOnStructWithReadOnlyFieldAndMutableNormalProp()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    int P { set { } }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    int P { set { } }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestOnStructWithReadOnlyFieldAndMutableAutoProp()
+    {
+        await TestMissingAsync(
+@"struct S
+{
+    readonly int i;
+
+    int P { get; set; }
+}");
+    }
 }

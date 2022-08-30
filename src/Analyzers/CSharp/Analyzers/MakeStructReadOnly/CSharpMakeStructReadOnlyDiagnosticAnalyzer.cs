@@ -55,7 +55,7 @@ internal class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeS
                 return;
 
             if (member is PropertyDeclarationSyntax { AccessorList.Accessors: var accessors } &&
-                accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)))
+                accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) && a.SemicolonToken != default))
             {
                 return;
             }
