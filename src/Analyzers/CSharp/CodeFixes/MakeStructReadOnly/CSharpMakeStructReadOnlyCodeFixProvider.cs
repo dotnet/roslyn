@@ -13,43 +13,42 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly
+namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructReadOnly), Shared]
+internal class CSharpMakeStructReadOnlyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructReadOnly), Shared]
-    internal class MakeStructReadOnlyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ImportingConstructor]
+    public CSharpMakeStructReadOnlyCodeFixProvider()
     {
-        [ImportingConstructor]
-        public MakeStructReadOnlyCodeFixProvider()
+    }
+
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+        ImmutableArray.Create(IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId);
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, CSharpAnalyzersResources.Make_struct_readonly, nameof(CSharpAnalyzersResources.Make_struct_readonly));
+        return Task.CompletedTask;
+    }
+
+    protected override Task FixAllAsync(
+        Document document,
+        ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions,
+        CancellationToken cancellationToken)
+    {
+        var typeDeclarations = diagnostics.Select(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+
+        // process from lower to higher, that way we will fixup a nested struct first before fixing the outer struct.
+        foreach (var typeDeclaration in typeDeclarations.OrderByDescending(t => t.SpanStart))
         {
+            editor.ReplaceNode(
+                typeDeclaration,
+                (current, generator) => generator.WithModifiers(current, generator.GetModifiers(current).WithIsReadOnly(true)));
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            RegisterCodeFix(context, CSharpAnalyzersResources.Make_struct_readonly, nameof(CSharpAnalyzersResources.Make_struct_readonly));
-            return Task.CompletedTask;
-        }
-
-        protected override Task FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor,
-            CodeActionOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken)
-        {
-            var typeDeclarations = diagnostics.Select(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
-
-            // process from lower to higher, that way we will fixup a nested struct first before fixing the outer struct.
-            foreach (var typeDeclaration in typeDeclarations.OrderByDescending(t => t.SpanStart))
-            {
-                editor.ReplaceNode(
-                    typeDeclaration,
-                    (current, generator) => generator.WithModifiers(current, generator.GetModifiers(current).WithIsReadOnly(true)));
-            }
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }
