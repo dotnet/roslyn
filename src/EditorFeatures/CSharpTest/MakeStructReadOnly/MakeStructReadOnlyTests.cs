@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,6 +32,7 @@ public class MakeStructReadOnlyTests
             TestCode = testCode,
             FixedCode = fixedCode,
             LanguageVersion = version,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
     }
 
@@ -266,24 +268,10 @@ readonly partial struct S
 @"struct [|S|]
 {
     int P { get; init; }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public sealed class IsExternalInit
-    {
-    }
 }",
 @"readonly struct S
 {
     int P { get; init; }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public sealed class IsExternalInit
-    {
-    }
 }");
     }
 
@@ -294,24 +282,10 @@ namespace System.Runtime.CompilerServices
 @"record struct [|S|]
 {
     int P { get; init; }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public sealed class IsExternalInit
-    {
-    }
 }",
 @"readonly record struct S
 {
     int P { get; init; }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public sealed class IsExternalInit
-    {
-    }
 }");
     }
 
