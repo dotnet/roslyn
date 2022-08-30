@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal struct StatisticResult
+    internal readonly struct StatisticResult
     {
         public static StatisticResult FromList(List<int> values)
         {

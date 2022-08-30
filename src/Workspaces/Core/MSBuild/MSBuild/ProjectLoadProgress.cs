@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// <summary>
     /// Provides details as a project is loaded.
     /// </summary>
-    public struct ProjectLoadProgress
+    public readonly struct ProjectLoadProgress
     {
         /// <summary>
         /// The project for which progress is being reported.
