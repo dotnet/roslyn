@@ -14773,9 +14773,15 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
-                //         md1(1);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9));
+                    // (10,16): warning CS9069: Parameter 2 has default value '3' in method group and '<missing>' in the target delegate type.
+                    //         md1 += mc.DelegatedMethod;
+                    Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "mc.DelegatedMethod").WithArguments("2", "3", "<missing>").WithLocation(10, 16),
+                    // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
+                    //         md1(1);
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9),
+                    // (12,16): warning CS9069: Parameter 2 has default value '3' in method group and '<missing>' in the target delegate type.
+                    //         md1 -= mc.DelegatedMethod;
+                    Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "mc.DelegatedMethod").WithArguments("2", "3", "<missing>").WithLocation(12, 16));
         }
 
         [Fact]

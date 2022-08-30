@@ -2222,6 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_OptionalParamValueMismatch:
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
