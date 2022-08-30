@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (isRef)
                     {
-                        var leftEscape = GetRefEscape(op1, LocalScopeDepth);
+                        var leftEscape = GetRefEscape(op1, LocalScopeDepth, usePropertySetter: true);
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
                         {
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (op1.Type.IsRefLikeType)
                     {
-                        var leftEscape = GetValEscape(op1, LocalScopeDepth);
+                        var leftEscape = GetValEscape(op1, LocalScopeDepth, usePropertySetter: true);
                         op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                     }
                 }

@@ -2811,10 +2811,8 @@ public ref struct S<T>
         }
 
         [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void ReadOnlyIndexer_RefLikeStructParameter_02(LanguageVersion languageVersion)
+        [Fact]
+        public void ReadOnlyIndexer_RefLikeStructParameter_02()
         {
             var csharp = @"
 using System;
@@ -2830,7 +2828,11 @@ public ref struct S<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
+
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeDebugDll);
+            // CheckInvocationArgMixing() (for C#7.2 implementation) ignores the readonly-ness of
+            // the indexer setter because the getter is not readonly so errors are reported for b[x] = x.
+            // See IsReceiverRefReadOnly() and https://github.com/dotnet/roslyn/issues/35606, .
             comp.VerifyDiagnostics(
                 // (10,13): error CS8350: This combination of arguments to 'S<byte>.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
                 //         _ = b[x];
@@ -2844,6 +2846,15 @@ public ref struct S<T>
                 // (11,11): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         b[x] = x;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(11, 11));
+
+            comp = CreateCompilationWithMscorlibAndSpan(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS8350: This combination of arguments to 'S<byte>.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(10, 13),
+                // (10,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(10, 15));
         }
 
         [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]

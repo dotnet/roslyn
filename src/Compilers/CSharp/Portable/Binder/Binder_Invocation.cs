@@ -1137,7 +1137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argRefKinds,
                     argsToParams,
                     this.LocalScopeDepth,
-                    diagnostics);
+                    diagnostics,
+                    usePropertySetter: false);
             }
 
             bool isDelegateCall = (object)delegateTypeOpt != null;
@@ -2069,7 +2070,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds,
                     methodResult.Result.ArgsToParamsOpt,
                     LocalScopeDepth,
-                    diagnostics);
+                    diagnostics,
+                    usePropertySetter: false);
             }
 
             return new BoundFunctionPointerInvocation(

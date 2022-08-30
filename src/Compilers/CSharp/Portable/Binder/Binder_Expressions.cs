@@ -4124,7 +4124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             refKinds,
                             argsToParamsOpt,
                             this.LocalScopeDepth,
-                            diagnostics);
+                            diagnostics,
+                            usePropertySetter: false);
                     }
 
                     if (resultMember.HasSetsRequiredMembers && !constructor.HasSetsRequiredMembers)
@@ -5541,7 +5542,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKinds,
                         argToParams,
                         this.LocalScopeDepth,
-                        diagnostics);
+                        diagnostics,
+                        usePropertySetter: false);
                 }
 
                 boundInitializerOpt = makeBoundInitializerOpt();
@@ -8235,20 +8237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
-
-                if (!gotError)
-                {
-                    gotError = !CheckInvocationArgMixing(
-                        syntax,
-                        property,
-                        receiver,
-                        property.Parameters,
-                        arguments,
-                        argumentRefKinds,
-                        argsToParams,
-                        this.LocalScopeDepth,
-                        diagnostics);
-                }
 
                 // Note that we do not bind default arguments here, because at this point we do not know whether
                 // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.

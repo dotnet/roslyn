@@ -16635,5 +16635,973 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
             Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
         }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("in")]
+        public void Operator(string refKind)
+        {
+            var source =
+$@"ref struct R<T>
+{{
+    public R(ref T t) {{ }}
+    public static R<T> operator+({refKind} R<T> a, {refKind} R<T> b) => b;
+}}
+class Program
+{{
+    static R<int> PlusOne(R<int> r)
+    {{
+        int i = 1;
+        return r + new R<int>(ref i);
+    }}
+    static R<int> PlusEqualsTwo(R<int> r)
+    {{
+        int i = 2;
+        return r += new R<int>(ref i);
+    }}
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,20): error CS8347: Cannot use a result of 'R<int>.R(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return r + new R<int>(ref i);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R<int>(ref i)").WithArguments("R<int>.R(ref int)", "t").WithLocation(11, 20),
+                // (11,35): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return r + new R<int>(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 35),
+                // (16,21): error CS8347: Cannot use a result of 'R<int>.R(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return r += new R<int>(ref i);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R<int>(ref i)").WithArguments("R<int>.R(ref int)", "t").WithLocation(16, 21),
+                // (16,36): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return r += new R<int>(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 36));
+        }
+
+        [WorkItem(63852, "https://github.com/dotnet/roslyn/issues/63852")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void CompoundAssignment(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+ref struct S
+{
+    public static implicit operator S(Span<int> s) => default;
+    public static S operator+(S a, S b) => a;
+}
+class Program
+{
+    static void F1(ref S x1)
+    {
+        Span<int> s = stackalloc int[10];
+        S y1 = s;
+        x1 += y1; // 1
+        x1 = x1 + y1; // 2
+    }
+    static void F2(ref S x2)
+    {
+        Span<int> s = new int[10];
+        S y2 = s;
+        x2 += y2;
+        x2 = x2 + y2;
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            // https://github.com/dotnet/roslyn/issues/63852: No error reported for // 1.
+            comp.VerifyEmitDiagnostics(
+                // (14,19): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
+                //         x1 = x1 + y1; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(14, 19));
+        }
+
+        [Fact]
+        public void PropertyAccessorGet_ScopedRef_01()
+        {
+            var source =
+@"ref struct Span<T> { }
+ref struct A
+{
+    public Span<byte> GetSpan() => default;
+    public Span<byte> Span1 { get; }
+    public Span<byte> Span2 { get { return default; } set { } }
+    public Span<byte> Span3 { readonly get { return default; } set { } }
+}
+readonly ref struct B
+{
+    public Span<byte> GetSpan() => default;
+    public Span<byte> Span1 { get; }
+    public Span<byte> Span2 { get { return default; } set { } }
+    public Span<byte> Span3 { readonly get { return default; } set { } }
+}
+class Program
+{
+    static Span<byte> GetSpanA(ref A a) => default;
+    static Span<byte> GetSpanB(in B b) => default;
+    static void FA(ref A a)
+    {
+        Span<byte> s1 = a.GetSpan();
+        Span<byte> s2 = GetSpanA(ref a);
+        Span<byte> s3 = a.Span1;
+        Span<byte> s4 = a.Span2;
+        Span<byte> s5 = a.Span3;
+    }
+    static void FB(ref B b)
+    {
+        Span<byte> s1 = b.GetSpan();
+        Span<byte> s2 = GetSpanB(in b);
+        Span<byte> s3 = b.Span1;
+        Span<byte> s4 = b.Span2;
+        Span<byte> s5 = b.Span3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(63524, "https://github.com/dotnet/roslyn/issues/63524")]
+        [WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact]
+        public void PropertyAccessorGet_UnscopedRef_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct Span<T> { }
+ref struct A
+{
+    [UnscopedRef] public Span<byte> GetSpan() => default;
+    [UnscopedRef] public Span<byte> Span1 { get; }
+    [UnscopedRef] public Span<byte> Span2 { get { return default; } set { } }
+    [UnscopedRef] public Span<byte> Span3 { readonly get { return default; } set { } }
+}
+readonly ref struct B
+{
+    [UnscopedRef] public Span<byte> GetSpan() => default;
+    [UnscopedRef] public Span<byte> Span1 { get; }
+    [UnscopedRef] public Span<byte> Span2 { get { return default; } set { } }
+    [UnscopedRef] public Span<byte> Span3 { readonly get { return default; } set { } }
+}
+class Program
+{
+    static Span<byte> GetSpanA([UnscopedRef] ref A a) => default;
+    static Span<byte> GetSpanB([UnscopedRef] in B b) => default;
+    static void FA(ref A a)
+    {
+        Span<byte> s1 = a.GetSpan(); // 1
+        Span<byte> s2 = GetSpanA(ref a); // 2
+        Span<byte> s3 = a.Span1;
+        Span<byte> s4 = a.Span2; // 3
+        Span<byte> s5 = a.Span3;
+    }
+    static void FB(ref B b)
+    {
+        Span<byte> s1 = b.GetSpan();
+        Span<byte> s2 = GetSpanB(in b);
+        Span<byte> s3 = b.Span1;
+        Span<byte> s4 = b.Span2;
+        Span<byte> s5 = b.Span3;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (23,25): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         Span<byte> s1 = a.GetSpan(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(23, 25),
+                // (24,25): error CS8350: This combination of arguments to 'Program.GetSpanA(ref A)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         Span<byte> s2 = GetSpanA(ref a); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "GetSpanA(ref a)").WithArguments("Program.GetSpanA(ref A)", "a").WithLocation(24, 25),
+                // (24,38): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         Span<byte> s2 = GetSpanA(ref a); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(24, 38),
+                // (26,25): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         Span<byte> s4 = a.Span2; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(26, 25));
+        }
+
+        [Fact]
+        public void PropertyAccessorGet_ScopedRef_02()
+        {
+            var source =
+@"ref struct Span<T> { }
+ref struct A
+{
+    public ref Span<byte> GetSpan() => throw null;
+    public ref Span<byte> Span => throw null;
+}
+readonly ref struct B
+{
+    public ref readonly Span<byte> GetSpan() => throw null;
+    public ref readonly Span<byte> Span => throw null;
+}
+class Program
+{
+    static ref Span<byte> GetSpanA(ref A a) => throw null;
+    static ref readonly Span<byte> GetSpanB(in B b) => throw null;
+    static void FA(ref A a)
+    {
+        ref Span<byte> s1 = ref a.GetSpan();
+        ref Span<byte> s2 = ref GetSpanA(ref a);
+        ref Span<byte> s3 = ref a.Span;
+    }
+    static void FB(ref B b)
+    {
+        ref readonly Span<byte> s1 = ref b.GetSpan();
+        ref readonly Span<byte> s2 = ref GetSpanB(in b);
+        ref readonly Span<byte> s3 = ref b.Span;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact]
+        public void PropertyAccessorGet_UnscopedRef_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct Span<T> { }
+ref struct A
+{
+    [UnscopedRef] public ref Span<byte> GetSpan() => throw null;
+    [UnscopedRef] public ref Span<byte> Span => throw null;
+}
+readonly ref struct B
+{
+    [UnscopedRef] public ref readonly Span<byte> GetSpan() => throw null;
+    [UnscopedRef] public ref readonly Span<byte> Span => throw null;
+}
+class Program
+{
+    static ref Span<byte> GetSpanA([UnscopedRef] ref A a) => throw null;
+    static ref readonly Span<byte> GetSpanB([UnscopedRef] in B b) => throw null;
+    static void FA(ref A a)
+    {
+        ref Span<byte> s1 = ref a.GetSpan(); // 1
+        ref Span<byte> s2 = ref GetSpanA(ref a); // 2
+        ref Span<byte> s3 = ref a.Span; // 3
+    }
+    static void FB(ref B b)
+    {
+        ref readonly Span<byte> s1 = ref b.GetSpan();
+        ref readonly Span<byte> s2 = ref GetSpanB(in b);
+        ref readonly Span<byte> s3 = ref b.Span;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (19,33): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         ref Span<byte> s1 = ref a.GetSpan(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(19, 33),
+                // (20,33): error CS8350: This combination of arguments to 'Program.GetSpanA(ref A)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         ref Span<byte> s2 = ref GetSpanA(ref a); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "GetSpanA(ref a)").WithArguments("Program.GetSpanA(ref A)", "a").WithLocation(20, 33),
+                // (20,46): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         ref Span<byte> s2 = ref GetSpanA(ref a); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(20, 46),
+                // (21,33): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         ref Span<byte> s3 = ref a.Span; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(21, 33));
+        }
+
+        [Fact]
+        public void PropertyAccessorGet_ScopedRef_03()
+        {
+            var source =
+@"ref struct A
+{
+    public ref A GetRef() => throw null;
+    public ref A Ref => throw null;
+}
+readonly ref struct B
+{
+    public ref readonly B GetRef() => throw null;
+    public ref readonly B Ref => throw null;
+}
+class Program
+{
+    static ref A GetRefA(ref A a) => throw null;
+    static ref readonly B GetRefB(in B b) => throw null;
+    static void FA(ref A a)
+    {
+        ref A a1 = ref a.GetRef();
+        ref A a2 = ref GetRefA(ref a);
+        ref A a3 = ref a.Ref;
+    }
+    static void FB(ref B b)
+    {
+        ref readonly B b1 = ref b.GetRef();
+        ref readonly B b2 = ref GetRefB(in b);
+        ref readonly B b3 = ref b.Ref;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact]
+        public void PropertyAccessorGet_UnscopedRef_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct A
+{
+    [UnscopedRef] public ref A GetRef() => ref this;
+    [UnscopedRef] public ref A Ref => ref this;
+}
+readonly ref struct B
+{
+    [UnscopedRef] public ref readonly B GetRef() => ref this;
+    [UnscopedRef] public ref readonly B Ref => ref this;
+}
+class Program
+{
+    static ref A GetRefA([UnscopedRef] ref A a) => ref a;
+    static ref readonly B GetRefB([UnscopedRef] in B b) => ref b;
+    static void FA(ref A a)
+    {
+        ref A a1 = ref a.GetRef(); // 1
+        ref A a2 = ref GetRefA(ref a); // 2
+        ref A a3 = ref a.Ref; // 3
+    }
+    static void FB(ref B b)
+    {
+        ref readonly B b1 = ref b.GetRef();
+        ref readonly B b2 = ref GetRefB(in b);
+        ref readonly B b3 = ref b.Ref;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (18,24): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         ref A a1 = ref a.GetRef(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(18, 24),
+                // (19,24): error CS8350: This combination of arguments to 'Program.GetRefA(ref A)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         ref A a2 = ref GetRefA(ref a); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "GetRefA(ref a)").WithArguments("Program.GetRefA(ref A)", "a").WithLocation(19, 24),
+                // (19,36): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         ref A a2 = ref GetRefA(ref a); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(19, 36),
+                // (20,24): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         ref A a3 = ref a.Ref; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(20, 24));
+        }
+
+        [Fact]
+        public void PropertyAccessorSet_ScopedRef()
+        {
+            var source =
+@"ref struct Span<T>
+{
+    public Span(ref T t) { }
+}
+ref struct A
+{
+    public ref Span<int> GetSpan() => throw null;
+    public void SetSpan(Span<int> s) { }
+    public Span<int> Span1 { get; set; }
+    public Span<int> Span2 { get { return default; } set { } }
+    public Span<int> Span3 { readonly get { return default; } set { } }
+}
+class Program
+{
+    static void SetSpan(ref A a, Span<int> s) { }
+    static void F1(ref A a)
+    {
+        int i = 1;
+        a.GetSpan() = new Span<int>(ref i); // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a.SetSpan(new Span<int>(ref i)); // 2
+    }
+    static void F3(ref A a)
+    {
+        int i = 3;
+        a.Span1 = new Span<int>(ref i); // 3
+    }
+    static void F4(ref A a)
+    {
+        int i = 4;
+        a.Span2 = new Span<int>(ref i); // 4
+    }
+    static void F5(ref A a)
+    {
+        int i = 5;
+        a.Span3 = new Span<int>(ref i); // 5
+    }
+    static void F6(ref A a)
+    {
+        int i = 6;
+        SetSpan(ref a, new Span<int>(ref i)); // 6
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (19,23): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a.GetSpan() = new Span<int>(ref i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(19, 23),
+                // (19,41): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a.GetSpan() = new Span<int>(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(19, 41),
+                // (24,9): error CS8350: This combination of arguments to 'A.SetSpan(Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         a.SetSpan(new Span<int>(ref i)); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "a.SetSpan(new Span<int>(ref i))").WithArguments("A.SetSpan(Span<int>)", "s").WithLocation(24, 9),
+                // (24,19): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a.SetSpan(new Span<int>(ref i)); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(24, 19),
+                // (24,37): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a.SetSpan(new Span<int>(ref i)); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(24, 37),
+                // (29,19): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a.Span1 = new Span<int>(ref i); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(29, 19),
+                // (29,37): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a.Span1 = new Span<int>(ref i); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 37),
+                // (34,19): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a.Span2 = new Span<int>(ref i); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(34, 19),
+                // (34,37): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a.Span2 = new Span<int>(ref i); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(34, 37),
+                // (39,19): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a.Span3 = new Span<int>(ref i); // 5
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(39, 19),
+                // (39,37): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a.Span3 = new Span<int>(ref i); // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(39, 37),
+                // (44,9): error CS8350: This combination of arguments to 'Program.SetSpan(ref A, Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "SetSpan(ref a, new Span<int>(ref i))").WithArguments("Program.SetSpan(ref A, Span<int>)", "s").WithLocation(44, 9),
+                // (44,24): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(44, 24),
+                // (44,42): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(44, 42));
+        }
+
+        [WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact]
+        public void PropertyAccessorSet_UnscopedRef()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct Span<T>
+{
+    public Span(ref T t) { }
+}
+ref struct A
+{
+    [UnscopedRef] public ref Span<int> GetSpan() => throw null;
+    [UnscopedRef] public void SetSpan(Span<int> s) { }
+    [UnscopedRef] public Span<int> Span1 { get; set; }
+    [UnscopedRef] public Span<int> Span2 { get { return default; } set { } }
+    [UnscopedRef] public Span<int> Span3 { readonly get { return default; } set { } }
+}
+class Program
+{
+    static void SetSpan([UnscopedRef] ref A a, Span<int> s) { }
+    static void F1(ref A a)
+    {
+        int i = 1;
+        a.GetSpan() = new Span<int>(ref i); // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a.SetSpan(new Span<int>(ref i)); // 2
+    }
+    static void F3(ref A a)
+    {
+        int i = 3;
+        a.Span1 = new Span<int>(ref i); // 3
+    }
+    static void F4(ref A a)
+    {
+        int i = 4;
+        a.Span2 = new Span<int>(ref i); // 4
+    }
+    static void F5(ref A a)
+    {
+        int i = 5;
+        a.Span3 = new Span<int>(ref i); // 5
+    }
+    static void F6(ref A a)
+    {
+        int i = 6;
+        SetSpan(ref a, new Span<int>(ref i)); // 6
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (20,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.GetSpan() = new Span<int>(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(20, 9),
+                // (25,9): error CS8350: This combination of arguments to 'A.SetSpan(Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         a.SetSpan(new Span<int>(ref i)); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "a.SetSpan(new Span<int>(ref i))").WithArguments("A.SetSpan(Span<int>)", "s").WithLocation(25, 9),
+                // (25,19): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a.SetSpan(new Span<int>(ref i)); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(25, 19),
+                // (25,37): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a.SetSpan(new Span<int>(ref i)); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(25, 37),
+                // (30,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.Span1 = new Span<int>(ref i); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(30, 9),
+                // (35,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.Span2 = new Span<int>(ref i); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(35, 9),
+                // (40,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.Span3 = new Span<int>(ref i); // 5
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(40, 9),
+                // (45,9): error CS8350: This combination of arguments to 'Program.SetSpan(ref A, Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "SetSpan(ref a, new Span<int>(ref i))").WithArguments("Program.SetSpan(ref A, Span<int>)", "s").WithLocation(45, 9),
+                // (45,24): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(45, 24),
+                // (45,42): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(45, 42));
+        }
+
+        [WorkItem(63852, "https://github.com/dotnet/roslyn/issues/63852")]
+        [Fact]
+        public void PropertyAccessorCompoundAssignment_ScopedRef()
+        {
+            var source =
+@"ref struct Span<T>
+{
+    public Span(ref T t) { }
+    public static Span<T> operator+(Span<T> a, Span<T> b) => a;
+}
+ref struct A
+{
+    public Span<int> Span1 { get; set; }
+    public Span<int> Span2 { get { return default; } set { } }
+    public Span<int> Span3 { readonly get { return default; } set { } }
+}
+class Program
+{
+    static void F1(ref A a)
+    {
+        int i = 1;
+        a.Span1 += new Span<int>(ref i); // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a.Span2 += new Span<int>(ref i); // 2
+    }
+    static void F3(ref A a)
+    {
+        int i = 3;
+        a.Span3 += new Span<int>(ref i); // 3
+    }
+}";
+
+            // https://github.com/dotnet/roslyn/issues/63852: No errors reported for -langversion:10 or -langversion:latest.
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        [Fact]
+        public void PropertyAccessorCompoundAssignment_UnscopedRef()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct Span<T>
+{
+    public Span(ref T t) { }
+    public static Span<T> operator+(Span<T> a, Span<T> b) => a;
+}
+ref struct A
+{
+    [UnscopedRef] public Span<int> Span1 { get; set; }
+    [UnscopedRef] public Span<int> Span2 { get { return default; } set { } }
+    [UnscopedRef] public Span<int> Span3 { readonly get { return default; } set { } }
+}
+class Program
+{
+    static void F1(ref A a)
+    {
+        int i = 1;
+        a.Span1 += new Span<int>(ref i); // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a.Span2 += new Span<int>(ref i); // 2
+    }
+    static void F3(ref A a)
+    {
+        int i = 3;
+        a.Span3 += new Span<int>(ref i); // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (18,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.Span1 += new Span<int>(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(18, 9),
+                // (23,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.Span2 += new Span<int>(ref i); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(23, 9),
+                // (28,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a.Span3 += new Span<int>(ref i); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(28, 9));
+        }
+
+        [Fact]
+        public void IndexerAccessor_ScopedRef_01()
+        {
+            var source =
+@"ref struct Span<T>
+{
+    public Span(ref T t) { }
+}
+ref struct A
+{
+    public Span<int> this[int i] { get { return default; } set { } }
+}
+readonly ref struct B
+{
+    public Span<int> this[int i] => default;
+}
+class Program
+{
+    static void F1(ref A a)
+    {
+        Span<int> s = a[1];
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a[2] = new Span<int>(ref i); // 1
+    }
+    static void F3(ref B b)
+    {
+        Span<int> s = b[3];
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (22,16): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a[2] = new Span<int>(ref i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(22, 16),
+                // (22,34): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a[2] = new Span<int>(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(22, 34));
+        }
+
+        [Fact]
+        public void IndexerAccessor_UnscopedRef_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct Span<T>
+{
+    public Span(ref T t) { }
+}
+ref struct A
+{
+    [UnscopedRef] public Span<int> this[int i] { get { return default; } set { } }
+}
+readonly ref struct B
+{
+    [UnscopedRef] public Span<int> this[int i] => default;
+}
+class Program
+{
+    static void F1(ref A a)
+    {
+        Span<int> s = a[1]; // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a[2] = new Span<int>(ref i); // 2
+    }
+    static void F3(ref B b)
+    {
+        Span<int> s = b[3];
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (18,23): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         Span<int> s = a[1]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(18, 23),
+                // (23,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
+                //         a[2] = new Span<int>(ref i); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(23, 9));
+        }
+
+        [Fact]
+        public void IndexerAccessor_ScopedRef_02()
+        {
+            var source =
+@"ref struct Span<T>
+{
+    public Span(ref T t) { }
+}
+ref struct A
+{
+    public object this[Span<int> s] { get { return default; } set { } }
+}
+readonly ref struct B
+{
+    public object this[Span<int> s] => default;
+}
+class Program
+{
+    static void F1(ref A a)
+    {
+        int i = 1;
+        object o = a[new Span<int>(ref i)]; // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a[new Span<int>(ref i)] = null; // 2
+    }
+    static void F3(ref B b)
+    {
+        int i = 3;
+        object o = b[new Span<int>(ref i)];
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (18,20): error CS8350: This combination of arguments to 'A.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         object o = a[new Span<int>(ref i)]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "a[new Span<int>(ref i)]").WithArguments("A.this[Span<int>]", "s").WithLocation(18, 20),
+                // (18,22): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         object o = a[new Span<int>(ref i)]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(18, 22),
+                // (18,40): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         object o = a[new Span<int>(ref i)]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 40),
+                // (23,9): error CS8350: This combination of arguments to 'A.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         a[new Span<int>(ref i)] = null; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "a[new Span<int>(ref i)]").WithArguments("A.this[Span<int>]", "s").WithLocation(23, 9),
+                // (23,11): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a[new Span<int>(ref i)] = null; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(23, 11),
+                // (23,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a[new Span<int>(ref i)] = null; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(23, 29));
+        }
+
+        [Fact]
+        public void IndexerAccessor_UnscopedRef_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct Span<T>
+{
+    public Span(ref T t) { }
+}
+ref struct A
+{
+    [UnscopedRef] public object this[Span<int> s] { get { return default; } set { } }
+}
+readonly ref struct B
+{
+    [UnscopedRef] public object this[Span<int> s] => default;
+}
+class Program
+{
+    static void F1(ref A a)
+    {
+        int i = 1;
+        object o = a[new Span<int>(ref i)]; // 1
+    }
+    static void F2(ref A a)
+    {
+        int i = 2;
+        a[new Span<int>(ref i)] = null; // 2
+    }
+    static void F3(ref B b)
+    {
+        int i = 3;
+        object o = b[new Span<int>(ref i)];
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (19,20): error CS8350: This combination of arguments to 'A.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         object o = a[new Span<int>(ref i)]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "a[new Span<int>(ref i)]").WithArguments("A.this[Span<int>]", "s").WithLocation(19, 20),
+                // (19,22): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         object o = a[new Span<int>(ref i)]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(19, 22),
+                // (19,40): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         object o = a[new Span<int>(ref i)]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(19, 40),
+                // (24,9): error CS8350: This combination of arguments to 'A.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         a[new Span<int>(ref i)] = null; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "a[new Span<int>(ref i)]").WithArguments("A.this[Span<int>]", "s").WithLocation(24, 9),
+                // (24,11): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         a[new Span<int>(ref i)] = null; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(24, 11),
+                // (24,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         a[new Span<int>(ref i)] = null; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(24, 29));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void IndexerAccessor_DefaultArgs_01(LanguageVersion languageVersion)
+        {
+            var source =
+@"struct S
+{
+    public ref readonly int this[in int x, in int y = 2] => ref y;
+}
+class Program
+{
+    static ref readonly int F1(ref S s)
+    {
+        int a = 1;
+        return ref s[a]; // 1
+    }
+    static ref readonly int F2(ref S s, in int a)
+    {
+        return ref s[a]; // 2
+    }
+    static ref readonly int F3(ref S s, in int a)
+    {
+        return ref s[a, 3]; // 3
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'S.this[in int, in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref s[a]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "s[a]").WithArguments("S.this[in int, in int]", "x").WithLocation(10, 20),
+                // (10,22): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //         return ref s[a]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(10, 22),
+                // (14,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref s[a]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[a]").WithLocation(14, 20),
+                // (14,20): error CS8347: Cannot use a result of 'S.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref s[a]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "s[a]").WithArguments("S.this[in int, in int]", "y").WithLocation(14, 20),
+                // (18,20): error CS8347: Cannot use a result of 'S.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref s[a, 3]; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "s[a, 3]").WithArguments("S.this[in int, in int]", "y").WithLocation(18, 20),
+                // (18,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref s[a, 3]; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(18, 25));
+        }
+
+        [Fact]
+        public void IndexerAccessor_DefaultArgs_02()
+        {
+            var source =
+@"ref struct R
+{
+    public ref readonly int this[in int x, in int y = 2] => ref y;
+}
+class Program
+{
+    static ref readonly int F1(ref R r)
+    {
+        int a = 1;
+        return ref r[a]; // 1
+    }
+    static ref readonly int F2(ref R r, in int a)
+    {
+        return ref r[a]; // 2
+    }
+    static ref readonly int F3(ref R r, in int a)
+    {
+        return ref r[a, 3]; // 3
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'R.this[in int, in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref r[a]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "r[a]").WithArguments("R.this[in int, in int]", "x").WithLocation(10, 20),
+                // (10,22): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //         return ref r[a]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(10, 22),
+                // (14,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref r[a]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r[a]").WithLocation(14, 20),
+                // (14,20): error CS8347: Cannot use a result of 'R.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref r[a]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "r[a]").WithArguments("R.this[in int, in int]", "y").WithLocation(14, 20),
+                // (18,20): error CS8347: Cannot use a result of 'R.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref r[a, 3]; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "r[a, 3]").WithArguments("R.this[in int, in int]", "y").WithLocation(18, 20),
+                // (18,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref r[a, 3]; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(18, 25));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8350: This combination of arguments to 'R.this[in int, in int]' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref r[a]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[a]").WithArguments("R.this[in int, in int]", "x").WithLocation(10, 20),
+                // (10,22): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //         return ref r[a]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(10, 22),
+                // (14,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref r[a]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r[a]").WithLocation(14, 20),
+                // (14,20): error CS8350: This combination of arguments to 'R.this[in int, in int]' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref r[a]; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[a]").WithArguments("R.this[in int, in int]", "y").WithLocation(14, 20),
+                // (18,20): error CS8350: This combination of arguments to 'R.this[in int, in int]' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref r[a, 3]; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[a, 3]").WithArguments("R.this[in int, in int]", "y").WithLocation(18, 20),
+                // (18,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref r[a, 3]; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(18, 25));
+        }
     }
 }
