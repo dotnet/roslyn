@@ -738,9 +738,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
-            var symbol = operation.SemanticModel?.GetSymbolInfo(operation.Syntax);
-            if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
-                operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.name, method.ReturnType, method.Parameters[0].Type);
+            var symbolInfo = operation.SemanticModel?.GetSymbolInfo(operation.Syntax) ?? default;
+            foreach (var symbol in symbolInfo.GetAllSymbols())
+            {
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
+                    operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
+            }
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -777,9 +780,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
-            var symbol = operation.SemanticModel?.GetSymbolInfo(operation.Syntax);
-            if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
-                operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+            var symbolInfo = operation.SemanticModel?.GetSymbolInfo(operation.Syntax) ?? default;
+            foreach (var symbol in symbolInfo.GetAllSymbols())
+            {
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
+                    operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+            }
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
