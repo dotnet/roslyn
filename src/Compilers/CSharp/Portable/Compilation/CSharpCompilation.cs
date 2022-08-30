@@ -3891,7 +3891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Actual delegates have several operators that can be used on them.
-                if (csharpLeftType.SpecialType is SpecialType.System_Delegate &&
+                if (csharpLeftType.TypeKind is TypeKind.Delegate &&
                     TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
                 {
                     // bool operator ==(SomeDelegate, SomeDelegate) is legal.
