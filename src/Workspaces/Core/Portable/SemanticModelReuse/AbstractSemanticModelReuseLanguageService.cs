@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
@@ -53,13 +54,9 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                     try
                     {
-                        throw new InvalidOperationException(
-                            $@"Syntax trees should have been equivalent.
----
-{previousSyntaxTree.GetText(CancellationToken.None)}
----
-{currentSyntaxTree.GetText(CancellationToken.None)}
----");
+                        // Avoid including tree contents in exception message for privacy compliance. Instead, include
+                        // in exception type for dump analysis.
+                        throw new SyntaxTreeException("Syntax trees should have been equivalent.", previousSyntaxTree, currentSyntaxTree);
 
                     }
                     catch (Exception e) when (FatalError.ReportAndCatch(e))
