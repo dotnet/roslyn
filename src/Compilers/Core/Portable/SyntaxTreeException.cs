@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp.Compilation
+namespace Microsoft.CodeAnalysis
 {
     internal class SyntaxTreeException : Exception
     {
