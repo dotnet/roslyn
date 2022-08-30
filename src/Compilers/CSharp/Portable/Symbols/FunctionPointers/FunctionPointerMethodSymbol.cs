@@ -757,6 +757,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode()));
 
         internal override CallingConvention CallingConvention { get; }
+        internal override bool UseUpdatedEscapeRules { get; }
+
         public override bool ReturnsVoid => ReturnTypeWithAnnotations.IsVoidType();
         public override RefKind RefKind { get; }
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
@@ -840,6 +842,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
         internal sealed override bool HasUnscopedRefAttribute => false;
-        internal override bool UseUpdatedEscapeRules { get; }
     }
 }

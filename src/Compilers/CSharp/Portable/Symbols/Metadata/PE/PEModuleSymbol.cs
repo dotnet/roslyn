@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private bool CalculateUseUpdatedRules()
         {
             // [RefSafetyRules(version)], regardless of version.
-            if (_module.HasRefSafetyRulesAttribute(Token, out int _))
+            if (_module.HasRefSafetyRulesAttribute(Token, out _))
             {
                 return true;
             }

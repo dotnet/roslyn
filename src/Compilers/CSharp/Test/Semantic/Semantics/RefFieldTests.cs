@@ -8240,8 +8240,10 @@ class Program
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.ReturnRef").Parameters[0], "ref R r", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
-        [Fact]
-        public void ThisScope()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ThisScope(LanguageVersion languageVersion)
         {
             var source =
 @"class C
@@ -8273,7 +8275,7 @@ readonly ref struct R2
     void F1() { }
     readonly void F2() { }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
@@ -8290,6 +8292,13 @@ readonly ref struct R2
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "out R2 this", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "in R2 this", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "in R2 this", RefKind.In, DeclarationScope.RefScoped);
+
+            var type = comp.GetMember<NamedTypeSymbol>("S1");
+            var thisParameter = new ThisParameterSymbol(forMethod: null, type); // "this" parameter for property for instance.
+            VerifyParameterSymbol(thisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+
+            bool useUpdatedEscapeRules = languageVersion == LanguageVersion.CSharp11;
+            Assert.Equal(useUpdatedEscapeRules, thisParameter.UseUpdatedEscapeRules);
 
             // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
