@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructReadOnly), Shared]
-internal class CSharpMakeStructReadOnlyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal sealed class CSharpMakeStructReadOnlyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

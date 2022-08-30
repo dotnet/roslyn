@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpMakeStructReadOnlyDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId,
