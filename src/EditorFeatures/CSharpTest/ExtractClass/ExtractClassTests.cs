@@ -239,6 +239,7 @@ partial class Test
                         expected2,
                     }
                 },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -279,6 +280,7 @@ partial class Test
                         expected2,
                     }
                 },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
