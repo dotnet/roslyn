@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(_binder, currentRecursionDepth, includeNullability, this);
         }
 
-        public static void ReportDefaultParameterMismatchError(ErrorCode code, ParameterSymbol source, ParameterSymbol target, int p, Location location, BindingDiagnosticBag diagnostics)
+        public static void CheckDefaultParameterMatch(ErrorCode code, ParameterSymbol source, ParameterSymbol target, int paramIdx, Location location, BindingDiagnosticBag diagnostics)
         {
             var sourceParamDefault = source.ExplicitDefaultConstantValue;
 
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var targetParamDefault = target.ExplicitDefaultConstantValue;
                 if ((!targetParamDefault?.IsBad ?? true) && sourceParamDefault != targetParamDefault)
                 {
-                    // Parameter {0} has default value '{1}' in lambda and '{2}' in target delegate type.
-                    diagnostics.Add(code, location, p, sourceParamDefault, targetParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                    // Parameter {0} has default value '{1}' in (lambda|method group) and '{2}' in target delegate type.
+                    diagnostics.Add(code, location, paramIdx, sourceParamDefault, targetParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
                 }
             }
         }

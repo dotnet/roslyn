@@ -2176,7 +2176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < anonymousFunction.ParameterCount; i++)
                 {
-                    Conversions.ReportDefaultParameterMismatchError(ErrorCode.ERR_OptionalParamValueMismatch, lambdaSymbol.Parameters[i], delegateParameters[i], i + 1, anonymousFunction.ParameterLocation(i), diagnostics);
+                    Conversions.CheckDefaultParameterMatch(ErrorCode.ERR_OptionalParamValueMismatch, lambdaSymbol.Parameters[i], delegateParameters[i], i + 1, anonymousFunction.ParameterLocation(i), diagnostics);
                 }
                 return;
             }

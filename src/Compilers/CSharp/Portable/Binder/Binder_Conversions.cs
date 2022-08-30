@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var delegateParameter = targetDelegateInvoke.Parameters[isExtensionMethod ? i - 1 : i];
                 var sourceParameter = sourceMethod.Parameters[i];
-                Conversions.ReportDefaultParameterMismatchError(ErrorCode.WRN_OptionalParamValueMismatch, sourceParameter, delegateParameter, i + 1, methodGroupSyntax.Location, diagnostics);
+                Conversions.CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceParameter, delegateParameter, i + 1, methodGroupSyntax.Location, diagnostics);
             }
         }
 

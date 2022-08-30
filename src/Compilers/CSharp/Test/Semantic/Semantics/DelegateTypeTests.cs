@@ -12720,7 +12720,7 @@ using ProgramExtensions;
 namespace ProgramExtensions {
     public static class ProgramExtensions
     {
-        public static string M(this Program p, string s = "b", long l = 1) => $"{p.field} {s} {l}";
+        public static string M(this Program p, string s = "b", long l = 1L) => $"{p.field} {s} {l}";
     }
 }
 
@@ -12738,7 +12738,7 @@ public class Program
     }
 }
 """;
-            var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"10 a 0");
+            var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify);
             verifier.VerifyDiagnostics(
                 // (20,19): warning CS9068: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
                 //         Del del = prog.M;
