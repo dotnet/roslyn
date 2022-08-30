@@ -347,6 +347,88 @@ readonly partial struct S
     }
 
     [Fact]
+    public async Task TestNestedStructs2()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    struct T
+    {
+        int j;
+    }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    struct T
+    {
+        int j;
+    }
+}");
+    }
+
+    [Fact]
+    public async Task TestNestedStructs3()
+    {
+        await TestAsync(
+@"struct S
+{
+    int i;
+
+    struct [|T|]
+    {
+        readonly int j;
+    }
+}",
+@"struct S
+{
+    int i;
+
+    readonly struct T
+    {
+        readonly int j;
+    }
+}");
+    }
+
+    [Fact]
+    public async Task TestNestedStructs4()
+    {
+        await TestAsync(
+@"struct [|S|]
+{
+    readonly int i;
+
+    struct T
+    {
+        readonly int j;
+
+        void M()
+        {
+            this = default;
+        }
+    }
+}",
+@"readonly struct S
+{
+    readonly int i;
+
+    struct T
+    {
+        readonly int j;
+
+        void M()
+        {
+            this = default;
+        }
+    }
+}");
+    }
+
+    [Fact]
     public async Task TestDocComments1()
     {
         await TestAsync(
