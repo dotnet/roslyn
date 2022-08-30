@@ -3980,28 +3980,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                // T* operator+(T*, int i)
+                // T* operator+(T*, int/uint/long/ulong i)
                 if (binaryKind is BinaryOperatorKind.Addition &&
                     csharpLeftType.IsPointerType() &&
-                    csharpRightType.IsIntegralType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpRightType) &&
                     TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                 {
                     return;
                 }
 
-                // T* operator+(int i, T*)
+                // T* operator+(int/uint/long/ulong i, T*)
                 if (binaryKind is BinaryOperatorKind.Addition &&
                     csharpRightType.IsPointerType() &&
-                    csharpLeftType.IsIntegralType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpLeftType) &&
                     TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                 {
                     return;
                 }
 
-                // T* operator-(T*, int i)
+                // T* operator-(T*, int/uint/long/ulong i)
                 if (binaryKind is BinaryOperatorKind.Subtraction &&
                     csharpLeftType.IsPointerType() &&
-                    csharpRightType.IsIntegralType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpRightType) &&
                     TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                 {
                     return;
@@ -4027,6 +4027,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 throw new ArgumentException($"Unsupported built-in binary operator: {csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})");
             }
+
+            bool isAllowedPointerArithmeticIntegralType(TypeSymbol type)
+                => type.SpecialType is SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64;
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
