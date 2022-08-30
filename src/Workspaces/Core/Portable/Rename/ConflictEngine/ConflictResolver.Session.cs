@@ -65,7 +65,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// </summary>
             private readonly ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)> _symbolToDeclarationDocumentAndLocation;
 
+            /// <summary>
+            /// A set of conflict locations, which is caused by trying to rename the same location using different replacement information.
+            /// </summary>
             private readonly ImmutableHashSet<RelatedLocation> _overlapRenameLocations;
+
             private readonly CancellationToken _cancellationToken;
 
             private ISet<ConflictLocationInfo> _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 CancellationToken cancellationToken)
             {
                 var dependencyGraph = solution.GetProjectDependencyGraph();
-                _symbolToRenameLocations = symbolicRenameLocations.ToImmutableDictionary(symbolicRenameLocations => symbolicRenameLocations.Symbol);
+                _symbolToRenameLocations = symbolicRenameLocations.ToImmutableDictionary(locationSet => locationSet.Symbol);
                 _baseSolution = solution;
                 _topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToImmutableArray();
                 _cancellationToken = cancellationToken;
@@ -271,6 +275,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             conflictResolution.RelatedLocations[i] = relatedLocation.WithType(RelatedLocationType.UnresolvedConflict);
                     }
 
+                    // Add rename location overlap conflicts.
                     foreach (var overlapRenameLocation in _overlapRenameLocations)
                     {
                         conflictResolution.AddRelatedLocation(overlapRenameLocation);
