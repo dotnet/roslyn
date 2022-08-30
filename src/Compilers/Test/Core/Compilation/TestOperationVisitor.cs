@@ -738,7 +738,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
-            operation.SemanticModel?.GetSymbolInfo(operation.Syntax);
+            var symbol = operation.SemanticModel?.GetSymbolInfo(operation.Syntax);
+            if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
+                operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.name, method.ReturnType, method.Parameters[0].Type);
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -776,6 +778,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
             operation.SemanticModel?.GetSymbolInfo(operation.Syntax);
+            if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
+                operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
