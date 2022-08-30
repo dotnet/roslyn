@@ -329,26 +329,19 @@ namespace System.Runtime.CompilerServices
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
-    public async Task TestOnRecordStructWithPrimaryConstructorField()
+    public async Task TestMissingRecordStructWithPrimaryConstructorField()
     {
-        await TestAsync(
-@"record struct [|S|](int i)
-{
-}",
-@"readonly record struct S(int i)
+        await TestMissingAsync(
+@"record struct S(int i)
 {
 }");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
-    public async Task TestOnRecordStructWithPrimaryConstructorFieldAndNormalField()
+    public async Task TestMissingOnRecordStructWithPrimaryConstructorFieldAndNormalField()
     {
-        await TestAsync(
-@"record struct [|S|](int i)
-{
-    readonly int j;
-}",
-@"readonly record struct S(int i)
+        await TestMissingAsync(
+@"record struct S(int i)
 {
     readonly int j;
 }");
@@ -375,30 +368,6 @@ namespace System.Runtime.CompilerServices
     {
         readonly int j;
     }
-}");
-    }
-
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
-    public async Task TestPartialStructs1()
-    {
-        await TestAsync(
-@"partial struct [|S|]
-{
-    readonly int i;
-}
-
-partial struct [|S|]
-{
-    readonly int j;
-}",
-@"readonly partial struct S
-{
-    readonly int i;
-}
-
-readonly partial struct S
-{
-    readonly int j;
 }");
     }
 
