@@ -51,19 +51,55 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public DefinitionMap DefinitionMap => _definitionMap;
 
-        public ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllDeletedMethods()
+        public ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllDeletedMembers()
         {
             var builder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
-            foreach (var type in _deletedMembers)
+            foreach (var (type, deletedMembers) in _deletedMembers)
             {
-                if (GetISymbolInternalOrNull(type.Key) is { } typeSymbol)
+                if (GetISymbolInternalOrNull(type) is not { } typeSymbol)
                 {
-                    builder.Add(typeSymbol, ToInternalSymbolArray(type.Value));
+                    continue;
                 }
+
+                var internalSymbols = GetDeletedMemberInternalSymbols(deletedMembers, includeMethods: true, includeProperties: true);
+
+                builder.Add(typeSymbol, internalSymbols);
+
             }
 
             return builder.ToImmutable();
+        }
+
+        private ImmutableArray<ISymbolInternal> GetDeletedMemberInternalSymbols(ISet<ISymbol> deletedMembers, bool includeMethods, bool includeProperties)
+        {
+            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
+
+            // Use a hashset to make sure we don't return the same property twice, if both accessors are deleted
+            var seenProperties = new HashSet<IPropertySymbol>(ReferenceEqualityComparer.Instance);
+            foreach (var symbol in deletedMembers)
+            {
+                if (GetISymbolInternalOrNull(symbol) is { } internalSymbol)
+                {
+                    if (includeProperties &&
+                        symbol is IMethodSymbol { AssociatedSymbol: IPropertySymbol propertySymbol } &&
+                        seenProperties.Add(propertySymbol))
+                    {
+                        var internalPropertySymbol = GetISymbolInternalOrNull(propertySymbol);
+                        if (internalPropertySymbol is not null)
+                        {
+                            internalSymbols.Add(internalPropertySymbol);
+                        }
+                    }
+
+                    if (includeMethods)
+                    {
+                        internalSymbols.Add(internalSymbol);
+                    }
+                }
+            }
+
+            return internalSymbols.ToImmutableAndFree();
         }
 
         public ImmutableArray<ISymbolInternal> GetDeletedMethods(IDefinition containingType)
@@ -79,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            return ToInternalSymbolArray(deleted);
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: true, includeProperties: false);
         }
 
         public ImmutableArray<ISymbolInternal> GetDeletedProperties(IDefinition containingType)
@@ -95,24 +131,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            var internalSymbols = ArrayBuilder<ISymbolInternal>.GetInstance();
+            return GetDeletedMemberInternalSymbols(deleted, includeMethods: false, includeProperties: true);
 
-            // Use a hashset to make sure we don't return the same property twice, if both accessors are deleted
-            var seenProperties = new HashSet<IPropertySymbol>(ReferenceEqualityComparer.Instance);
-            foreach (var symbol in deleted)
-            {
-                if (symbol is IMethodSymbol { AssociatedSymbol: IPropertySymbol propertySymbol } &&
-                    seenProperties.Add(propertySymbol))
-                {
-                    var internalSymbol = GetISymbolInternalOrNull(propertySymbol);
-                    if (internalSymbol is not null)
-                    {
-                        internalSymbols.Add(internalSymbol);
-                    }
-                }
-            }
-
-            return internalSymbols.ToImmutableAndFree();
         }
 
         private ImmutableArray<ISymbolInternal> ToInternalSymbolArray(ISet<ISymbol> symbols)

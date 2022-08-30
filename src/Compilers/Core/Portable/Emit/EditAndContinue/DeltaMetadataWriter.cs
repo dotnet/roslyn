@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
 
             Debug.Assert(module.EncSymbolChanges is not null);
-            var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.GetAllDeletedMethods() : _previousGeneration.DeletedMembers;
+            var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.GetAllDeletedMembers() : _previousGeneration.DeletedMembers;
 
             var currentGenerationOrdinal = _previousGeneration.Ordinal + 1;
 
