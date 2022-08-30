@@ -2151,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [DebuggerDisplay("Location = {_location}, Index = {_index}")]
-        private struct BestSymbolInfo
+        private readonly struct BestSymbolInfo
         {
             private readonly BestSymbolLocation _location;
             private readonly int _index;

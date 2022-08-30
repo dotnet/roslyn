@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <seealso cref="ISymbol.ToDisplayParts"/>
     /// <seealso cref="ISymbol.ToMinimalDisplayParts"/>
     /// <seealso cref="SymbolDisplayPartKind"/>
-    public struct SymbolDisplayPart
+    public readonly struct SymbolDisplayPart
     {
         private readonly SymbolDisplayPartKind _kind;
         private readonly string _text;
