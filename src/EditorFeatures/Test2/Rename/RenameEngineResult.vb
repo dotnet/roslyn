@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -50,18 +51,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameSymbol = renameSymbol
         End Sub
 
-        Public Shared Function Create(
-                helper As ITestOutputHelper,
-                workspaceXml As XElement,
-                renameTo As String,
-                host As RenameTestHost,
-                Optional renameOptions As SymbolRenameOptions = Nothing,
-                Optional expectFailure As Boolean = False,
-                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
-
+        Private Shared Function CreateTestWorkspace(helper As ITestOutputHelper,
+                                                    workspaceXml As XElement,
+                                                    Host As RenameTestHost,
+                                                    Optional sourceGenerator As ISourceGenerator = Nothing) As TestWorkspace
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions))
-
-            If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
+            If Host = RenameTestHost.OutOfProcess_SingleCall OrElse Host = RenameTestHost.OutOfProcess_SplitCall Then
                 composition = composition.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess)
             End If
 
@@ -71,6 +66,52 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             If sourceGenerator IsNot Nothing Then
                 workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
             End If
+            Return workspace
+        End Function
+
+        Public Shared Async Function CreateAsync(
+                helper As ITestOutputHelper,
+                workspaceXml As XElement,
+                host As RenameTestHost,
+                renameTags() As String,
+                Optional RenameTagOptions As Dictionary(Of String, SymbolRenameOptions) = Nothing,
+                Optional expectFailure As Boolean = False,
+                Optional sourceGenerator As ISourceGenerator = Nothing) As Task(Of RenameEngineResult)
+            Dim workspace = CreateTestWorkspace(helper, workspaceXml, host, sourceGenerator)
+            Dim builder As PooledDictionary(Of ISymbol, (String, SymbolRenameOptions)) = Nothing
+            Dim renameSymbolToNewNameAndOptions As ImmutableDictionary(Of ISymbol, (String, SymbolRenameOptions)) = Nothing
+            Using disposer = PooledDictionary(Of ISymbol, (String, SymbolRenameOptions)).GetInstance(builder)
+                For Each testDocument In workspace.Documents
+                    Dim document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id)
+                    For Each annotatedSpan In testDocument.AnnotatedSpans
+                        Dim newName = annotatedSpan.Key
+                        Dim symbolRenameOption = If(RenameTagOptions IsNot Nothing, RenameTagOptions(newName), New SymbolRenameOptions())
+                        Dim spans = annotatedSpan.Value
+                        If renameTags.Contains(newName) Then
+                            For Each span In spans
+                                Dim symbol = Await RenameUtilities.TryGetRenamableSymbolAsync(document, span.Start, CancellationToken.None).ConfigureAwait(False)
+                                builder(symbol) = (newName, symbolRenameOption)
+                            Next
+                        End If
+                    Next
+                Next
+                renameSymbolToNewNameAndOptions = builder.ToImmutableDictionary()
+            End Using
+
+
+            Dim engineResult As RenameEngineResult = Nothing
+            Return engineResult
+        End Function
+
+        Public Shared Function Create(
+                helper As ITestOutputHelper,
+                workspaceXml As XElement,
+                renameTo As String,
+                host As RenameTestHost,
+                Optional renameOptions As SymbolRenameOptions = Nothing,
+                Optional expectFailure As Boolean = False,
+                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
+            Dim workspace = CreateTestWorkspace(helper, workspaceXml, host, sourceGenerator)
 
             Dim success = False
             Dim engineResult As RenameEngineResult = Nothing
