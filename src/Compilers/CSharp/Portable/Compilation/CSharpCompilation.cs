@@ -4048,6 +4048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(csharpOperandType is not null);
 
             var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+
+            // Currently compiler does not generate built-ins for `operator true/false`.  If that changes, this check
+            // can be relaxed.
             if (syntaxKind == SyntaxKind.None || name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
