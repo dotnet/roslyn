@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -44,17 +46,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             => IsAvailable(subjectBuffer, out _) ? CommandState.Available : CommandState.Unspecified;
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
-            => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
+            => _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(args.TextView, args.SubjectBuffer, context));
 
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
-            => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
+            => _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(args.TextView, args.SubjectBuffer, context));
 
         private static bool IsAvailable(ITextBuffer subjectBuffer, [NotNullWhen(true)] out Workspace? workspace)
             => subjectBuffer.TryGetWorkspace(out workspace) &&
                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                subjectBuffer.SupportsRefactorings();
 
-        private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
+        private async Task<bool> ExecuteCommandAsync(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
@@ -84,27 +86,33 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 // https://github.com/dotnet/roslyn/issues/62135
 
                 // Async operation to determine the change signature
-                var changeSignatureContext = changeSignatureService.GetChangeSignatureContextAsync(
+                var changeSignatureContext = await changeSignatureService.GetChangeSignatureContextAsync(
                     document,
                     caretPoint.Value.Position,
                     restrictToDeclarations: false,
                     _globalOptions.CreateProvider(),
-                    cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 // UI thread bound operation to show the change signature dialog.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var changeSignatureOptions = AbstractChangeSignatureService.GetChangeSignatureOptions(changeSignatureContext);
 
                 // Async operation to compute the new solution created from the specified options.
-                var result = changeSignatureService.ChangeSignatureWithContextAsync(changeSignatureContext, changeSignatureOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                var result = await changeSignatureService.ChangeSignatureWithContextAsync(changeSignatureContext, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
 
                 // UI thread bound operation to show preview changes dialog / show error message, then apply the solution changes (if applicable).
-                HandleResult(result, document.Project.Solution, workspace, context);
+                await HandleResultAsync(result, document.Project.Solution, workspace, context, cancellationToken).ConfigureAwait(false);
 
                 return true;
             }
         }
 
-        private static void HandleResult(ChangeSignatureResult result, Solution oldSolution, Workspace workspace, CommandExecutionContext context)
+        private static async Task HandleResultAsync(
+            ChangeSignatureResult result,
+            Solution oldSolution,
+            Workspace workspace,
+            CommandExecutionContext context,
+            CancellationToken cancellationToken)
         {
             var notificationService = workspace.Services.GetRequiredService<INotificationService>();
             if (!result.Succeeded)
@@ -131,14 +139,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
-                finalSolution = previewService.PreviewChangesSynchronously(
+                finalSolution = await previewService.PreviewChangesAsync(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                     "vs.csharp.refactoring.preview",
                     EditorFeaturesResources.Change_Signature_colon,
-                    result.Name,
+                    result.Name ?? "",
                     result.Glyph.GetValueOrDefault(),
                     result.UpdatedSolution,
-                    oldSolution);
+                    oldSolution,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             if (finalSolution == null)

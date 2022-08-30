@@ -50,29 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            return PreviewChangesSynchronously(
-                title,
-                helpString,
-                description,
-                topLevelName,
-                topLevelGlyph,
-                newSolution,
-                oldSolution,
-                showCheckBoxes);
-        }
-
-        public Solution? PreviewChangesSynchronously(
-            string title,
-            string helpString,
-            string description,
-            string? topLevelName,
-            Glyph topLevelGlyph,
-            Solution newSolution,
-            Solution oldSolution,
-            bool showCheckBoxes = true)
-        {
-            AssertIsForeground();
-
             var engine = new PreviewEngine(
                 ThreadingContext,
                 title,

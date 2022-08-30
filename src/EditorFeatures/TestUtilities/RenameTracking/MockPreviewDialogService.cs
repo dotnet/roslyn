@@ -35,27 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => this;
 
-        public Solution PreviewChangesSynchronously(
-            string title,
-            string helpString,
-            string description,
-            string topLevelName,
-            Glyph topLevelGlyph,
-            Solution newSolution,
-            Solution oldSolution,
-            bool showCheckBoxes = true)
-        {
-            Called = true;
-            Title = title;
-            HelpString = helpString;
-            Description = description;
-            TopLevelName = topLevelName;
-            TopLevelGlyph = topLevelGlyph;
-            ShowCheckBoxes = showCheckBoxes;
-
-            return ReturnsNull ? null : newSolution;
-        }
-
         public Task<Solution> PreviewChangesAsync(
             string title,
             string helpString,
@@ -66,14 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Solution oldSolution,
             CancellationToken cancellationToken,
             bool showCheckBoxes = true)
-            => Task.FromResult(PreviewChangesSynchronously(
-                title,
-                helpString,
-                description,
-                topLevelName,
-                topLevelGlyph,
-                newSolution,
-                oldSolution,
-                showCheckBoxes));
+        {
+            Called = true;
+            Title = title;
+            HelpString = helpString;
+            Description = description;
+            TopLevelName = topLevelName;
+            TopLevelGlyph = topLevelGlyph;
+            ShowCheckBoxes = showCheckBoxes;
+
+            var result = ReturnsNull ? null : newSolution;
+            return Task.FromResult(result);
+        }
     }
 }
