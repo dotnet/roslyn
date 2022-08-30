@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // potentially creating synthesized intrinsic operators.
             var symbol = operation.SemanticModel?.GetSymbolInfo(operation.Syntax);
             if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
-                operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)

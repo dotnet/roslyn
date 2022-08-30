@@ -3862,11 +3862,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Use fast-path check to see if this types are ok.
+                var binaryKind = Binder.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
+
                 if (csharpReturnType.SpecialType != SpecialType.None &&
                     csharpLeftType.SpecialType != SpecialType.None &&
                     csharpRightType.SpecialType != SpecialType.None)
                 {
-                    var binaryKind = OperatorFacts.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
                     var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
 
                     if (easyOutBinaryKind != BinaryOperatorKind.Error)
@@ -4080,10 +4081,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                var unaryKind = Binder.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
+
                 // Use fast-path check to see if this types are ok.
                 if (csharpReturnType.SpecialType != SpecialType.None && csharpOperandType.SpecialType != SpecialType.None)
                 {
-                    var unaryKind = OperatorFacts.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
                     var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpOperandType);
 
                     if (easyOutUnaryKind != UnaryOperatorKind.Error)
