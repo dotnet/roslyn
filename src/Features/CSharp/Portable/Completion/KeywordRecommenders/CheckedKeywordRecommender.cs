@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
                 if (previousPossiblySkippedToken.IsLastTokenOfNode<ExplicitInterfaceSpecifierSyntax>())
                 {
-                    var firstSpecifierToken = previousPossiblySkippedToken.GetAncestor<ExplicitInterfaceSpecifierSyntax>()!.GetFirstToken(includeSkipped: true);
+                    var firstSpecifierToken = previousPossiblySkippedToken.GetRequiredAncestor<ExplicitInterfaceSpecifierSyntax>().GetFirstToken(includeSkipped: true);
 
                     if (firstSpecifierToken.GetPreviousToken(includeSkipped: true).IsLastTokenOfNode<TypeSyntax>())
                     {
