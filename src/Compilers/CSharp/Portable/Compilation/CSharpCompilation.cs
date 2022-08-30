@@ -3938,7 +3938,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // SomeEnum operator+(SomeEnum, int)
                     // SomeEnum operator+(int, SomeEnum)
-                    // SomeEnum operator+(SomeEnum, SomeEnum)
+                    // SomeEnum operator-(SomeEnum, int)
+                    // SomeEnum operator-(int, int)
                     if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
                     {
                         if (csharpLeftType.IsEnumType() && csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
@@ -3946,12 +3947,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (csharpRightType.IsEnumType() && csharpLeftType.IsIntegralType() && TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                             return;
+                    }
 
-                        if (TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) &&
-                            TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
-                        {
-                            return;
-                        }
+                    // int operator-(SomeEnum, SomeEnum)
+                    if (binaryKind is BinaryOperatorKind.Subtraction &&
+                        csharpReturnType.IsIntegralType() &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
                     }
                 }
 
