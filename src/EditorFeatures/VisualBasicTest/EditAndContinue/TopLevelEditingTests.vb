@@ -10560,10 +10560,6 @@ End Class
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
-
-            edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "a As Object", FeaturesResources.parameter)},
-                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10583,10 +10579,6 @@ End Class
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
-
-            edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "a", FeaturesResources.parameter)},
-                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>

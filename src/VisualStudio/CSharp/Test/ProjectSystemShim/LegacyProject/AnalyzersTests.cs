@@ -244,7 +244,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             using var environment = new TestEnvironment();
             if (useCpsProject)
             {
-                await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
+                await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: @"C:\test.dll", $"/ruleset:\"{ruleSetFile.Path}\"");
             }
             else
             {

@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
 
-        protected abstract void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode);
+        protected abstract void GetIfStatementCondition(SyntaxNode node, out SyntaxNode condition);
+        protected abstract void GetIfStatementCursorPosition(SourceText text, SyntaxNode node, out int position);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -52,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            GetIfStatementConditionAndCursorPosition(caretTarget, out _, out var cursorPosition);
+            GetIfStatementCursorPosition(sourceText, caretTarget, out var cursorPosition);
 
             // Place at the end of the node specified for cursor position.
             // Is the statement node in C# and the "Then" keyword
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            GetIfStatementConditionAndCursorPosition(node, out var condition, out var unusedVariable);
+            GetIfStatementCondition(node, out var condition);
             arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();
