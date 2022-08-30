@@ -21,18 +21,18 @@ trigger:
 # See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
 pr:
   branches:
-  include:
-    - main
-    - main-vs-deps
-    - release/*
-    - features/*
-    - demos/*
-    exclude:
-    # Since the version of VS on the integration VM images are a moving target,
-    # we are unable to reliably run integration tests on servicing branches.
-    - release/dev17.0-vs-deps
-    - release/dev17.2
-    - release/dev17.3
+    include:
+      - main
+      - main-vs-deps
+      - release/*
+      - features/*
+      - demos/*
+      exclude:
+      # Since the version of VS on the integration VM images are a moving target,
+      # we are unable to reliably run integration tests on servicing branches.
+      - release/dev17.0-vs-deps
+      - release/dev17.2
+      - release/dev17.3
 
 variables:
   - name: XUNIT_LOGS
