@@ -13649,6 +13649,29 @@ class C
         }
 
         [Fact]
+        public void Field_Event_Type_Update_TupleType()
+        {
+            var src1 = "class C { event System.Action<(int a, int b)> E; }";
+            var src2 = "class C { event System.Action<(int a, double b)> E; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.add_E").FirstOrDefault(m => m.GetParameterTypes()[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0].GetMemberTypeArgumentsNoUseSiteDiagnostics()[1].SpecialType == SpecialType.System_Int32)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.remove_E").FirstOrDefault(m => m.GetParameterTypes()[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0].GetMemberTypeArgumentsNoUseSiteDiagnostics()[1].SpecialType == SpecialType.System_Int32)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.add_E")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.remove_E"))
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "event System.Action<(int a, double b)> E", FeaturesResources.event_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
         public void Field_Type_Update_ReorderRemoveAdd()
         {
             var src1 = "class C { int F, G, H; bool U; }";
@@ -15923,6 +15946,7 @@ class C
                 {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("Test.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("Test")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Test.this[]")),
+                    // Technically this update is superfluous, but doesn't cause problems, and is difficult to remove
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Test.get_Item")),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
