@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTypeTest t2:
                             {
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-                                ConstantValue matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
+                                ConstantValue? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
                                 if (matches == ConstantValue.False)
                                 {
                                     // If T1 could never be T2
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
         /// See, for example, https://github.com/dotnet/roslyn/issues/35661
         /// </summary>
-        private ConstantValue ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+        private ConstantValue? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
             TypeSymbol expressionType,
             TypeSymbol patternType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
