@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class KeywordRecommenderTests : RecommenderTests
     {
         private static readonly Dictionary<SyntaxKind, AbstractSyntacticSingleKeywordRecommender> s_recommenderMap = new(SyntaxFacts.EqualityComparer);
-        private readonly string computedKeywordText;
-
-        protected override string KeywordText => computedKeywordText;
+        protected override string KeywordText { get; }
 
         static KeywordRecommenderTests()
         {
