@@ -2261,14 +2261,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                TypesEquivalent(oldMethod.ReturnType, newMethod.ReturnType, exact);
 
         protected static bool ReturnTypesEquivalent(IPropertySymbol oldProperty, IPropertySymbol newProperty, bool exact)
-            => ReturnTypeRefsAndModifiersEquivalent(oldProperty, newProperty, exact) &&
-               TypesEquivalent(oldProperty.Type, newProperty.Type, exact);
-
-        private static bool ReturnTypeRefsAndModifiersEquivalent(IPropertySymbol oldProperty, IPropertySymbol newProperty, bool exact)
             => oldProperty.ReturnsByRef == newProperty.ReturnsByRef &&
                oldProperty.ReturnsByRefReadonly == newProperty.ReturnsByRefReadonly &&
                CustomModifiersEquivalent(oldProperty.TypeCustomModifiers, newProperty.TypeCustomModifiers, exact) &&
-               CustomModifiersEquivalent(oldProperty.RefCustomModifiers, newProperty.RefCustomModifiers, exact);
+               CustomModifiersEquivalent(oldProperty.RefCustomModifiers, newProperty.RefCustomModifiers, exact) &&
+               TypesEquivalent(oldProperty.Type, newProperty.Type, exact);
 
         protected static bool ReturnTypesEquivalent(IEventSymbol oldEvent, IEventSymbol newEvent, bool exact)
             => TypesEquivalent(oldEvent.Type, newEvent.Type, exact);
@@ -3077,6 +3074,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 CanAddNewMember(oldSymbol, capabilities, cancellationToken) &&
                                 SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
                             {
+                                if (TryGetAssociatedMemberDeclaration(newDeclaration, EditKind.Update, out var newAssociatedMemberDeclaration) &&
+                                    HasEdit(editMap, newAssociatedMemberDeclaration, EditKind.Update))
+                                {
+                                    // If the symbol is an accessor and the containing property/indexer/event declaration has also been inserted skip
+                                    // the insert of the accessor as it will be inserted by the property/indexer/event.
+                                    continue;
+                                }
+
                                 Contract.ThrowIfNull(oldDeclaration);
                                 var activeStatementIndices = GetOverlappingActiveStatements(oldDeclaration, oldActiveStatements);
                                 if (activeStatementIndices.Any())
@@ -3393,8 +3398,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (symbol is IPropertySymbol propertySymbol)
             {
-                AddEdit(propertySymbol.GetMethod);
-                AddEdit(propertySymbol.SetMethod);
+                if (editKind == SemanticEditKind.Delete)
+                {
+                    // When deleting a property, we delete the get and set method individually, because we actually just update them
+                    // to be throwing
+                    AddEdit(propertySymbol.GetMethod);
+                    AddEdit(propertySymbol.SetMethod);
+                }
+                else
+                {
+                    // When inserting a new property as part of a property change however, we need to insert the entire property, so
+                    // that the field, property and method semantics metadata tables can all be updated if/as necessary
+                    AddEdit(propertySymbol);
+                }
             }
             else if (symbol is IEventSymbol eventSymbol)
             {
@@ -4019,8 +4035,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     rudeEdit = RudeEditKind.TypeUpdate;
                 }
-                else if (ReturnTypeRefsAndModifiersEquivalent(oldProperty, newProperty, exact: true) &&
-                    AllowsDeletion(newProperty))
+                else if (AllowsDeletion(newProperty))
                 {
                     if (CanAddNewMember(newProperty, capabilities, cancellationToken))
                     {
