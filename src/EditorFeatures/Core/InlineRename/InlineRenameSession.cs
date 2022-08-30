@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        public struct TestAccessor
+        public readonly struct TestAccessor
         {
             private readonly InlineRenameSession _inlineRenameSession;
 
