@@ -1176,15 +1176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
-            // Expression bodied properties, eg int P => 1, are slightly different, as the arrow expression is directly parented by the associated declaration
-            if (editKind != EditKind.Delete &&
-                node is ArrowExpressionClauseSyntax &&
-                node.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
-            {
-                declaration = node.Parent!;
-                return true;
-            }
-
             declaration = null;
             return false;
         }

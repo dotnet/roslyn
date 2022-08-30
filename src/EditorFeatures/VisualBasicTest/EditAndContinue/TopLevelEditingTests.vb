@@ -10250,9 +10250,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.raise_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.add_F")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.remove_F")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.raise_F"))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.F"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
@@ -10302,9 +10300,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.add_E").FirstOrDefault(Function(m) m.GetParameters()(0).Type.GetTypeParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.remove_E").FirstOrDefault(Function(m) m.GetParameters()(0).Type.GetTypeParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.raise_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.add_E")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.remove_E")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.raise_E"))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.E"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
