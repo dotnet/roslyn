@@ -1880,8 +1880,24 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             ' op_False
             Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType))
 
-            ' op_Truee
+            ' op_True
             Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_BogusErrorType()
+            Dim compilation = CreateCompilation("")
+            Dim fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_RealErrorType()
+            Dim compilation = CreateCompilation("", references:={}, targetFramework:=TargetFramework.Empty)
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal("Public Shared Operator +(value As Integer) As Integer", result)
         End Sub
 
         <Fact>
