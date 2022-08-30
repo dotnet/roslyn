@@ -52,7 +52,7 @@ insert{|caret:_|}final_newline = true
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Insert_Final_Newline, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Insert_Final_Newline, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ dotnet_style{|caret:_|}coalesce_expression = true
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Prefer_coalesce_expression, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Prefer_coalesce_expression, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -172,7 +172,7 @@ insert_final_newline = {|caret:t|}rue
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Yes, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Yes, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -196,7 +196,7 @@ csharp_space_around_binary_operators = {|caret:b|}efore_and_after
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Before_and_after, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Before_and_after, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ end_of_line = {|caret:c|}rlf
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Crlf, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Crlf, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -244,7 +244,7 @@ csharp_new_line_before_open_brace = accessors, {|caret:i|}ndexers
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Indexers, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Indexers, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -268,7 +268,7 @@ dotnet_style_qualification_for_field = {|caret:t|}rue
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Prefer_this_or_Me, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Prefer_this_or_Me, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -292,7 +292,7 @@ dotnet_style_require_accessibility_modifiers = {|caret:f|}or_non_interface_membe
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.For_non_interface_members, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.For_non_interface_members, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
@@ -316,7 +316,7 @@ dotnet_diagnostic.CS0021.severity = {|caret:w|}arning
             var results = await HoverTests.RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(CompilerExtensionsResources.Warning_severity, results.Contents.Third.Value);
+            Assert.Equal(CompilerExtensionsResources.Warning_severity, results.Contents!.Value.Fourth.Value);
         }
 
         [Fact]
