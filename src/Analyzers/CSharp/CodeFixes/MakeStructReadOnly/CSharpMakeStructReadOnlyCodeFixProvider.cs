@@ -52,25 +52,6 @@ internal class CSharpMakeStructReadOnlyCodeFixProvider : SyntaxEditorBasedCodeFi
                 (current, generator) => generator.WithModifiers(current, generator.GetModifiers(current).WithIsReadOnly(true)));
         }
 
-        var i = 0;
-
-        i = 1;
-        i = 2;
-
-        Console.WriteLine(i);
-        Foo(ref i);
-        Bar(i);
-
         return Task.CompletedTask;
-    }
-
-    void Foo(ref int i)
-    {
-
-    }
-
-    void Bar(int i)
-    {
-
     }
 }
