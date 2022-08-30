@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
     internal static class ConvertToRecordCommon
     {
+        private const SyntaxRemoveOptions RemovalOptions =
+            SyntaxRemoveOptions.KeepExteriorTrivia |
+            SyntaxRemoveOptions.KeepDirectives |
+            SyntaxRemoveOptions.AddElasticMarker;
 
         public static async Task<CodeAction?> GetCodeActionAsync(
             Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
@@ -182,22 +186,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     {
                         // non-primary, non-copy constructor, add ": this(...)" initializers to each
                         // and try to use assignments in the body to determine the values, otherwise default or null
-                        var (thisArgs, expressionsToRemove) = ConvertToRecordHelpers
-                            .GetInitializerValuesForNonPrimaryConstructor(constructorOperation, positionalParamSymbols);
+                        var expressions = ConvertToRecordHelpers
+                            .GetAssignmentValuesForNonPrimaryConstructor(constructorOperation, positionalParamSymbols);
 
-                        // take the parent ExpressionStatementSyntax so we take the semicolon too
-                        var expressionStatementsToRemove = expressionsToRemove
+                        // go up to the ExpressionStatementSyntax so we take the semicolon and not just the assignment
+                        var expressionStatementsToRemove = expressions
                             .Select(expression =>
                                 (expression.Parent as AssignmentExpressionSyntax)?.Parent as ExpressionStatementSyntax)
                             .WhereNotNull()
                             .AsImmutable();
-                        var removalOptions = SyntaxRemoveOptions.KeepExteriorTrivia |
-                            SyntaxRemoveOptions.KeepDirectives |
-                            SyntaxRemoveOptions.AddElasticMarker;
+
                         var modifiedConstructor = constructor
-                            .RemoveNodes(expressionStatementsToRemove, removalOptions)!
-                            .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer,
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(thisArgs))));
+                            .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
+                            .WithInitializer(SyntaxFactory.ConstructorInitializer(
+                                SyntaxKind.ThisConstructorInitializer,
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                                    expressions.Select(SyntaxFactory.Argument)))));
 
                         modifiedMembers[modifiedMembers.IndexOf(constructor)] = modifiedConstructor;
                     }
@@ -462,40 +466,53 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         .OfType<ObjectCreationExpressionSyntax>();
                     foreach (var objectCreationExpression in objectCreationExpressions)
                     {
-                        var (constructorArgs, nodesToRemove) =
-                            ConvertToRecordHelpers.GetConstructorArgumentsFromObjectCreation(
-                                objectCreationExpression, positionalParameters, semanticModel, cancellationToken);
-
-                        if (!constructorArgs.IsDefaultOrEmpty)
+                        if (semanticModel.GetOperation(objectCreationExpression, cancellationToken)
+                            is not IObjectCreationOperation objectCreationOperation)
                         {
-                            var initializerExpressions = objectCreationExpression.Initializer!.Expressions;
-                            // need to get all indices and then remove because otherwise nodes change
-                            var removalIndices = nodesToRemove
-                                .SelectAsArray(initializerExpressions.IndexOf)
-                                .OrderByDescending(i => i);
-                            // remove in descending order so indices aren't shifted around
-                            foreach (var nodeIndex in removalIndices)
-                            {
-                                initializerExpressions = initializerExpressions.RemoveAt(nodeIndex);
-                            }
-
-                            // if there are no more assignments other than the ones that
-                            // could go in the primary constructor, we can remove the block entirely
-                            var initializerBlock = initializerExpressions.IsEmpty()
-                                ? null
-                                : objectCreationExpression.Initializer!.WithExpressions(initializerExpressions);
-
-                            // replace: new C { Foo = 0; Bar = false; };
-                            // with: new C(0, false);
-                            var replacementNode = SyntaxFactory.ObjectCreationExpression(
-                                objectCreationExpression.NewKeyword,
-                                objectCreationExpression.Type.WithoutTrailingTrivia(),
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArgs
-                                    .Select(expr => expr.WithoutTrivia()))),
-                                initializerBlock);
-
-                            documentEditor.ReplaceNode(objectCreationExpression, replacementNode);
+                            continue;
                         }
+
+                        var expressions = ConvertToRecordHelpers.GetAssignmentValuesFromObjectCreation(
+                            objectCreationOperation, positionalParameters);
+
+                        if (expressions.IsEmpty)
+                        {
+                            continue;
+                        }
+
+                        // if we didn't have an initializer, expressions would be empty
+                        var initializerExpressions = objectCreationExpression.Initializer!.Expressions;
+                        // need to get all indices and then remove because otherwise nodes change
+                        // remove in descending order so indices aren't shifted around
+                        var removalIndices = expressions
+                            // index can be null if expression is the factory created default or null
+                            .Select(expression => expression.Parent as AssignmentExpressionSyntax)
+                            .WhereNotNull()
+                            .Select(initializerExpressions.IndexOf)
+                            .Order()
+                            .Reverse();
+
+                        foreach (var nodeIndex in removalIndices)
+                        {
+                            initializerExpressions = initializerExpressions.RemoveAt(nodeIndex);
+                        }
+
+                        // if there are no more assignments other than the ones that
+                        // could go in the primary constructor, we can remove the block entirely
+                        var initializerBlock = initializerExpressions.IsEmpty()
+                            ? null
+                            : objectCreationExpression.Initializer!.WithExpressions(initializerExpressions);
+
+                        // replace: new C { Foo = 0; Bar = false; };
+                        // with: new C(0, false);
+                        var replacementNode = SyntaxFactory.ObjectCreationExpression(
+                            objectCreationExpression.NewKeyword,
+                            objectCreationExpression.Type.WithoutTrailingTrivia(),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                                expressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia())))),
+                            initializerBlock);
+
+                        documentEditor.ReplaceNode(objectCreationExpression, replacementNode);
                     }
                 }
             }
