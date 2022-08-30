@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class DynamicKeywordRecommenderTests : RecommenderTests
     {
+        protected override string KeywordText => "dynamic";
+
         private readonly DynamicKeywordRecommender _recommender = new();
 
         public DynamicKeywordRecommenderTests()
         {
-            this.keywordText = "dynamic";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 

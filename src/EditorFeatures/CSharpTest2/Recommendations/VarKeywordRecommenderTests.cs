@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class VarKeywordRecommenderTests : RecommenderTests
     {
+        protected override string KeywordText => "var";
+
         private readonly VarKeywordRecommender _recommender = new();
 
         public VarKeywordRecommenderTests()
         {
-            this.keywordText = "var";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 

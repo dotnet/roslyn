@@ -12,11 +12,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class ManagedKeywordRecommenderTests : RecommenderTests
     {
+        protected override string KeywordText => "managed";
+
         private readonly ManagedKeywordRecommender _recommender = new();
 
         public ManagedKeywordRecommenderTests()
         {
-            this.keywordText = "managed";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 

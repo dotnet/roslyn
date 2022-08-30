@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
-        protected string? keywordText;
+        protected abstract string KeywordText { get; }
         internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>>? RecommendKeywordsAsync;
 
         internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions? options = null, int? matchPriority = null)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {
-                Assert.False(true, "Wanted keyword, but in non-user code position: " + keywordText);
+                Assert.False(true, "Wanted keyword, but in non-user code position: " + KeywordText);
             }
 
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             {
                 if (RecommendKeywordsAsync == null)
                 {
-                    Assert.False(true, "No recommender for: " + keywordText);
+                    Assert.False(true, "No recommender for: " + KeywordText);
                 }
                 else
                 {
                     var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
                     AssertEx.NotNull(result);
-                    Assert.Equal(keywordText, result!.Keyword);
+                    Assert.Equal(KeywordText, result!.Keyword);
                     if (matchPriority != null)
                     {
                         Assert.Equal(matchPriority.Value, result.MatchPriority);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => VerifyInFrontOfCommentAsync(text, cursorPosition, absent, string.Empty, options: options, matchPriority: matchPriority);
 
         private Task VerifyInFrontOfComment_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions? options, int? matchPriority)
-            => VerifyInFrontOfCommentAsync(text, position, absent, keywordText![..1], options: options, matchPriority: matchPriority);
+            => VerifyInFrontOfCommentAsync(text, position, absent, KeywordText[..1], options: options, matchPriority: matchPriority);
 
         private Task VerifyAtPositionAsync(
             string text,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => VerifyAtPositionAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
 
         private Task VerifyAtPosition_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions? options, int? matchPriority)
-            => VerifyAtPositionAsync(text, position, absent, keywordText![..1], options: options, matchPriority: matchPriority);
+            => VerifyAtPositionAsync(text, position, absent, KeywordText[..1], options: options, matchPriority: matchPriority);
 
         private async Task VerifyAtEndOfFileAsync(
             string text,
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => VerifyAtEndOfFileAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
 
         private Task VerifyAtEndOfFile_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions? options, int? matchPriority)
-            => VerifyAtEndOfFileAsync(text, position, absent, keywordText![..1], options: options, matchPriority: matchPriority);
+            => VerifyAtEndOfFileAsync(text, position, absent, KeywordText[..1], options: options, matchPriority: matchPriority);
 
         internal async Task VerifyKeywordAsync(string text, CSharpParseOptions? options = null, CSharpParseOptions? scriptOptions = null)
         {

@@ -11,35 +11,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class NativeIntegerKeywordRecommenderTests : RecommenderTests
+    public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
     {
-        private AbstractNativeIntegerKeywordRecommender? _recommender;
+        private protected abstract AbstractNativeIntegerKeywordRecommender Recommender { get; }
 
-        public NativeIntegerKeywordRecommenderTests()
+        protected NativeIntegerKeywordRecommenderTests()
         {
-            RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender!.RecommendKeywords(position, context, CancellationToken.None));
-        }
-
-        private async Task VerifyKeywordAsync(string text)
-        {
-            _recommender = new NintKeywordRecommender();
-            keywordText = "nint";
-            await base.VerifyKeywordAsync(text);
-
-            _recommender = new NuintKeywordRecommender();
-            keywordText = "nuint";
-            await base.VerifyKeywordAsync(text);
-        }
-
-        private async Task VerifyAbsenceAsync(string text)
-        {
-            _recommender = new NintKeywordRecommender();
-            keywordText = "nint";
-            await base.VerifyAbsenceAsync(text);
-
-            _recommender = new NintKeywordRecommender();
-            keywordText = "nuint";
-            await base.VerifyAbsenceAsync(text);
+            RecommendKeywordsAsync = (position, context) => Task.FromResult(Recommender!.RecommendKeywords(position, context, CancellationToken.None));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

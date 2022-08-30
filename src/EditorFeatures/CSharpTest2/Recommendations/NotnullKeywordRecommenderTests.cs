@@ -12,11 +12,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class NotNullKeywordRecommenderTests : RecommenderTests
     {
+        protected override string KeywordText => "notnull";
+
         private readonly NotNullKeywordRecommender _recommender = new();
 
         public NotNullKeywordRecommenderTests()
         {
-            this.keywordText = "notnull";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 
