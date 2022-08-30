@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
-    internal class SyntaxTreeException : Exception
+    internal sealed class SyntaxTreeException : Exception
     {
         // Used for analyzing dumps
 #pragma warning disable IDE0052 // Remove unread private members
