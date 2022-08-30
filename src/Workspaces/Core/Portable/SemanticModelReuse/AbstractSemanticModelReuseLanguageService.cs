@@ -41,7 +41,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
             // This operation is only valid if top-level equivalent trees were passed in.  If they're not equivalent
             // then something very bad happened as we did that document.Project.GetDependentSemanticVersionAsync was
-            // still the same.  So somehow we don't have top-level equivalence, but we do have the same semantic version.
+            // still the same.  So somehow w don't have top-level equivalence, but we do have the same semantic version.
+            //
+            // log a NFW to help diagnose what the source looks like as it may help us determine what sort of edit is
+            // causing this.
             if (!previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true))
             {
                 if (!s_watsonReported)
