@@ -3981,7 +3981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                // T* operator+(int i, T&)
+                // T* operator+(int i, T*)
                 if (binaryKind is BinaryOperatorKind.Addition &&
                     csharpRightType.IsPointerType() &&
                     csharpLeftType.IsIntegralType() &&
