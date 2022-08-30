@@ -20,12 +20,15 @@ using VerifyCS = CSharpCodeFixVerifier<
 
 public class MakeStructReadOnlyTests
 {
-    private static async Task TestMissingAsync(string input, LanguageVersion version = LanguageVersion.Preview)
+    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
+        => TestAsync(testCode, testCode, version);
+
+    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.Preview)
     {
         await new VerifyCS.Test
         {
-            TestCode = input,
-            FixedCode = input,
+            TestCode = testCode,
+            FixedCode = fixedCode,
             LanguageVersion = version,
         }.RunAsync();
     }
@@ -43,20 +46,16 @@ public class MakeStructReadOnlyTests
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task ShouldTriggerFor7_2()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
+        await TestAsync(
 @"struct [|S|]
 {
     readonly int i;
 }",
-            FixedCode =
 @"readonly struct S
 {
     readonly int i;
 }",
-            LanguageVersion = LanguageVersion.CSharp7_2,
-        }.RunAsync();
+LanguageVersion.CSharp7_2);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
@@ -189,83 +188,80 @@ public class MakeStructReadOnlyTests
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestMissingWithOtherReadonlyPartialPart()
+    {
+        await TestMissingAsync(
+@"partial struct S
+{
+    readonly int i;
+}
+
+readonly partial struct S
+{
+}
+");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnStructWithReadOnlyField()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
+        await TestAsync(
 @"struct [|S|]
 {
     readonly int i;
 }",
-            FixedCode =
 @"readonly struct S
 {
     readonly int i;
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnRecordStructWithReadOnlyField()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
-@"record struct S
+        await TestAsync(
+@"record struct [|S|]
 {
     readonly int i;
 }",
-            FixedCode =
 @"readonly record struct S
 {
     readonly int i;
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnStructWithGetOnlyProperty()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
+        await TestAsync(
 @"struct [|S|]
 {
     int P { get; }
 }",
-            FixedCode =
 @"readonly struct S
 {
     int P { get; }
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnRecordStructWithGetOnlyProperty()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
-@"record struct S
+        await TestAsync(
+@"record struct [|S|]
 {
     int P { get; }
 }",
-            FixedCode =
-@"readonly struct S
+@"readonly record struct S
 {
     int P { get; }
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnStructWithInitOnlyProperty()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
+        await TestAsync(
 @"struct [|S|]
 {
     int P { get; init; }
@@ -277,7 +273,6 @@ namespace System.Runtime.CompilerServices
     {
     }
 }",
-            FixedCode =
 @"readonly struct S
 {
     int P { get; init; }
@@ -288,86 +283,81 @@ namespace System.Runtime.CompilerServices
     public sealed class IsExternalInit
     {
     }
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnRecordStructWithInitOnlyProperty()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
-@"record struct S
+        await TestAsync(
+@"record struct [|S|]
 {
     int P { get; init; }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
 }",
-            FixedCode =
 @"readonly record struct S
 {
     int P { get; init; }
-}"
-        }.RunAsync();
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnRecordStructWithReadOnlyField2()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
-@"record struct S
+        await TestAsync(
+@"record struct [|S|]
 {
     readonly int i;
 }",
-            FixedCode =
 @"readonly record struct S
 {
     readonly int i;
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnRecordStructWithPrimaryConstructorField()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
-@"record struct S(int i)
+        await TestAsync(
+@"record struct [|S|](int i)
 {
 }",
-            FixedCode =
 @"readonly record struct S(int i)
 {
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestOnRecordStructWithPrimaryConstructorFieldAndNormalField()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
-@"record struct S(int i)
+        await TestAsync(
+@"record struct [|S|](int i)
 {
     readonly int j;
 }",
-            FixedCode =
 @"readonly record struct S(int i)
 {
     readonly int j;
-}"
-        }.RunAsync();
+}");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
     public async Task TestNestedStructs1()
     {
-        await new VerifyCS.Test
-        {
-            TestCode =
+        await TestAsync(
 @"struct [|S|]
 {
     readonly int i;
@@ -377,7 +367,6 @@ namespace System.Runtime.CompilerServices
         readonly int j;
     }
 }",
-            FixedCode =
 @"readonly struct S
 {
     readonly int i;
@@ -386,7 +375,102 @@ namespace System.Runtime.CompilerServices
     {
         readonly int j;
     }
-}"
-        }.RunAsync();
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestPartialStructs1()
+    {
+        await TestAsync(
+@"partial struct [|S|]
+{
+    readonly int i;
+}
+
+partial struct [|S|]
+{
+    readonly int j;
+}",
+@"readonly partial struct S
+{
+    readonly int i;
+}
+
+readonly partial struct S
+{
+    readonly int j;
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestDocComments1()
+    {
+        await TestAsync(
+@"/// <summary>docs</summary>
+record struct [|S|]
+{
+    readonly int j;
+}",
+@"/// <summary>docs</summary>
+readonly record struct S
+{
+    readonly int j;
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestDocComments2()
+    {
+        await TestAsync(
+@"namespace N
+{
+    /// <summary>docs</summary>
+    record struct [|S|]
+    {
+        readonly int j;
+    }
+}",
+@"namespace N
+{
+    /// <summary>docs</summary>
+    readonly record struct S
+    {
+        readonly int j;
+    }
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestExistingModifier1()
+    {
+        await TestAsync(
+@"public record struct [|S|]
+{
+    readonly int j;
+}",
+@"public readonly record struct S
+{
+    readonly int j;
+}");
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
+    public async Task TestExistingModifier2()
+    {
+        await TestAsync(
+@"namespace N
+{
+    public record struct [|S|]
+    {
+        readonly int j;
+    }
+}",
+@"namespace N
+{
+    public readonly record struct S
+    {
+        readonly int j;
+    }
+}");
     }
 }
