@@ -3936,18 +3936,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    // SomeEnum operator+(SomeEnum, int)
-                    // SomeEnum operator+(int, SomeEnum)
-                    // SomeEnum operator-(SomeEnum, int)
-                    // SomeEnum operator-(int, SomeEnum)
+                    // SomeEnum operator+(SomeEnum, EnumUnderlyingInt)
+                    // SomeEnum operator+(EnumUnderlyingInt, SomeEnum)
+                    // SomeEnum operator-(SomeEnum, EnumUnderlyingInt)
+                    // SomeEnum operator-(EnumUnderlyingInt, SomeEnum)
                     if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
                     {
-                        if (csharpLeftType.IsEnumType() && csharpRightType.IsIntegralType() && TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        if (csharpLeftType.IsEnumType() &&
+                            csharpRightType.SpecialType == csharpLeftType.GetEnumUnderlyingType().SpecialType &&
+                            TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                         {
                             return;
                         }
 
-                        if (csharpRightType.IsEnumType() && csharpLeftType.IsIntegralType() && TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        if (csharpRightType.IsEnumType() &&
+                            csharpLeftType.SpecialType == csharpRightType.GetEnumUnderlyingType().SpecialType &&
+                            TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
                         {
                             return;
                         }
