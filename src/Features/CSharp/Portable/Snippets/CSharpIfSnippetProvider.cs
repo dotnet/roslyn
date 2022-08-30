@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -65,17 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nearestStatement = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
-
-            if (nearestStatement is null)
-            {
-                return document;
-            }
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, nearestStatement, syntaxFormattingOptions, cancellationToken);
+            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
 
-            var ifStatementSyntax = (IfStatementSyntax)nearestStatement;
+            var ifStatementSyntax = (IfStatementSyntax)snippet;
             var blockStatement = (BlockSyntax)ifStatementSyntax.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newIfStatementSyntax = ifStatementSyntax.ReplaceNode(ifStatementSyntax.Statement, blockStatement);
