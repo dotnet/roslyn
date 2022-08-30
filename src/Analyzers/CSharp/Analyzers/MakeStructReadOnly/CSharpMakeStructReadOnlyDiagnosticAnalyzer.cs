@@ -39,9 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly
 
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
-            var typeDeclaration = (TypeDeclarationSyntax)context.Node;
+            if (semanticModel.Compilation.LanguageVersion() < LanguageVersion.CSharp7_2)
+                return;
 
             // if it's already syntactically readonly, nothing we need to do.
+            var typeDeclaration = (TypeDeclarationSyntax)context.Node;
             if (typeDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
                 return;
 
