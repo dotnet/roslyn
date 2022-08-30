@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("interface I { void F<T>(ref T t); }", true)]
         [InlineData("interface I { void F<T>(in T t); }", true)]
         [InlineData("interface I { void F<T>(out T t); }", true)]
+        [InlineData("interface I { ref int P { get; } }", true)]
         [InlineData("interface I { }", false)]
         [InlineData("class C { }", false)]
         [InlineData("struct S { }", false)]
@@ -128,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("class B { void F(A a) { } }", false)]
         [InlineData("class B { void F(S s) { } }", false)]
         [InlineData("class B { void F(R r) { } }", true)]
+        [InlineData("class B { R P => default; }", true)]
+        [InlineData("class B { R P { set { } } }", true)]
         public void EmitAttribute_02(string source, bool requiresAttribute)
         {
             var sourceA =

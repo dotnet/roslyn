@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 identity = module.ReadAssemblyIdentityOrThrow();
             }
-            catch (Exception)
+            catch (BadImageFormatException)
             {
                 identity = null;
             }
