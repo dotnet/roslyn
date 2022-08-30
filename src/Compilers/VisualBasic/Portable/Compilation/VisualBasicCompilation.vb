@@ -2965,11 +2965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If resolved <> SpecialType.None Then
                 ' Quick access table strangely maps `string Like string` to the `string` return type. remap it to 'bool'
                 ' here as that's what the operator actually is.
-                If opInfo.BinaryOperatorKind = BinaryOperatorKind.Like AndAlso
-                   resolved = SpecialType.System_String Then
-                    resolved = SpecialType.System_Boolean
-                End If
-
+                '
                 ' Similarly, the relations table doesn't include useful info.  it always has the original type,
                 ' not the expected 'bool' return type.
                 If resolved <> SpecialType.System_Object Then
@@ -2978,7 +2974,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
                        opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
                        opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan Then
+                       opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
+                       opInfo.BinaryOperatorKind = BinaryOperatorKind.Like Then
 
                         resolved = SpecialType.System_Boolean
                     End If
