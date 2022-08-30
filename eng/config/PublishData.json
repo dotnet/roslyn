@@ -133,7 +133,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.4p3]"
+      "insertionTitlePrefix": "[Validation]"
     },
     "main-vs-deps": {
       "nugetKind": [
@@ -143,7 +143,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionTitlePrefix": "[d17.4p3]"
     }
   }
 }
