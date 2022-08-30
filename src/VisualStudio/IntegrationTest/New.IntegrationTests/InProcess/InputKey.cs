@@ -8,7 +8,7 @@ using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal struct InputKey
+    internal readonly struct InputKey
     {
         public readonly ImmutableArray<VirtualKeyCode> Modifiers;
         public readonly VirtualKeyCode VirtualKeyCode;
