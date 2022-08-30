@@ -7811,8 +7811,7 @@ End Class
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.set_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
@@ -7991,7 +7990,7 @@ End Class"
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.Q"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
@@ -8009,7 +8008,7 @@ End Class"
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.Q"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
@@ -10562,7 +10561,7 @@ End Class
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Object)))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
 
@@ -10585,7 +10584,7 @@ End Class
                 semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Object)))
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P"))
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
 
