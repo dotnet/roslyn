@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
-        private readonly ITextView _textView;
+        private readonly IWpfTextView _textView;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, ITextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
             _textView.LostAggregateFocus -= TextView_LostFocus;
+
+            // Restore focus back to the textview
+            _textView.VisualElement.Focus();
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)
