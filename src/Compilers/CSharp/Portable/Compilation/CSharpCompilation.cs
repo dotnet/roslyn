@@ -3848,15 +3848,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
 
-            static bool isDynamicOrError(TypeSymbol type)
-                => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
-
             void validateSignature()
             {
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
-                if (isDynamicOrError(csharpReturnType) ||
-                    isDynamicOrError(csharpLeftType) ||
-                    isDynamicOrError(csharpRightType))
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
+                    csharpLeftType.TypeKind is TypeKind.Dynamic ||
+                    csharpReturnType.TypeKind is TypeKind.Dynamic)
                 {
                     return;
                 }
@@ -4069,14 +4066,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpOperandType, name, csharpReturnType).GetPublicSymbol();
 
-            static bool isDynamicOrError(TypeSymbol type)
-                => type.TypeKind is TypeKind.Dynamic or TypeKind.Error;
-
             void validateSignature()
             {
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
-                if (isDynamicOrError(csharpReturnType) ||
-                    isDynamicOrError(csharpOperandType))
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
+                    csharpOperandType.TypeKind is TypeKind.Dynamic)
                 {
                     return;
                 }
