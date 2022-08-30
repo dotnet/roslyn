@@ -3957,9 +3957,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // int operator-(SomeEnum, SomeEnum)
+                    // EnumUnderlyingInt operator-(SomeEnum, SomeEnum)
                     if (binaryKind is BinaryOperatorKind.Subtraction &&
-                        csharpReturnType.IsIntegralType() &&
+                        csharpReturnType.SpecialType == csharpLeftType.GetEnumUnderlyingType().SpecialType &&
                         TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
                     {
                         return;
