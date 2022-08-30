@@ -3868,9 +3868,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (easyOutBinaryKind != BinaryOperatorKind.Error)
                 {
                     var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
-                    if (TypeSymbol.Equals(csharpReturnType, signature.ReturnType, TypeCompareKind.ConsiderEverything) &&
-                        TypeSymbol.Equals(csharpLeftType, signature.LeftType, TypeCompareKind.ConsiderEverything) &&
-                        TypeSymbol.Equals(csharpRightType, signature.RightType, TypeCompareKind.ConsiderEverything))
+                    if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                        csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
+                        csharpRightType.SpecialType == signature.RightType.SpecialType)
                     {
                         return;
                     }

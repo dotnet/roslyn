@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
+        public static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
         {
             switch (kind)
             {
