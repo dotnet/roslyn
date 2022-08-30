@@ -28,41 +28,44 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterSymbolStartAction(context =>
+        => context.RegisterCompilationStartAction(context =>
         {
             var compilation = context.Compilation;
             if (compilation.LanguageVersion() < LanguageVersion.CSharp7_2)
                 return;
 
-            // First, see if this at least strongly looks like a struct that could be converted.
-            if (!IsCandidate(context, out var typeDeclaration, out var option))
-                return;
-
-            // Looks good.  However, we have to make sure that the struct has no code which actually overwrites 'this'
-
-            var writesToThis = false;
-            context.RegisterSyntaxNodeAction(context =>
+            context.RegisterSymbolStartAction(context =>
             {
-                var semanticModel = context.SemanticModel;
-                var thisExpression = (ThisExpressionSyntax)context.Node;
-                var cancellationToken = context.CancellationToken;
-                writesToThis = writesToThis || thisExpression.IsWrittenTo(semanticModel, cancellationToken);
-            }, SyntaxKind.ThisExpression);
-
-            context.RegisterSymbolEndAction(context =>
-            {
-                // if we wrote to 'this', then we cannot convert this struct.
-                if (writesToThis)
+                // First, see if this at least strongly looks like a struct that could be converted.
+                if (!IsCandidate(context, out var typeDeclaration, out var option))
                     return;
 
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    typeDeclaration.Identifier.GetLocation(),
-                    option.Notification.Severity,
-                    additionalLocations: ImmutableArray.Create(typeDeclaration.GetLocation()),
-                    properties: null));
-            });
-        }, SymbolKind.NamedType);//.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
+                // Looks good.  However, we have to make sure that the struct has no code which actually overwrites 'this'
+
+                var writesToThis = false;
+                context.RegisterSyntaxNodeAction(context =>
+                {
+                    var semanticModel = context.SemanticModel;
+                    var thisExpression = (ThisExpressionSyntax)context.Node;
+                    var cancellationToken = context.CancellationToken;
+                    writesToThis = writesToThis || thisExpression.IsWrittenTo(semanticModel, cancellationToken);
+                }, SyntaxKind.ThisExpression);
+
+                context.RegisterSymbolEndAction(context =>
+                {
+                    // if we wrote to 'this', then we cannot convert this struct.
+                    if (writesToThis)
+                        return;
+
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor,
+                        typeDeclaration.Identifier.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: ImmutableArray.Create(typeDeclaration.GetLocation()),
+                        properties: null));
+                });
+            }, SymbolKind.NamedType);
+        });
 
     private static bool IsCandidate(
         SymbolStartAnalysisContext context,
