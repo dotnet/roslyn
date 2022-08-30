@@ -2934,7 +2934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
             If Not opInfo.IsBinary Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.Illegal_operator_name_0, name), NameOf(name))
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.Illegal_built_in_operator_name_0, name), NameOf(name))
             End If
 
             CheckBinaryBuiltInOperator(name, vbReturnType, vbLeftType, vbRightType, opInfo)
@@ -3006,7 +3006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
             If Not opInfo.IsUnary Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.Illegal_operator_name_0, name), NameOf(name))
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.Illegal_built_in_operator_name_0, name), NameOf(name))
             End If
 
             CheckUnaryBuiltInOperator(name, vbReturnType, vbOperandType, opInfo)

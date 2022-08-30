@@ -69,9 +69,9 @@
         <target state="translated">Le hintName « {0} »du fichier source ajouté doit être unique dans un générateur.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
-      <trans-unit id="Illegal_operator_name_0">
-        <source>Illegal operator name '{0}'</source>
-        <target state="new">Illegal operator name '{0}'</target>
+      <trans-unit id="Illegal_built_in_operator_name_0">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="new">Illegal built-in operator name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -1028,9 +1028,9 @@
         <target state="translated">Avertissement : Impossible d'activer le JIT multicœur en raison de l'exception suivante : {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_was_not_a_valid_operator_name">
-        <source>'{0}' was not a valid operator name</source>
-        <target state="new">'{0}' was not a valid operator name</target>
+      <trans-unit id="_0_was_not_a_valid_built_in_operator_name">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="new">'{0}' was not a valid built-in operator name</target>
         <note />
       </trans-unit>
     </body>
