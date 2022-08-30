@@ -2961,28 +2961,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Quick table access to determine if these types are legal.
-            Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicBinaryOperator(opInfo.BinaryOperatorKind, leftType.SpecialType, rightType.SpecialType)
-            If resolved <> SpecialType.None Then
-                ' Quick access table strangely maps `string Like string` to the `string` return type. remap it to 'bool'
-                ' here as that's what the operator actually is.
-                '
-                ' Similarly, the relations table doesn't include useful info.  it always has the original type,
-                ' not the expected 'bool' return type.
-                If resolved <> SpecialType.System_Object Then
-                    If opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
-                       opInfo.BinaryOperatorKind = BinaryOperatorKind.Like Then
+            If returnType.SpecialType <> SpecialType.None AndAlso
+               leftType.SpecialType <> SpecialType.None AndAlso
+               rightType.SpecialType <> SpecialType.None Then
 
-                        resolved = SpecialType.System_Boolean
+                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicBinaryOperator(opInfo.BinaryOperatorKind, leftType.SpecialType, rightType.SpecialType)
+                If resolved <> SpecialType.None Then
+                    ' Quick access table strangely maps `string Like string` to the `string` return type. remap it to 'bool'
+                    ' here as that's what the operator actually is.
+                    '
+                    ' Similarly, the relations table doesn't include useful info.  it always has the original type,
+                    ' not the expected 'bool' return type.
+                    If resolved <> SpecialType.System_Object Then
+                        If opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.Like Then
+
+                            resolved = SpecialType.System_Boolean
+                        End If
                     End If
-                End If
 
-                If returnType.SpecialType = resolved Then
-                    Return
+                    If returnType.SpecialType = resolved Then
+                        Return
+                    End If
                 End If
             End If
 
@@ -3027,14 +3032,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Quick table access to determine if these types are legal.
-            If opInfo.UnaryOperatorKind = UnaryOperatorKind.Not OrElse
-               opInfo.UnaryOperatorKind = UnaryOperatorKind.Plus OrElse
-               opInfo.UnaryOperatorKind = UnaryOperatorKind.Minus Then
+            If returnType.SpecialType <> SpecialType.None AndAlso
+               operandType.SpecialType <> SpecialType.None Then
 
-                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, operandType.SpecialType)
-                If resolved <> SpecialType.None AndAlso
-                   returnType.SpecialType = resolved Then
-                    Return
+                If opInfo.UnaryOperatorKind = UnaryOperatorKind.Not OrElse
+                   opInfo.UnaryOperatorKind = UnaryOperatorKind.Plus OrElse
+                   opInfo.UnaryOperatorKind = UnaryOperatorKind.Minus Then
+
+                    Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, operandType.SpecialType)
+                    If resolved <> SpecialType.None AndAlso
+                       returnType.SpecialType = resolved Then
+                        Return
+                    End If
                 End If
             End If
 
