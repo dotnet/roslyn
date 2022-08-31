@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
             private CodeCleanupOptionsProvider FallbackOptions => _renameLocationSet.FallbackOptions;
 
-            private struct ConflictLocationInfo
+            private readonly struct ConflictLocationInfo
             {
                 // The span of the Node that needs to be complexified 
                 public readonly TextSpan ComplexifiedSpan;

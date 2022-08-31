@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
@@ -14,11 +12,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class UnmanagedKeywordRecommenderTests : RecommenderTests
     {
-        private readonly UnmanagedKeywordRecommender _recommender = new UnmanagedKeywordRecommender();
+        protected override string KeywordText => "unmanaged";
+
+        private readonly UnmanagedKeywordRecommender _recommender = new();
 
         public UnmanagedKeywordRecommenderTests()
         {
-            this.keywordText = "unmanaged";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 

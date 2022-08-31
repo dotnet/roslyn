@@ -6,9 +6,6 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: buildJobName
-  type: string
-  default: ''
 - name: testArtifactName
   type: string
   default: ''
@@ -27,7 +24,6 @@ parameters:
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
       name: NetCore1ESPool-Public

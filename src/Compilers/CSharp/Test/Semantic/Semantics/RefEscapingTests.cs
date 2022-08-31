@@ -4114,5 +4114,45 @@ class D
 
             compilation.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(63446, "https://github.com/dotnet/roslyn/issues/63446")]
+        public void RefDiscardAssignment()
+        {
+            var source = @"
+class Program
+{
+    static int dummy;
+
+    static ref int F()
+    {
+        return ref dummy;
+    }
+
+    static void Main()
+    {
+        Test();
+        System.Console.WriteLine(""Done"");
+    }
+
+    static void Test()
+    {
+        _ = ref F();
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "Done").VerifyDiagnostics().
+                VerifyIL("Program.Test",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  call       ""ref int Program.F()""
+  IL_0005:  pop
+  IL_0006:  ret
+}
+");
+        }
     }
 }
