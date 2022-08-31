@@ -3336,11 +3336,9 @@ namespace N
 {
     public record C(int P, bool B)
     {
-        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
+        public {|CS0111:C|}(int p, bool b) : {|CS0121:this|}(p, b)
         {
             Console.WriteLine(""Constructing C..."");
-            P = p;
-            B = b;
         }
     }
 }
@@ -3376,10 +3374,8 @@ namespace N
 {
     public record C(int P, bool B)
     {
-        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
+        public {|CS0111:C|}(int p, bool b) : {|CS0121:this|}(p + 1, b)
         {
-            P = p + 1;
-            B = b;
         }
     }
 }
@@ -3414,9 +3410,50 @@ namespace N
 {
     public record C(int P, bool B)
     {
-        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
+        public {|CS0111:C|}(int p, bool b) : {|CS0121:this|}(default, b)
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesWithMultiplePotentialPrimaryConstructors()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b)
         {
             B = b;
+        }
+
+        public C(bool b, int p)
+        {
+            B = b;
+            P = p;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(bool B, int P)
+    {
+        public C(int p, bool b) : this(b, default)
+        {
         }
     }
 }
@@ -4097,6 +4134,11 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
+    public record Foo
+    {
+        public int Bar { get; init; }
+    }
+
     public record C(int P, Foo? B)
     {
         public static C GetC()
