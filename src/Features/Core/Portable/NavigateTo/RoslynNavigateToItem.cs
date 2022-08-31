@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         [DataMember(Order = 7)]
         public readonly ImmutableArray<TextSpan> NameMatchSpans;
 
+        [DataMember(Order = 8)]
+        public readonly bool HighPriority;
+
         public RoslynNavigateToItem(
             bool isStale,
             DocumentId documentId,
@@ -59,7 +62,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string kind,
             NavigateToMatchKind matchKind,
             bool isCaseSensitive,
-            ImmutableArray<TextSpan> nameMatchSpans)
+            ImmutableArray<TextSpan> nameMatchSpans,
+            bool highPriority)
         {
             IsStale = isStale;
             DocumentId = documentId;
@@ -69,6 +73,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             MatchKind = matchKind;
             IsCaseSensitive = isCaseSensitive;
             NameMatchSpans = nameMatchSpans;
+            HighPriority = highPriority;
         }
 
         public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(Solution solution, CancellationToken cancellationToken)
@@ -194,17 +199,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 get
                 {
 
+                    using var _ = ArrayBuilder<string>.GetInstance(out var parts);
+
+                    // Ensure if all else is equal, that high-pri items (e.g. from the user's current file) come first
+                    // before low pri items.  This only applies if things like the MatchKind are the same.  So we'll
+                    // still show an exact match from another file before a substring match from the current file.
+                    parts.Add(_item.HighPriority ? "0" : "1");
+
+                    parts.Add(_item.DeclaredSymbolInfo.ParameterCount.ToString("X4"));
+                    parts.Add(_item.DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                    parts.Add(_item.DeclaredSymbolInfo.Name);
+
                     // For partial types, we break up the file name into pieces.  i.e. If we have
                     // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
                     // the secondary sort string.  That way "Outer.cs" will be weighted above
                     // "Outer.Inner.cs"
                     var fileName = Path.GetFileNameWithoutExtension(_document.FilePath ?? "");
-
-                    using var _ = ArrayBuilder<string>.GetInstance(out var parts);
-
-                    parts.Add(_item.DeclaredSymbolInfo.ParameterCount.ToString("X4"));
-                    parts.Add(_item.DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
-                    parts.Add(_item.DeclaredSymbolInfo.Name);
                     parts.AddRange(fileName.Split(s_dotArray));
 
                     return string.Join(" ", parts);

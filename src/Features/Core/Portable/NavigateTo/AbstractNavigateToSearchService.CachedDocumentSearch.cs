@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, priorityDocumentKeys, cancellationToken).ConfigureAwait(false);
+                onItemFound, priorityDocumentKeys, highPriority: true, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                onItemFound, lowPriDocs, highPriority: false, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,
+            bool highPriority,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         return;
 
                     await ProcessIndexAsync(
-                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
+                        documentKey.Id, document: null, highPriority, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken));
             }
 

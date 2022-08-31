@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(
+                searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), highPriority: false, cancellationToken).ConfigureAwait(false);
         }
     }
 }

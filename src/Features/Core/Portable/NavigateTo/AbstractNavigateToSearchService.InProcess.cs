@@ -52,16 +52,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             // Prioritize the active documents if we have any.
             var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToSet();
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(
+                searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, highPriority: true, cancellationToken).ConfigureAwait(false);
 
             // Then process non-priority documents.
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(
+                searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, highPriority: false, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentsAsync(
-            Document? searchDocument, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, ISet<Document> documents, CancellationToken cancellationToken)
+            Document? searchDocument,
+            string patternName,
+            string? patternContainer,
+            DeclaredSymbolInfoKindSet kinds,
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            ISet<Document> documents,
+            bool highPriority,
+            CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
@@ -72,25 +80,33 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(() =>
-                    ProcessDocumentAsync(document, patternName, patternContainer, kinds, onResultFound, cancellationToken), cancellationToken));
+                    ProcessDocumentAsync(document, highPriority, patternName, patternContainer, kinds, onResultFound, cancellationToken), cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentAsync(
-            Document document, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
+            Document document,
+            bool highPriority,
+            string patternName,
+            string? patternContainer,
+            DeclaredSymbolInfoKindSet kinds,
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
-                document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+                document.Id, document, highPriority, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessIndexAsync(
-            DocumentId documentId, Document? document,
-            string patternName, string? patternContainer,
+            DocumentId documentId,
+            Document? document,
+            bool highPriority,
+            string patternName,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
             TopLevelSyntaxTreeIndex index,
@@ -110,20 +126,23 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     continue;
 
                 await AddResultIfMatchAsync(
-                    documentId, document,
+                    documentId, document, highPriority,
                     declaredSymbolInfo,
                     nameMatcher, containerMatcher,
-                    kinds,
-                    onResultFound, cancellationToken).ConfigureAwait(false);
+                    kinds, onResultFound, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private static async Task AddResultIfMatchAsync(
-            DocumentId documentId, Document? document,
+            DocumentId documentId,
+            Document? document,
+            bool highPriority,
             DeclaredSymbolInfo declaredSymbolInfo,
-            PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
+            PatternMatcher nameMatcher,
+            PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             using var nameMatches = TemporaryArray<PatternMatch>.Empty;
             using var containerMatches = TemporaryArray<PatternMatch>.Empty;
@@ -145,7 +164,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
                 var result = ConvertResult(
-                    documentId, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
+                    documentId, document, highPriority, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
                 await onResultFound(result).ConfigureAwait(false);
             }
         }
@@ -153,6 +172,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static RoslynNavigateToItem ConvertResult(
             DocumentId documentId,
             Document? document,
+            bool highPriority,
             DeclaredSymbolInfo declaredSymbolInfo,
             in TemporaryArray<PatternMatch> nameMatches,
             in TemporaryArray<PatternMatch> containerMatches,
@@ -179,7 +199,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 kind,
                 matchKind,
                 isCaseSensitive,
-                matchedSpans.ToImmutableAndClear());
+                matchedSpans.ToImmutableAndClear(),
+                highPriority);
         }
 
         private static async ValueTask<ImmutableArray<ProjectId>> GetAdditionalProjectsWithMatchAsync(
