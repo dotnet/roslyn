@@ -14,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace RunTests
+namespace PartitionTests
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
@@ -39,18 +39,11 @@ namespace RunTests
         /// </summary>
         private static readonly int s_maxMethodCount = 500;
 
-        private readonly Options _options;
-
-        internal AssemblyScheduler(Options options)
-        {
-            _options = options;
-        }
-
-        public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, PartitionOptions options, CancellationToken cancellationToken)
         {
             Logger.Log($"Scheduling {assemblies.Length} assemblies");
 
-            if (_options.Sequential || !_options.UseHelix)
+            if (options.SingleAssembly)
             {
                 Logger.Log("Building work items with one assembly each.");
                 // return individual work items per assembly that contain all the tests in that assembly.
@@ -59,14 +52,14 @@ namespace RunTests
 
             var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
 
-            ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
+            Console.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
 
             // Retrieve test runtimes from azure devops historical data.
-            var testHistory = await TestHistoryManager.GetTestHistoryAsync(_options, cancellationToken);
+            var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by test count.
-                ConsoleUtil.WriteLine($"##[warning]Could not look up test history - partitioning based on test count instead");
+                Console.WriteLine($"##[warning]Could not look up test history - partitioning based on test count instead");
                 var workItemsByMethodCount = BuildWorkItems<int>(
                     orderedTypeInfos,
                     isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
@@ -163,11 +156,11 @@ namespace RunTests
                 var allTests = assemblyTypes.Values.SelectMany(v => v).SelectMany(v => v.Tests).Select(t => t.FullyQualifiedName).ToList();
 
                 var totalExpectedRunTime = TimeSpan.FromMilliseconds(updated.Values.SelectMany(types => types).SelectMany(type => type.Tests).Sum(test => test.ExecutionTime.TotalMilliseconds));
-                ConsoleUtil.WriteLine($"{unmatchedLocalTests.Count} tests were missing historical data.  {unmatchedRemoteTests.Count()} tests were missing in local assemblies.  Estimate of total execution time for tests is {totalExpectedRunTime}.");
+                Console.WriteLine($"{unmatchedLocalTests.Count} tests were missing historical data.  {unmatchedRemoteTests.Count()} tests were missing in local assemblies.  Estimate of total execution time for tests is {totalExpectedRunTime}.");
             }
         }
 
-        private ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
+        private static ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
             ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
             Func<TWeight, bool> isOverLimitFunc,
             Func<TestMethodInfo, TWeight, TWeight> addFunc) where TWeight : struct
@@ -259,7 +252,7 @@ namespace RunTests
 
         private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {
-            ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
+            Console.WriteLine($"Built {workItems.Length} work items");
             Logger.Log("==== Work Item List ====");
             foreach (var workItem in workItems)
             {
@@ -269,8 +262,8 @@ namespace RunTests
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
-                    ConsoleUtil.WriteLine($"##[warning]Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
-                    LogFilters(workItem, ConsoleUtil.WriteLine);
+                    Console.WriteLine($"##[warning]Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
+                    LogFilters(workItem, Console.WriteLine);
                 }
                 else
                 {
@@ -360,3 +353,4 @@ namespace RunTests
         }
     }
 }
+

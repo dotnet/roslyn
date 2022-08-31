@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace PartitionTests
 {
     internal static class Logger
     {
