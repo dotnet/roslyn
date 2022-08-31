@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             Platform
         }
 
-        internal struct TypeHandleTargetInfo
+        internal readonly struct TypeHandleTargetInfo
         {
             public readonly string Namespace;
             public readonly string Name;

@@ -10,7 +10,7 @@ using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct MetadataDecoder
+    internal readonly struct MetadataDecoder
     {
         private readonly MetadataReader _reader;
         private readonly ImmutableArray<string> _allTypeParameters;
