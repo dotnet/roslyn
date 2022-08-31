@@ -2119,6 +2119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region diagnostics introduced for C# 12.0
+        // PROTOTYPE: These enum values have temporarily been moved further out
+        // to prevent conflicts. Before merging to main, change them so that the
+        // numbering is consecutive with respect to the previous fields
         ERR_ImplicitlyTypedDefaultParameter = 9500,
         ERR_OptionalParamValueMismatch = 9501,
         #endregion
