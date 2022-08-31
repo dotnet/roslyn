@@ -43,12 +43,17 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        {
+            return syntaxFacts.IsForEachStatement;
+        }
+
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
             SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
             if (snippetExpressionNode is null)
             {
                 return root;
@@ -56,26 +61,6 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
-        }
-
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
-        {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-
-            if (!syntaxFacts.IsForEachStatement(closestNode))
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the for statement.
-            if (closestNode.SpanStart != position)
-            {
-                return null;
-            }
-
-            return closestNode;
         }
     }
 }

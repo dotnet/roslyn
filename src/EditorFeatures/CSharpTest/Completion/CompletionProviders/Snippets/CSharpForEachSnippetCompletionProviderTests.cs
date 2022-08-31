@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public void Method()
     {
         foreach (var item in collection)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -62,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         var item = 5;
         foreach (var item1 in collection)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -78,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var expectedCodeAfterCommit =
 @"foreach (var item in collection)
-{$$
+{
+    $$
 }
 ";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -102,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public Program()
     {
         foreach (var item in collection)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -135,7 +139,8 @@ class Program
     {
         var list = new List<int> { 1, 2, 3 };
         foreach (var item in list)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -167,7 +172,8 @@ class Program
         void LocalMethod()
         {
             foreach (var item in collection)
-            {$$
+            {
+                $$
             }
         }
     }
@@ -193,7 +199,8 @@ static void Main(string[] args)
 {
     Print print = delegate(int val) {
         foreach (var item in collection)
-        {$$
+        {
+            $$
         }
     };
 }";
@@ -214,7 +221,8 @@ static void Main(string[] args)
 @"Func<int, int, bool> testForEquality = (x, y) =>
 {
     foreach (var item in collection)
-    {$$
+    {
+        $$
     }
 
     return x == y;
