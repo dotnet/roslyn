@@ -70,7 +70,7 @@ stages:
   
 - stage: Windows_Debug_Build_net472
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -79,13 +79,13 @@ stages:
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
       solution: src\Test\TestDependencies\TestDependencies-net472.csproj
-      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
-      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
-      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
-      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
-      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
-      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      compilersChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
       restoreArguments:
         /p:UsingToolPdbConverter=false
         /p:UsingToolVSSDK=false
@@ -98,7 +98,7 @@ stages:
 
 - stage: Windows_Release_Build_net472
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -107,13 +107,13 @@ stages:
       configuration: Release
       queueName: windows.vs2022preview.amd64.open
       solution: src\Test\TestDependencies\TestDependencies-net472.csproj
-      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
-      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
-      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
-      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
-      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
-      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      compilersChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
       restoreArguments:
         /p:UsingToolPdbConverter=false
         /p:UsingToolVSSDK=false
@@ -126,7 +126,7 @@ stages:
 
 - stage: Windows_Debug_Build_net60_windows
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -135,13 +135,13 @@ stages:
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
       solution: src\Test\TestDependencies\TestDependencies-net6.csproj
-      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
-      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
-      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
-      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
-      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
-      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      compilersChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
       restoreArguments:
         /p:UsingToolPdbConverter=false
         /p:UsingToolVSSDK=false
@@ -154,7 +154,7 @@ stages:
     
 - stage: Windows_Release_Build_net60_windows
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -163,13 +163,13 @@ stages:
       configuration: Release
       queueName: windows.vs2022preview.amd64.open
       solution: src\Test\TestDependencies\TestDependencies-net6.csproj
-      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
-      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
-      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
-      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
-      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
-      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      compilersChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
       restoreArguments:
         /p:UsingToolPdbConverter=false
         /p:UsingToolVSSDK=false
@@ -181,7 +181,7 @@ stages:
         /p:PublishReadyToRun=false
       
 - stage: Unix_Build
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true')))
   dependsOn: Determine_Changes
   jobs:
   - template: eng/pipelines/build-unix-job.yml
@@ -191,8 +191,8 @@ stages:
       configuration: Debug
       queueName: Build.Ubuntu.1804.Amd64.Open
       solution: src/Test/TestDependencies/TestDependencies-Compiler.csproj
-      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      compilersChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      scriptingChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
 
 - stage: Source_Build
   dependsOn: []
@@ -334,7 +334,7 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      compilerChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -370,7 +370,7 @@ stages:
           configuration: Release
       
   - job: Correctness_Determinism
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
@@ -387,7 +387,7 @@ stages:
           configuration: Debug
 
   - job: Correctness_Bootstrap_Build
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
@@ -428,7 +428,7 @@ stages:
         displayName: Validate TODO/PROTOTYPE comments are not present
 
   - job: Correctness_Rebuild
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
