@@ -87,11 +87,5 @@ namespace Microsoft.CodeAnalysis
             => Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(_candidateSymbols, 4), (int)this.CandidateReason));
 
         internal bool IsEmpty => this.Symbol == null && this.CandidateSymbols.Length == 0;
-
-        public static bool operator ==(SymbolInfo left, SymbolInfo right)
-            => left.Equals(right);
-
-        public static bool operator !=(SymbolInfo left, SymbolInfo right)
-            => !(left == right);
     }
 }
