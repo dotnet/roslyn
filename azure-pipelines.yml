@@ -70,9 +70,9 @@ stages:
   
 - stage: Windows_Debug_Build_net472
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
     parameters:
       jobName: Windows_Debug_Build_net472
       testArtifactName: Transport_Artifacts_Windows_Debug_net472
@@ -98,9 +98,9 @@ stages:
 
 - stage: Windows_Release_Build_net472
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
     parameters:
       jobName: Windows_Release_Build_net472
       testArtifactName: Transport_Artifacts_Windows_Release_net472
@@ -126,9 +126,9 @@ stages:
 
 - stage: Windows_Debug_Build_net60_windows
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
     parameters:
       jobName: Windows_Debug_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
@@ -154,9 +154,9 @@ stages:
     
 - stage: Windows_Release_Build_net60_windows
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
     parameters:
       jobName: Windows_Release_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Release_net60_windows
@@ -181,10 +181,10 @@ stages:
         /p:PublishReadyToRun=false
       
 - stage: Unix_Build
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true')))
   dependsOn: Determine_Changes
   jobs:
   - template: eng/pipelines/build-unix-job.yml
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true')))
     parameters:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
