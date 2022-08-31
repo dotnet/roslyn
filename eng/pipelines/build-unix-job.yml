@@ -21,6 +21,9 @@ parameters:
 - name: buildArguments
   type: string
   default: ''
+- name: shouldRun
+  type: boolean
+  default: true
 - name: solution
   type: string
   default: 'Compilers.sln'
@@ -33,6 +36,7 @@ parameters:
 
 jobs:
 - job: ${{ parameters.jobName }}
+  condition: ${{ parameters.shouldRun }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
       name: NetCore1ESPool-Public
