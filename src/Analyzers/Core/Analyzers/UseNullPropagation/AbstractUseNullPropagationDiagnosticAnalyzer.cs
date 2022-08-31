@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
+        TMemberAccessExpressionSyntax,
         TIfStatementSyntax,
         TExpressionStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
     {

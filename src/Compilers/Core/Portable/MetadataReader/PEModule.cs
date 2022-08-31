@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
 
-        internal struct BoolAndStringArrayData
+        internal readonly struct BoolAndStringArrayData
         {
             public BoolAndStringArrayData(bool sense, ImmutableArray<string?> strings)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             public readonly ImmutableArray<string?> Strings;
         }
 
-        internal struct BoolAndStringData
+        internal readonly struct BoolAndStringData
         {
             public BoolAndStringData(bool sense, string? @string)
             {
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
             return MetadataReader.GetTypeDefinition(typeDef).Attributes.IsInterface();
         }
 
-        private struct TypeDefToNamespace
+        private readonly struct TypeDefToNamespace
         {
             internal readonly TypeDefinitionHandle TypeDef;
             internal readonly NamespaceDefinitionHandle NamespaceHandle;
@@ -2197,7 +2197,7 @@ namespace Microsoft.CodeAnalysis
         }
 #nullable disable
 
-        internal struct AttributeInfo
+        internal readonly struct AttributeInfo
         {
             public readonly CustomAttributeHandle Handle;
             public readonly byte SignatureIndex;

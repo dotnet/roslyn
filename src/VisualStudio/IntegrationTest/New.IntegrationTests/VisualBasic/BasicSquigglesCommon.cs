@@ -34,7 +34,7 @@ End Class", HangMitigatingCancellationToken);
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task VerifySemanticErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"Class A

@@ -13,14 +13,14 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplayService
     {
-        protected readonly Host.LanguageServices Services;
+        protected readonly LanguageServices Services;
         protected readonly IStructuralTypeDisplayService AnonymousTypeDisplayService;
 
-        protected AbstractSymbolDisplayService(Host.LanguageServices services)
+        protected AbstractSymbolDisplayService(LanguageServices services)
         {
             Services = services;
             AnonymousTypeDisplayService = services.GetService<IStructuralTypeDisplayService>();

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
             private CodeCleanupOptionsProvider FallbackOptions => _renameLocationSet.FallbackOptions;
 
-            private struct ConflictLocationInfo
+            private readonly struct ConflictLocationInfo
             {
                 // The span of the Node that needs to be complexified 
                 public readonly TextSpan ComplexifiedSpan;

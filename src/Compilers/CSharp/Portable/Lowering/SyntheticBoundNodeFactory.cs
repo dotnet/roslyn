@@ -1137,6 +1137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Null(type, Syntax);
         }
 
+        // Produce a ByRef null of given type, like `ref T Unsafe.NullRef<T>()`.
+        public BoundExpression NullRef(TypeWithAnnotations type)
+        {
+            // *default(T*)
+            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), refersToLocation: false, type.Type);
+        }
+
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)
         {
             Debug.Assert(type.CanBeAssignedNull());

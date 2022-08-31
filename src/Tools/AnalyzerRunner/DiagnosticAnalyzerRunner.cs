@@ -479,7 +479,7 @@ namespace AnalyzerRunner
             WriteLine($"{analyzerName}:{padding} {telemetry.ExecutionTime.TotalMilliseconds,7:0}", ConsoleColor.White);
         }
 
-        private struct DocumentAnalyzerPerformance
+        private readonly struct DocumentAnalyzerPerformance
         {
             public DocumentAnalyzerPerformance(double editsPerSecond, long allocatedBytesPerEdit)
             {
