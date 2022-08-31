@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool INamedTypeSymbol.IsFileLocal =>
             // Even though we round-trip the file identifier through metadata to support EE,
             // we don't want public API to give the impression that the compiler considers a metadata type to be a file-local type.
-            UnderlyingNamedTypeSymbol.OriginalDefinition is not Metadata.PE.PENamedTypeSymbol
+            UnderlyingNamedTypeSymbol.OriginalDefinition is SourceMemberContainerTypeSymbol
                 && UnderlyingNamedTypeSymbol.AssociatedFileIdentifier is not null;
 
         INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();

@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -3812,6 +3814,51 @@ public class FileModifierTests : CSharpTestBase
                 //         C1.M1();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "C1").WithArguments("C1").WithLocation(5, 9));
         }
+    }
+
+    [Fact]
+    public void CannotAccessFromMetadata_02()
+    {
+        var fileTypeSource = """
+            file class C1 { public static void M1() {} }
+            """;
+
+        // reused across all compilations to try and trick the binder into thinking it's binding from the same file
+        var filePath = "file1.cs";
+
+        var comp0 = CreateCompilation((fileTypeSource, filePath), options: TestOptions.SigningReleaseDll);
+        comp0.VerifyDiagnostics();
+        var classC1 = comp0.GetMember<NamedTypeSymbol>("C1");
+        var originalFileIdentifier = classC1.AssociatedFileIdentifier!.Value;
+
+        var reference = comp0.ToMetadataReference();
+
+        var useFileTypeSource = """
+            class C2
+            {
+                void M2()
+                {
+                    C1.M1();
+                }
+            }
+            """;
+
+        var comp1 = CreateCompilation(
+            (useFileTypeSource, filePath),
+            references: new[] { reference },
+            targetFramework: TargetFramework.Mscorlib461,
+            options: TestOptions.SigningReleaseDll);
+        comp1.VerifyDiagnostics(
+            // file1.cs(5,9): error CS0103: The name 'C1' does not exist in the current context
+            //         C1.M1();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "C1").WithArguments("C1").WithLocation(5, 9));
+        var retargeted = comp1.GetMember<NamedTypeSymbol>("C1");
+        Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
+
+        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!.Value;
+        Assert.Equal(originalFileIdentifier.DisplayFilePath, retargetedFileIdentifier.DisplayFilePath);
+        Assert.Equal((IEnumerable<byte>)originalFileIdentifier.FilePathChecksumOpt, (IEnumerable<byte>)retargetedFileIdentifier.FilePathChecksumOpt);
+        Assert.Equal(originalFileIdentifier.EncoderFallbackErrorMessage, retargetedFileIdentifier.EncoderFallbackErrorMessage);
     }
 
     [Fact]
