@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Helpers.RemoveUnnecessaryImports;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultCompilationUnit.GetFirstToken();
-                    var newFirstToken = StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
+                    var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                     resultCompilationUnit = resultCompilationUnit.ReplaceToken(firstToken, newFirstToken);
                 }
 
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultNamespace.Members.First().GetFirstToken();
-                    var newFirstToken = StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
+                    var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                     resultNamespace = resultNamespace.ReplaceToken(firstToken, newFirstToken);
                 }
 

@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     Friend NotInheritable Class VisualBasicUnnecessaryImportsProvider
         Inherits AbstractUnnecessaryImportsProvider(Of ImportsClauseSyntax)
 
+        Private Const BC30561 As String = "BC30561" 'X' is ambiguous, imported from the namespaces or types...
+
         Public Shared Instance As New VisualBasicUnnecessaryImportsProvider
 
         Private Sub New()
@@ -64,8 +66,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Return unnecessaryImports.ToImmutableArray()
         End Function
 
-        Private Shared Function RemovalCausesAmbiguity(model As SemanticModel, redundantImport As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            Return False
+        Private Shared Function RemovalCausesAmbiguity(model As SemanticModel, redundantImport As ImportsClauseSyntax, cancellationToken As CancellationToken) As Boolean
+            Dim root = DirectCast(model.SyntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
+
+            Dim updatedRoot = VisualBasicRemoveUnnecessaryImportsRewriter.RemoveUnnecessaryImports(root, redundantImport, cancellationToken)
+            Dim updatedSyntaxTree = model.SyntaxTree.WithRootAndOptions(updatedRoot, model.SyntaxTree.Options)
+            Dim updatedCompilation = model.Compilation.ReplaceSyntaxTree(model.SyntaxTree, updatedSyntaxTree)
+
+            Dim updatedModel = updatedCompilation.GetSemanticModel(updatedSyntaxTree)
+            Dim diagnostics = updatedModel.GetDiagnostics(cancellationToken:=cancellationToken)
+            Return diagnostics.Any(Function(d) d.Id = BC30561)
         End Function
 
         Private Shared Sub AddRedundantImports(
