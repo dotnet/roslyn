@@ -1019,11 +1019,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             catch (KeyNotFoundException)
             {
-                // Explicitly catching exception so we don't send the syntax tree
-                // (potentially containing private user information) to telemetry.
-                // Instead, the tree is stored in the below type so we can analyze
-                // it in dumps.
-                throw new SyntaxTreeException("Syntax tree not found.", tree);
+                // Explicitly catching and re-throwing exception so we don't send the syntax
+                // tree (potentially containing private user information) to telemetry.
+                throw new KeyNotFoundException($"Syntax tree not found with file path: {tree.FilePath}");
             }
         }
 
