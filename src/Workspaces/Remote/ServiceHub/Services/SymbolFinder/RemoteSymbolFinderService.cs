@@ -185,7 +185,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 async solution =>
                 {
                     var cacheService = solution.Services.GetRequiredService<SymbolTreeInfoCacheService>();
-                    await cacheService.AnalyzeDocumentAsync(solution.GetRequiredDocument(documentId), isMethodBodyEdit, cancellationToken).ConfigureAwait(false);
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                    await cacheService.AnalyzeDocumentAsync(document, isMethodBodyEdit, cancellationToken).ConfigureAwait(false);
                 },
                 cancellationToken);
         }
