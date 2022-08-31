@@ -14,6 +14,7 @@ using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
+using RunTestsUtils;
 
 namespace HelixTestRunner;
 internal class TestHistoryManager

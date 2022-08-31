@@ -11,6 +11,7 @@ using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using RunTestsUtils;
 
 namespace HelixTestRunner;
 internal class HelixRunner
@@ -258,11 +259,7 @@ internal class HelixRunner
         }
 
         fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
-        fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}");
-        if (options.IncludeHtml)
-        {
-            fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={GetResultsFilePath(workItem, options, "html")}");
-        }
+        fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={GetResultsFilePath(workItem, options)}");
 
         var blameOption = "CollectDump;CollectHangDump";
 
@@ -307,9 +304,9 @@ internal class HelixRunner
         return fileContentsBuilder.ToString();
     }
 
-    private static string GetResultsFilePath(WorkItemInfo workItemInfo, HelixOptions options, string suffix = "xml")
+    private static string GetResultsFilePath(WorkItemInfo workItemInfo, HelixOptions options)
     {
-        var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
+        var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.xml";
         return Path.Combine(".", fileName);
     }
 }

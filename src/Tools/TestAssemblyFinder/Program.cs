@@ -41,8 +41,7 @@ int Handle(TestAssemblyFinderOptions finderOptions)
         var assemblies = GetAssemblyFilePaths(finderOptions.ArtifactsDirectory, finderOptions.TargetFrameworks, finderOptions.Configuration, finderOptions.Include, finderOptions.Exclude);
 
         // Write the assembly information to a file so we can get back to it in subsequent steps.
-        using var fileStream = File.Create(Path.Combine(finderOptions.ArtifactsDirectory, finderOptions.OutputFilePath));
-        JsonSerializer.Serialize(fileStream, assemblies);
+        File.WriteAllText(finderOptions.OutputFilePath, string.Join(Environment.NewLine, assemblies));
         Console.WriteLine($"Wrote {assemblies.Length} paths to {finderOptions.OutputFilePath}");
 
         return 0;
@@ -133,4 +132,11 @@ record TestAssemblyFinderOptions(
     string Configuration,
     string OutputFilePath,
     string[] Include,
-    string[] Exclude);
+    string[] Exclude)
+{
+    public override string ToString()
+    {
+        return $"{nameof(ArtifactsDirectory)} = {ArtifactsDirectory}; {nameof(TargetFrameworks)} = {string.Join(",", TargetFrameworks)}; {nameof(Configuration)} = {Configuration};" +
+            $" {nameof(OutputFilePath)} = {OutputFilePath}; {nameof(Include)} = {string.Join(",", Include)}; {nameof(Exclude)} = {string.Join(",", Exclude)}";
+    }
+}

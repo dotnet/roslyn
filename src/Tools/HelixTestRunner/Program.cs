@@ -11,6 +11,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using HelixTestRunner;
+using RunTestsUtils;
 
 // Setup cancellation for ctrl-c key presses
 using var cts = new CancellationTokenSource();
@@ -33,7 +34,6 @@ rootCommand.AddOption(new Option<string>("--helixQueueName", () => "Windows.10.A
 rootCommand.AddOption(new Option<string?>("--accessToken", "Pipeline access token with permissions to view test history"));
 rootCommand.AddOption(new Option<string?>("--phaseName", "Pipeline phase name associated with this test run"));
 rootCommand.AddOption(new Option<string?>("--targetBranchName", "Target branch of this pipeline run"));
-rootCommand.AddOption(new Option<bool>("--includeHtml", () => false, "Include HTML file output"));
 rootCommand.AddOption(new Option<string?>("--testFilter", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA"));
 
 
@@ -46,7 +46,6 @@ async Task<int> HandleAsync(HelixOptions helixOptions)
     try
     {
         var cancellationToken = cts.Token;
-        Console.WriteLine($"Input options: {helixOptions}");
 
         // Find the assemblies to partition.
         if (!File.Exists(helixOptions.TestAssembliesPath))
@@ -108,5 +107,4 @@ record HelixOptions(
     string? AccessToken,
     string? PhaseName,
     string? TargetBranchName,
-    bool IncludeHtml,
     string? TestFilter);
