@@ -145,10 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
-                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
 
                 if (parameterSyntax is ParameterSyntax concreteParam)
                 {
@@ -315,11 +311,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            if (parameter.RefKind == RefKind.Out)
+            if (IsRefScopedByDefault(parameter))
             {
                 return scope == DeclarationScope.ValueScoped;
             }
             return true;
+        }
+
+        internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
+        {
+            return IsRefScopedByDefault(parameter.RefKind, parameter.TypeWithAnnotations);
+        }
+
+        internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
+        {
+            switch (refKind)
+            {
+                case RefKind.Out:
+                    return true;
+                case RefKind.Ref:
+                case RefKind.In:
+                    return parameterType.IsRefLikeType();
+                default:
+                    return false;
+            }
+        }
+
+        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
+        {
+            var declaredScope = parameter.DeclaredScope;
+            return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
+                DeclarationScope.RefScoped :
+                declaredScope;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)

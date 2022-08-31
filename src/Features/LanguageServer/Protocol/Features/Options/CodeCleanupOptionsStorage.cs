@@ -18,7 +18,7 @@ internal static class CodeCleanupOptionsStorage
     public static ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.Services), cancellationToken);
 
-    public static CodeCleanupOptions GetCodeCleanupOptions(this IGlobalOptionService globalOptions, Host.LanguageServices languageServices)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => new(
             globalOptions.GetSyntaxFormattingOptions(languageServices),
             globalOptions.GetSimplifierOptions(languageServices))

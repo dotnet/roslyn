@@ -141,14 +141,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public TextSpan StartingSelection { get; }
 
         public void Submit()
-        {
-            _session.Commit();
-        }
+            => _session.Commit();
 
         public void Cancel()
-        {
-            _session.Cancel();
-        }
+            => _session.Cancel();
 
         public void Dispose()
         {

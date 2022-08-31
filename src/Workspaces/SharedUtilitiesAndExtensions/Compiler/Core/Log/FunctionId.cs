@@ -567,6 +567,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Completion_SemanticSnippets = 589,
         // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
 
-        Next = 600
+        SpellCheckFixer_CouldNotFindDocument = 600,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 601,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 602,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
+        SpellCheckFixer_ReplacementTextInvalid = 604,
+        SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621
     }
 }
