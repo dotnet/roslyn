@@ -21,7 +21,7 @@ steps:
       --restore
       /p:BuildReason=$(Build.Reason)
       /p:CompilersChange=$(CompilersChange)
-      /p:ScriptingChange=$(CompilersChange)
+      /p:ScriptingChange=$(ScriptingChange)
   displayName: Restore
 
 - script: 
@@ -33,7 +33,7 @@ steps:
     --build
     /p:BuildReason=$(Build.Reason)
     /p:CompilersChange=$(CompilersChange)
-    /p:ScriptingChange=$(CompilersChange)
+    /p:ScriptingChange=$(ScriptingChange)
   displayName: Build
 
 - script: ./eng/prepare-tests.sh

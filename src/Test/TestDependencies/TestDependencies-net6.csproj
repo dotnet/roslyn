@@ -38,7 +38,7 @@
   </ItemGroup>
   
   <!-- Interactive Tests -->
-  <ItemGroup Condition="'$(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
+  <ItemGroup Condition="'$(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   

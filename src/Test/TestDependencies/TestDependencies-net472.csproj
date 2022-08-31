@@ -72,7 +72,7 @@
   </ItemGroup>
 
   <!-- External Access Tests -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(CompilersChange)' == 'true' OR '$(WorkspaceChange)' == 'true' OR '$(FeaturesChange)' == 'true' OR '$(VisualStudioChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
     <ProjectReference Include="..\..\Tools\ExternalAccess\FSharpTest\Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\OmniSharpTest\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\RazorTest\Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests.csproj" ReferenceOutputAssembly="false" />
