@@ -12653,10 +12653,7 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput: "my string").VerifyDiagnostics(
-                    // (14,15): warning CS9068: Parameter 1 has default value '"a string"' in method group and '<missing>' in the target delegate type.
-                    //         D d = M;
-                    Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", @"""a string""", "<missing>").WithLocation(14, 15));
+            CompileAndVerify(source, expectedOutput: "my string").VerifyDiagnostics();
         }
 
         [Fact]
@@ -12697,15 +12694,13 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,19): warning CS9068: Parameter 1 has default value '40' in method group and '<missing>' in the target delegate type.
-                //         Del del = M;
-                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "40", "<missing>").WithLocation(8, 19),
-                // (8,19): warning CS9068: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
+                // (8,19): warning CS9069: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
                 //         Del del = M;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("2", @"""b""", @"""a""").WithLocation(8, 19),
-                // (8,19): warning CS9068: Parameter 3 has default value '1' in method group and 'default(long)' in the target delegate type.
+                // (8,19): warning CS9069: Parameter 3 has default value '1' in method group and 'default(long)' in the target delegate type.
                 //         Del del = M;
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("3", "1", "default(long)").WithLocation(8, 19));
+
         }
 
         [Fact]

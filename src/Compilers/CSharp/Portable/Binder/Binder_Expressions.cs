@@ -8860,7 +8860,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
 
-            // PROTOTYPE: bind default values and pass them through here to allow support for default parameters in method groups
             return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations, parameterDefaultValues: parameterDefaultValues);
         }
 

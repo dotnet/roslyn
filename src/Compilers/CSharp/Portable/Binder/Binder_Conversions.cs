@@ -1324,14 +1324,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void CheckForDefaultParameterMismatch(SyntaxNode methodGroupSyntax, MethodSymbol sourceMethod, MethodSymbol targetDelegateInvoke, bool isExtensionMethod, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(sourceMethod.ParameterCount == targetDelegateInvoke.ParameterCount + (isExtensionMethod ? 1 : 0));
-
             var start = isExtensionMethod ? 1 : 0;
+            Debug.Assert(sourceMethod.ParameterCount == targetDelegateInvoke.ParameterCount + start);
+
             for (int i = start; i < sourceMethod.ParameterCount; i++)
             {
                 var delegateParameter = targetDelegateInvoke.Parameters[isExtensionMethod ? i - 1 : i];
-                var sourceParameter = sourceMethod.Parameters[i];
-                Conversions.CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceParameter, delegateParameter, i + 1, methodGroupSyntax.Location, diagnostics);
+                if (delegateParameter.HasExplicitDefaultValue)
+                {
+                    Conversions.CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceMethod.Parameters[i], delegateParameter, paramIdx: i + 1, methodGroupSyntax.Location, diagnostics);
+                }
             }
         }
 

@@ -7144,10 +7144,7 @@ class C
 }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                    // (13,12): warning CS9069: Parameter 2 has default value 'null' in method group and '<missing>' in the target delegate type.
-                    //         M1(M2);
-                    Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M2").WithArguments("2", "null", "<missing>").WithLocation(13, 12));
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

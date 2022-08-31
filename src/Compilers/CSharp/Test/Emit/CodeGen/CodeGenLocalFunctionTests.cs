@@ -2007,7 +2007,7 @@ Console.Write(' ');
 void VoidLocal() => Console.Write(2);
 VoidLocal();
 ";
-            VerifyOutputInMain(source, "2 2", usings: "System");
+            VerifyOutputInMain(source, "2 2", "System");
         }
 
         [Fact]
@@ -2020,7 +2020,7 @@ void Local()
 };
 Local();
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2034,7 +2034,7 @@ void Params(params int[] x)
 }
 Params(2);
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2052,7 +2052,7 @@ Console.Write(a);
 Console.Write(' ');
 Console.Write(b);
 ";
-            VerifyOutputInMain(source, "2 2", usings: "System");
+            VerifyOutputInMain(source, "2 2", "System");
         }
 
         [Fact]
@@ -2067,7 +2067,7 @@ NamedOptional(x: 3);
 Console.Write(' ');
 NamedOptional();
 ";
-            VerifyOutputInMain(source, "3 2", usings: "System");
+            VerifyOutputInMain(source, "3 2", "System");
         }
 
         [Fact, WorkItem(51518, "https://github.com/dotnet/roslyn/issues/51518")]
@@ -2100,12 +2100,7 @@ public class C
         var p2 = d.Method.GetParameters();
         Console.WriteLine(p2[0].HasDefaultValue);
         Console.WriteLine(p2[0].DefaultValue);", @"True
-5", usings: "System", diagnostics: new[]
-            {
-                // (8,17): warning CS9069: Parameter 1 has default value '5' in method group and '<missing>' in the target delegate type.
-                //         var d = (Action<int>)TestAction;
-                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "(Action<int>)TestAction").WithArguments("1", "5", "<missing>").WithLocation(8, 17)
-            });
+5", new[] { "System" });
         }
 
         [Fact]
@@ -2161,7 +2156,7 @@ dynamic RetDyn()
 }
 Console.Write(RetDyn());
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2207,7 +2202,7 @@ void Local()
 }
 Console.Write(nameof(Local));
 ";
-            VerifyOutputInMain(source, "Local", usings: "System");
+            VerifyOutputInMain(source, "Local", "System");
         }
 
         [Fact]
@@ -2220,7 +2215,7 @@ Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
 }
 Console.Write(Local(x => x));
 ";
-            VerifyOutputInMain(source, "x => x", usings: new[] { "System", "System.Linq.Expressions" });
+            VerifyOutputInMain(source, "x => x", "System", "System.Linq.Expressions");
         }
 
         [Fact]
@@ -2233,7 +2228,7 @@ IEnumerable<int> Query(IEnumerable<int> values)
 }
 Console.Write(string.Join("","", Query(Enumerable.Range(0, 10))));
 ";
-            VerifyOutputInMain(source, "0,1,4,9,16", usings: new[] { "System", "System.Linq", "System.Collections.Generic" });
+            VerifyOutputInMain(source, "0,1,4,9,16", "System", "System.Linq", "System.Collections.Generic");
         }
 
         [Fact]
@@ -2317,7 +2312,7 @@ class Program
     public static void Main()
     {
         #if LocalFunc
-        void Local() 
+        void Local()
         {
             Console.Write(2);
             Console.Write(' ');
@@ -2349,7 +2344,7 @@ void Local()
 Local();
 ";
             // No diagnostics is asserted in VerifyOutput, so if the warning happens, then we'll catch it
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2390,7 +2385,7 @@ Console.Write(2);
 Console.Write(' ');
 Main();
 ";
-            VerifyOutputInMain(source, "2 4", usings: "System");
+            VerifyOutputInMain(source, "2 4", "System");
         }
 
         [Fact]
@@ -2458,7 +2453,7 @@ if (true)
     Local();
 }
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
 
@@ -2530,7 +2525,7 @@ int Local(int x) => x;
 Func<int, int> local = Local;
 Console.Write(local(2));
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2541,7 +2536,7 @@ T Local<T>(T x) => x;
 Func<int, int> local = Local;
 Console.Write(local(2));
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2552,7 +2547,7 @@ T Local<T>(T x) => x;
 Func<int, int> local = Local<int>;
 Console.Write(local(2));
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2569,7 +2564,7 @@ Console.Write(' ');
 local = (Action)Local;
 local();
 ";
-            VerifyOutputInMain(source, "2 2", usings: "System");
+            VerifyOutputInMain(source, "2 2", "System");
         }
 
         [Fact]
@@ -2581,7 +2576,7 @@ int Bar() => ++x;
 var str = $@""{((Func<int>)(() => { int Goo() => Bar(); return Goo(); }))()}"";
 Console.Write(str + ' ' + x);
 ";
-            VerifyOutputInMain(source, "2 2", usings: "System");
+            VerifyOutputInMain(source, "2 2", "System");
         }
 
         // StaticNoClosure*() are generic because the reference to the locfunc is constructed, and actual local function is not
@@ -2591,12 +2586,12 @@ Console.Write(str + ' ' + x);
         {
             var source = @"
 T Goo<T>(T x)
-{ 
+{
     return x;
 }
 Console.Write(Goo(2));
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Goo");
             Assert.True(goo.IsStatic);
             Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
@@ -2613,7 +2608,7 @@ T Goo<T>(T x)
 Func<int, int> goo = Goo;
 Console.Write(goo(2));
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.True(goo.IsStatic);
@@ -2720,7 +2715,7 @@ void Outer()
 }
 Outer();
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var outer = verify.FindLocalFunction("Outer");
             var inner = verify.FindLocalFunction("Inner");
             Assert.Equal(outer.ContainingType, inner.ContainingType);
@@ -2866,7 +2861,7 @@ class Program
     static void A()
     {
         int a = 0;
-        void M1() 
+        void M1()
         {
             int b = a;
             void M2()
@@ -2930,7 +2925,7 @@ class Program
                     c = 2;
                 }
                 Print(a);
-                M3(); 
+                M3();
                 Print(c);
                 a = 2;
             }
@@ -3020,7 +3015,7 @@ class Program
                     Print(c);
                     c = 2;
                 }
-                M3(); 
+                M3();
                 Print(c);
             }
             M2();
@@ -3061,7 +3056,7 @@ class Program
         [Fact]
         public void InstanceClosure()
         {
-            var source = @" 
+            var source = @"
 using System;
 
 class Program
@@ -3101,7 +3096,7 @@ using System;
 
 class Program
 {
-    static int Test() 
+    static int Test()
     {
         int x = 2;
         int Local1(int y)
@@ -3135,7 +3130,7 @@ void Goo()
 }
 Goo();
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, goo.ContainingType);
@@ -3160,7 +3155,7 @@ void Goo<T1>()
 }
 Goo<int>();
 ";
-            var verify = VerifyOutputInMain(source, "4", usings: "System");
+            var verify = VerifyOutputInMain(source, "4", "System");
             var goo = verify.FindLocalFunction("Goo");
             var bar = verify.FindLocalFunction("Bar");
             Assert.Equal(1, goo.Parameters.Length);
@@ -3204,7 +3199,7 @@ void Outer()
 
 Outer();
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var inner = verify.FindLocalFunction("Inner");
             var middle = verify.FindLocalFunction("Middle");
             var outer = verify.FindLocalFunction("Outer");
@@ -3278,7 +3273,7 @@ void Goo()
 }
 Goo();
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, goo.ContainingType);
@@ -3312,7 +3307,7 @@ void Goo(int depth)
 }
 Goo(0);
 ";
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
             var goo = verify.FindLocalFunction("Goo");
             var bar = verify.FindLocalFunction("Bar");
@@ -3345,7 +3340,7 @@ void Goo(int depth)
 }
 Goo(0);
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -3367,7 +3362,7 @@ void Goo(int depth)
 }
 Goo(0);
 ";
-            VerifyOutputInMain(source, "2", usings: "System");
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -3432,7 +3427,7 @@ Console.Write(Outer(false));
 Console.Write(' ');
 Console.Write(x);
 ";
-            VerifyOutputInMain(source, "1 1", usings: "System");
+            VerifyOutputInMain(source, "1 1", "System");
         }
 
         [Fact]
@@ -3446,7 +3441,7 @@ IEnumerable<int> Local()
 }
 Console.Write(string.Join("","", Local()));
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Collections.Generic" });
+            VerifyOutputInMain(source, "2", "System", "System.Collections.Generic");
         }
 
         [Fact]
@@ -3460,7 +3455,7 @@ IEnumerable<T> LocalGeneric<T>(T val)
 }
 Console.Write(string.Join("","", LocalGeneric(2)));
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Collections.Generic" });
+            VerifyOutputInMain(source, "2", "System", "System.Collections.Generic");
         }
 
         [Fact]
@@ -3477,7 +3472,7 @@ foreach (int x in LocalNongen())
     Console.Write(x);
 }
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Collections" });
+            VerifyOutputInMain(source, "2", "System", "System.Collections");
         }
 
         [Fact]
@@ -3493,7 +3488,7 @@ var y = LocalEnumerator();
 y.MoveNext();
 Console.Write(y.Current);
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Collections" });
+            VerifyOutputInMain(source, "2", "System", "System.Collections");
         }
 
         [Fact]
@@ -4242,7 +4237,7 @@ void Local()
 Local();
 ";
             // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
-            var verify = VerifyOutputInMain(source, "2", usings: "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Local");
             Assert.True(goo.IsStatic);
             Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
@@ -4337,7 +4332,7 @@ L5<dynamic>(1, 3, val);
 1, 3, 2: System.Int32
 1, 3, 2: System.Object
 ";
-            VerifyOutputInMain(src, output, usings: new[] { "System", "System.Collections.Generic" });
+            VerifyOutputInMain(src, output, "System", "System.Collections.Generic");
         }
 
         [Fact]
@@ -4427,7 +4422,7 @@ L1(val, val2);
 L1(val);
 L1(val, val, val);
 ";
-            VerifyOutputInMain(src, "023020222", usings: new[] { "System" });
+            VerifyOutputInMain(src, "023020222", "System");
         }
 
         [Fact]
@@ -4440,7 +4435,7 @@ async Task<int> Local()
 }
 Console.Write(Local().Result);
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Threading.Tasks" });
+            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
         }
 
         [Fact]
@@ -4453,7 +4448,7 @@ async Task<int> LocalParam(int x)
 }
 Console.Write(LocalParam(2).Result);
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Threading.Tasks" });
+            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
         }
 
         [Fact]
@@ -4467,7 +4462,7 @@ async Task<T> LocalGeneric<T>(T x)
 }
 Console.Write(LocalGeneric(2).Result);
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Threading.Tasks" });
+            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
         }
 
         [Fact]
@@ -4483,7 +4478,7 @@ async void LocalVoid()
 }
 LocalVoid();
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Threading.Tasks" });
+            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
         }
 
         [Fact]
@@ -4503,7 +4498,7 @@ async Task<int> AwaitAwait()
 }
 Console.WriteLine(AwaitAwait().Result);
 ";
-            VerifyOutputInMain(source, "2", usings: new[] { "System", "System.Threading.Tasks" });
+            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
         }
 
         [Fact]
@@ -4844,7 +4839,7 @@ void Local<T>(T t, int count)
 
 Local(""A"", 5);
 ";
-            VerifyOutputInMain(src, "AAAAA", usings: "System");
+            VerifyOutputInMain(src, "AAAAA", "System");
         }
 
         [Fact]
@@ -4864,7 +4859,7 @@ void Local<T>(T t, int count)
 
 Local(""A"", 5);
 ";
-            VerifyOutputInMain(src, "AAAAA", usings: "System");
+            VerifyOutputInMain(src, "AAAAA", "System");
         }
 
         [Fact]
@@ -4884,7 +4879,7 @@ void Local<T>(T t, int count)
 
 Local(""A"", 5);
 ";
-            VerifyOutputInMain(src, "AAAAA", usings: "System");
+            VerifyOutputInMain(src, "AAAAA", "System");
         }
 
         [Fact]
@@ -6099,19 +6094,19 @@ public class Program
             CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
         }
 
-        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, DiagnosticDescription[] diagnostics = null, Verification verify = Verification.Passes)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
-            return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(diagnostics ?? Array.Empty<DiagnosticDescription>());
+            return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
-        internal CompilationVerifier VerifyOutput(string source, string output, DiagnosticDescription[] diagnostics = null)
+        internal CompilationVerifier VerifyOutput(string source, string output)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
-            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(diagnostics ?? Array.Empty<DiagnosticDescription>());
+            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        internal CompilationVerifier VerifyOutputInMain(string methodBody, string output, DiagnosticDescription[] diagnostics = null, params string[] usings)
+        internal CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
         {
             for (var i = 0; i < usings.Length; i++)
             {
@@ -6126,7 +6121,7 @@ class Program
 " + methodBody + @"
     }
 }";
-            return VerifyOutput(source, output, diagnostics);
+            return VerifyOutput(source, output);
         }
     }
 }
