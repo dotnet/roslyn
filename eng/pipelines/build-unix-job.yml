@@ -9,81 +9,44 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
-  type: string
-  default: ''
-- name: restoreArguments
-  type: string
-  default: ''
-- name: buildArguments
-  type: string
-  default: ''
-- name: shouldRun
-  type: string
-  default: 'true'
-- name: solution
-  type: string
-  default: 'Compilers.sln'
-- name: compilersChange
-  type: string
-  default: ''
-- name: scriptingChange
-  type: string
-  default: ''
 
-jobs:
-- job: ${{ parameters.jobName }}
-  condition: eq (${{ parameters.shouldRun }}, 'true')
-  pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals ${{ parameters.queueName }}
+steps:
+- template: checkout-unix-task.yml
 
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
-  timeoutInMinutes: 40
+- script:
+    ./eng/build.sh
+      --ci --prepareMachine --binaryLog
+      --configuration ${{ parameters.configuration }}
+      --solution $(Solution)
+      --restore
+      /p:BuildReason=$(Build.Reason)
+      /p:CompilersChange=$(CompilersChange)
+      /p:ScriptingChange=$(CompilersChange)
+  displayName: Restore
 
-  steps:
-    - template: checkout-unix-task.yml
+- script: 
+    ./eng/build.sh
+    --ci --prepareMachine --binaryLog
+    --skipDocumentation
+    --configuration ${{ parameters.configuration }}
+    --solution ${{ parameters.solution }}
+    --build
+    /p:BuildReason=$(Build.Reason)
+    /p:CompilersChange=${{ parameters.compilersChange }}
+    /p:ScriptingChange=${{ parameters.scriptingChange }}
+    ${{ parameters.buildArguments }}
+  displayName: Build
 
-    - script:
-        ./eng/build.sh
-         --ci --prepareMachine --binaryLog
-         --configuration ${{ parameters.configuration }}
-         --solution ${{ parameters.solution }}
-         --restore
-         /p:BuildReason=$(Build.Reason)
-         /p:CompilersChange=${{ parameters.compilersChange }}
-         /p:ScriptingChange=${{ parameters.scriptingChange }}
-         ${{ parameters.restoreArguments }}
-      displayName: Restore
+- script: ./eng/prepare-tests.sh
+  displayName: Prepare Test Payload
 
-    - script: 
-        ./eng/build.sh
-        --ci --prepareMachine --binaryLog
-        --skipDocumentation
-        --configuration ${{ parameters.configuration }}
-        --solution ${{ parameters.solution }}
-        --build
-        /p:BuildReason=$(Build.Reason)
-        /p:CompilersChange=${{ parameters.compilersChange }}
-        /p:ScriptingChange=${{ parameters.scriptingChange }}
-        ${{ parameters.buildArguments }}
-      displayName: Build
+- task: PublishPipelineArtifact@1
+  displayName: Publish Test Payload
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
+    artifactName: ${{ parameters.testArtifactName }}
 
-    - script: ./eng/prepare-tests.sh
-      displayName: Prepare Test Payload
-
-    - task: PublishPipelineArtifact@1
-      displayName: Publish Test Payload
-      inputs:
-        targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
-        artifactName: ${{ parameters.testArtifactName }}
-
-    - template: publish-logs.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
-        jobName: ${{ parameters.jobName }}
+- template: publish-logs.yml
+  parameters:
+    configuration: ${{ parameters.configuration }}
+    jobName: ${{ parameters.jobName }}
