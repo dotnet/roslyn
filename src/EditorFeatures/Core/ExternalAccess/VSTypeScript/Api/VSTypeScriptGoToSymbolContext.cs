@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         public TextSpan Span { get; }
 
-        public void AddItem(string unused, VSTypeScriptDefinitionItem item)
+        public void AddItem(string key, VSTypeScriptDefinitionItem item)
         {
+            _ = key;
             this.DefinitionItem = item.UnderlyingObject;
         }
     }
