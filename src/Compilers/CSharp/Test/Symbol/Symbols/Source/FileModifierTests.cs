@@ -722,6 +722,39 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
+    [Fact]
+    public void DuplicateFileNames_05()
+    {
+        var source1 = """
+            using System;
+
+            file class C // 1
+            {
+                public static void M()
+                {
+                    Console.Write(1);
+                }
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                static void Main()
+                {
+                    C.M();
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source1, "file1.cs"), (source2, "file1.cs") });
+        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // file1.cs(3,12): error CS9067: File-local type 'C' must be declared in a file with a unique path. Path 'file1.cs' is used in multiple files.
+            // file class C // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "file1.cs").WithLocation(3, 12));
+    }
+
     // Data based on Lexer.ScanIdentifier_FastPath, excluding '/', '\', and ':' because those are path separators.
     [Theory]
     [InlineData('&')]
