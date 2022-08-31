@@ -126,7 +126,7 @@ stages:
 
 - stage: Windows_Debug_Build_net60_windows
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -154,7 +154,7 @@ stages:
     
 - stage: Windows_Release_Build_net60_windows
   dependsOn: Determine_Changes
-  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
