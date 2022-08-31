@@ -4644,6 +4644,34 @@ class Program
         }
 
         [Fact]
+        public void OverloadResolution_52()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate int D2(int j = 1);
+
+    static void F(D1 d) { }
+    static int F(D2 d) => d();
+    static int M(int i = 2) => i;
+
+    static void Main()
+    {
+        int y = F(M);
+        Console.WriteLine(y);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics(
+                // (14,19): warning CS9502: Parameter 1 has default value '2' in method group and '1' in the target delegate type.
+                //         int y = F(M);
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "2", "1").WithLocation(14, 19));
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
