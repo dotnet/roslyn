@@ -2277,7 +2277,7 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="B\u0061r")
 
-                    result.AssertReplacementTextInvalid()
+                    result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                     result.AssertLabeledSpansAre("invalid", "B\u0061r", RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
@@ -2974,7 +2974,7 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="C.D")
 
-                    result.AssertReplacementTextInvalid()
+                    result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                     result.AssertLabeledSpansAre("conflict", "C.D", RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
@@ -3000,7 +3000,7 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:=renameTo)
 
-                    result.AssertReplacementTextInvalid()
+                    result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                     result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub

@@ -739,7 +739,7 @@ class {|Invalid:$$Foo|}
                     </Workspace>, host:=host, renameTo:="`")
 
                     result.AssertLabeledSpansAre("Invalid", "`", RelatedLocationType.UnresolvedConflict)
-                    result.AssertReplacementTextInvalid()
+                    result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 End Using
             End Sub
 
@@ -760,7 +760,7 @@ class {|Invalid:$$Foo|}
                    renameTo:="!")
 
                     result.AssertLabeledSpansAre("Invalid", "!", RelatedLocationType.UnresolvedConflict)
-                    result.AssertReplacementTextInvalid()
+                    result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 End Using
             End Sub
 
@@ -881,7 +881,7 @@ class {|Invalid:$$Foo|}
                         </Project>
                     </Workspace>, host:=host, renameTo:="Foo@")
 
-                    result.AssertReplacementTextInvalid()
+                    result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                     result.AssertLabeledSpansAre("Invalid", "Foo@", RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
@@ -3306,7 +3306,7 @@ class {|conflict:C$$|} { }
                        </Project>
                    </Workspace>, host:=host, renameTo:="C.D")
 
-                result.AssertReplacementTextInvalid()
+                result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 result.AssertLabeledSpansAre("conflict", "C.D", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -3326,7 +3326,7 @@ class {|conflict:C$$|} { }
                        </Project>
                    </Workspace>, host:=host, renameTo:=renameTo)
 
-                result.AssertReplacementTextInvalid()
+                result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
