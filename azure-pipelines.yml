@@ -301,7 +301,8 @@ stages:
         configuration: Debug
         testArguments: -testCoreClr
 
-  - template: eng/pipelines/test-windows-job.yml
+  - ${{ if or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')) }}:
+    - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreCLR IOperation Debug'
       jobName: Test_Windows_CoreClr_IOperation_Debug
@@ -311,13 +312,14 @@ stages:
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
-      jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
-      configuration: Debug
-      testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+  - ${{ if or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')) }}:
+    - template: eng/pipelines/test-windows-job.yml
+      parameters:
+        testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
+        jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
+        testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
+        configuration: Debug
+        testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build_net60_windows
