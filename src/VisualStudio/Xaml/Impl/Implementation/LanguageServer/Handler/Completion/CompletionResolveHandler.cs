@@ -43,8 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public object? GetTextDocumentIdentifier(CompletionItem request) => null;
-
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);

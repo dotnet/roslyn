@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : ILspServiceRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
+    internal class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
         public async Task<LSP.VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {

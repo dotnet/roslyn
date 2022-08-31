@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
         public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {

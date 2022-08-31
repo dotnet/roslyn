@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CompletionHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : ILspServiceRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
+    internal class CompletionHandler : ILspServiceDocumentRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         internal const string EditRangeSetting = "editRange";
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
         }
 
-        public object? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
 
         public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {

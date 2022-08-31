@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// <summary>
 /// Request handler type exposed to typescript.
 /// </summary>
-internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : ILspServiceRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
+internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : ILspServiceRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler, ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier?>
 {
     bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
 
-    public object? GetTextDocumentIdentifier(TRequestType request)
+    public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)

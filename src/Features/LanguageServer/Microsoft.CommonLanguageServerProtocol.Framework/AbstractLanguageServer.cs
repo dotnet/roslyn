@@ -197,7 +197,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
     public virtual async Task ShutdownAsync(string message = "Shutting down")
     {
         _shuttingDown = true;
-        await _logger.LogInformationAsync(message).ConfigureAwait(false);
+        _logger.LogInformation(message);
 
         await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
     }
@@ -219,7 +219,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
             // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
             // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
         }
-        await _logger.LogInformationAsync("Exiting server").ConfigureAwait(false);
+        _logger.LogInformation("Exiting server");
     }
 
     private ValueTask ShutdownRequestExecutionQueueAsync()
@@ -232,7 +232,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
     private async void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
     {
         // log message and shut down
-        await _logger.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}").ConfigureAwait(false);
+        _logger.LogWarning($"Request queue is requesting shutdown due to error: {e.Message}");
 
         var lspServices = GetLspServices();
 
@@ -254,7 +254,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
         }
 
         var message = $"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}";
-        await _logger.LogWarningAsync(message).ConfigureAwait(false);
+        _logger.LogWarning(message);
 
         var lspServices = GetLspServices();
         var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();

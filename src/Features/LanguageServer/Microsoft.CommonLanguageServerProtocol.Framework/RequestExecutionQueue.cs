@@ -219,7 +219,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         {
             // We encountered an unexpected exception in processing the queue or in a mutating request.
             // Log it, shutdown the queue, and exit the loop.
-            await _logger.LogExceptionAsync(ex).ConfigureAwait(false);
+            _logger.LogException(ex);
             await OnRequestServerShutdownAsync($"Error occurred processing queue: {ex.Message}.").ConfigureAwait(false);
             return;
         }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
         private readonly CompletionListCache _completionListCache;
         private readonly IGlobalOptionService _globalOptions;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
-        public object? GetTextDocumentIdentifier(LSP.CompletionItem request)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
             => GetCompletionListCacheEntry(request)?.TextDocument;
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (cacheEntry == null)
             {
                 // Don't have a cache associated with this completion item, cannot resolve.
-                await context.TraceInformationAsync("No cache entry found for the provided completion item at resolve time.").ConfigureAwait(false);
+                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
 

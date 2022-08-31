@@ -4,23 +4,18 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
+    internal class DocumentPullDiagnosticHandler : AbstractDocumentPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         public DocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService analyzerService,
@@ -30,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
         }
 
-        public override object? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 
         protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
@@ -88,13 +83,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // handler treats those as separate worlds that they are responsible for.
             if (context.Document == null)
             {
-                context.TraceInformationAsync("Ignoring diagnostics request because no document was provided");
+                context.TraceInformation("Ignoring diagnostics request because no document was provided");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
-                context.TraceWarningAsync($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
+                context.TraceWarning($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 

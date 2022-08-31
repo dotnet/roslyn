@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 
         public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {

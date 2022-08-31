@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [ExportStatelessXamlLspService(typeof(CompletionHandler)), Shared]
     [Method(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : ILspServiceRequestHandler<CompletionParams, CompletionList?>
+    internal class CompletionHandler : ILspServiceDocumentRequestHandler<CompletionParams, CompletionList?>
     {
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public object? GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument.Uri;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
         public async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {

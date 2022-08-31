@@ -57,7 +57,7 @@ internal partial class InlineCompletionsHandler : ILspServiceRequestHandler<VSIn
         _globalOptions = globalOptions;
     }
 
-    public object? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument;
     }

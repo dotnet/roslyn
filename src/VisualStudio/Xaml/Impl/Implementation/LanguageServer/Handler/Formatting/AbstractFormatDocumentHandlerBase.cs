@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
 
-        public abstract object? GetTextDocumentIdentifier(RequestType request);
+        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
         protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.FormattingOptions formattingOptions, RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)

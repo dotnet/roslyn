@@ -38,50 +38,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _configuration.Dispose();
         }
 
-        public Task LogInformationAsync(string message, params object[] @params)
+        public void LogInformation(string message, params object[] @params)
         {
             // Explicitly call TraceEvent here instead of TraceInformation.
             // TraceInformation indirectly calls string.Format which throws if the message
             // has unescaped curlies in it (can be a part of a URI for example).
             // Since we have no need to call string.Format here, we don't.
             _traceSource.TraceEvent(TraceEventType.Information, id: 0, message);
-
-            return Task.CompletedTask;
         }
 
-        public Task LogWarningAsync(string message, params object[] @params)
+        public void LogWarning(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Warning, id: 0, message);
-
-            return Task.CompletedTask;
         }
 
-        public Task LogErrorAsync(string message, params object[] @params)
+        public void LogError(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Error, id: 0, message);
-
-            return Task.CompletedTask;
         }
 
-        public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
+        public void LogException(Exception exception, string? message = null, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
-
-            return Task.CompletedTask;
         }
 
-        public Task LogStartContextAsync(string message, params object[] @params)
+        public void LogStartContext(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Start, id: 0, message);
-
-            return Task.CompletedTask;
         }
 
-        public Task LogEndContextAsync(string message, params object[] @params)
+        public void LogEndContext(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
-
-            return Task.CompletedTask;
         }
     }
 }

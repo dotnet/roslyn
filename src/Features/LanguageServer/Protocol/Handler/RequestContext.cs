@@ -195,17 +195,17 @@ internal readonly struct RequestContext
     /// <summary>
     /// Logs an informational message.
     /// </summary>
-    public Task TraceInformationAsync(string message)
-        => _logger.LogInformationAsync(message);
+    public void TraceInformation(string message)
+        => _logger.LogInformation(message);
 
-    public Task TraceWarningAsync(string message)
-        => _logger.LogWarningAsync(message);
+    public void TraceWarning(string message)
+        => _logger.LogWarning(message);
 
-    public Task TraceErrorAsync(string message)
-        => _logger.LogErrorAsync(message);
+    public void TraceError(string message)
+        => _logger.LogError(message);
 
-    public Task TraceExceptionAsync(Exception exception)
-        => _logger.LogExceptionAsync(exception);
+    public void TraceException(Exception exception)
+        => _logger.LogException(exception);
 
     public T GetRequiredLspService<T>() where T : class, ILspService
     {

@@ -26,11 +26,6 @@ internal class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<Execut
     {
     }
 
-    public object? GetTextDocumentIdentifier(ExecuteCommandParams request)
-    {
-        return null;
-    }
-
     public async Task<object?> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var requestExecutionQueue = context.GetRequiredService<IRequestExecutionQueue<RequestContext>>();

@@ -22,16 +22,16 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
 
     public bool MutatesSolutionState => true;
 
-    public async Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var logger = context.GetRequiredLspService<ILspServiceLogger>();
         try
         {
-            await logger.LogStartContextAsync("Initialize").ConfigureAwait(false);
+            logger.LogStartContext("Initialize");
 
             var clientCapabilitiesManager = context.GetRequiredLspService<IClientCapabilitiesManager>();
             var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-            if (clientCapabilities != null)
+            if (clientCapabilities != null || context.ClientCapabilities is not null)
             {
                 throw new InvalidOperationException($"{nameof(Methods.InitializeName)} called multiple times");
             }
@@ -42,14 +42,14 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
             var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
             var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
 
-            return new InitializeResult
+            return Task.FromResult(new InitializeResult
             {
                 Capabilities = serverCapabilities,
-            };
+            });
         }
         finally
         {
-            await logger.LogEndContextAsync("Initialize").ConfigureAwait(false);
+            logger.LogEndContext("Initialize");
         }
     }
 }

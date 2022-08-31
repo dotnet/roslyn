@@ -4,21 +4,21 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal sealed class ValidateBreakableRangeHandler : ILspServiceRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
+    internal sealed class ValidateBreakableRangeHandler : ILspServiceDocumentRequestHandler<VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
             => request.TextDocument;
 
         public async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)

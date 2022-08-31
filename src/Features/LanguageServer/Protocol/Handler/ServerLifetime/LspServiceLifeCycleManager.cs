@@ -26,7 +26,7 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
     {
         await _lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
 
-        await _logger.LogInformationAsync("Shutting down language server.").ConfigureAwait(false);
+        _logger.LogInformation("Shutting down language server.");
 
         var messageParams = new LogMessageParams()
         {

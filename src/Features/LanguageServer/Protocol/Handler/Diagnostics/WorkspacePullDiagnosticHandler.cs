@@ -3,27 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -34,9 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
         }
-
-        public override object? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
-            => null;
 
         protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
             => new VSInternalWorkspaceDiagnosticReport
@@ -145,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        await context.TraceInformationAsync($"Skipping tracked document: {document.GetURI()}").ConfigureAwait(false);
+                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
                         continue;
                     }
 

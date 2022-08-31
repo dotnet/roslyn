@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -29,8 +27,6 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
     }
-
-    public override object? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {

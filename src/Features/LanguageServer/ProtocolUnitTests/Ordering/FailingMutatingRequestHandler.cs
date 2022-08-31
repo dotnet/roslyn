@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public bool MutatesSolutionState => true;
         public static bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentIdentifier(TestRequest request) => null;
-
         public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);

@@ -29,15 +29,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
         public Uri GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument.Uri;
 
-        public async Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            await context.TraceInformationAsync($"didOpen for {request.TextDocument.Uri}").ConfigureAwait(false);
+            context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
 
             // Add the document and ensure the text we have matches whats on the client
             var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8);
 
             context.StartTracking(request.TextDocument.Uri, sourceText);
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -16,7 +16,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : ILspServiceRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : ILspServiceDocumentRequestHandler<RequestType, ResponseType>
     {
         public bool MutatesSolutionState => false;
         public static bool RequiresLSPSolution => true;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return edits.ToArrayAndFree();
         }
 
-        public abstract object? GetTextDocumentIdentifier(RequestType request);
+        public abstract LSP.TextDocumentIdentifier GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

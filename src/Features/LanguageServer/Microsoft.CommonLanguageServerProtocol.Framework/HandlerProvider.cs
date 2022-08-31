@@ -77,11 +77,7 @@ internal class HandlerProvider : IHandlerProvider
                 // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                 // and then lookup the correct handler for the specified method.
 
-                var dupHandlers = requestHandlerDictionary.Where(kvp => string.Equals(kvp.Key.MethodName, method, StringComparison.InvariantCulture));
-                if (dupHandlers.Any())
-                {
-                    throw new InvalidOperationException($"Method {method} was implemented by both {handlerType} and {dupHandlers.First().Key}");
-                }
+                CheckForDuplicates(method, handlerType, requestHandlerDictionary);
 
                 requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() =>
                     {
@@ -103,6 +99,7 @@ internal class HandlerProvider : IHandlerProvider
             var handlerType = handler.GetType();
             var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
             var method = GetRequestHandlerMethod(handlerType);
+            CheckForDuplicates(method, handlerType, requestHandlerDictionary);
 
             requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IMethodHandler>(() => handler));
         }
@@ -110,6 +107,15 @@ internal class HandlerProvider : IHandlerProvider
         VerifyHandlers(requestHandlerDictionary.Keys);
 
         return requestHandlerDictionary.ToImmutable();
+
+        static void CheckForDuplicates(string methodName, Type handlerType, ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>.Builder handlerDict)
+        {
+            var dupHandlers = handlerDict.Where(kvp => string.Equals(kvp.Key.MethodName, methodName, StringComparison.InvariantCulture));
+            if (dupHandlers.Any())
+            {
+                throw new InvalidOperationException($"Method {methodName} was implemented by both {handlerType} and {dupHandlers.First().Key}");
+            }
+        }
 
         static string GetRequestHandlerMethod(Type handlerType)
         {
