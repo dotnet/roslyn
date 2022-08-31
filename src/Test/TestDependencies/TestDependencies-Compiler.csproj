@@ -6,10 +6,15 @@
     <SignAssembly>false</SignAssembly>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
-
+  
+  <!-- Infrastucture Projects --> 
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  
+  <!-- Compiler Tests -->
+  <ItemGroup Condition="$(CompilersChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
     <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\MSBuildTaskTests\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
@@ -22,6 +27,10 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompilerTests\VBCSCompiler.UnitTests.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  
+  <!-- Interactive Tests -->
+  <ItemGroup Condition="$(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
     <ProjectReference Include="..\..\Scripting\CoreTest\Microsoft.CodeAnalysis.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Scripting\CSharpTest\Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>

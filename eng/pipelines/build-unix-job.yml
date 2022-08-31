@@ -21,7 +21,15 @@ parameters:
 - name: buildArguments
   type: string
   default: ''
-  
+- name: solution
+  type: string
+  default: 'Compilers.sln'
+- name: compilersChange
+  type: string
+  default: ''
+- name: scriptingChange
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -37,10 +45,29 @@ jobs:
   steps:
     - template: checkout-unix-task.yml
 
-    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }} ${{ parameters.restoreArguments }}
+    - script:
+        ./eng/build.sh
+         --ci --prepareMachine --binaryLog
+         --configuration ${{ parameters.configuration }}
+         --solution ${{ parameters.solution }}
+         --restore
+         /p:BuildReason=$(Build.Reason)
+         /p:CompilersChange=${{ parameters.compilersChange }}
+         /p:ScriptingChange=${{ parameters.scriptingChange }}
+         ${{ parameters.restoreArguments }}
       displayName: Restore
 
-    - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }} ${{ parameters.buildArguments }}
+    - script: 
+        ./eng/build.sh
+        --ci --prepareMachine --binaryLog
+        --skipDocumentation
+        --configuration ${{ parameters.configuration }}
+        --solution ${{ parameters.solution }}
+        --build
+        /p:BuildReason=$(Build.Reason)
+        /p:CompilersChange=${{ parameters.compilersChange }}
+        /p:ScriptingChange=${{ parameters.scriptingChange }}
+        ${{ parameters.buildArguments }}
       displayName: Build
 
     - script: ./eng/prepare-tests.sh

@@ -181,7 +181,8 @@ stages:
         /p:PublishReadyToRun=false
       
 - stage: Unix_Build
-  dependsOn: []
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true')))
+  dependsOn: Determine_Changes
   jobs:
   - template: eng/pipelines/build-unix-job.yml
     parameters:
@@ -189,8 +190,9 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       queueName: Build.Ubuntu.1804.Amd64.Open
-      restoreArguments: --solution src/Test/TestDependencies/TestDependencies-Compiler.csproj
-      buildArguments: --solution src/Test/TestDependencies/TestDependencies-Compiler.csproj
+      solution: src/Test/TestDependencies/TestDependencies-Compiler.csproj
+      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
 
 - stage: Source_Build
   dependsOn: []
