@@ -4035,7 +4035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => type.SpecialType is SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64;
 
             bool isReadOnlySpanOfByteType(TypeSymbol type)
-                => IsReadOnlySpanType(type) && ((INamedTypeSymbol)type).TypeArguments[0].SpecialType == SpecialType.System_Byte;
+                => IsReadOnlySpanType(type) && ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].SpecialType == SpecialType.System_Byte;
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
