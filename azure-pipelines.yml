@@ -37,7 +37,7 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
+      queueName: windows.vs2022preview.amd64.open
       restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -49,7 +49,7 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
+      queueName: windows.vs2022preview.amd64.open
       restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -211,7 +211,7 @@ stages:
     dependsOn: Determine_Changes
     pool:
       name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
       compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
@@ -254,7 +254,7 @@ stages:
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
@@ -272,7 +272,7 @@ stages:
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
@@ -314,7 +314,7 @@ stages:
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
