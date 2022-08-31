@@ -738,12 +738,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
-            var symbolInfo = operation.SemanticModel?.GetSymbolInfo(operation.Syntax) ?? default;
-            foreach (var symbol in symbolInfo.GetAllSymbols())
-            {
-                if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
-                    operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
-            }
+            CheckBuiltInOperators(operation.SemanticModel, operation.Syntax);
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -780,11 +775,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
-            var symbolInfo = operation.SemanticModel?.GetSymbolInfo(operation.Syntax) ?? default;
+            CheckBuiltInOperators(operation.SemanticModel, operation.Syntax);
+        }
+
+        private static void CheckBuiltInOperators(SemanticModel semanticModel, SyntaxNode syntax)
+        {
+            var symbolInfo = semanticModel?.GetSymbolInfo(syntax) ?? default;
             foreach (var symbol in symbolInfo.GetAllSymbols())
             {
                 if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
-                    operation.SemanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                {
+                    switch (method.Parameters.Length)
+                    {
+                        case 1:
+                            semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
+                            break;
+                        case 2:
+                            semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                            break;
+                        default:
+                            AssertEx.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
+                            break;
+                    }
+                }
             }
         }
 
