@@ -4,11 +4,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
@@ -17,11 +19,17 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
         private sealed class NavigableSymbolSource : INavigableSymbolSource
         {
             private readonly NavigableSymbolService _service;
+            private readonly ITextView _textView;
 
             private bool _disposed;
 
-            public NavigableSymbolSource(NavigableSymbolService service)
-                => _service = service;
+            public NavigableSymbolSource(
+                NavigableSymbolService service,
+                ITextView textView)
+            {
+                _service = service;
+                _textView = textView;
+            }
 
             public void Dispose()
                 => _disposed = true;
@@ -45,10 +53,14 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 if (navigableLocation == null)
                     return null;
 
+                var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+
                 return new NavigableSymbol(
                     _service,
+                    _textView,
                     navigableLocation,
-                    snapshot.GetSpan(symbolSpan.ToSpan()));
+                    snapshot.GetSpan(symbolSpan.ToSpan()),
+                    indicatorFactory);
             }
         }
     }
