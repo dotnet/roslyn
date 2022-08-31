@@ -29,12 +29,11 @@ steps:
     --ci --prepareMachine --binaryLog
     --skipDocumentation
     --configuration ${{ parameters.configuration }}
-    --solution ${{ parameters.solution }}
+    --solution $(Solution)
     --build
     /p:BuildReason=$(Build.Reason)
-    /p:CompilersChange=${{ parameters.compilersChange }}
-    /p:ScriptingChange=${{ parameters.scriptingChange }}
-    ${{ parameters.buildArguments }}
+    /p:CompilersChange=$(CompilersChange)
+    /p:ScriptingChange=$(CompilersChange)
   displayName: Build
 
 - script: ./eng/prepare-tests.sh
