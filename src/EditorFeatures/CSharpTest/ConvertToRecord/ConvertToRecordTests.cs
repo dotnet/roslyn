@@ -4031,6 +4031,85 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = false
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public static C GetC()
+        {
+            return new C(0, false);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerWithNestedInitializers()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record Foo
+    {
+        public int Bar { get; init; }
+    }
+
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public Foo? B { get; init; }
+
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = new Foo { Bar = 0 }
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, Foo? B)
+    {
+        public static C GetC()
+        {
+            return new C(0, new Foo { Bar = 0 });
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndRefactorInitializerKeepSomeProperties()
         {
             var initialMarkup = @"

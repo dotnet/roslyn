@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
-    internal static class ConvertToRecordCommon
+    internal static class ConvertToRecordEngine
     {
         private const SyntaxRemoveOptions RemovalOptions =
             SyntaxRemoveOptions.KeepExteriorTrivia |
@@ -391,7 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
             var solutionEditor = new SolutionEditor(document.Project.Solution);
             var currDocEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-            currDocEditor.ReplaceNode(typeDeclaration, changedTypeDeclaration);
 
             await RefactorInitializersAsync(type, solutionEditor, positionalParamSymbols, cancellationToken).ConfigureAwait(false);
             return solutionEditor.GetChangedSolution();
@@ -439,81 +438,62 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var symbolReferences = await SymbolFinder
                 .FindReferencesAsync(type, solutionEditor.OriginalSolution, cancellationToken).ConfigureAwait(false);
             var referenceLocations = symbolReferences.SelectMany(reference => reference.Locations);
-            var projectLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Project.Id);
-            foreach (var (projectID, projectLocations) in projectLookup)
+            var documentLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Id);
+            foreach (var (documentID, documentLocations) in documentLookup)
             {
-                // organize by project first, so we can solve one project at a time
-                var project = solutionEditor.OriginalSolution.GetRequiredProject(projectID);
-                if (project.Language != LanguageNames.CSharp)
+                var documentEditor = await solutionEditor
+                        .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
+                if (documentEditor.OriginalDocument.Project.Language != LanguageNames.CSharp)
                 {
-                    // since this is a CSharp-dependent file, we can't fix VB projects that 
+                    // since this is a CSharp-dependent file, we need to have specific VB support.
+                    // for now skip VB usages.
                     continue;
                 }
 
-                var compilation = await project
-                    .GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var docLookup = projectLocations.ToLookup(refLoc => refLoc.Document.Id);
-                foreach (var (documentID, documentLocations) in docLookup)
+                var objectCreationExpressions = documentLocations
+                    // we should find the identifier node of an object creation expression
+                    .Select(referenceLocations => referenceLocations.Location.FindNode(cancellationToken).Parent)
+                    .OfType<ObjectCreationExpressionSyntax>();
+                foreach (var objectCreationExpression in objectCreationExpressions)
                 {
-                    var documentEditor = await solutionEditor
-                        .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
-                    var syntaxTree = await documentEditor.OriginalDocument
-                        .GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                    var objectCreationExpressions = documentLocations
-                        // we should find the identifier node of an object creation expression
-                        .Select(referenceLocations => referenceLocations.Location.FindNode(cancellationToken).Parent)
-                        .OfType<ObjectCreationExpressionSyntax>();
-                    foreach (var objectCreationExpression in objectCreationExpressions)
+                    if (documentEditor.SemanticModel.GetOperation(objectCreationExpression, cancellationToken)
+                        is not IObjectCreationOperation objectCreationOperation)
                     {
-                        if (semanticModel.GetOperation(objectCreationExpression, cancellationToken)
-                            is not IObjectCreationOperation objectCreationOperation)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        var expressions = ConvertToRecordHelpers.GetAssignmentValuesFromObjectCreation(
-                            objectCreationOperation, positionalParameters);
+                    var expressions = ConvertToRecordHelpers.GetAssignmentValuesFromObjectCreation(
+                        objectCreationOperation, positionalParameters);
+                    if (expressions.IsEmpty)
+                    {
+                        continue;
+                    }
 
-                        if (expressions.IsEmpty)
-                        {
-                            continue;
-                        }
-
-                        // if we didn't have an initializer, expressions would be empty
-                        var initializerExpressions = objectCreationExpression.Initializer!.Expressions;
-                        // need to get all indices and then remove because otherwise nodes change
-                        // remove in descending order so indices aren't shifted around
-                        var removalIndices = expressions
+                    // if we didn't have an initializer, expressions would be empty
+                    var newInitializer = objectCreationExpression.Initializer!.RemoveNodes(
+                        expressions
                             // index can be null if expression is the factory created default or null
                             .Select(expression => expression.Parent as AssignmentExpressionSyntax)
-                            .WhereNotNull()
-                            .Select(initializerExpressions.IndexOf)
-                            .Order()
-                            .Reverse();
+                            .WhereNotNull(),
+                        RemovalOptions)!;
 
-                        foreach (var nodeIndex in removalIndices)
-                        {
-                            initializerExpressions = initializerExpressions.RemoveAt(nodeIndex);
-                        }
-
-                        // if there are no more assignments other than the ones that
-                        // could go in the primary constructor, we can remove the block entirely
-                        var initializerBlock = initializerExpressions.IsEmpty()
-                            ? null
-                            : objectCreationExpression.Initializer!.WithExpressions(initializerExpressions);
-
-                        // replace: new C { Foo = 0; Bar = false; };
-                        // with: new C(0, false);
-                        var replacementNode = SyntaxFactory.ObjectCreationExpression(
-                            objectCreationExpression.NewKeyword,
-                            objectCreationExpression.Type.WithoutTrailingTrivia(),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                                expressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia())))),
-                            initializerBlock);
-
-                        documentEditor.ReplaceNode(objectCreationExpression, replacementNode);
+                    // if there are no more assignments other than the ones that
+                    // could go in the primary constructor, we can remove the block entirely
+                    if (newInitializer.Expressions.IsEmpty())
+                    {
+                        newInitializer = null;
                     }
+
+                    // replace: new C { Foo = 0; Bar = false; };
+                    // with: new C(0, false);
+                    var replacementNode = SyntaxFactory.ObjectCreationExpression(
+                        objectCreationExpression.NewKeyword,
+                        objectCreationExpression.Type.WithoutTrailingTrivia(),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                            expressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia())))),
+                        newInitializer);
+
+                    documentEditor.ReplaceNode(objectCreationExpression, replacementNode);
                 }
             }
         }
