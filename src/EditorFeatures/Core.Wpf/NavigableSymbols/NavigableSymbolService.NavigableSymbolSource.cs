@@ -2,51 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
     internal partial class NavigableSymbolService
     {
-        private partial class NavigableSymbolSource : INavigableSymbolSource
+        private sealed class NavigableSymbolSource : INavigableSymbolSource
         {
-            private readonly IThreadingContext _threadingContext;
-            private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+            private readonly NavigableSymbolService _service;
 
             private bool _disposed;
 
-            public NavigableSymbolSource(
-                IThreadingContext threadingContext,
-                IStreamingFindUsagesPresenter streamingPresenter,
-                IUIThreadOperationExecutor uiThreadOperationExecutor,
-                IAsynchronousOperationListenerProvider listenerProvider)
-            {
-                _threadingContext = threadingContext;
-                _presenter = streamingPresenter;
-                _uiThreadOperationExecutor = uiThreadOperationExecutor;
-                _listenerProvider = listenerProvider;
-            }
+            public NavigableSymbolSource(NavigableSymbolService service)
+                => _service = service;
 
             public void Dispose()
                 => _disposed = true;
 
-            public async Task<INavigableSymbol> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
+            public async Task<INavigableSymbol?> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
             {
                 if (_disposed)
                     return null;
@@ -57,26 +37,18 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 if (document == null)
                     return null;
 
-                var service = document.GetLanguageService<IGoToSymbolService>();
+                var service = document.GetLanguageService<IAsyncGoToDefinitionService>();
                 if (service == null)
                     return null;
 
-                var context = new GoToSymbolContext(document, position, cancellationToken);
-
-                await service.GetSymbolsAsync(context).ConfigureAwait(false);
-
-                if (!context.TryGetItems(WellKnownSymbolTypes.Definition, out var definitions))
+                var (navigableLocation, symbolSpan) = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (navigableLocation == null)
                     return null;
 
-                var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
                 return new NavigableSymbol(
-                    document.Project.Solution.Workspace,
-                    definitions.ToImmutableArray(),
-                    snapshotSpan,
-                    _threadingContext,
-                    _presenter,
-                    _uiThreadOperationExecutor,
-                    _listenerProvider);
+                    _service,
+                    navigableLocation,
+                    snapshot.GetSpan(symbolSpan.ToSpan()));
             }
         }
     }

@@ -23,31 +23,19 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private class NavigableSymbol : INavigableSymbol
         {
-            private readonly Workspace _workspace;
-            private readonly ImmutableArray<DefinitionItem> _definitions;
-            private readonly IThreadingContext _threadingContext;
-            private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-            private readonly IAsynchronousOperationListener _listener;
+            private readonly NavigableSymbolService _service;
+            private readonly INavigableLocation _location;
 
             public NavigableSymbol(
-                Workspace workspace,
-                ImmutableArray<DefinitionItem> definitions,
-                SnapshotSpan symbolSpan,
-                IThreadingContext threadingContext,
-                IStreamingFindUsagesPresenter streamingPresenter,
-                IUIThreadOperationExecutor uiThreadOperationExecutor,
-                IAsynchronousOperationListenerProvider listenerProvider)
+                NavigableSymbolService service,
+                INavigableLocation location,
+                SnapshotSpan symbolSpan)
             {
-                Contract.ThrowIfFalse(definitions.Length > 0);
+                Contract.ThrowIfNull(location);
 
-                _workspace = workspace;
-                _definitions = definitions;
+                _service = service;
+                _location = location;
                 SymbolSpan = symbolSpan;
-                _threadingContext = threadingContext;
-                _presenter = streamingPresenter;
-                _uiThreadOperationExecutor = uiThreadOperationExecutor;
-                _listener = listenerProvider.GetListener(FeatureAttribute.NavigableSymbols);
             }
 
             public SnapshotSpan SymbolSpan { get; }
@@ -58,25 +46,21 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public void Navigate(INavigableRelationship relationship)
             {
                 // Fire and forget.
-                var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
+                var token = _service._listener.BeginAsyncOperation(nameof(NavigateAsync));
                 _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             }
 
             private async Task NavigateAsync()
             {
-                using var context = _uiThreadOperationExecutor.BeginExecute(
+                using var context = _service._uiThreadOperationExecutor.BeginExecute(
                     title: EditorFeaturesResources.Go_to_Definition,
                     defaultDescription: EditorFeaturesResources.Navigating_to_definition,
                     allowCancellation: true,
                     showProgress: false);
 
-                var cancellationToken = context.UserCancellationToken;
-                await _presenter.TryPresentLocationOrNavigateIfOneAsync(
-                    _threadingContext,
-                    _workspace,
-                    _definitions[0].NameDisplayParts.GetFullText(),
-                    _definitions,
-                    cancellationToken).ConfigureAwait(false);
+                await _location.NavigateToAsync(
+                    new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),
+                    context.UserCancellationToken).ConfigureAwait(false);
             }
         }
     }
