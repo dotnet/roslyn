@@ -4110,7 +4110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // In VB, when the type of a custom event changes, the parameters on the add and remove handlers also change
                 // but we can ignore them because we have already done what we need to the event declaration itself.
                 if (newSymbol.ContainingSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol associatedSymbol } &&
-                    processedSymbols.Contains(associatedSymbol))
+                    processedSymbols?.Contains(associatedSymbol) == true)
                 {
                     return;
                 }
