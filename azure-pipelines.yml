@@ -34,7 +34,7 @@ stages:
   jobs:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
-      jobName: Determine_Changes
+      jobName: Determine_Test_Changes
       vmImageName: ubuntu-latest
       paths:
         - subset: compilers
@@ -69,7 +69,7 @@ stages:
           - src/VisualStudio/*
   
 - stage: Windows_Debug_Build_net472
-  dependsOn: Determine_Changes
+  dependsOn: Determine_Test_Changes
   condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
@@ -97,7 +97,7 @@ stages:
         /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build_net472
-  dependsOn: Determine_Changes
+  dependsOn: Determine_Test_Changes
   condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
@@ -125,7 +125,7 @@ stages:
         /p:PublishReadyToRun=false
 
 - stage: Windows_Debug_Build_net60_windows
-  dependsOn: Determine_Changes
+  dependsOn: Determine_Test_Changes
   condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
@@ -153,7 +153,7 @@ stages:
         /p:PublishReadyToRun=false
     
 - stage: Windows_Release_Build_net60_windows
-  dependsOn: Determine_Changes
+  dependsOn: Determine_Test_Changes
   condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
@@ -327,7 +327,6 @@ stages:
   dependsOn: Determine_Changes
   jobs:
   - job: Correctness_Build_Artifacts
-    dependsOn: Determine_Changes
     pool:
       name: NetCore1ESPool-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
@@ -369,7 +368,6 @@ stages:
           configuration: Release
       
   - job: Correctness_Determinism
-    dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
@@ -387,7 +385,6 @@ stages:
           configuration: Debug
 
   - job: Correctness_Bootstrap_Build
-    dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
@@ -429,7 +426,6 @@ stages:
         displayName: Validate TODO/PROTOTYPE comments are not present
 
   - job: Correctness_Rebuild
-    dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore1ESPool-Public
