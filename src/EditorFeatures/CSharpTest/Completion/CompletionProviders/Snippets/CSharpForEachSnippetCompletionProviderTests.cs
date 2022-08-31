@@ -198,7 +198,7 @@ static void Main(string[] args)
 static void Main(string[] args)
 {
     Print print = delegate(int val) {
-        foreach (var item in collection)
+        foreach (var item in args)
         {
             $$
         }
@@ -220,7 +220,7 @@ static void Main(string[] args)
             var expectedCodeAfterCommit =
 @"Func<int, int, bool> testForEquality = (x, y) =>
 {
-    foreach (var item in collection)
+    foreach (var item in args)
     {
         $$
     }
