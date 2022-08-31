@@ -443,6 +443,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return TransformersResult.Failure(inputCompilation);
                 }
 
+                var application = serviceProvider.GetRequiredService<IApplicationInfoProvider>().CurrentApplication;
+                var sdkLicenseMissing = false;
+
+                foreach (var component in application.Components)
+                {
+                    if (!component.RequiresSubscription && !licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaSdk))
+                    {
+                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                            (int)MetalamaErrorCode.ERR_InvalidLicenseForSdk, component.Name));
+                        sdkLicenseMissing = true;
+                    }
+                }
+
+                if (sdkLicenseMissing)
+                {
+                    return TransformersResult.Failure(inputCompilation);
+                }
+
                 bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
 
                 if (shouldDebugTransformedCode)

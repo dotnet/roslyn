@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
+using Metalama.Compiler.UnitTests.Transformers;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -127,9 +128,27 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         [InlineData(NamespaceLimitedMetalamaUltimateBusiness, true)]
         [InlineData(NamespaceLimitedMetalamaFreePersonal, true)]
         [InlineData(NamespaceLimitedMetalamaUltimateOpenSourceRedistribution, true)]
-        public void TransformersRequireLicense(string license, bool shouldCompile)
+        public void TransformersRequiringActiveSubscriptionRequireLicense(string license, bool shouldCompile)
         {
             Test(new DummyTransformer(), license: license, expectedErrorCode: shouldCompile ? null : "LAMA0608");
+        }
+
+        [Theory]
+        [InlineData(None, false)]
+        [InlineData(PostSharpEssentials, false)]
+        [InlineData(PostSharpFramework, true)]
+        [InlineData(PostSharpUltimate, true)]
+        [InlineData(MetalamaFreePersonal, false)]
+        [InlineData(MetalamaStarterBusiness, false)]
+        [InlineData(MetalamaProfessionalBusiness, true)]
+        [InlineData(MetalamaUltimateBusiness, true)]
+        [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
+        [InlineData(NamespaceLimitedMetalamaUltimateBusiness, true)]
+        [InlineData(NamespaceLimitedMetalamaFreePersonal, false)]
+        [InlineData(NamespaceLimitedMetalamaUltimateOpenSourceRedistribution, true)]
+        public void TransformersNotRequiringActiveSubscriptionRequireLicense(string license, bool shouldCompile)
+        {
+            Test(new DummyTransformer(), true, license, license == None ? "LAMA0608" : shouldCompile ? null : "LAMA0615");
         }
 
         [Theory]

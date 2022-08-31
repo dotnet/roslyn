@@ -4,6 +4,7 @@
   <Import Project="eng\targets\Imports.targets" />
 
   <!-- <Metalama> -->
+  <Import Sdk="PostSharp.Engineering.Sdk" Project="AssemblyMetadata.targets" />
   <Import Sdk="PostSharp.Engineering.Sdk" Project="TeamCity.targets" />
   <!-- </Metalama> -->
 </Project>

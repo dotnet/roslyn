@@ -6,6 +6,7 @@
     <CopyrightPostSharp>© SharpCrafters s.r.o. All rights reserved.</CopyrightPostSharp>
     <Copyright>$(CopyrightPostSharp)</Copyright>
     <Authors>PostSharp Technologies</Authors>
+    <Company>PostSharp Technologies</Company>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageLicenseFullPath>$(MSBuildThisFileDirectory)..\..\LICENSE.md</PackageLicenseFullPath>
 
