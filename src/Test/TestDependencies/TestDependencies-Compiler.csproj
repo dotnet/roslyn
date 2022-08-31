@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- This is a helper project to reference all the test projects that are included in Compilers.sln -->
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <SignAssembly>false</SignAssembly>
+    <IsShipping>false</IsShipping>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\Core\MSBuildTaskTests\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\CommandLine\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit2\Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\EndToEnd\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\IOperation\Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Semantic\Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\Server\VBCSCompilerTests\VBCSCompiler.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Scripting\CoreTest\Microsoft.CodeAnalysis.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Scripting\CSharpTest\Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  
+</Project>

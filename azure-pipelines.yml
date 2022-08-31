@@ -29,30 +29,54 @@ pr:
       - README.md
 
 stages:
-- stage: Windows_Debug_Build
+- stage: Windows_Debug_Build_net472
   dependsOn: []
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
-      jobName: Build_Windows_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      jobName: Windows_Debug_Build_net472
+      testArtifactName: Transport_Artifacts_Windows_Debug_net472
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
-- stage: Windows_Release_Build
+- stage: Windows_Release_Build_net472
   dependsOn: []
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
-      jobName: Build_Windows_Release
-      testArtifactName: Transport_Artifacts_Windows_Release
+      jobName: Windows_Release_Build_net472
+      testArtifactName: Transport_Artifacts_Windows_Release_net472
       configuration: Release
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
+- stage: Windows_Debug_Build_net60_windows
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/build-windows-job.yml
+    parameters:
+      jobName: Windows_Debug_Build_net60_windows
+      testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
+      configuration: Debug
+      queueName: Build.Windows.Amd64.VS2022.Pre.Open
+      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+    
+- stage: Windows_Release_Build_net60_windows
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/build-windows-job.yml
+    parameters:
+      jobName: Windows_Release_Build_net60_windows
+      testArtifactName: Transport_Artifacts_Windows_Release_net60_windows
+      configuration: Release
+      queueName: Build.Windows.Amd64.VS2022.Pre.Open
+      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      
 - stage: Unix_Build
   dependsOn: []
   jobs:
@@ -62,6 +86,8 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       queueName: Build.Ubuntu.1804.Amd64.Open
+      restoreArguments: --solution src/Test/TestDependencies/TestDependencies-Compiler.csproj
+      buildArguments: --solution src/Test/TestDependencies/TestDependencies-Compiler.csproj
 
 - stage: Source_Build
   dependsOn: []
@@ -69,14 +95,14 @@ stages:
   - template: eng/common/templates/jobs/source-build.yml
 
 - stage: Windows_Debug_Desktop
-  dependsOn: Windows_Debug_Build
+  dependsOn: Windows_Debug_Build_net472
   jobs:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
       parameters:
         testRunName: 'Test Windows Desktop Debug 32'
         jobName: Test_Windows_Desktop_Debug_32
-        testArtifactName: Transport_Artifacts_Windows_Debug
+        testArtifactName: Transport_Artifacts_Windows_Debug_net472
         configuration: Debug
         testArguments: -testDesktop -testArch x86
 
@@ -84,18 +110,18 @@ stages:
     parameters:
       testRunName: 'Test Windows Desktop Debug 64'
       jobName: Test_Windows_Desktop_Debug_64
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug_net472
       configuration: Debug
       testArguments: -testDesktop -testArch x64
 
 - stage: Windows_Release_Desktop
-  dependsOn: Windows_Release_Build
+  dependsOn: Windows_Release_Build_net472
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows Desktop Release 32'
       jobName: Test_Windows_Desktop_Release_32
-      testArtifactName: Transport_Artifacts_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release_net472
       configuration: Release
       testArguments: -testDesktop -testArch x86
       
@@ -104,7 +130,7 @@ stages:
       parameters:
         testRunName: 'Test Windows Desktop Release 64'
         jobName: Test_Windows_Desktop_Release_64
-        testArtifactName: Transport_Artifacts_Windows_Release
+        testArtifactName: Transport_Artifacts_Windows_Release_net472
         configuration: Release
         testArguments: -testDesktop -testArch x64
 
@@ -112,18 +138,18 @@ stages:
     parameters:
       testRunName: 'Test Windows Desktop Spanish Release 64'
       jobName: Test_Windows_Desktop_Spanish_Release_64
-      testArtifactName: Transport_Artifacts_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release_net472
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
 - stage: Windows_Debug_CoreClr
-  dependsOn: Windows_Debug_Build
+  dependsOn: Windows_Debug_Build_net60_windows
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreClr Debug'
       jobName: Test_Windows_CoreClr_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
       configuration: Debug
       testArguments: -testCoreClr
 
@@ -132,7 +158,7 @@ stages:
       parameters:
         testRunName: 'Test Windows CoreClr Debug Single Machine'
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
-        testArtifactName: Transport_Artifacts_Windows_Debug
+        testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
         configuration: Debug
         testArguments: -testCoreClr
 
@@ -140,7 +166,7 @@ stages:
     parameters:
       testRunName: 'Test Windows CoreCLR IOperation Debug'
       jobName: Test_Windows_CoreClr_IOperation_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
 
@@ -150,18 +176,18 @@ stages:
     parameters:
       testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
       jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
 
 - stage: Windows_Release_CoreClr
-  dependsOn: Windows_Release_Build
+  dependsOn: Windows_Release_Build_net60_windows
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreClr Release'
       jobName: Test_Windows_CoreClr_Release
-      testArtifactName: Transport_Artifacts_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release_net60_windows
       configuration: Release
       testArguments: -testCoreClr
 
