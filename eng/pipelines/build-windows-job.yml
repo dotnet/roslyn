@@ -21,7 +21,31 @@ parameters:
 - name: buildArguments
   type: string
   default: ''
-
+- name: solution
+  type: string
+  default: 'Roslyn.sln'
+- name: compilersChange
+  type: string
+  default: ''
+- name: expressionEvaluatorChange
+  type: string
+  default: ''
+- name: scriptingChange
+  type: string
+  default: ''
+- name: codeStyleChange
+  type: string
+  default: ''
+- name: workspaceChange
+  type: string
+  default: ''
+- name: featuresChange
+  type: string
+  default: ''
+- name: visualStudioChange
+  type: string
+  default: ''
+  
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
@@ -42,13 +66,42 @@ jobs:
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog ${{ parameters.restoreArguments }}
+        arguments:
+          -configuration ${{ parameters.configuration }}
+          -prepareMachine -ci -binaryLog
+          -msbuildEngine dotnet
+          -solution ${{ parameters.solution }}
+          -restore
+          /p:BuildReason=$(Build.Reason)
+          /p:CompilersChange=${{ parameters.compilersChange }}
+          /p:ExpressionEvaluatorChange=${{ parameters.expressionEvaluatorChange }}
+          /p:ScriptingChange=${{ parameters.scriptingChange }}
+          /p:CodeStyleChange=${{ parameters.codeStyleChange }}
+          /p:WorkspaceChange= ${{ parameters.workspaceChange }}
+          /p:FeaturesChange=${{ parameters.featuresChange }}
+          /p:VisualStudioChange=${{ parameters.visualStudioChange }}
+          ${{ parameters.restoreArguments }}
 
     - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments:
+          -configuration ${{ parameters.configuration }}
+          -prepareMachine -ci -binaryLog
+          -skipDocumentation
+          -msbuildEngine dotnet
+          -solution ${{ parameters.solution }}
+          -build
+          /p:BuildReason=${{ parameters.buildReason }}
+          /p:CompilersChange=${{ parameters.compilersChange }}
+          /p:ExpressionEvaluatorChange=${{ parameters.expressionEvaluatorChange }}
+          /p:ScriptingChange=${{ parameters.scriptingChange }}
+          /p:CodeStyleChange=${{ parameters.codeStyleChange }}
+          /p:WorkspaceChange= ${{ parameters.workspaceChange }}
+          /p:FeaturesChange=${{ parameters.featuresChange }}
+          /p:VisualStudioChange=${{ parameters.visualStudioChange }}
+          ${{ parameters.buildArguments }}
 
     - task: PowerShell@2
       displayName: Prepare Unit Tests

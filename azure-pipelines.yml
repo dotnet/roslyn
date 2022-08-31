@@ -29,8 +29,48 @@ pr:
       - README.md
 
 stages:
-- stage: Windows_Debug_Build_net472
+- stage: Determine_Changes
   dependsOn: []
+  jobs:
+  - template: eng/pipelines/evaluate-changed-files.yml
+    parameters:
+      jobName: Determine_Changes
+      vmImageName: ubuntu-latest
+      paths:
+        - subset: compilers
+          include:
+          - src/Compilers/*
+          - src/Dependencies/*
+          - src/Tools/Source/CompilerGeneratorTools/*
+          - src/Test/PdbUtilities/*
+        - subset: expressionEvaluator
+          include:
+          - src/ExpressionEvaluator/*
+        - subset: scripting
+          include:
+          - src/Scripting/*
+          - src/Interactive/*
+        - subset: codeStyle
+          include:
+          - src/Analyzers/*
+          - src/CodeStyle/*
+          - src/Workspaces/SharedUtilitiesAndExtensions/*
+        - subset: workspace
+          include:
+          - src/Workspaces/*
+        - subset: features
+          include:
+          - src/Analyzers/*
+          - src/CodeStyle/*
+          - src/Features/*
+          - src/EditorFeatures/*
+        - subset: visualStudio
+          include:
+          - src/VisualStudio/*
+  
+- stage: Windows_Debug_Build_net472
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -38,11 +78,27 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug_net472
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      solution: src\Test\TestDependencies\TestDependencies-net472.csproj
+      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      restoreArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+      buildArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+        /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build_net472
-  dependsOn: []
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -50,32 +106,79 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release_net472
       configuration: Release
       queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      solution: src\Test\TestDependencies\TestDependencies-net472.csproj
+      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      restoreArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+      buildArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+        /p:PublishReadyToRun=false
 
 - stage: Windows_Debug_Build_net60_windows
-  dependsOn: []
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Windows_Debug_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
       configuration: Debug
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: windows.vs2022preview.amd64.open
+      solution: src\Test\TestDependencies\TestDependencies-net6.csproj
+      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      restoreArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+      buildArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+        /p:PublishReadyToRun=false
     
 - stage: Windows_Release_Build_net60_windows
-  dependsOn: []
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Windows_Release_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Release_net60_windows
       configuration: Release
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: windows.vs2022preview.amd64.open
+      solution: src\Test\TestDependencies\TestDependencies-net6.csproj
+      compilersChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      expressionEvaluatorChange: $[dependencies.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]
+      scriptingChange: $[dependencies.Determine_Changes.outputs['SetPathVars_scripting.containsChange']]
+      codeStyleChange: $[dependencies.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange']]
+      workspaceChange: $[dependencies.Determine_Changes.outputs['SetPathVars_workspace.containsChange']]
+      featuresChange: $[dependencies.Determine_Changes.outputs['SetPathVars_features.containsChange']]
+      visualStudioChange: $[dependencies.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange']]
+      restoreArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+      buildArguments:
+        /p:UsingToolPdbConverter=false
+        /p:UsingToolVSSDK=false
+        /p:GenerateSatelliteAssemblies=false
+        /p:PublishReadyToRun=false
       
 - stage: Unix_Build
   dependsOn: []
@@ -221,18 +324,8 @@ stages:
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
 - stage: Correctness
-  dependsOn: []
+  dependsOn: Determine_Changes
   jobs:
-  - template: eng/pipelines/evaluate-changed-files.yml
-    parameters:
-      jobName: Determine_Changes
-      vmImageName: ubuntu-latest
-      paths:
-        - subset: compilers
-          include:
-          - src/Compilers/*
-          - src/Dependencies/*
-
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
