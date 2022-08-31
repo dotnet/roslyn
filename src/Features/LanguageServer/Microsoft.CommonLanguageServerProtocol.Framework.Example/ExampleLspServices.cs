@@ -15,7 +15,7 @@ internal class ExampleLspServices : ILspServices
 
     public ExampleLspServices(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<ILspServices>(this);
+        _ = serviceCollection.AddSingleton<ILspServices>(this);
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
         _serviceProvider = serviceProvider;

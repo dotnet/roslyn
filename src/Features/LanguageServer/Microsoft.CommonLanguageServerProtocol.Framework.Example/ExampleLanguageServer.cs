@@ -23,6 +23,7 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
             .AddSingleton<ILspLogger>(_logger)
             .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
+            .AddSingleton<ILifeCycleManager>(this)
             .AddSingleton(this);
 
         var lspServices = new ExampleLspServices(serviceCollection);

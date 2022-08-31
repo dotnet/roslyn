@@ -48,9 +48,9 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         throw new NotImplementedException();
     }
 
-    public async Task ShutdownAsync()
+    public override async Task ShutdownAsync(string message = "Shutting down")
     {
-        await base.ShutdownAsync();
+        await base.ShutdownAsync(message);
         _shuttingDown.SetResult(0);
     }
 

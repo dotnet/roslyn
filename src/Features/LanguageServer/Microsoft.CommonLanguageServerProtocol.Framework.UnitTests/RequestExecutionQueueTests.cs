@@ -35,7 +35,7 @@ public class RequestExecutionQueueTests
         requestContextFactory.Setup(f => f.CreateRequestContextAsync<int>(It.IsAny<IQueueItem<TestRequestContext>>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(new TestRequestContext()));
         var services = new List<(Type, object)> { (typeof(IRequestContextFactory<TestRequestContext>), requestContextFactory.Object) };
-        var lspServices = new TestLspServices(services, supportsRequiredServices: true, supportsGetRegisteredServices: false);
+        var lspServices = new TestLspServices(services, supportsGetRegisteredServices: false);
 
         return lspServices;
     }

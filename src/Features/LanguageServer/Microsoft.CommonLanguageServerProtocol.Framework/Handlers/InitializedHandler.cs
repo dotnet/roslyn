@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialized")]
-public abstract class InitializedHandler<RequestType, RequestContextType> : INotificationHandler<RequestType, RequestContextType>
+public class InitializedHandler<RequestType, RequestContextType> : INotificationHandler<RequestType, RequestContextType>
 {
     private bool HasBeenInitialized = false;
 
@@ -20,7 +20,9 @@ public abstract class InitializedHandler<RequestType, RequestContextType> : INot
     public Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken)
     {
         if (HasBeenInitialized)
+        {
             throw new InvalidOperationException("initialized was called twice");
+        }
 
         HasBeenInitialized = true;
 

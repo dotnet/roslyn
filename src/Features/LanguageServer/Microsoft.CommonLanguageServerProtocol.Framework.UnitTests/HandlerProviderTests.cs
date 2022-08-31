@@ -24,7 +24,7 @@ public partial class HandlerProviderTests
     [Fact]
     public void GetMethodHandler_ViaGetRequiredServices_Succeeds()
     {
-        var handlerProvider = GetHandlerProvider(supportsRequiredServices: true, supportsGetRegisteredServices: false);
+        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
 
         var methodHander = handlerProvider.GetMethodHandler(_method, _requestType, _responseType);
 
@@ -34,7 +34,7 @@ public partial class HandlerProviderTests
     [Fact]
     public void GetMethodHandler_ViaGetRegisteredServices_Succeeds()
     {
-        var handlerProvider = GetHandlerProvider(supportsRequiredServices: false, supportsGetRegisteredServices: true);
+        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: true);
 
         var methodHander = handlerProvider.GetMethodHandler(_method, _requestType, _responseType);
 
@@ -44,7 +44,7 @@ public partial class HandlerProviderTests
     [Fact]
     public void GetMethodHandler_WrongMethod_Throws()
     {
-        var handlerProvider = GetHandlerProvider(supportsRequiredServices: true, supportsGetRegisteredServices: false);
+        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
 
         Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(_wrongMethod, _requestType, _responseType));
     }
@@ -52,7 +52,7 @@ public partial class HandlerProviderTests
     [Fact]
     public void GetMethodHandler_WrongResponseType_Throws()
     {
-        var handlerProvider = GetHandlerProvider(supportsRequiredServices: true, supportsGetRegisteredServices: false);
+        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
 
         Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(_method, _requestType, _wrongResponseType));
     }
@@ -60,7 +60,7 @@ public partial class HandlerProviderTests
     [Fact]
     public void GetRegisteredMethods_GetRequiredServices()
     {
-        var handlerProvider = GetHandlerProvider(supportsRequiredServices: true, supportsGetRegisteredServices: false);
+        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
 
         var registeredMethods = handlerProvider.GetRegisteredMethods();
 
@@ -71,7 +71,7 @@ public partial class HandlerProviderTests
     [Fact]
     public void GetRegisteredMethods_GetRegisteredServices()
     {
-        var handlerProvider = GetHandlerProvider(supportsRequiredServices: false, supportsGetRegisteredServices: true);
+        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: true);
 
         var registeredMethods = handlerProvider.GetRegisteredMethods();
 
@@ -79,18 +79,18 @@ public partial class HandlerProviderTests
             (r) => Assert.Equal(_method, r.MethodName));
     }
 
-    private static HandlerProvider GetHandlerProvider(bool supportsRequiredServices, bool supportsGetRegisteredServices)
+    private static HandlerProvider GetHandlerProvider(bool supportsGetRegisteredServices)
     {
-        var lspServices = GetLspServices(supportsRequiredServices, supportsGetRegisteredServices);
+        var lspServices = GetLspServices(supportsGetRegisteredServices);
         var handler = new HandlerProvider(lspServices);
 
         return handler;
     }
 
-    private static ILspServices GetLspServices(bool supportsRequiredServices, bool supportsGetRegisteredServices)
+    private static ILspServices GetLspServices(bool supportsGetRegisteredServices)
     {
         var services = new List<(Type, object)> { (typeof(IMethodHandler), _expectedMethodHandler) };
-        var lspServices = new TestLspServices(services, supportsRequiredServices, supportsGetRegisteredServices);
+        var lspServices = new TestLspServices(services, supportsGetRegisteredServices);
         return lspServices;
     }
 
