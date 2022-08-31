@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- This is a helper project to reference all the integration test projects and required VSIXs so that we only build the relevant projects in integration test CI -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Tools\Source\RunTests\RunTests.csproj" SetTargetFramework="TargetFramework=net6.0" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\Compilers\Extension\Roslyn.Compilers.Extension.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\Setup\DevDivVsix\CompilersPackage\arm64\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\Setup\DevDivVsix\CompilersPackage\x64\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\VisualStudio\Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\VisualStudio\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\VisualStudio\IntegrationTest\IntegrationTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\VisualStudio\IntegrationTest\New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\VisualStudio\IntegrationTest\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" ReferenceOutputAssembly="false" />
+  <ProjectReference Include="..\..\..\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

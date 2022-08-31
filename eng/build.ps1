@@ -47,6 +47,7 @@ param (
   [switch]$oop64bit = $true,
   [switch]$oopCoreClr = $false,
   [switch]$lspEditor = $false,
+  [string]$solution = "Roslyn.sln",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -209,7 +210,6 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  $solution = "Roslyn.sln"
 
   Write-Host "$($solution):"
 
