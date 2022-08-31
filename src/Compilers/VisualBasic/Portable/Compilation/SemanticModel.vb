@@ -2751,7 +2751,7 @@ _Default:
 
             Dim containingInvocationInfo As SymbolInfo = GetExpressionSymbolInfo(containingInvocation, SymbolInfoOptions.PreferConstructorsToType Or SymbolInfoOptions.ResolveAliases, cancellationToken)
 
-            Return FindNameParameterInfo(containingInvocationInfo.GetAllSymbols().CastArray(Of Symbol),
+            Return FindNameParameterInfo(containingInvocationInfo.GetAllSymbols().Cast(Of Symbol).ToImmutableArray(),
                                          argumentName,
                                          containingInvocationInfo.CandidateReason)
         End Function
