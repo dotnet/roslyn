@@ -77,7 +77,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug_net472
       configuration: Debug
       queueName: windows.vs2022preview.amd64.open
-      shouldRun: $[eq(variables['Build.Reason'], 'PullRequest')]
+      shouldRun: $[or(ne(variables['Build.Reason'], 'PullRequest'), or(eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_scripting.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_codeStyle.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_workspace.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_features.containsChange'], 'true'),eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_visualStudio.containsChange'], 'true')))]
       solution: src\Test\TestDependencies\TestDependencies-net472.csproj
       compilersChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
       expressionEvaluatorChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_expressionEvaluator.containsChange']]

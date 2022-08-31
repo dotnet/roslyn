@@ -22,8 +22,8 @@ parameters:
   type: string
   default: ''
 - name: shouldRun
-  type: boolean
-  default: true
+  type: string
+  default: 'true'
 - name: solution
   type: string
   default: 'Roslyn.sln'
@@ -51,7 +51,7 @@ parameters:
   
 jobs:
 - job: ${{ parameters.jobName }}
-  condition: ${{ parameters.shouldRun }}
+  condition: eq (${{ parameters.shouldRun }}, 'true')
   pool:
     ${{ if ne(parameters.queueName, '') }}:
       name: NetCore1ESPool-Public
