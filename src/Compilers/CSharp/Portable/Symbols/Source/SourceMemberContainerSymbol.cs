@@ -1766,10 +1766,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // There may be multiple syntax trees across declarations in error scenarios,
                 // but we're not interested in handling that for the purposes of producing this error.
                 var tree = declaration.Declarations[0].SyntaxReference.SyntaxTree;
-                if (fileIdentifier.FilePathChecksumOpt.IsDefault)
+                if (fileIdentifier.EncoderFallbackErrorMessage is { } errorMessage)
                 {
-                    Debug.Assert(fileIdentifier.EncoderFallbackErrorMessage is not null);
-                    diagnostics.Add(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, location, this, fileIdentifier.EncoderFallbackErrorMessage);
+                    Debug.Assert(fileIdentifier.FilePathChecksumOpt.IsDefault);
+                    diagnostics.Add(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, location, this, errorMessage);
                 }
 
                 if ((object?)ContainingType != null)

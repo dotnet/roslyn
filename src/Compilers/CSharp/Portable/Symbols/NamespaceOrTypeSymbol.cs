@@ -343,7 +343,7 @@ Done:
                 foreach (var named in namespaceOrTypeMembers)
                 {
                     if (named.AssociatedFileIdentifier is FileIdentifier identifier
-                        && getDisplayName(identifier) == displayFileName
+                        && identifier.DisplayFilePath == displayFileName
                         && !identifier.FilePathChecksumOpt.IsDefault
                         && identifier.FilePathChecksumOpt.SequenceEqual(checksum)
                         && named.Arity == emittedTypeName.InferredArity)
@@ -372,13 +372,6 @@ Done:
             }
 
             return namedType;
-
-            static string getDisplayName(FileIdentifier identifier)
-            {
-                var sb = PooledStringBuilder.GetInstance();
-                GeneratedNames.AppendFileName(identifier.DisplayFilePath, sb);
-                return sb.ToStringAndFree();
-            }
         }
 
         /// <summary>

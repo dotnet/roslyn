@@ -3286,7 +3286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 paths.Free();
 
-                VisitNamespace(globalNamespace);
+                if (_duplicatePaths.Any())
+                {
+                    VisitNamespace(globalNamespace);
+                }
                 _duplicatePaths.Free();
                 return _hasDuplicateFilePaths;
             }

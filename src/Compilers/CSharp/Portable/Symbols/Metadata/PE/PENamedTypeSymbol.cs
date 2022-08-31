@@ -86,21 +86,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static readonly UncommonProperties s_noUncommonProperties = new UncommonProperties();
         private UncommonProperties _lazyUncommonProperties;
 
-        private UncommonProperties GetUncommonProperties(bool force = false)
+        private UncommonProperties GetUncommonProperties()
         {
             var result = _lazyUncommonProperties;
             if (result != null)
             {
 #if DEBUG
-                // We require that if 'force: true' is passed, then we must not have already loaded the default instance.
-                // We want to avoid a scenario where calling multiple times with 'force: false' could cause the caller to observe different instances.
-                Debug.Assert(!force || result != s_noUncommonProperties);
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
 #endif
                 return result;
             }
 
-            if (force || this.IsUncommon())
+            if (this.IsUncommon())
             {
                 result = new UncommonProperties();
                 return Interlocked.CompareExchange(ref _lazyUncommonProperties, result, null) ?? result;
@@ -321,14 +318,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 mangleName = !ReferenceEquals(_name, metadataName);
             }
 
+            if (_lazyUncommonProperties is not null)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             // when a file-local type from source is loaded from metadata, we do a best-effort check to identify it as a file type
             // this is needed to allow EE to bind to file types from metadata, for example.
             if (container.IsNamespace && GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
             {
                 _name = originalTypeName;
-                var uncommon = GetUncommonProperties(force: true);
-                uncommon.lazyFilePathChecksum = ordinal.ToImmutableArray();
-                uncommon.lazyDisplayFileName = displayFileName;
+                _lazyUncommonProperties = new UncommonProperties()
+                {
+                    lazyFilePathChecksum = ordinal.ToImmutableArray(),
+                    lazyDisplayFileName = displayFileName
+                };
             }
 
             // check if this is one of the COR library types
