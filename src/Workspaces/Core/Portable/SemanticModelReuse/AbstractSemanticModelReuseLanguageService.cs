@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 return previousMembers[index];
             }
         }
+
         private sealed class NonEquivalentTreeException : Exception
         {
             // Used for analyzing dumps
