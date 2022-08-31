@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// position is within.
         /// </summary>
         Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
-            Document document, int position, CancellationToken cancellationToken);
+            Document document, int position, bool includeType, CancellationToken cancellationToken);
     }
 }

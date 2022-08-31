@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public async Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
             Document document,
             int position,
+            bool includeType,
             CancellationToken cancellationToken)
         {
             var context = new VSTypeScriptGoToSymbolContext(document, position, cancellationToken);

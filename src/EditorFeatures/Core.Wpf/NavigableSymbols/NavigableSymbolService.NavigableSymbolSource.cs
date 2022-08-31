@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 if (service == null)
                     return null;
 
-                var (navigableLocation, symbolSpan) = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var (navigableLocation, symbolSpan) = await service.FindDefinitionLocationAsync(
+                    document, position, includeType: false, cancellationToken).ConfigureAwait(false);
                 if (navigableLocation == null)
                     return null;
 

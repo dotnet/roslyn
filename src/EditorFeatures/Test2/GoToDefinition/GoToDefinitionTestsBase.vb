@@ -45,7 +45,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                     DirectCast(New CSharpAsyncGoToDefinitionService(threadingContext, presenter), IAsyncGoToDefinitionService),
                     New VisualBasicAsyncGoToDefinitionService(threadingContext, presenter))
 
-                Dim defLocationAndSpan = Await goToDefService.FindDefinitionLocationAsync(document, cursorPosition, CancellationToken.None)
+                Dim defLocationAndSpan = Await goToDefService.FindDefinitionLocationAsync(
+                    document, cursorPosition, includeType:=True, CancellationToken.None)
                 Dim defLocation = defLocationAndSpan.location
 
                 Dim actualResult = defLocation IsNot Nothing AndAlso

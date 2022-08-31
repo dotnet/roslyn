@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         public async Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
             Document document,
             int position,
+            bool includeType,
             CancellationToken cancellationToken)
         {
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             {
                 // Try to compute the referenced symbol and attempt to go to definition for the symbol.
                 var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                    document, position, includeType: true, cancellationToken).ConfigureAwait(false);
+                    document, position, includeType, cancellationToken).ConfigureAwait(false);
                 if (symbol is null)
                     return default;
 
