@@ -2,13 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
@@ -21,11 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider(Of ImportsClauseSyntax)
-            Get
-                Return VisualBasicUnnecessaryImportsProvider.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider(Of ImportsClauseSyntax) = VisualBasicUnnecessaryImportsProvider.Instance
 
         Public Overrides Async Function RemoveUnnecessaryImportsAsync(
                 document As Document,
@@ -47,12 +46,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
-                Dim newRoot = New Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot)
+                Dim newRoot = New Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot)
                 newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
 
                 cancellationToken.ThrowIfCancellationRequested()
                 Return document.WithSyntaxRoot(newRoot)
             End Using
+        End Function
+
+        Public Shared Function RemoveUnnecessaryImports(
+                root As CompilationUnitSyntax,
+                importsClause As ImportsClauseSyntax,
+                cancellationToken As CancellationToken) As CompilationUnitSyntax
+            Dim newRoot = New Rewriter(New HashSet(Of ImportsClauseSyntax) From {importsClause}, cancellationToken).Visit(root)
+            Return DirectCast(newRoot, CompilationUnitSyntax)
         End Function
     End Class
 End Namespace

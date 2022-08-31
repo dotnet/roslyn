@@ -4,6 +4,8 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
@@ -14,12 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Private ReadOnly _unnecessaryImports As ISet(Of ImportsClauseSyntax)
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _annotation As New SyntaxAnnotation()
-            Private ReadOnly _document As Document
 
-            Public Sub New(document As Document,
-                           unnecessaryImports As ISet(Of ImportsClauseSyntax),
+            Public Sub New(unnecessaryImports As ISet(Of ImportsClauseSyntax),
                            cancellationToken As CancellationToken)
-                _document = document
                 _unnecessaryImports = unnecessaryImports
                 _cancellationToken = cancellationToken
             End Sub
@@ -140,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 If newCompilationUnit.Imports.Count = 0 AndAlso newCompilationUnit.Options.Count = 0 Then
                     If newCompilationUnit.Attributes.Count > 0 OrElse newCompilationUnit.Members.Count > 0 Then
                         Dim firstToken = newCompilationUnit.GetFirstToken()
-                        Dim newFirstToken = StripNewLines(_document, firstToken)
+                        Dim newFirstToken = StripNewLines(VisualBasicSyntaxFacts.Instance, firstToken)
                         newCompilationUnit = newCompilationUnit.ReplaceToken(firstToken, newFirstToken)
                     End If
                 End If

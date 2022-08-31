@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
 
-        protected static SyntaxToken StripNewLines(Document document, SyntaxToken token)
+        protected static SyntaxToken StripNewLines(ISyntaxFacts syntaxFacts, SyntaxToken token)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
             var trimmedLeadingTrivia = token.LeadingTrivia.SkipWhile(syntaxFacts.IsEndOfLineTrivia).ToList();
 
             // If the list ends with 3 newlines remove the last one until there's only 2 newlines to end the leading trivia.
