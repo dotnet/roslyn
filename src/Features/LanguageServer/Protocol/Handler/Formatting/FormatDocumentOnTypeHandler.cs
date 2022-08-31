@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
     [Method(Methods.TextDocumentOnTypeFormattingName)]
-    internal sealed class FormatDocumentOnTypeHandler : ILspServiceRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
+    internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
         private readonly IGlobalOptionService _globalOptions;
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : ILspServiceRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
