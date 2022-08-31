@@ -32,8 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <exception cref="ArgumentNullException">Code is null.</exception>
         public static Script<T> Create<T>(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            if (code == null)
+            if (code is null)
+            {
                 throw new ArgumentNullException(nameof(code));
+            }
+
             return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding), options, globalsType, assemblyLoader);
         }
 
