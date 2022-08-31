@@ -93,7 +93,7 @@ jobs:
           -msbuildEngine dotnet
           -solution ${{ parameters.solution }}
           -build
-          /p:BuildReason=${{ parameters.buildReason }}
+          /p:BuildReason=$(Build.Reason)
           /p:CompilersChange=${{ parameters.compilersChange }}
           /p:ExpressionEvaluatorChange=${{ parameters.expressionEvaluatorChange }}
           /p:ScriptingChange=${{ parameters.scriptingChange }}
