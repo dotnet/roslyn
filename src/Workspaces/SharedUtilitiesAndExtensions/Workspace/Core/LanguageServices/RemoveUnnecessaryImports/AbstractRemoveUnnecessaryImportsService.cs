@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         IRemoveUnnecessaryImportsService,
         IEqualityComparer<T> where T : SyntaxNode
     {
-        protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
+        protected abstract IUnnecessaryImportsProvider<T> UnnecessaryImportsProvider { get; }
 
         public Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
             => RemoveUnnecessaryImportsAsync(document, predicate: null, formattingOptions, cancellationToken);

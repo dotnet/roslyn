@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             => CSharpSyntaxFormatting.Instance;
 #endif
 
-        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+        protected override IUnnecessaryImportsProvider<UsingDirectiveSyntax> UnnecessaryImportsProvider
             => CSharpUnnecessaryImportsProvider.Instance;
 
         public override async Task<Document> RemoveUnnecessaryImportsAsync(

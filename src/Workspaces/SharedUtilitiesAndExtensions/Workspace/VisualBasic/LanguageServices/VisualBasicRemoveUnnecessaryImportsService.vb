@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider
+        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider(Of ImportsClauseSyntax)
             Get
                 Return VisualBasicUnnecessaryImportsProvider.Instance
             End Get

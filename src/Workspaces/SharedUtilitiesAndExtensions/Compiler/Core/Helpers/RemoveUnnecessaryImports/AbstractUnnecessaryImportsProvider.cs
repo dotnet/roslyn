@@ -10,19 +10,21 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractUnnecessaryImportsProvider<T>
-        : IUnnecessaryImportsProvider, IEqualityComparer<T> where T : SyntaxNode
+    internal abstract class AbstractUnnecessaryImportsProvider<TSyntaxNode> :
+        IUnnecessaryImportsProvider<TSyntaxNode>,
+        IEqualityComparer<TSyntaxNode>
+        where TSyntaxNode : SyntaxNode
     {
-        public abstract ImmutableArray<SyntaxNode> GetUnnecessaryImports(
+        public abstract ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
             SemanticModel model, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken);
 
-        public ImmutableArray<SyntaxNode> GetUnnecessaryImports(SemanticModel model, CancellationToken cancellationToken)
+        public ImmutableArray<TSyntaxNode> GetUnnecessaryImports(SemanticModel model, CancellationToken cancellationToken)
             => GetUnnecessaryImports(model, predicate: null, cancellationToken: cancellationToken);
 
-        bool IEqualityComparer<T>.Equals([AllowNull] T x, [AllowNull] T y)
+        bool IEqualityComparer<TSyntaxNode>.Equals([AllowNull] TSyntaxNode x, [AllowNull] TSyntaxNode y)
             => x?.Span == y?.Span;
 
-        int IEqualityComparer<T>.GetHashCode([DisallowNull] T obj)
+        int IEqualityComparer<TSyntaxNode>.GetHashCode([DisallowNull] TSyntaxNode obj)
             => obj.Span.GetHashCode();
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
         }
 
-        public override ImmutableArray<SyntaxNode> GetUnnecessaryImports(
+        public override ImmutableArray<UsingDirectiveSyntax> GetUnnecessaryImports(
             SemanticModel model,
             Func<SyntaxNode, bool>? predicate,
             CancellationToken cancellationToken)
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             predicate ??= Functions<SyntaxNode>.True;
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
 
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+            using var _ = ArrayBuilder<UsingDirectiveSyntax>.GetInstance(out var result);
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Id == "CS8019" &&
