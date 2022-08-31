@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 
+        [MemberNotNullWhen(returnValue: true, member: nameof(ContainingTypeDeclaration))]
         public bool IsInheritanceContext => IsBaseClassContext || IsBaseInterfaceContext || IsBaseRecordContext;
 
         protected SyntaxContext(

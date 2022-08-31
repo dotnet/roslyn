@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             else if (context.IsInheritanceContext)
             {
-                Debug.Assert(context.ContainingTypeDeclaration is not null, $"{nameof(context.ContainingTypeDeclaration)} must never be null here");
-
                 // In order to provide better completion experience we need to know a type we are inheriting from.
                 // For instance, normally class cannot inherit from itself, so we need to filter it out from the list.
                 // The type should always be an INamedTypeSymbol, but we are doing it safe with 'as' cast just in case
