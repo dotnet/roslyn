@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HighPriority = highPriority;
         }
 
-        public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(
+            Solution solution, Document? activeDocument, CancellationToken cancellationToken)
         {
             if (IsStale)
             {
@@ -85,13 +86,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (document == null)
                     return null;
 
-                return new NavigateToSearchResult(this, document);
+                return new NavigateToSearchResult(this, document, activeDocument);
             }
             else
             {
                 var document = await solution.GetRequiredDocumentAsync(
                     DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                return new NavigateToSearchResult(this, document);
+                return new NavigateToSearchResult(this, document, activeDocument);
             }
         }
 
@@ -100,13 +101,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             private static readonly char[] s_dotArray = { '.' };
 
             private readonly RoslynNavigateToItem _item;
-            private readonly Document _document;
+
+            /// <summary>
+            /// The <see cref="Document"/> that <see cref="_item"/> is contained within.
+            /// </summary>
+            private readonly Document _itemDocument;
+
+            /// <summary>
+            /// The document the user was editing when they invoked the navigate-to operation.
+            /// </summary>
+            private readonly Document? _activeDocument;
+
             private readonly string _additionalInformation;
 
-            public NavigateToSearchResult(RoslynNavigateToItem item, Document document)
+            public NavigateToSearchResult(
+                RoslynNavigateToItem item,
+                Document itemDocument,
+                Document? activeDocument)
             {
                 _item = item;
-                _document = document;
+                _itemDocument = itemDocument;
+                _activeDocument = activeDocument;
                 _additionalInformation = ComputeAdditionalInformation();
             }
 
@@ -116,8 +131,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var combinedProjectName = ComputeCombinedProjectName();
                 return (_item.DeclaredSymbolInfo.IsPartial, IsNonNestedNamedType()) switch
                 {
-                    (true, true) => string.Format(FeaturesResources._0_dash_1, _document.Name, combinedProjectName),
-                    (true, false) => string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _document.Name, combinedProjectName),
+                    (true, true) => string.Format(FeaturesResources._0_dash_1, _itemDocument.Name, combinedProjectName),
+                    (true, false) => string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _itemDocument.Name, combinedProjectName),
                     (false, true) => string.Format(FeaturesResources.project_0, combinedProjectName),
                     (false, false) => string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfo.ContainerDisplayName, combinedProjectName),
                 };
@@ -130,7 +145,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                     // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
                     // figure this out, we can't create a merged name.
-                    var firstProject = _document.Project;
+                    var firstProject = _itemDocument.Project;
                     var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
 
                     if (firstProjectName != null)
@@ -159,7 +174,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
 
                 // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
-                return _document.Project.Name;
+                return _itemDocument.Project.Name;
             }
 
             string INavigateToSearchResult.AdditionalInformation => _additionalInformation;
@@ -214,7 +229,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
                     // the secondary sort string.  That way "Outer.cs" will be weighted above
                     // "Outer.Inner.cs"
-                    var fileName = Path.GetFileNameWithoutExtension(_document.FilePath ?? "");
+                    var fileName = Path.GetFileNameWithoutExtension(_itemDocument.FilePath ?? "");
                     parts.AddRange(fileName.Split(s_dotArray));
 
                     return string.Join(" ", parts);
@@ -291,7 +306,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             /// </summary>
             bool INavigableItem.IsImplicitlyDeclared => false;
 
-            Document INavigableItem.Document => _document;
+            Document INavigableItem.Document => _itemDocument;
 
             TextSpan INavigableItem.SourceSpan => _item.DeclaredSymbolInfo.Span;
 
