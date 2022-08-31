@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static void AppendFileName(string filePath, StringBuilder sb)
+        private static void AppendFileName(string filePath, StringBuilder sb)
         {
             var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
             if (fileName is null)
