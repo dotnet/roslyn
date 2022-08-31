@@ -238,6 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
                                         pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                     }
+
+                                    return VSConstants.S_OK;
                                 }
                                 else if (matchingSpan.Value.End > position) // caret is at open parenthesis
                                 {
@@ -255,18 +257,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
                                         pSpan[0].iStartIndex = vsOpeningSpans.iStartIndex;
                                     }
+
+                                    return VSConstants.S_OK;
                                 }
                             }
-                        }
-                        else
-                        {
-                            return VSConstants.E_FAIL;
                         }
                     }
                 }
             }
 
-            return VSConstants.S_OK;
+            return VSConstants.S_FALSE;
         }
 
         int IVsTextViewFilter.GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)
