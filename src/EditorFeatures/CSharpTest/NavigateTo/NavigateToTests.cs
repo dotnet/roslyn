@@ -1677,6 +1677,52 @@ testHost, composition, @"record Goo(int Member)
     VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
 });
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("1"));
+            });
+        }
     }
 }
 #pragma warning restore CS0618 // MatchKind is obsolete
