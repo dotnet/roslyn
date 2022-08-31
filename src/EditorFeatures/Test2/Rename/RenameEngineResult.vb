@@ -30,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private ReadOnly _workspace As TestWorkspace
         Private ReadOnly _resolution As ConflictResolution
-        Private ReadOnly _renameSymbol As ImmutableArray(Of ISymbol)
 
         ''' <summary>
         ''' The list of related locations that haven't been asserted about yet. Items are
@@ -51,24 +50,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub New(
                 workspace As TestWorkspace,
                 resolution As ConflictResolution,
-                nonConflictTextSpanToReplacementText As ImmutableDictionary(Of (DocumentId, TextSpan), String),
+                nonConflictLocationToReplacementText As ImmutableDictionary(Of DocumentId, ImmutableDictionary(Of TextSpan, String)),
                 symbolToReplacementText As ImmutableDictionary(Of ISymbol, String),
                 annotatedTagToSymbolsMap As ImmutableDictionary(Of String, ISymbol))
             _workspace = workspace
             _resolution = resolution
             _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
-            _nonConflictTextSpanToReplacementText = nonConflictTextSpanToReplacementText
+            _nonConflictLocationToReplacementText = nonConflictLocationToReplacementText
             _symbolToReplacementText = symbolToReplacementText
             _annotatedRenameTagToSymbolsMap = annotatedTagToSymbolsMap
         End Sub
 
         Private Shared Function CreateTestWorkspace(helper As ITestOutputHelper,
-                                                    workspaceXml As XElement,
-                                                    Host As RenameTestHost,
-                                                    Optional sourceGenerator As ISourceGenerator = Nothing) As TestWorkspace
+            workspaceXml As XElement,
+            Host As RenameTestHost,
+            Optional sourceGenerator As ISourceGenerator = Nothing) As TestWorkspace
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions))
             If Host = RenameTestHost.OutOfProcess_SingleCall OrElse Host = RenameTestHost.OutOfProcess_SplitCall Then
-                composition = composition.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess)
+                composition = composition.WithTestHostParts(TestHost.OutOfProcess)
             End If
 
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
@@ -80,62 +79,63 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return workspace
         End Function
 
-        Private Shared Async Function GetRenamedSymbolInfoMapAsync(
-            workspace As TestWorkspace,
-            renameTags() As String,
-            renameTagOptions As Dictionary(Of String, SymbolRenameOptions)) As Task(Of ImmutableDictionary(Of ISymbol, (String, SymbolRenameOptions)))
-            Dim builder As PooledDictionary(Of ISymbol, (String, SymbolRenameOptions)) = Nothing
-            Using disposer = PooledDictionary(Of ISymbol, (String, SymbolRenameOptions)).GetInstance(builder)
-                For Each testDocument In workspace.Documents
-                    Dim document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id)
-                    For Each annotatedSpan In testDocument.AnnotatedSpans
-                        Dim newName = annotatedSpan.Key
-                        Dim symbolRenameOption = If(renameTagOptions IsNot Nothing, renameTagOptions(newName), New SymbolRenameOptions())
-                        Dim spans = annotatedSpan.Value
-                        If renameTags.Contains(newName) Then
-                            For Each span In spans
-                                Dim symbol = Await RenameUtilities.TryGetRenamableSymbolAsync(document, span.Start, CancellationToken.None).ConfigureAwait(False)
-                                builder(symbol) = (newName, symbolRenameOption)
-                            Next
-                        End If
-                    Next
-                Next
-                Return builder.ToImmutableDictionary()
-            End Using
-        End Function
+        'Private Shared Async Function GetRenamedSymbolInfoMapAsync(
+        '    workspace As TestWorkspace,
+        '    renameTags() As String,
+        '    renameTagOptions As Dictionary(Of String, SymbolRenameOptions)) As Task(Of ImmutableDictionary(Of ISymbol, (String, SymbolRenameOptions)))
+        '    Dim builder As PooledDictionary(Of ISymbol, (String, SymbolRenameOptions)) = Nothing
 
-        Public Shared Async Function CreateForRenamingMultipleSymbolsAsync(
-                helper As ITestOutputHelper,
-                workspaceXml As XElement,
-                inProcess As Boolean,
-                renameTags() As String,
-                Optional RenameTagOptions As Dictionary(Of String, SymbolRenameOptions) = Nothing,
-                Optional expectFailure As Boolean = False,
-                Optional sourceGenerator As ISourceGenerator = Nothing) As Task(Of RenameEngineResult)
-            Dim workspace = CreateTestWorkspace(helper, workspaceXml, If(inProcess, RenameTestHost.InProcess, RenameTestHost.OutOfProcess_SingleCall), sourceGenerator)
-            Dim renameSymbolInfo = Await GetRenamedSymbolInfoMapAsync(workspace, renameTags, RenameTagOptions).ConfigureAwait(False)
-            Dim solution = workspace.CurrentSolution
-            Dim conflictResolution = Await Renamer.RenameSymbolsAsync(
-                solution,
-                renameSymbolInfo,
-                CodeActionOptions.DefaultProvider,
-                ImmutableArray(Of SymbolKey).Empty,
-                CancellationToken.None).ConfigureAwait(False)
-            If expectFailure Then
-                Assert.False(conflictResolution.IsSuccessful)
-                Assert.NotNull(conflictResolution.ErrorMessage)
-            Else
-                Assert.True(conflictResolution.IsSuccessful)
-            End If
+        '    Using disposer = PooledDictionary(Of ISymbol, (String, SymbolRenameOptions)).GetInstance(builder)
+        '        For Each testDocument In workspace.Documents
+        '            Dim document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id)
+        '            For Each annotatedSpan In testDocument.AnnotatedSpans
+        '                Dim newName = annotatedSpan.Key
+        '                Dim symbolRenameOption = If(renameTagOptions IsNot Nothing, renameTagOptions(newName), New SymbolRenameOptions())
+        '                Dim spans = annotatedSpan.Value
+        '                If renameTags.Contains(newName) Then
+        '                    For Each span In spans
+        '                        Dim symbol = Await RenameUtilities.TryGetRenamableSymbolAsync(document, span.Start, CancellationToken.None).ConfigureAwait(False)
+        '                        builder(symbol) = (newName, symbolRenameOption)
+        '                    Next
+        '                End If
+        '            Next
+        '        Next
+        '        Return builder.ToImmutableDictionary()
+        '    End Using
+        'End Function
 
-            Dim engineResult = New RenameEngineResult(
-                workspace,
-                conflictResolution,
-                renameSymbolInfo.ToImmutableDictionary(Function(pair) pair.Key, Function(pair) pair.Value.Item1),
-                renameSymbolInfo.Keys.ToImmutableArray())
+        'Public Shared Async Function CreateForRenamingMultipleSymbolsAsync(
+        '        helper As ITestOutputHelper,
+        '        workspaceXml As XElement,
+        '        inProcess As Boolean,
+        '        renameTags() As String,
+        '        Optional RenameTagOptions As Dictionary(Of String, SymbolRenameOptions) = Nothing,
+        '        Optional expectFailure As Boolean = False,
+        '        Optional sourceGenerator As ISourceGenerator = Nothing) As Task(Of RenameEngineResult)
+        '    Dim workspace = CreateTestWorkspace(helper, workspaceXml, If(inProcess, RenameTestHost.InProcess, RenameTestHost.OutOfProcess_SingleCall), sourceGenerator)
+        '    Dim renameSymbolInfo = Await GetRenamedSymbolInfoMapAsync(workspace, renameTags, RenameTagOptions).ConfigureAwait(False)
+        '    Dim solution = workspace.CurrentSolution
+        '    Dim conflictResolution = Await Renamer.RenameSymbolsAsync(
+        '        solution,
+        '        renameSymbolInfo,
+        '        CodeActionOptions.DefaultProvider,
+        '        ImmutableArray(Of SymbolKey).Empty,
+        '        CancellationToken.None).ConfigureAwait(False)
+        '    If expectFailure Then
+        '        Assert.False(conflictResolution.IsSuccessful)
+        '        Assert.NotNull(conflictResolution.ErrorMessage)
+        '    Else
+        '        Assert.True(conflictResolution.IsSuccessful)
+        '    End If
 
-            Return engineResult
-        End Function
+        '    Dim engineResult = New RenameEngineResult(
+        '        workspace,
+        '        conflictResolution,
+        '        renameSymbolInfo.ToImmutableDictionary(Function(pair) pair.Key, Function(pair) pair.Value.Item1),
+        '        renameSymbolInfo.Keys.ToImmutableArray())
+
+        '    Return engineResult
+        'End Function
 
         Public Shared Function Create(
                 helper As ITestOutputHelper,
@@ -163,6 +163,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 If symbol Is Nothing Then
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If
+                Dim renameTagToSymbolMap = ImmutableDictionary(Of String, ISymbol).Empty.Add(CaretString, symbol)
+                Dim symbolToReplacementTextMap = ImmutableDictionary(Of ISymbol, String).Empty.Add(symbol, renameTo)
+                Dim nonConflictLocationsToReplacementTextMapBuilder = New Dictionary(Of DocumentId, Dictionary(Of TextSpan, String))
+                AddNonConflictRenameLocationForSelectionSpans(
+                    workspace,
+                    renameTo,
+                    nonConflictLocationsToReplacementTextMapBuilder)
+
+                Dim nonConflictLocationsToReplacementTextMap = nonConflictLocationsToReplacementTextMapBuilder.ToImmutableDictionary(
+                    Function(pair) pair.Key,
+                    Function(pair) pair.Value.ToImmutableDictionary())
 
                 Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
 
@@ -174,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Assert.Null(result.ErrorMessage)
                 End If
 
-                engineResult = New RenameEngineResult(workspace, result, renameTo, symbol)
+                engineResult = New RenameEngineResult(workspace, result, nonConflictLocationsToReplacementTextMap, symbolToReplacementTextMap, renameTagToSymbolMap)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
                 success = True
             Finally
@@ -221,6 +232,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Return _resolution
             End Get
         End Property
+
+        Private Shared Sub AddNonConflictRenameLocationForSelectionSpans(
+                workspace As TestWorkspace,
+                replacementText As String,
+                builder As Dictionary(Of DocumentId, Dictionary(Of TextSpan, String)))
+            Dim documentsWithSpans = workspace.Documents.Where(Function(doc) Not doc.IsSourceGenerated AndAlso doc.SelectedSpans.Count <> 0)
+            For Each doc In documentsWithSpans
+                Dim selectSpans = doc.SelectedSpans
+                Dim existingTextSpanToReplacementText As Dictionary(Of TextSpan, String) = Nothing
+                If Not builder.TryGetValue(doc.Id, existingTextSpanToReplacementText) Then
+                    existingTextSpanToReplacementText = New Dictionary(Of TextSpan, String)
+                End If
+
+                For Each span In selectSpans
+                    existingTextSpanToReplacementText(span) = replacementText
+                Next
+                builder(doc.Id) = existingTextSpanToReplacementText
+            Next
+        End Sub
 
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
             For Each documentWithSpans In _workspace.Documents.Where(Function(d) Not d.IsSourceGenerated)
