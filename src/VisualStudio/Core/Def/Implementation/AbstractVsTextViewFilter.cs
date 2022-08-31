@@ -258,6 +258,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                 }
                             }
                         }
+                        else
+                        {
+                            return VSConstants.E_FAIL;
+                        }
                     }
                 }
             }
