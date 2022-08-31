@@ -14,7 +14,7 @@
   </ItemGroup>
   
   <!-- Compiler Tests -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows' AND ($(CompilersChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows' AND ('$(CompilersChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
     <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\MSBuildTaskTests\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
@@ -30,7 +30,7 @@
   </ItemGroup>
   
   <!-- Workspace Tests -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'  AND ($(CompilersChange)' == 'true' OR '$(WorkspaceChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'  AND ('$(CompilersChange)' == 'true' OR '$(WorkspaceChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
     <ProjectReference Include="..\..\Workspaces\CoreTest\Microsoft.CodeAnalysis.Workspaces.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Workspaces\CSharpTest\Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
@@ -38,7 +38,7 @@
   </ItemGroup>
   
   <!-- Interactive Tests -->
-  <ItemGroup Condition="'($(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
+  <ItemGroup Condition="'$(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest')">
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   

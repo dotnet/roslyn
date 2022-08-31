@@ -14,7 +14,7 @@
   </ItemGroup>
   
   <!-- Compiler Tests -->
-  <ItemGroup Condition="$(CompilersChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
+  <ItemGroup Condition="'$(CompilersChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
     <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\MSBuildTaskTests\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
@@ -30,7 +30,7 @@
   </ItemGroup>
   
   <!-- Interactive Tests -->
-  <ItemGroup Condition="$(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
+  <ItemGroup Condition="'$(CompilersChange)' == 'true' OR '$(ScriptingChange)' == 'true' OR '$(BuildReason)' != 'PullRequest'">
     <ProjectReference Include="..\..\Scripting\CoreTest\Microsoft.CodeAnalysis.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Scripting\CSharpTest\Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
