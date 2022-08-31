@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly ILanguageClientMiddleLayer? _middleLayer;
         private readonly ILspServiceLoggerFactory _lspLoggerFactory;
 
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractLspServiceProvider _lspServiceProvider;
 
         protected readonly IGlobalOptionService GlobalOptions;
@@ -103,14 +102,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AbstractInProcLanguageClient(
             AbstractLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
             _lspServiceProvider = lspServiceProvider;
             GlobalOptions = globalOptions;
-            _listenerProvider = listenerProvider;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
             _middleLayer = middleLayer;
@@ -229,7 +226,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
-                _listenerProvider,
                 logger,
                 SupportedLanguages,
                 ServerKind);

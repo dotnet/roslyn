@@ -20,9 +20,9 @@ public interface IQueueItem<RequestContextType>
     Task StartRequestAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Indicates that this request may mutate the document state, so that the queue may handle its execution appropriatly.
+    /// Indicates that this request may mutate the server state, so that the queue may handle its execution appropriatly.
     /// </summary>
-    bool MutatesDocumentState { get; }
+    bool MutatesServerState { get; }
 
     /// <summary>
     /// The method being executed.
@@ -30,9 +30,4 @@ public interface IQueueItem<RequestContextType>
     string MethodName { get; }
 
     ITextDocumentIdentifierHandler? TextDocumentIdentifierHandler { get; }
-}
-
-public interface IQueueItem<RequestContextType, RequestParamType> : IQueueItem<RequestContextType>
-{
-    RequestParamType RequestParams { get; }
 }

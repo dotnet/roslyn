@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public LiveShareInProcLanguageClient(
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext)
         {
             _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
         }

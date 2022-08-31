@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // handler treats those as separate worlds that they are responsible for.
             if (context.Document == null)
             {
-                context.TraceInformationAsync("Ignoring spell check request because no document was provided", CancellationToken.None);
+                context.TraceInformationAsync("Ignoring spell check request because no document was provided");
                 return ImmutableArray<Document>.Empty;
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
-                context.TraceInformationAsync($"Ignoring spell check request for untracked document: {context.Document.GetURI()}", CancellationToken.None);
+                context.TraceInformationAsync($"Ignoring spell check request for untracked document: {context.Document.GetURI()}");
                 return ImmutableArray<Document>.Empty;
             }
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync()
         {
-            using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("");
             AssertServerAlive(server);
 
             server.GetServerAccessor().GetServerRpc().Dispose();
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerHasSeparateServiceInstances()
         {
-            using var serverOne = await CreateTestLspServerAsync("");
-            using var serverTwo = await CreateTestLspServerAsync("");
+            await using var serverOne = await CreateTestLspServerAsync("");
+            await using var serverTwo = await CreateTestLspServerAsync("");
 
             // Get an LSP service and verify each server has its own instance per server.
             Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerDisposesOfServicesOnShutdown()
         {
-            using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("");
 
             var statefulService = server.GetRequiredLspService<StatefulLspService>();
             var statelessService = server.GetRequiredLspService<StatelessLspService>();

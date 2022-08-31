@@ -48,7 +48,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         throw new NotImplementedException();
     }
 
-    public override async Task ShutdownAsync()
+    public async Task ShutdownAsync()
     {
         await base.ShutdownAsync();
         _shuttingDown.SetResult(0);
@@ -75,7 +75,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return await _exiting.Task;
     }
 
-    public override ValueTask DisposeAsync()
+    public new ValueTask DisposeAsync()
     {
         _clientRpc.Dispose();
         return base.DisposeAsync();

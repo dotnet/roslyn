@@ -12,13 +12,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-internal class LspServiceLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
-{
-    public LspServiceLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
-    {
-    }
-}
-
 [Method(Methods.ExitName)]
 internal class ExitHandler : ILspServiceNotificationHandler
 {

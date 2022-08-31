@@ -27,7 +27,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
         var logger = context.GetRequiredLspService<ILspServiceLogger>();
         try
         {
-            await logger.LogStartContextAsync("Initialize", cancellationToken).ConfigureAwait(false);
+            await logger.LogStartContextAsync("Initialize").ConfigureAwait(false);
 
             var clientCapabilitiesManager = context.GetRequiredLspService<IClientCapabilitiesManager>();
             var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -49,7 +49,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
         }
         finally
         {
-            await logger.LogEndContextAsync("Initialize", cancellationToken).ConfigureAwait(false);
+            await logger.LogEndContextAsync("Initialize").ConfigureAwait(false);
         }
     }
 }

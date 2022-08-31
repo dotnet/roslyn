@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _configuration.Dispose();
         }
 
-        public Task LogInformationAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogInformationAsync(string message, params object[] @params)
         {
             // Explicitly call TraceEvent here instead of TraceInformation.
             // TraceInformation indirectly calls string.Format which throws if the message
@@ -49,35 +49,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        public Task LogWarningAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogWarningAsync(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Warning, id: 0, message);
 
             return Task.CompletedTask;
         }
 
-        public Task LogErrorAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogErrorAsync(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Error, id: 0, message);
 
             return Task.CompletedTask;
         }
 
-        public Task LogExceptionAsync(Exception exception, string? message = null, CancellationToken? cancellationToken = null, params object[] @params)
+        public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
 
             return Task.CompletedTask;
         }
 
-        public Task LogStartContextAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogStartContextAsync(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Start, id: 0, message);
 
             return Task.CompletedTask;
         }
 
-        public Task LogEndContextAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogEndContextAsync(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
 

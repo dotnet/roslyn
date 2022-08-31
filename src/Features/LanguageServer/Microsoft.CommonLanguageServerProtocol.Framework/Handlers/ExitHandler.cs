@@ -11,9 +11,9 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 [LanguageServerEndpoint("exit")]
 public class ExitHandler<RequestContextType> : INotificationHandler<RequestContextType>
 {
-    private readonly LifeCycleManager<RequestContextType> _lifeCycleManager;
+    private readonly ILifeCycleManager _lifeCycleManager;
 
-    public ExitHandler(LifeCycleManager<RequestContextType> lifeCycleManager)
+    public ExitHandler(ILifeCycleManager lifeCycleManager)
     {
         _lifeCycleManager = lifeCycleManager;
     }

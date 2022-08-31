@@ -30,7 +30,7 @@ internal class ShutdownHandler : ILspServiceNotificationHandler
             throw new InvalidOperationException($"{Methods.ShutdownName} called before {Methods.InitializeName}");
         }
 
-        var lifeCycleManager = requestContext.GetRequiredService<LifeCycleManager<RequestContext>>();
+        var lifeCycleManager = requestContext.GetRequiredService<ILifeCycleManager>();
         await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
     }
 }

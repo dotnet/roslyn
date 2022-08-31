@@ -155,9 +155,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         TRequestType request,
         IMethodHandler handler,
         ILspServices lspServices,
-        CancellationToken cancellationToken)
-    {
-        return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
+        CancellationToken cancellationToken) => QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
             methodName,
             textDocumentIdentifier,
             request,
@@ -165,7 +163,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
             lspServices,
             _logger,
             cancellationToken);
-    }
 
     private async Task ProcessQueueAsync()
     {
@@ -193,7 +190,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
-                    if (work.MutatesDocumentState)
+                    if (work.MutatesServerState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
@@ -226,11 +223,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
             await OnRequestServerShutdownAsync($"Error occurred processing queue: {ex.Message}.").ConfigureAwait(false);
             return;
         }
-    }
-
-    protected IRequestContextFactory<RequestContextType> GetRequestContextFactory(ILspServices lspServices)
-    {
-        return lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
     }
 
     private async Task OnRequestServerShutdownAsync(string message)

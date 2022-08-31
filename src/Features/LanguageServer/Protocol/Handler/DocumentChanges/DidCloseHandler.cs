@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            await context.TraceInformationAsync($"didClose for {request.TextDocument.Uri}", cancellationToken).ConfigureAwait(false);
+            await context.TraceInformationAsync($"didClose for {request.TextDocument.Uri}").ConfigureAwait(false);
 
             context.StopTracking(request.TextDocument.Uri);
         }

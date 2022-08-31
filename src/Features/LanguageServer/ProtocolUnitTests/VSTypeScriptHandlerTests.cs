@@ -39,7 +39,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var request = new TSRequest(document.GetURI(), ProtocolConversions.ProjectIdToProjectContextId(document.Project.Id));
@@ -58,7 +58,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -85,7 +85,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
     private static async Task<RoslynLanguageServer> CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
-        var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
         var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
@@ -99,7 +98,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         var languageServer = new RoslynLanguageServer(
             servicesProvider, jsonRpc,
             capabilitiesProvider,
-            listenerProvider,
             logger,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);

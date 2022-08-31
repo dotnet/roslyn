@@ -32,7 +32,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
     /// </summary>
     private readonly TaskCompletionSource<TResponseType> _completionSource = new();
 
-    public bool MutatesDocumentState { get; }
+    public bool MutatesServerState { get; }
 
     public string MethodName { get; }
 
@@ -57,7 +57,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         _lspServices = lspServices;
         TextDocumentIdentifierHandler = textDocumentIdentifierHandler;
 
-        MutatesDocumentState = mutatesSolutionState;
+        MutatesServerState = mutatesSolutionState;
         MethodName = methodName;
     }
 
@@ -93,7 +93,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
     /// <returns>The result of the request.</returns>
     public async Task StartRequestAsync(CancellationToken cancellationToken)
     {
-        await _logger.LogStartContextAsync($"{MethodName}", cancellationToken).ConfigureAwait(false);
+        await _logger.LogStartContextAsync($"{MethodName}").ConfigureAwait(false);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -110,7 +110,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
                 // the requests this could happen for.  However, this assumption may not hold in the future.
                 // If that turns out to be the case, we could defer to the individual handler to decide
                 // what to do.
-                await _logger.LogWarningAsync($"Could not get request context for {MethodName}", cancellationToken).ConfigureAwait(false);
+                await _logger.LogWarningAsync($"Could not get request context for {MethodName}").ConfigureAwait(false);
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
             else
@@ -144,7 +144,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
-            await _logger.LogInformationAsync($"{MethodName} - Canceled", cancellationToken).ConfigureAwait(false);
+            await _logger.LogInformationAsync($"{MethodName} - Canceled").ConfigureAwait(false);
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
@@ -152,13 +152,13 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         {
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
-            await _logger.LogExceptionAsync(ex, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await _logger.LogExceptionAsync(ex).ConfigureAwait(false);
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
-            await _logger.LogEndContextAsync($"{MethodName}", cancellationToken).ConfigureAwait(false);
+            await _logger.LogEndContextAsync($"{MethodName}").ConfigureAwait(false);
         }
 
         // Return the result of this completion source to the caller

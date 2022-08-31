@@ -19,7 +19,7 @@ public class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtoc
     {
         var markup = "";
         TestWorkspaceRegistrationService registrationService;
-        using (var testLspServer = await CreateTestLspServerAsync(markup))
+        await using (var testLspServer = await CreateTestLspServerAsync(markup))
         {
             registrationService = (TestWorkspaceRegistrationService)testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
         }

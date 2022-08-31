@@ -14,19 +14,6 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <typeparam name="RequestContextType">The type of the RequestContext to be used by the handler.</typeparam>
 public interface IRequestExecutionQueue<RequestContextType> : IAsyncDisposable
 {
-    ///// <summary>
-    ///// Queue a request for a notifcation with a parameter.
-    ///// </summary>
-    ///// <typeparam name="TRequestType"></typeparam>
-    ///// <returns>A task that completes when the handler execution is done.</returns>
-    //Task ExecuteAsync<TRequestType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
-
-    ///// <summary>
-    ///// Queue a request for a parameterless notification.
-    ///// </summary>
-    ///// <returns>A task that completes when the handler execution is done.</returns>
-    //Task ExecuteAsync(string methodName, ILspServices lspServices, CancellationToken cancellationToken);
-
     /// <summary>
     /// Queue a request.
     /// </summary>

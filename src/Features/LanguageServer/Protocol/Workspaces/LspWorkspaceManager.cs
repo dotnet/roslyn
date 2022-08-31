@@ -182,7 +182,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                await _logger.LogInformationAsync($"{document.FilePath} found in workspace {workspaceKind}", cancellationToken).ConfigureAwait(false);
+                await _logger.LogInformationAsync($"{document.FilePath} found in workspace {workspaceKind}").ConfigureAwait(false);
 
                 return document;
             }
@@ -190,7 +190,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        await _logger.LogErrorAsync($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}", cancellationToken).ConfigureAwait(false);
+        await _logger.LogErrorAsync($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}").ConfigureAwait(false);
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace if its open.
@@ -288,7 +288,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             if (!isTextEquivalent)
             {
-                await _logger.LogWarningAsync($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution", cancellationToken).ConfigureAwait(false);
+                await _logger.LogWarningAsync($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution").ConfigureAwait(false);
                 return false;
             }
         }

@@ -25,15 +25,3 @@ public interface INotificationHandler<RequestType, RequestContextType> : IMethod
 {
     Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken);
 }
-
-public interface ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifierType> : ITextDocumentIdentifierHandler
-{
-    /// <summary>
-    /// Gets the identifier of the document from the request, if the request provides one.
-    /// </summary>
-    TextDocumentIdentifierType GetTextDocumentIdentifier(RequestType request);
-}
-
-public interface ITextDocumentIdentifierHandler
-{
-}

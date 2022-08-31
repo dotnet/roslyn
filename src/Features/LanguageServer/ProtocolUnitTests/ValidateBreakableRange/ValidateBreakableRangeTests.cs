@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|expected:{|caret:|}M();|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caret = testLspServer.GetLocations("caret").Single();
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
 #endif
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caret = testLspServer.GetLocations("caret").Single();
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|caret:|}const int a = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caret = testLspServer.GetLocations("caret").Single();
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|breakpoint:{|expected:int a = 1;|} Console.WriteLine(""hello"");|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|breakpoint:int a Console.WriteLine(""hello"");|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
      {|breakpoint:int a = 1;|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 

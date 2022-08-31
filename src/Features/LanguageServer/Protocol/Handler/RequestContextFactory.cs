@@ -55,7 +55,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         }
 
         return RequestContext.CreateAsync(
-            queueItem.MutatesDocumentState,
+            queueItem.MutatesServerState,
             textDocumentIdentifier,
             serverInfoProvider.ServerKind,
             clientCapabilities,

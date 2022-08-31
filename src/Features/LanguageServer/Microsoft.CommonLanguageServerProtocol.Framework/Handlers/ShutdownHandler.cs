@@ -13,9 +13,9 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 [LanguageServerEndpoint("shutdown")]
 public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestContextType>
 {
-    private readonly LifeCycleManager<RequestContextType> _lifeCycleManager;
+    private readonly ILifeCycleManager _lifeCycleManager;
 
-    public ShutdownHandler(LifeCycleManager<RequestContextType> lifeCycleManager)
+    public ShutdownHandler(ILifeCycleManager lifeCycleManager)
     {
         _lifeCycleManager = lifeCycleManager;
     }

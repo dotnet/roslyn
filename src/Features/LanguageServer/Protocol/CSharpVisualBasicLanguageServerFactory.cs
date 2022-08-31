@@ -19,16 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            CSharpVisualBasicLspServiceProvider lspServiceProvider)
         {
             _lspServiceProvider = lspServiceProvider;
-            _listenerProvider = listenerProvider;
         }
 
         public async Task<AbstractLanguageServer<RequestContext>> CreateAsync(
@@ -40,7 +37,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
-                _listenerProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer);

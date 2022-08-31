@@ -26,7 +26,7 @@ class B
 {
     {|caret:|}A classA;
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -52,7 +52,7 @@ class B
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups);
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
@@ -70,7 +70,7 @@ class B
     A classA;
     {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        context.TraceInformationAsync($"Skipping tracked document: {document.GetURI()}", cancellationToken);
+                        context.TraceInformationAsync($"Skipping tracked document: {document.GetURI()}");
                         continue;
                     }
 

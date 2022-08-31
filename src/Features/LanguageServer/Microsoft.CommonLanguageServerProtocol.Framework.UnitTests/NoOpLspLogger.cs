@@ -13,32 +13,32 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests
     {
         public static NoOpLspLogger Instance = new NoOpLspLogger();
 
-        public Task LogErrorAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogErrorAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogExceptionAsync(Exception exception, string? message = null, CancellationToken? cancellationToken = null, params object[] @params)
+        public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogInformationAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogInformationAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogStartContextAsync(string context, CancellationToken cancellationToken, params object[] @params)
+        public Task LogStartContextAsync(string context, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogEndContextAsync(string context, CancellationToken cancellationToken, params object[] @params)
+        public Task LogEndContextAsync(string context, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogWarningAsync(string message, CancellationToken cancellationToken, params object[] @params)
+        public Task LogWarningAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }

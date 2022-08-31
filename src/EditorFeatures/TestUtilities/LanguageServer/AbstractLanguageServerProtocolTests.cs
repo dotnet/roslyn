@@ -570,7 +570,6 @@ namespace Roslyn.Test.Utilities
 
             private static async Task<RoslynLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
-                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
 
@@ -583,7 +582,6 @@ namespace Roslyn.Test.Utilities
                 var languageServer = new RoslynLanguageServer(
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,
-                    listenerProvider,
                     logger,
                     ProtocolConstants.RoslynLspLanguages,
                     serverKind);
