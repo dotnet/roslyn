@@ -14,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace PartitionTests
+namespace HelixTestRunner
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
@@ -39,16 +39,9 @@ namespace PartitionTests
         /// </summary>
         private static readonly int s_maxMethodCount = 500;
 
-        public static async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, PartitionOptions options, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, HelixOptions options, CancellationToken cancellationToken)
         {
             Logger.Log($"Scheduling {assemblies.Length} assemblies");
-
-            if (options.SingleAssembly)
-            {
-                Logger.Log("Building work items with one assembly each.");
-                // return individual work items per assembly that contain all the tests in that assembly.
-                return CreateWorkItemsForFullAssemblies(assemblies);
-            }
 
             var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
 
@@ -82,19 +75,6 @@ namespace PartitionTests
                 addFunc: (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
             LogWorkItems(workItems);
             return workItems;
-
-            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
-            {
-                var workItems = new List<WorkItemInfo>();
-                var partitionIndex = 0;
-                foreach (var assembly in assemblies)
-                {
-                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, ImmutableArray<TestMethodInfo>.Empty);
-                    workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
-                }
-
-                return workItems.ToImmutableArray();
-            }
         }
 
         private static ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(

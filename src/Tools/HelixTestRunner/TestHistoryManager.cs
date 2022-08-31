@@ -15,7 +15,7 @@ using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace PartitionTests;
+namespace HelixTestRunner;
 internal class TestHistoryManager
 {
     /// <summary>
@@ -36,7 +36,7 @@ internal class TestHistoryManager
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(PartitionOptions options, CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(HelixOptions options, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
 
