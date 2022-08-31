@@ -46,19 +46,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
             Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var unnecessaryImports = new HashSet<T>(this);
             unnecessaryImports.AddRange(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                model, root, predicate, cancellationToken).Cast<T>());
+                model, predicate, cancellationToken).Cast<T>());
             foreach (var current in document.GetLinkedDocuments())
             {
-                var currentModel = await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var currentRoot = await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var currentModel = await current.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 unnecessaryImports.IntersectWith(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                    currentModel, currentRoot, predicate, cancellationToken).Cast<T>());
+                    currentModel, predicate, cancellationToken).Cast<T>());
             }
 
             return unnecessaryImports;

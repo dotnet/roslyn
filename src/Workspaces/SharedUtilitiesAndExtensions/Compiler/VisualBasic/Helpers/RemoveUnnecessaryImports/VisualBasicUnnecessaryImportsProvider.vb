@@ -17,10 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Private Sub New()
         End Sub
 
-        Protected Overrides Function GetUnnecessaryImports(
-                model As SemanticModel, root As SyntaxNode,
+        Public Overrides Function GetUnnecessaryImports(
+                model As SemanticModel,
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
+
+            Dim root = model.SyntaxTree.GetRoot(cancellationToken)
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
