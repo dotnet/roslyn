@@ -11,10 +11,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AnalyzerDriver : IDisposable
     {
+        /// <summary>
+        /// Stores <see cref="DeclarationAnalysisData"/> for symbols declared in the compilation.
+        /// This allows us to avoid recomputing this data across analyzer execution for different analyzers
+        /// on the same symbols. This cached compilation data is strongly held by the associated
+        /// <see cref="CompilationWithAnalyzers"/> object.
+        /// </summary>
         internal class CompilationData
         {
-            private readonly record struct SyntaxReferenceAndSymbol(SyntaxReference Declaration, ISymbol Symbol);
-            private readonly Dictionary<(ISymbol, int), DeclarationAnalysisData> _declarationAnalysisDataMap;
+            private readonly Dictionary<(ISymbol symbol, int declarationIndex), DeclarationAnalysisData> _declarationAnalysisDataMap;
 
             public CompilationData(Compilation compilation)
             {
@@ -22,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 SemanticModelProvider = (CachingSemanticModelProvider)compilation.SemanticModelProvider;
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(compilation);
-                _declarationAnalysisDataMap = new Dictionary<(ISymbol, int), DeclarationAnalysisData>();
+                _declarationAnalysisDataMap = new Dictionary<(ISymbol symbol, int declarationIndex), DeclarationAnalysisData>();
             }
 
             public CachingSemanticModelProvider SemanticModelProvider { get; }
