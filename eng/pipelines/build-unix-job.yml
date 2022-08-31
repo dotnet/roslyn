@@ -15,6 +15,13 @@ parameters:
 - name: vmImageName
   type: string
   default: ''
+- name: restoreArguments
+  type: string
+  default: ''
+- name: buildArguments
+  type: string
+  default: ''
+  
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -30,10 +37,10 @@ jobs:
   steps:
     - template: checkout-unix-task.yml
 
-    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
+    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }} ${{ parameters.restoreArguments }}
       displayName: Restore
 
-    - script: ./eng/build.sh --ci --build --publish --pack --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
+    - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }} ${{ parameters.buildArguments }}
       displayName: Build
 
     - script: ./eng/prepare-tests.sh
