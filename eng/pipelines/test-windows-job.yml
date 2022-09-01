@@ -34,9 +34,16 @@ jobs:
         path: '$(Build.SourcesDirectory)'
 
     - task: BatchScript@1
-      displayName: Rehydrate RunTests
+      displayName: Rehydrate TestAssemblyFinder
       inputs:
-        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
+        filename: ./artifacts/bin/TestAssemblyFinder/${{ parameters.configuration }}/net6.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: BatchScript@1
+      displayName: Rehydrate HelixTestRunner
+      inputs:
+        filename: ./artifacts/bin/HelixTestRunner/${{ parameters.configuration }}/net6.0/rehydrate.cmd
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 

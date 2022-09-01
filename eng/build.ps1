@@ -372,7 +372,7 @@ function TestUsingRunTests() {
   $testAssemblyFinder = GetProjectOutputBinary "TestAssemblyFinder.dll" -tfm "net6.0"
 
   if (!(Test-Path $testAssemblyFinder)) {
-    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
+    Write-Host "Test runner not found: '$testAssemblyFinder'. Run Build.cmd first." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
