@@ -55,7 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             AddRedundantImports(DirectCast(root, CompilationUnitSyntax), model, redundantImports, predicate, cancellationToken)
 
             For Each redundantImport In redundantImports
-                If RemovalCausesAmbiguity(model, redundantImport, cancellationToken) Then
+                If unnecessaryImports.Contains(redundantImport) OrElse
+                   RemovalCausesAmbiguity(model, redundantImport, cancellationToken) Then
                     Continue For
                 End If
 
