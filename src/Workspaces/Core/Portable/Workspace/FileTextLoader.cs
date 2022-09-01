@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="stream">Stream.</param>
         /// <param name="workspace">Obsolete. Null.</param>
         [Obsolete("Use CreateText(Stream, CancellationToken)")]
-        protected virtual SourceText CreateText(Stream stream, Workspace workspace)
+        protected virtual SourceText CreateText(Stream stream, Workspace? workspace)
             => EncodedStringText.Create(stream, DefaultEncoding);
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual SourceText CreateText(Stream stream, CancellationToken cancellationToken)
 #pragma warning disable CS0618 // Type or member is obsolete
-            => CreateText(stream, workspace: null!); // the workspace parameter is non-nulluable for backward compat
+            => CreateText(stream, workspace: null);
 #pragma warning restore
 
         /// <summary>
