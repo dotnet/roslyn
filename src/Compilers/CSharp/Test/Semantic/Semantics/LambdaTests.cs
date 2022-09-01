@@ -4851,7 +4851,7 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                    // (7,68): error CS9067: Parameter 1 has default value '2' in lambda and '<missing>' in the target delegate type.
+                    // (7,68): error CS9501: Parameter 1 has default value '2' in lambda and '<missing>' in the target delegate type.
                     //         Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
                     Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "2", "<missing>").WithLocation(7, 68));
 
@@ -7016,7 +7016,7 @@ class Program
                 // (5,20): error CS8917: The delegate type could not be inferred.
                 //         var lam1 = (x = 7) => x;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(x = 7) => x").WithLocation(5, 20),
-                // (5,21): error CS9063:  Default not allowed for implicitly typed lambda parameter 'x' 
+                // (5,21): error CS9500:  Default not allowed for implicitly typed lambda parameter 'x' 
                 //         var lam1 = (x = 7) => x;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 21));
         }
@@ -7041,7 +7041,7 @@ class Program
                 // (5,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37),
-                // (5,37): error CS9063:  Default not allowed for implicitly typed lambda parameter 'x' 
+                // (5,37): error CS9500:  Default not allowed for implicitly typed lambda parameter 'x' 
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 37));
         }
@@ -7599,7 +7599,7 @@ class Program
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,27): error CS9067: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
+                // (7,27): error CS9501: Parameter 1 has default value '"0123456..."' in lambda and '"abc"' in the target delegate type.
                 //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
         }

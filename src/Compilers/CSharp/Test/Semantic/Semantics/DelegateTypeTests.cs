@@ -4614,7 +4614,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,24): error CS9067: Parameter 1 has default value '2' in lambda and '1' in the target delegate type.
+                // (7,24): error CS9501: Parameter 1 has default value '2' in lambda and '1' in the target delegate type.
                 //         int y = F((int x = 2) => { });
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(7, 24));
         }
@@ -12014,7 +12014,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,20): error CS9067: Parameter 1 has default value '1000' in lambda and '1' in the target delegate type.
+                // (8,20): error CS9501: Parameter 1 has default value '1000' in lambda and '1' in the target delegate type.
                 //         D d = (int x = 1000) => x + x;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "1").WithLocation(8, 20));
         }
@@ -12060,7 +12060,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,20): error CS9067: Parameter 1 has default value '1000' in lambda and '<missing>' in the target delegate type.
+                // (8,20): error CS9501: Parameter 1 has default value '1000' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int x = 1000) => x + x;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "<missing>").WithLocation(8, 20));
         }
@@ -12466,7 +12466,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,16): error CS9065: Implicitly typed lambda parameter 'x' cannot have a default value.
+                // (8,16): error CS9500: Implicitly typed lambda parameter 'x' cannot have a default value.
                 //         D d = (x = 3) => x;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(8, 16));
         }
@@ -12965,7 +12965,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,27): error CS9067: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
+                // (8,27): error CS9501: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int _, int _ = 3) => 10;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
                 // (9,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
@@ -12990,7 +12990,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,27): error CS9067: Parameter 2 has default value '3' in lambda and '7' in the target delegate type.
+                // (8,27): error CS9501: Parameter 2 has default value '3' in lambda and '7' in the target delegate type.
                 //         D d = (int _, int _ = 3) => 10;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "7").WithLocation(8, 27));
         }
@@ -13015,7 +13015,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,27): error CS9067: Parameter 2 has default value '4' in lambda and '<missing>' in the target delegate type.
+                // (8,27): error CS9501: Parameter 2 has default value '4' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int x, int y = 4) => {
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "y").WithArguments("2", "4", "<missing>").WithLocation(8, 27),
                 // (12,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
