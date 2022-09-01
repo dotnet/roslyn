@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
+        private int _diagnosticsVersion;
+        private bool _previouslyHadDiagnostics;
+
+        /// <summary>
+        /// Represents an increasing integer version of diagnostics from Edit and Continue, which increments
+        /// when diagnostics might have changed even if there is no associated document changes (eg a restart
+        /// of an app during Hot Reload)
+        /// </summary>
+        public int Version => _diagnosticsVersion;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
@@ -48,14 +58,35 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// We do not track the particular reported diagnostics here since we can just clear all of them at once.
         /// </summary>
         public void ClearDiagnostics()
-            => DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+        {
+            // If ClearDiagnostics is called and there weren't any diagnostics previously, then there is no point incrementing
+            // our version number and potentially invalidating caches unnecessarily.
+            if (_previouslyHadDiagnostics)
+            {
+                _previouslyHadDiagnostics = false;
+                _diagnosticsVersion++;
+            }
+
+            DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Reports given set of project or solution level diagnostics. 
         /// </summary>
-        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics)
+        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
         {
             RoslynDebug.Assert(solution != null);
+
+            // Even though we only report diagnostics, and not rude edits, we still need to
+            // ensure that the presence of rude edits are considered when we decide to update
+            // our version number.
+            // The array inside rudeEdits won't ever be empty for a given document so we can just
+            // check the outer array.
+            if (diagnostics.Any() || rudeEdits.Any())
+            {
+                _previouslyHadDiagnostics = true;
+                _diagnosticsVersion++;
+            }
 
             var updateEvent = DiagnosticsUpdated;
             if (updateEvent == null)

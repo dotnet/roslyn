@@ -1109,13 +1109,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Private Sub TestAllParameterNamesByName(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
+        Private Shared Sub TestAllParameterNamesByName(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
             For index = 0 To expectedParameterNames.Count() - 1
                 Assert.NotNull(parameters.Item(expectedParameterNames(index)))
             Next
         End Sub
 
-        Private Sub TestAllParameterNamesByIndex(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
+        Private Shared Sub TestAllParameterNamesByIndex(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
             For index = 0 To expectedParameterNames.Count() - 1
                 ' index + 1 for Item because Parameters are not zero indexed
                 Assert.Equal(expectedParameterNames(index), parameters.Item(index + 1).Name)

@@ -451,6 +451,7 @@ namespace IOperationGenerator
 
                 if (node != null)
                 {
+                    writeCountProperty(publicIOperationProps);
                     if (!node.SkipChildrenGeneration)
                     {
                         writeEnumeratorMethods(type, publicIOperationProps, node);
@@ -652,6 +653,44 @@ namespace IOperationGenerator
                     return GetSubName(node.Name);
                 }
 
+                void writeCountProperty(List<Property> publicIOperationProps)
+                {
+                    Write("internal override int ChildOperationsCount =>");
+                    if (publicIOperationProps.Count == 0)
+                    {
+                        WriteLine(" 0;");
+                    }
+                    else
+                    {
+                        WriteLine("");
+                        Indent();
+                        bool isFirst = true;
+                        foreach (var prop in publicIOperationProps)
+                        {
+                            if (isFirst)
+                            {
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                WriteLine(" +");
+                            }
+
+                            if (IsImmutableArray(prop.Type, out _))
+                            {
+                                Write($"{prop.Name}.Length");
+                            }
+                            else
+                            {
+                                Write($"({prop.Name} is null ? 0 : 1)");
+                            }
+                        }
+
+                        WriteLine(";");
+                        Outdent();
+                    }
+                }
+
                 void writeEnumeratorMethods(AbstractNode type, List<Property> publicIOperationProps, Node node)
                 {
                     if (publicIOperationProps.Count > 0)
@@ -674,7 +713,20 @@ namespace IOperationGenerator
                             }
                         }
 
-                        WriteLine("protected override IOperation GetCurrent(int slot, int index)");
+                        writeGetCurrent(orderedProperties);
+                        writeMoveNext(orderedProperties);
+                        writeMoveNextReversed(orderedProperties);
+                    }
+                    else
+                    {
+                        WriteLine("internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));");
+                        WriteLine("internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);");
+                        WriteLine("internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);");
+                    }
+
+                    void writeGetCurrent(List<Property> orderedProperties)
+                    {
+                        WriteLine("internal override IOperation GetCurrent(int slot, int index)");
                         Indent();
                         WriteLine("=> slot switch");
                         Brace();
@@ -705,8 +757,11 @@ namespace IOperationGenerator
                         Outdent();
                         WriteLine("};");
                         Outdent();
+                    }
 
-                        WriteLine("protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)");
+                    void writeMoveNext(List<Property> orderedProperties)
+                    {
+                        WriteLine("internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)");
                         Brace();
                         WriteLine("switch (previousSlot)");
                         Brace();
@@ -714,7 +769,7 @@ namespace IOperationGenerator
                         int slot = 0;
                         for (; slot < orderedProperties.Count; slot++)
                         {
-                            // Operation.Enumerator starts indexes at -1. For a given property, the general psuedocode is:
+                            // Operation.ChildCollection.Enumerator starts indexes at -1. For a given property, the general pseudocode is:
 
                             // case previousSlot:
                             //     if (element i is valid) return (true, i, 0);
@@ -779,10 +834,80 @@ namespace IOperationGenerator
                         Unbrace();
                         Unbrace();
                     }
-                    else
+
+                    void writeMoveNextReversed(List<Property> orderedProperties)
                     {
-                        WriteLine("protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));");
-                        WriteLine("protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);");
+                        WriteLine("internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)");
+                        Brace();
+                        WriteLine("switch (previousSlot)");
+                        Brace();
+
+                        int slot = orderedProperties.Count - 1;
+                        for (; slot >= 0; slot--)
+                        {
+                            // Operation.ChildCollection.Reversed.Enumerator starts indexes at int.MaxValue. For a given property, the general pseudocode is:
+
+                            // case previousSlot:
+                            //     if (element i is valid) return (true, i, 0);
+                            //     else goto i;
+
+                            // If i is an IOperation, is valid means not null. If i is an ImmutableArray, it means not empty.
+                            // As IOperation is fully nullable-enabled, and the abstract `Current` method is nullable, we'll
+                            // get a warning if it attempts to return a null IOperation from such an array, so we don't need
+                            // to have explicit Debug.Assert code for this.
+
+                            // Then, if the property is an immutable array:
+                            // case i when previousIndex > 0:
+                            //    return (true, i, previousIndex - 1);
+
+                            // While the next index is still valid, this will hit this case for i, only moving to the next
+                            // element (meaning i - 1) after the array is exhausted.
+
+                            var previousSlot = slot == (orderedProperties.Count - 1) ? "int.MaxValue" : (slot + 1).ToString();
+                            var prop = orderedProperties[slot];
+
+                            WriteLine($"case {previousSlot}:");
+                            Indent();
+
+                            bool isImmutableArray = IsImmutableArray(prop.Type, out _);
+                            if (isImmutableArray)
+                            {
+                                WriteLine($"if (!{prop.Name}.IsEmpty) return (true, {slot}, {prop.Name}.Length - 1);");
+                            }
+                            else
+                            {
+                                WriteLine($"if ({prop.Name} != null) return (true, {slot}, 0);");
+                            }
+
+                            WriteLine($"else goto case {slot};");
+
+                            Outdent();
+
+                            if (isImmutableArray)
+                            {
+                                WriteLine($"case {slot} when previousIndex > 0:");
+                                Indent();
+                                WriteLine($"return (true, {slot}, previousIndex - 1);");
+                                Outdent();
+                            }
+                        }
+
+                        // We introduce an explicit "eof" slot, that indicates the enumerator has moved beyond
+                        // the end of the sequence. This allows us to differentiate between repeated calls to
+                        // MoveNext, which are valid and always return false and the "eof" slot, and invalid
+                        // usage of the API (which may give us a slot that we are not expecting.)
+                        WriteLine("case 0:");
+                        WriteLine("case -1:");
+                        Indent();
+                        WriteLine($"return (false, -1, 0);");
+                        Outdent();
+
+                        WriteLine("default:");
+                        Indent();
+                        WriteLine("throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));");
+                        Outdent();
+                        Unbrace();
+                        Unbrace();
                     }
                 }
             }

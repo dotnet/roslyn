@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
-    internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         // public const string UseIndexer = nameof(UseIndexer);
         public const string ComputedRange = nameof(ComputedRange);
@@ -55,14 +55,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(context =>
             {
-                // We're going to be checking every invocation in the compilation. Cache information
-                // we compute in this object so we don't have to continually recompute it.
-                if (!InfoCache.TryCreate(compilationContext.Compilation, out var infoCache))
+                var compilation = (CSharpCompilation)context.Compilation;
+
+                // Check if we're at least on C# 8
+                if (compilation.LanguageVersion < LanguageVersion.CSharp8)
                     return;
 
-                compilationContext.RegisterOperationAction(
+                // We're going to be checking every invocation in the compilation. Cache information
+                // we compute in this object so we don't have to continually recompute it.
+                if (!InfoCache.TryCreate(context.Compilation, out var infoCache))
+                    return;
+
+                context.RegisterOperationAction(
                     c => AnalyzeInvocation(c, infoCache),
                     OperationKind.Invocation);
             });
@@ -71,14 +77,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private void AnalyzeInvocation(
             OperationAnalysisContext context, InfoCache infoCache)
         {
-            var syntaxTree = context.Operation.SemanticModel!.SyntaxTree;
+            var operation = context.Operation;
+            var syntaxTree = operation.SemanticModel!.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+
+            // Check if the user wants these operators.
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
             if (!option.Value)
                 return;
 
-            var result = AnalyzeInvocation((IInvocationOperation)context.Operation, infoCache);
+            var result = AnalyzeInvocation((IInvocationOperation)operation, infoCache);
             if (result == null)
+                return;
+
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, operation.Syntax, infoCache.ExpressionOfTType, cancellationToken))
                 return;
 
             context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification.Severity));
@@ -93,12 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 return null;
             }
-
-            // Check if we're at least on C# 8, and that the user wants these operators.
-            var syntaxTree = invocationSyntax.SyntaxTree;
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-                return null;
 
             // look for `s.Slice(e1, end - e2)` or `s.Slice(e1)`
             if (invocation.Instance is null)

@@ -3117,9 +3117,10 @@ unsafe class Test
     }
 }";
 
+            // PEVerify: [ : Test::Main][mdToken=0x6000001][offset 0x00000009][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
             var c = CompileAndVerifyUtil(text,
                 options: TestOptions.UnsafeReleaseDll,
-                verify: Verification.Fails);
+                verify: Verification.FailsPEVerify);
 
             c.VerifyDiagnostics();
         }

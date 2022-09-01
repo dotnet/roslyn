@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _endOfRegionState = this.State.Clone();
             }
 
-            foreach (var branch in base.PendingBranches)
+            foreach (var branch in PendingBranches.AsEnumerable())
             {
                 if (branch.Branch != null && RegionContains(branch.Branch.Syntax.Span) && !_labelsInside.Contains(branch.Label))
                 {

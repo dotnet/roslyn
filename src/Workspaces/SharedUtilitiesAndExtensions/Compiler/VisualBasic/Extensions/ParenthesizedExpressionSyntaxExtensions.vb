@@ -4,7 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Extensions
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -397,9 +397,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             If IsAssociative(parentBinaryExpression.Kind) AndAlso
                                expression.Kind = parentExpression.Kind Then
 
-                                Return node.IsSafeToChangeAssociativity(
-                                    node.Expression, parentBinaryExpression.Left,
-                                    parentBinaryExpression.Right, semanticModel)
+                                Return VisualBasicSemanticFacts.Instance.IsSafeToChangeAssociativity(
+                                    binaryExpression, parentBinaryExpression, semanticModel)
                             End If
                         End If
 

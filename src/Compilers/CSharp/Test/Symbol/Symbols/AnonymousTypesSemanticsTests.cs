@@ -1277,7 +1277,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                       Right: 
                                         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ClassA.BB')
                                           Children(1):
-                                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')
+                                              IOperation:  (OperationKind.None, Type: ClassA) (Syntax: 'ClassA')
                                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
                                       Left: 
                                         IPropertyReferenceOperation: ? <anonymous type: ? aa, ? BB, ? CCC>.CCC { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
@@ -1286,7 +1286,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                       Right: 
                                         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ClassA.CCC')
                                           Children(1):
-                                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')
+                                              IOperation:  (OperationKind.None, Type: ClassA) (Syntax: 'ClassA')
       Initializer: 
         null
 ";

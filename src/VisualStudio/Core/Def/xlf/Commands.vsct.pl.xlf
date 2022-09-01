@@ -7,6 +7,21 @@
         <target state="translated">&amp;Uruchom analizę kodu dla zaznaczenia</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Eksplorator śladu stosu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
+        <source>ShowStackTraceExplorerCommandName</source>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
+        <source>ShowStackTraceExplorer</source>
+        <target state="translated">ShowStackTraceExplorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
         <target state="translated">&amp;Bieżący dokument</target>
@@ -50,6 +65,21 @@
       <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
         <source>Entire Solution</source>
         <target state="translated">Całe rozwiązanie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="translated">&amp;Brak</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="translated">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="translated">Brak</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
@@ -523,8 +553,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
-        <source>ViewEditorConfigSettings</source>
-        <target state="translated">ViewEditorConfigSettings</target>
+        <source>ShowValueTracking</source>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

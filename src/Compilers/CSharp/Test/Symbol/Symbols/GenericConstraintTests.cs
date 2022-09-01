@@ -5783,7 +5783,7 @@ class F<T> : A where T : F<object*>.I
 class G<T> : A where T : G<void*>.I
 {
 }
-class c
+class @c
 {
     static void Main() { }
 }

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             bool hasTypeSymbol = false;
             bool hasErrors = false;
 
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             int? parameterIndex = null;
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             bool hasErrors = false;
 
             foreach (var namedArg in arguments.Attribute.NamedArguments)
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
             short? parameterIndex = null;
             bool hasErrors = false;
 
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis
             int symbolIndex = -1;
             bool hasErrors = false;
 
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             int elementCount = -1;
-            int position = 1;
+            int position = arguments.Attribute.CommonConstructorArguments.Length;
             bool hasErrors = false;
 
             foreach (var namedArg in arguments.Attribute.NamedArguments)

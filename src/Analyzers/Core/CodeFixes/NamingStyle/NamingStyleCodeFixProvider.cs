@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
         {
             return await Renamer.RenameSymbolAsync(
-                document.Project.Solution, symbol, fixedName,
-                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                document.Project.Solution, symbol, new SymbolRenameOptions(), fixedName,
                 cancellationToken).ConfigureAwait(false);
         }
 

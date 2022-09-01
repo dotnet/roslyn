@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
-            CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
             }
 
-            if (!type.IsEditorBrowsable(options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language), context.SemanticModel.Compilation))
+            if (!type.IsEditorBrowsable(options.HideAdvancedMembers, context.SemanticModel.Compilation))
                 return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             // In the case of array creation, we don't offer a preselected/hard-selected item because

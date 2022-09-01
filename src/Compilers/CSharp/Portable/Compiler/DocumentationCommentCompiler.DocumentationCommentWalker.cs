@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Walks a DocumentationCommentTriviaSyntax, binding the semantically meaningful parts 
         /// to produce diagnostics and to replace source crefs with documentation comment IDs.
         /// </summary>
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private class DocumentationCommentWalker : CSharpSyntaxWalker
         {
             private readonly CSharpCompilation _compilation;
             private readonly BindingDiagnosticBag _diagnostics;
             private readonly Symbol _memberSymbol;
-            private readonly TextWriter _writer;
+            private readonly StringWriter _writer;
             private readonly ArrayBuilder<CSharpSyntaxNode> _includeElementNodes;
 
             private HashSet<ParameterSymbol> _documentedParameters;
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpCompilation compilation,
                 BindingDiagnosticBag diagnostics,
                 Symbol memberSymbol,
-                TextWriter writer,
+                StringWriter writer,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
                 HashSet<ParameterSymbol> documentedParameters,
                 HashSet<TypeParameterSymbol> documentedTypeParameters)
@@ -52,6 +55,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 _documentedParameters = documentedParameters;
                 _documentedTypeParameters = documentedTypeParameters;
+            }
+
+            /// <summary>
+            /// Writes the matching 'param' tags on a primary constructor as 'summary' tags for a synthesized record property.
+            /// </summary>
+            /// <remarks>
+            /// Still has all of the comment punctuation (///, /**, etc). associated with the 'param' tag.
+            /// </remarks>
+            public static void GetSubstitutedText(
+                CSharpCompilation compilation,
+                SynthesizedRecordPropertySymbol symbol,
+                ArrayBuilder<XmlElementSyntax> paramElements,
+                ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
+                StringBuilder builder)
+            {
+                StringWriter writer = new StringWriter(builder, CultureInfo.InvariantCulture);
+                DocumentationCommentWalker walker = new DocumentationCommentWalker(compilation, BindingDiagnosticBag.Discarded, symbol, writer, includeElementNodes, documentedParameters: null, documentedTypeParameters: null);
+
+                // Before: <param name="NAME">CONTENT</param>
+                // After: <summary>CONTENT</summary>
+                foreach (var paramElement in paramElements)
+                {
+                    // '///<param': '<' owns the '///' trivia
+                    // '/// <param': ' ' token preceding '<' owns '///' trivia
+                    var startLessThanToken = paramElement.StartTag.LessThanToken;
+                    if (!startLessThanToken.LeadingTrivia.Any(SyntaxKind.DocumentationCommentExteriorTrivia))
+                    {
+                        walker.VisitToken(startLessThanToken.GetPreviousToken());
+                    }
+                    walker.VisitToken(startLessThanToken);
+                    writer.Write("summary");
+                    walker.VisitToken(paramElement.StartTag.GreaterThanToken);
+
+                    foreach (var item in paramElement.Content)
+                    {
+                        walker.Visit(item);
+                    }
+
+                    walker.VisitToken(paramElement.EndTag.LessThanSlashToken);
+                    writer.Write("summary");
+
+                    var endGreaterThanToken = paramElement.EndTag.GreaterThanToken;
+                    walker.VisitToken(endGreaterThanToken);
+
+                    // The '>' token doesn't own the following new line. Instead, it is directly followed by an 'XmlTextLiteralNewLineToken'.
+                    if (endGreaterThanToken.GetNextToken() is SyntaxToken newLineToken && newLineToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                    {
+                        walker.VisitToken(newLineToken);
+                    }
+                }
             }
 
             /// <summary>
@@ -165,6 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 base.VisitToken(token);
+            }
+
+            private string GetDebuggerDisplay()
+            {
+                return _writer.GetStringBuilder().ToString();
             }
         }
     }

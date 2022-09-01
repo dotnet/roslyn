@@ -9,10 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -29,7 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     {
         private class MockFindUsagesContext : FindUsagesContext
         {
-            public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
+            public readonly List<DefinitionItem> Result = new();
+
+            public MockFindUsagesContext()
+            {
+            }
+
+            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(FindUsagesOptions.Default);
 
             public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
@@ -71,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             var handler = new FindReferencesCommandHandler(
                 presenter,
+                workspace.GlobalOptions,
                 listenerProvider);
 
             var textView = workspace.Documents[0].GetTextView();

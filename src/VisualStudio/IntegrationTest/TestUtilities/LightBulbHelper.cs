@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (activeSession == null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
-                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
+                throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={bufferType}");
             }
 
             var asyncSession = (IAsyncLightBulbSession)activeSession;

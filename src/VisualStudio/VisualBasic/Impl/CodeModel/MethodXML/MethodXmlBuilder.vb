@@ -500,7 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
+        Private Shared Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
             Select Case castExpression.Kind()
                 Case SyntaxKind.DirectCastExpression
                     Return SpecialCastKind.DirectCast

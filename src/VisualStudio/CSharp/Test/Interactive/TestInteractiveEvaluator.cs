@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive

@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
                 GetType(OverrideCompletionProvider),
                 GetType(XmlDocCommentCompletionProvider),
                 GetType(InternalsVisibleToCompletionProvider),
-                GetType(EmbeddedLanguageCompletionProvider),
+                GetType(AggregateEmbeddedLanguageCompletionProvider),
                 GetType(TypeImportCompletionProvider),
                 GetType(ExtensionMethodImportCompletionProvider),
                 GetType(LastBuiltInCompletionProvider)

@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var characterTyped = ";";
-            var locationTyped = locations["type"].Single();
+            var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped);
@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 		{
 	}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var characterTyped = ";";
-            var locationTyped = locations["type"].Single();
+            var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, insertSpaces: false, tabSize: 4);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
                 CreateDocumentOnTypeFormattingParams(
-                    characterTyped, locationTyped, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                    characterTyped, locationTyped, insertSpaces, tabSize), CancellationToken.None);
         }
 
         private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(

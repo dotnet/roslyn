@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -54,6 +56,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal interface IDocumentHighlightsService : ILanguageService
     {
         Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
     }
 }

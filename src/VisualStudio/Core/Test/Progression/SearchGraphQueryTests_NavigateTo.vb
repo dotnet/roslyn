@@ -5,6 +5,7 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.NavigateTo
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
@@ -27,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -60,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("F", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("F", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -93,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("M", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("M", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -139,7 +140,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -189,7 +190,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("Goo", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("Goo", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -235,7 +236,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("Z", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("Z", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -272,7 +273,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("D.B", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -305,7 +306,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("C.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C.B", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -329,7 +330,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("D.B", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -362,7 +363,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("A.D.B", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -395,7 +396,7 @@ End Namespace
 
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("A.D.B", NavigateToSearchScope.AllDocuments, threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
                 ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file

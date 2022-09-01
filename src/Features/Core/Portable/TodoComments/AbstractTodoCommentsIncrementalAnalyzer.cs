@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     internal abstract partial class AbstractTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         private readonly object _gate = new();
-        private string? _lastOptionText = null;
+        private string? _lastTokenList = null;
         private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
 
         /// <summary>
@@ -32,9 +31,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
-
-        public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            => e.Option == TodoCommentOptions.TokenList;
+        protected abstract ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken);
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -49,16 +46,14 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
-        private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
+        private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(string tokenList)
         {
-            var optionText = document.Project.Solution.Options.GetOption<string>(TodoCommentOptions.TokenList);
-
             lock (_gate)
             {
-                if (optionText != _lastOptionText)
+                if (tokenList != _lastTokenList)
                 {
-                    _lastDescriptors = TodoCommentDescriptor.Parse(optionText);
-                    _lastOptionText = optionText;
+                    _lastDescriptors = TodoCommentDescriptor.Parse(tokenList);
+                    _lastTokenList = tokenList;
                 }
 
                 return _lastDescriptors;
@@ -71,7 +66,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
             if (todoCommentService == null)
                 return;
 
-            var descriptors = GetTodoCommentDescriptors(document);
+            var options = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var descriptors = GetTodoCommentDescriptors(options.TokenList);
 
             // We're out of date.  Recompute this info.
             var todoComments = await todoCommentService.GetTodoCommentsAsync(

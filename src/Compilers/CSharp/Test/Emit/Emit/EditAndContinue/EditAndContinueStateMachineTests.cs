@@ -5107,7 +5107,7 @@ class C
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FailsPEVerify);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -5166,7 +5166,7 @@ class C
             // older versions of mscorlib don't contain IteratorStateMachineAttribute
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FailsPEVerify);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -5230,7 +5230,7 @@ class C
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FailsPEVerify);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -5331,7 +5331,7 @@ class C
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FailsPEVerify);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");

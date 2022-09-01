@@ -1200,6 +1200,23 @@ End Class
             VerifyOpenLineBelow(code, expected, useTabs:=True)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestTypingCharacter_WithExistingComment()
+            Const code = "
+''$$ This is a comment for this class
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' $$This is a comment for this class
+''' </summary>
+Class C
+End Class
+"
+            VerifyTypingCharacter(code, expected)
+        End Sub
+
         Friend Overrides Function CreateCommandHandler(workspace As TestWorkspace) As ICommandHandler
             Return workspace.ExportProvider.GetCommandHandler(Of DocumentationCommentCommandHandler)(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)
         End Function

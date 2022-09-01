@@ -29,6 +29,6 @@ namespace Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments
         /// where the code transformation wants to generate new discard assignment(s), which would be a compiler error.
         /// This method replaces such discard variable declarations with discard assignments.
         /// </summary>
-        Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken);
+        Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, HostWorkspaceServices services, CancellationToken cancellationToken);
     }
 }

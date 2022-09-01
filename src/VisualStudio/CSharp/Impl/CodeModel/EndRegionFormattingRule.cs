@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
         }
 
-        private bool IsAfterEndRegionBeforeMethodDeclaration(SyntaxToken previousToken)
+        private static bool IsAfterEndRegionBeforeMethodDeclaration(SyntaxToken previousToken)
         {
             if (previousToken.Kind() == SyntaxKind.EndOfDirectiveToken)
             {

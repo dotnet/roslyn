@@ -6,7 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -322,6 +322,15 @@ class C
         foreach {|Cursor:[|await|]|} (var (a, b) in new (int, int)[] { });
     }
 }");
+        }
+
+        [WorkItem(60400, "https://github.com/dotnet/roslyn/issues/60400")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestTopLevelStatements()
+        {
+            await TestAsync(
+@"[|await|] Task.Delay(1000);
+{|Cursor:[|await|]|} Task.Run(() => { })");
         }
     }
 }

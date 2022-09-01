@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">&amp;Usuń i sortuj instrukcje using</target>
+        <target state="translated">&amp;Usuń i sortuj instrukcje Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Usings">

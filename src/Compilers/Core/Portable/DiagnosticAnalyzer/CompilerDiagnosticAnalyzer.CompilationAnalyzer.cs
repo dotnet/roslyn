@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
-                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
+                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(context.FilterSpan, context.CancellationToken);
+                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(context.FilterSpan, context.CancellationToken);
 
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
@@ -102,11 +102,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override string GetMessage(IFormatProvider? formatProvider = null)
                 {
                     return _original.GetMessage(formatProvider);
-                }
-
-                public override bool Equals(object? obj)
-                {
-                    return _original.Equals(obj);
                 }
 
                 public override int GetHashCode()

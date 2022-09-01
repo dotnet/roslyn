@@ -1309,7 +1309,7 @@ class UsePia4
                     Assert.Equal(3, test9.GetMembers().Length);
                     Assert.Same(f1, test9.GetMembers()[0]);
                     Assert.Same(f2, test9.GetMembers()[1]);
-                    Assert.True(((MethodSymbol)test9.GetMembers()[2]).IsDefaultValueTypeConstructor(requireZeroInit: true));
+                    Assert.True(((MethodSymbol)test9.GetMembers()[2]).IsDefaultValueTypeConstructor());
 
                     var test10 = module.GlobalNamespace.GetTypeMembers("Test10").Single();
                     Assert.Equal(TypeKind.Struct, test10.TypeKind);
@@ -1333,7 +1333,7 @@ class UsePia4
                     Assert.Equal(System.Runtime.InteropServices.UnmanagedType.U4, f4.MarshallingType);
                     Assert.False(f4.IsNotSerialized);
 
-                    Assert.True(((MethodSymbol)test10.GetMembers()[2]).IsDefaultValueTypeConstructor(requireZeroInit: true));
+                    Assert.True(((MethodSymbol)test10.GetMembers()[2]).IsDefaultValueTypeConstructor());
 
                     var test11 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("Test11").Single();
                     Assert.Equal(TypeKind.Delegate, test11.TypeKind);
@@ -1779,9 +1779,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -4708,11 +4708,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -5185,11 +5185,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]

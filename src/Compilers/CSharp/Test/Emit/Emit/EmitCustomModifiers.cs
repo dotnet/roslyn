@@ -705,7 +705,7 @@ class Test
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.Fails);
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -739,7 +739,7 @@ class Test
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.Fails);
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         }
     }
 }

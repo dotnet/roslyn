@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -77,7 +77,7 @@ class {|Definition:C1|}
                 Assert.NotNull(startDocument)
 
                 Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
+                Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -134,7 +134,7 @@ class {|Definition:C1|}
 
             Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
-                Dim codelensService = New RemoteCodeLensReferencesService()
+                Dim codelensService = New RemoteCodeLensReferencesService(workspace.GlobalOptions)
 
                 Dim originalDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Original"))
 
@@ -304,7 +304,7 @@ class { }
 
                 Public Shared ReadOnly Instance As Excerpter = New Excerpter()
 
-                Public Async Function TryExcerptAsync(document As Document, span As TextSpan, mode As ExcerptMode, cancellationToken As CancellationToken) As Task(Of ExcerptResult?) Implements IDocumentExcerptService.TryExcerptAsync
+                Public Async Function TryExcerptAsync(document As Document, span As TextSpan, mode As ExcerptMode, classificationOptions As ClassificationOptions, cancellationToken As CancellationToken) As Task(Of ExcerptResult?) Implements IDocumentExcerptService.TryExcerptAsync
                     Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
 

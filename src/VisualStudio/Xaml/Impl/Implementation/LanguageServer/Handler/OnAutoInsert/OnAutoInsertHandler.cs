@@ -16,8 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(VSInternalMethods.OnAutoInsertName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(OnAutoInsertHandler)), Shared]
+    [Method(VSInternalMethods.OnAutoInsertName)]
     internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
@@ -25,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public OnAutoInsertHandler()
         {
         }
-
-        public override string Method => VSInternalMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

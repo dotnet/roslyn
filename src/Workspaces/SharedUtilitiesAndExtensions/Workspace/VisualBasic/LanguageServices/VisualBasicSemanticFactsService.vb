@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Public Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
         Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
 
         Private Sub New()
@@ -48,10 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsExpressionContext
             Dim token = semanticModel.SyntaxTree.GetTargetToken(position, cancellationToken)
             Return semanticModel.SyntaxTree.IsExpressionContext(position, token, cancellationToken, semanticModel)
-        End Function
-
-        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInExpressionTree
-            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
 
         Public Function IsMemberDeclarationContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsMemberDeclarationContext

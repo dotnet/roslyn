@@ -44,7 +44,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             string source = @"
 using System.Runtime.CompilerServices;
 
-interface i
+interface @i
 {
     [ModuleInitializer]
     internal void M1();

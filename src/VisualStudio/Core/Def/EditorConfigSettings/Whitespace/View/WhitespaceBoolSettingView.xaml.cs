@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View
 {
@@ -14,31 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
     /// </summary>
     internal partial class WhitespaceBoolSettingView : UserControl
     {
-        private readonly WhitespaceSetting _setting;
-
-        public WhitespaceBoolSettingView(WhitespaceSetting setting)
+        public WhitespaceBoolSettingView(WhitespaceSettingBoolViewModel viewModel)
         {
             InitializeComponent();
-            RootCheckBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);
-            _setting = setting;
-
-            if (setting.GetValue() is bool value)
-            {
-                RootCheckBox.IsChecked = value;
-            }
-
-            RootCheckBox.Checked += CheckBoxChanged;
-            RootCheckBox.Unchecked += CheckBoxChanged;
-        }
-
-        private void CheckBoxChanged(object sender, RoutedEventArgs e)
-        {
-            var value = RootCheckBox.IsChecked == true;
-            if (_setting.GetValue() is bool currentValue &&
-                value != currentValue)
-            {
-                _setting.SetValue(value);
-            }
+            DataContext = viewModel;
         }
     }
 }

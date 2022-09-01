@@ -587,7 +587,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void CoalesceOperation_06()
         {
             var source = @"

@@ -5,9 +5,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +14,12 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -162,7 +159,7 @@ End Class";
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, IdeAnalyzerOptions.Default));
 
                 // no result for open file only analyzer unless forced
                 var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -204,7 +201,7 @@ End Class";
                 var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync())
-                    .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                    .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, IdeAnalyzerOptions.Default));
 
                 var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -229,7 +226,7 @@ End Class";
 
             var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, IdeAnalyzerOptions.Default));
 
             var result = await executor.AnalyzeProjectAsync(project, analyzerDriver, forceExecuteAllAnalyzers: true, logPerformanceInfo: false,
                 getTelemetryInfo: false, cancellationToken);
@@ -237,7 +234,7 @@ End Class";
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
 
-        private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
+        private static TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
@@ -245,9 +242,8 @@ End Class";
                 TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
                 TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.FullSolution);
 
             return workspace;
         }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -20,15 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     {
         protected override bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken syntaxToken)
             => ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionService, indenter.OptionSet, out syntaxToken);
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options, out syntaxToken);
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
         {
-            var workspace = indenter.Document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var services = indenter.Document.Project.Solution.Workspace.Services;
+            var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var rules = formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document));
-
-            return new CSharpSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root);
+            return new CSharpSmartTokenFormatter(indenter.Options, rules, indenter.Root);
         }
 
         protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
@@ -74,6 +74,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             Contract.ThrowIfNull(indenter.Tree);
             Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
 
+            var sourceText = indenter.LineToBeIndented.Text;
+            RoslynDebug.AssertNotNull(sourceText);
+
+            // case: """$$
+            //       """
+            if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                var endLine = sourceText.Lines.GetLineFromPosition(token.Span.End);
+                var nonWhitespaceOffset = endLine.GetFirstNonWhitespaceOffset();
+                Contract.ThrowIfNull(nonWhitespaceOffset);
+                return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+            }
+
+            // case 1: $"""$$
+            //          """
+            // case 2: $"""
+            //          text$$
+            //          """
+            if (token.Kind() is SyntaxKind.InterpolatedMultiLineRawStringStartToken or SyntaxKind.InterpolatedStringTextToken)
+            {
+                var interpolatedExpression = token.GetAncestor<InterpolatedStringExpressionSyntax>();
+                Contract.ThrowIfNull(interpolatedExpression);
+                if (interpolatedExpression.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+                {
+                    var endLinePosition = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
+                    var nonWhitespaceOffset = endLinePosition.GetFirstNonWhitespaceOffset();
+                    Contract.ThrowIfNull(nonWhitespaceOffset);
+                    return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+                }
+            }
+
             // special cases
             // case 1: token belongs to verbatim token literal
             // case 2: $@"$${0}"
@@ -110,8 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             // if we couldn't determine indentation from the service, use heuristic to find indentation.
-            var sourceText = indenter.LineToBeIndented.Text;
-            RoslynDebug.AssertNotNull(sourceText);
 
             // If this is the last token of an embedded statement, walk up to the top-most parenting embedded
             // statement owner and use its indentation.
@@ -180,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                         if (nonTerminalNode is SwitchLabelSyntax)
                         {
-                            return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language));
+                            return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.IndentationSize);
                         }
 
                         goto default;
@@ -371,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static IndentationResult GetDefaultIndentationFromTokenLine(
             Indenter indenter, SyntaxToken token, int? additionalSpace = null)
         {
-            var spaceToAdd = additionalSpace ?? indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language);
+            var spaceToAdd = additionalSpace ?? indenter.Options.FormattingOptions.IndentationSize;
 
             var sourceText = indenter.LineToBeIndented.Text;
             RoslynDebug.AssertNotNull(sourceText);

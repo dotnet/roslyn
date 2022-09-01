@@ -460,7 +460,7 @@ Block[B1] - Block
                   Expression: 
                     IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
                       Children(1):
-                          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+                          IOperation:  (OperationKind.None, Type: C, IsInvalid) (Syntax: 'C')
                   Arguments(1):
                       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
                   ArgumentNames(0)

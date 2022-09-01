@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -32,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (tree.IsInNonUserCode(position, cancellationToken))
                 {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective)
                     || (targetToken.Parent.IsKind(SyntaxKind.IdentifierName) && targetToken.Parent.IsParentKind(SyntaxKind.IncompleteMember)))
                 {
-                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
 
                     if (aliases.Any())
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

@@ -9,5 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public const int InstanceParameter = -1;
         public const int TrailingConstructorValidityParameter = -2;
         public const int UnspecifiedParameter = -3;
+
+        public sealed override bool IsEquivalentToThisReference => throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
     }
 }

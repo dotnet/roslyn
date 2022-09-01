@@ -772,7 +772,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -2489,6 +2489,59 @@ class C
                 // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     C(object obj = System.DayOfWeek.Monday) // 2
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
+        }
+
+        [Fact, WorkItem(59789, "https://github.com/dotnet/roslyn/issues/59789")]
+        public void DefaultValue_NonNullConvertedString()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    const IEnumerable<char> y = ""world""; // 1
+    const string y2 = ""world"";
+    const object y3 = ""world""; // 2
+    const dynamic y4 = ""world""; // 3
+
+    void M(IEnumerable<char> x = ""hello"") // 4
+    {
+    }
+
+    void M2(string x = ""hello"")
+    {
+    }
+
+    void M3(object x = ""hello"") // 5
+    {
+    }
+
+    void M4(dynamic x = ""hello"") // 6
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0134: 'C.y' is of type 'IEnumerable<char>'. A const field of a reference type other than string can only be initialized with null.
+                //     const IEnumerable<char> y = "world"; // 1
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y", "System.Collections.Generic.IEnumerable<char>").WithLocation(6, 33),
+                // (8,23): error CS0134: 'C.y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //     const object y3 = "world"; // 2
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y3", "object").WithLocation(8, 23),
+                // (9,24): error CS0134: 'C.y4' is of type 'dynamic'. A const field of a reference type other than string can only be initialized with null.
+                //     const dynamic y4 = "world"; // 3
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y4", "dynamic").WithLocation(9, 24),
+                // (11,30): error CS1763: 'x' is of type 'IEnumerable<char>'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M(IEnumerable<char> x = "hello") // 4
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "System.Collections.Generic.IEnumerable<char>").WithLocation(11, 30),
+                // (19,20): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M3(object x = "hello") // 5
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(19, 20),
+                // (23,21): error CS1763: 'x' is of type 'dynamic'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M4(dynamic x = "hello") // 6
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "dynamic").WithLocation(23, 21)
+                );
         }
     }
 }

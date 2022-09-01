@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.Operations
 Please provide code examples that highlight how the proposed API additions are meant to be consumed.
 This will help suggest whether the API has the right shape to be functional, performant and useable.
 You can use code blocks like this:
+-->
+
 ``` C#
 // some lines of code here
 ```
--->
 
 ## Alternative Designs
 

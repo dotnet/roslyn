@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
     ///   - Windows 7                   6.01
     ///   - Windows 8 Release Preview   6.02
     /// </summary>
-    public struct SubsystemVersion : IEquatable<SubsystemVersion>
+    public readonly struct SubsystemVersion : IEquatable<SubsystemVersion>
     {
         /// <summary>
         /// Major subsystem version

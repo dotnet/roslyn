@@ -1,0 +1,82 @@
+# Separate pipeline from normal integration CI to allow branches to change legs
+
+# Branches that trigger a build on commit
+trigger:
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
+
+# Branches that are allowed to trigger a build via /azp run.
+# Automatic building of all PRs is disabled in the pipeline's trigger page.
+# See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
+pr:
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
+  paths:
+    exclude:
+      - docs/*
+      - .vscode/*
+      - .github/*
+      - .devcontainer/*
+      - .git-blame-ignore-revs
+      - .vsconfig
+      - CODE-OF-CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
+
+variables:
+- name: queueName
+  value: windows.vs2022.amd64.open  
+
+jobs:
+- job: VS_Integration_CoreHost_Debug
+  pool:
+    name: NetCore-Public
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Debug
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Debug
+        oop64bit: true
+        oopCoreClr: true
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_CoreHost_Release
+    pool:
+      name: NetCore-Public
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Release
+          oop64bit: true
+          oopCoreClr: true

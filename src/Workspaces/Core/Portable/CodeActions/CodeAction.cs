@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -282,8 +283,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
+                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, Simplifier.AddImportsAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, Simplifier.AddImportsAnnotation, addImportOptions, cancellationToken).ConfigureAwait(false);
 
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 

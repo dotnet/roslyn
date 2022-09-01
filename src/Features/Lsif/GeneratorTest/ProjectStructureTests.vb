@@ -2,8 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.IO
 Imports System.Text
+Imports System.Text.Json.Nodes
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -56,10 +59,28 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
 
                 Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
-                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) t.FilePath = generatedDocumentVertex.Uri.OriginalString)
+                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) "source-generated:///" + t.FilePath.Replace("\"c, "/"c) = generatedDocumentVertex.Uri.OriginalString)
 
                 Assert.Equal(tree.GetText().ToString(), contents)
             Next
+        End Function
+
+        <Fact>
+        <WorkItem(59692, "https://github.com/dotnet/roslyn/issues/59692")>
+        Public Async Function SourceGeneratedDocumentHasUriInJson() As Task
+            Dim workspace = TestWorkspace.CreateWorkspace(
+                    <Workspace>
+                        <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                            <DocumentFromSourceGenerator></DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>)
+
+            Dim stringWriter = New StringWriter
+            Await TestLsifOutput.GenerateForWorkspaceAsync(workspace, New LineModeLsifJsonWriter(stringWriter))
+
+            Dim generatedDocument = Assert.Single(Await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync())
+            Dim outputText = stringWriter.ToString()
+            Assert.Contains($"""uri"":""source-generated:///{generatedDocument.FilePath.Replace("\", "/")}""", outputText)
         End Function
     End Class
 End Namespace

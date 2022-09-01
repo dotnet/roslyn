@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => $@"<Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
         <Document FilePath=""Test2.cs"">
+<![CDATA[
 {source}
+]]>
         </Document>
     </Project>
 </Workspace>";
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override string ItemPartiallyWritten(string expectedItemOrNull)
             => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
 
-        private Task VerifyInFrontOfCommentAsync(
+        private async Task VerifyInFrontOfCommentAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -93,14 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
             position += insertText.Length;
 
-            return base.VerifyWorkerAsync(
+            await base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
                 matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
                 inlineDescription, isComplexTextEdit, matchingFilters, flags: null);
         }
 
-        private Task VerifyInFrontOfCommentAsync(
+        private async Task VerifyInFrontOfCommentAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -108,14 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters)
         {
-            return VerifyInFrontOfCommentAsync(
+            await VerifyInFrontOfCommentAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
         }
 
-        private protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
+        private protected async Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters)
         {
-            return VerifyInFrontOfCommentAsync(
+            await VerifyInFrontOfCommentAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
@@ -161,18 +163,13 @@ text;
             var documentId = workspace.GetDocumentId(hostDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var position = hostDocument.CursorPosition.Value;
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior,
-                    LanguageNames.CSharp,
-                    sendThroughEnterOption)));
+            var options = CompletionOptions.Default with { EnterKeyBehavior = sendThroughEnterOption };
 
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynTrigger.Invoke);
             var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 
-            Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
+            Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(options), item, textTypedSoFar));
         }
 
         protected void TestCommonIsTextualTriggerCharacter()

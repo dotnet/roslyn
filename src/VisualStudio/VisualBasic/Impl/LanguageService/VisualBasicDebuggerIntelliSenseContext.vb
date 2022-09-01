@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             Return token.FullSpan.End
         End Function
 
-        Private Function IsRightSideOfLocalDeclaration(containingNode As SyntaxNode) As Boolean
+        Private Shared Function IsRightSideOfLocalDeclaration(containingNode As SyntaxNode) As Boolean
             ' Right side of a variable declaration but not inside a lambda or query clause
             Dim variableDeclarator = containingNode.GetAncestor(Of VariableDeclaratorSyntax)
             If variableDeclarator IsNot Nothing Then

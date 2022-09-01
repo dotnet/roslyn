@@ -3544,7 +3544,7 @@ IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { 
 [assembly: /*<bind>*/System.CLSCompliant(isCompliant: true)/*</bind>*/]
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.CLSC ... iant: true)')
+IOperation:  (OperationKind.None, Type: System.CLSCompliantAttribute) (Syntax: 'System.CLSC ... iant: true)')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";

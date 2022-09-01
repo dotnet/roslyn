@@ -290,11 +290,12 @@ static class Program
         Console.WriteLine(x);
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 21 }
             CompileAndVerify(source, expectedOutput:
 @"ABC
 123
 123
-xyz");
+xyz", verify: Verification.FailsILVerify);
         }
 
         [WorkItem(541143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541143")]
@@ -376,7 +377,8 @@ static class Program
     static void Goo<T>(this T x) { }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "2");
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 7 }
+            CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsILVerify);
         }
 
         [WorkItem(528426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
@@ -873,7 +875,8 @@ static class B
     internal static void F(this object x, object y) { }
     internal static void G(this object x, object y) { }
 }";
-            var compilation = CompileAndVerify(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
             compilation.VerifyIL("N.C.M",
 @"{
   // Code size       71 (0x47)
@@ -939,7 +942,8 @@ static class S2
     internal static void F3(this object x, int y) { }
     internal static void F4(this object x, object y) { }
 }";
-            var compilation = CompileAndVerify(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
             compilation.VerifyIL("N.C.M",
 @"
 {
@@ -1923,7 +1927,8 @@ static class S
         System.Console.Write(c.P * i);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "6");
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 11 }
+            CompileAndVerify(source, expectedOutput: "6", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -2255,7 +2260,7 @@ class C
   IL_0024:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
   IL_0029:  ret       
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "orange, apple");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "orange, apple");
             compilation.VerifyIL("C.F", code);
             compilation.VerifyIL("C.G", code);
         }
@@ -2293,11 +2298,12 @@ static class C
         a();
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor.
             var compilation = CompileAndVerify(source, expectedOutput:
 @"F: System.Int32
 F: S
 G: System.Int32
-G: S");
+G: S", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.Main",
 @"{
   // Code size      105 (0x69)
@@ -2373,12 +2379,13 @@ static class E
         Console.WriteLine(""{0}"", o.GetType());
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 12 }
             var compilation = CompileAndVerify(source, expectedOutput:
 @"System.Object
 System.Object
 System.Int32
 B
-B");
+B", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.M<T1, T2, T3, T4, T5>",
 @"{
   // Code size      112 (0x70)

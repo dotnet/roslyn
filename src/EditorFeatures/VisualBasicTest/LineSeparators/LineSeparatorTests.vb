@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -290,7 +291,7 @@ End Class")
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim service = Assert.IsType(Of VisualBasicLineSeparatorService)(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ILineSeparatorService)())
                 Dim spans = Await service.GetLineSeparatorsAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    (Await document.GetSyntaxRootAsync()).FullSpan, Nothing)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using
         End Function

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Rename
             /// </summary>
             public abstract string GetDescription(CultureInfo? culture = null);
 
-            internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
+            internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken);
 
             internal readonly struct ErrorResource
             {

@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             MethodImplAttributes codeType = MethodImplAttributes.IL;
-            int position = 1;
+            int position = attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in attribute.CommonNamedArguments)
             {
                 if (namedArg.Key == "MethodCodeType")
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis
                     break;
             }
 
-            int position = 1;
+            int position = attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in attribute.CommonNamedArguments)
             {
                 switch (namedArg.Key)

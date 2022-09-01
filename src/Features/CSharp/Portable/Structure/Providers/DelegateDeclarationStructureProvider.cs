@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             DelegateDeclarationSyntax delegateDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(delegateDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(delegateDeclaration, ref spans, options);
         }
     }
 }

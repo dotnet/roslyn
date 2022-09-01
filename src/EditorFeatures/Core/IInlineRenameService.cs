@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -22,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <param name="triggerSpan">The triggerSpan itself.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The rename session.</returns>
-        InlineRenameSessionInfo StartInlineSession(Document document, TextSpan triggerSpan, CancellationToken cancellationToken = default);
+        InlineRenameSessionInfo StartInlineSession(Document document, TextSpan triggerSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the currently active inline session, or null if none is active.
         /// </summary>
-        IInlineRenameSession ActiveSession { get; }
+        IInlineRenameSession? ActiveSession { get; }
     }
 }

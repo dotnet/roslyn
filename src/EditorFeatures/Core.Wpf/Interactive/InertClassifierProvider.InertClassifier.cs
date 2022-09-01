@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal partial class InertClassifierProvider
     {

@@ -372,7 +372,7 @@ namespace Roslyn.Test.PdbUtilities
 
             // The hash table data.
             // This cannot be serialized
-            private struct bucket
+            private struct @bucket
             {
                 internal int key;
                 internal int hash_coll;   // Store hash code; sign bit means there was a collision.

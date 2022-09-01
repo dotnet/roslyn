@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Workaround for solution crawler not supporting mapped locations to make Razor work.
                 // We pretend the diagnostic is in the original document, but use the mapped line span.
                 // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
-                if (designTimeDocument != document && data.DataLocation.IsMapped)
+                if (designTimeDocument != document)
                 {
                     diagnostic = RemapLocation(designTimeDocument, data);
                 }
@@ -208,8 +209,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(data.DataLocation != null);
             Debug.Assert(designTimeDocument.FilePath != null);
 
-            var mappedSpan = data.DataLocation.GetFileLinePositionSpan();
-            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, mappedSpan.Span);
+            // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
+            // otherwise (if it's hidden) display the diagnostic at the start of the file.
+            var span = data.DataLocation.IsMapped ? data.DataLocation.GetFileLinePositionSpan().Span : default;
+            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
 
             return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
         }

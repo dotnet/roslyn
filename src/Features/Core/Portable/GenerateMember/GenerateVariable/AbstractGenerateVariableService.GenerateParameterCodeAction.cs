@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
@@ -40,9 +39,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                return AddParameterService.Instance.AddParameterAsync(
+                return AddParameterService.AddParameterAsync(
                     _document,
                     _state.ContainingMethod,
                     _state.LocalType,
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     _state.IdentifierToken.ValueText,
                     newParameterIndex: null,
                     _includeOverridesAndImplementations,
-                    cancellationToken);
+                    cancellationToken).AsNullable();
             }
         }
     }

@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly BoundInterpolatedStringHandlerPlaceholder ReceiverPlaceholder;
 
+        public bool IsDefault => Construction is null;
+
         public InterpolatedStringHandlerData(
             TypeSymbol builderType,
             BoundExpression construction,

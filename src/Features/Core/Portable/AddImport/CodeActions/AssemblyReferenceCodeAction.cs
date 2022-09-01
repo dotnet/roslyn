@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                     operation.Apply(workspace, cancellationToken);
                 }
 
-                internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                internal override Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
                     var operation = GetApplyChangesOperation(workspace);
                     if (operation is null)
-                        return false;
+                        return SpecializedTasks.False;
 
-                    return operation.TryApply(workspace, progressTracker, cancellationToken);
+                    return operation.TryApplyAsync(workspace, progressTracker, cancellationToken);
                 }
 
                 private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace)

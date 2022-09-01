@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
-            var snapshotSpans = (args.TextView.Selection as ITextSelection)?.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+            var snapshotSpans = args.TextView.Selection?.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
             if (snapshotSpans == null)
                 return false;
 
