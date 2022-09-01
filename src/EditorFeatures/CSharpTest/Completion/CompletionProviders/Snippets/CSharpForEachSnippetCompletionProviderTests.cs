@@ -208,7 +208,30 @@ static void Main(string[] args)
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertForEachSnippetInParenthesizedLambdaExpressionTest()
+        public async Task InsertForEachSnippetInParenthesizedLambdaExpressionRegularTest()
+        {
+            var markupBeforeCommit =
+@"Func<int, int, bool> testForEquality = (x, y) =>
+{
+    $$
+    return x == y;
+};";
+
+            var expectedCodeAfterCommit =
+@"Func<int, int, bool> testForEquality = (x, y) =>
+{
+    foreach (var item in args)
+    {
+        $$
+    }
+
+    return x == y;
+};";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertForEachSnippetInParenthesizedLambdaExpressionScriptTest()
         {
             var markupBeforeCommit =
 @"Func<int, int, bool> testForEquality = (x, y) =>
@@ -227,7 +250,7 @@ static void Main(string[] args)
 
     return x == y;
 };";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Script);
         }
     }
 }
