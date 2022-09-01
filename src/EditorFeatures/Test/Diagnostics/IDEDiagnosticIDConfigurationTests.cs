@@ -1066,8 +1066,8 @@ No editorconfig based code style option
 # IDE0241
 No editorconfig based code style option
 
-# IDE0250, PreferDeconstructedVariableDeclaration
-csharp_style_deconstructed_variable_declaration = true
+# IDE0250, PreferReadOnlyStruct
+csharp_style_prefer_readonly_struct = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
