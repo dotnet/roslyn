@@ -529,4 +529,22 @@
   <data name="PreferIsKindFix" xml:space="preserve">
     <value>Use 'IsKind' instead of 'Kind'</value>
   </data>
+  <data name="SymbolIsBannedInAnalyzersDescription" xml:space="preserve">
+    <value>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</value>
+  </data>
+  <data name="SymbolIsBannedInAnalyzersMessage" xml:space="preserve">
+    <value>The symbol '{0}' is banned for use by analyzers{1}</value>
+  </data>
+  <data name="SymbolIsBannedInAnalyzersTitle" xml:space="preserve">
+    <value>Do not use APIs banned for analyzers</value>
+  </data>
+  <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription" xml:space="preserve">
+    <value>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</value>
+  </data>
+  <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage" xml:space="preserve">
+    <value>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</value>
+  </data>
+  <data name="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle" xml:space="preserve">
+    <value>Specify analyzer banned API enforcement setting</value>
+  </data>
 </root>

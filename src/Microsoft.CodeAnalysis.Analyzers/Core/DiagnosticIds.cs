@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string DefineDiagnosticMessageCorrectlyRuleId = "RS1032";
         public const string DefineDiagnosticDescriptionCorrectlyRuleId = "RS1033";
         public const string PreferIsKindRuleId = "RS1034";
+        public const string SymbolIsBannedInAnalyzersRuleId = "RS1035";
+        public const string NoSettingSpecifiedSymbolIsBannedInAnalyzersRuleId = "RS1036";
 
         // Release tracking analyzer IDs
         public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";

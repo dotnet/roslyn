@@ -182,7 +182,7 @@ namespace Analyzer.Utilities
         public static bool GetBoolOptionValue(
             this AnalyzerOptions options,
             string optionName,
-            DiagnosticDescriptor rule,
+            DiagnosticDescriptor? rule,
             SyntaxTree tree,
             Compilation compilation,
             bool defaultValue)

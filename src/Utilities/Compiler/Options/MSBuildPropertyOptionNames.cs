@@ -11,6 +11,7 @@ namespace Analyzer.Utilities
     /// <summary>
     /// MSBuild property names that are required to be threaded as analyzer config options.
     /// </summary>
+    /// <remarks>const fields in this type are automatically discovered and used to generate build_properties entries in the generated .globalconfig</remarks>
     internal static class MSBuildPropertyOptionNames
     {
         public const string TargetFramework = nameof(TargetFramework);
@@ -19,6 +20,7 @@ namespace Analyzer.Utilities
         public const string ProjectTypeGuids = nameof(ProjectTypeGuids);
         public const string InvariantGlobalization = nameof(InvariantGlobalization);
         public const string PlatformNeutralAssembly = nameof(PlatformNeutralAssembly);
+        public const string EnforceExtendedAnalyzerRules = nameof(EnforceExtendedAnalyzerRules);
     }
 
     internal static class MSBuildPropertyOptionNamesHelpers

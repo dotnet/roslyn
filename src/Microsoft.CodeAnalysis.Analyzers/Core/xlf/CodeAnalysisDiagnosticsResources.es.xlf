@@ -257,6 +257,21 @@
         <target state="translated">Debe especificar al menos un tipo de sintaxis, símbolo u operación al registrar una acción del analizador de sintaxis, símbolos u operaciones respectivamente. De lo contrario, la acción registrada no se invocará nunca durante el análisis.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
+        <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
+        <target state="new">A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
+        <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
+        <target state="new">'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
+        <source>Specify analyzer banned API enforcement setting</source>
+        <target state="new">Specify analyzer banned API enforcement setting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
         <target state="translated">Use preferentemente "syntax.IsKind(kind)" antes que "syntax.Kind() == kind" al comprobar las variantes de sintaxis. El código que usa "IsKind" es algo más eficaz en tiempo de ejecución, por lo que el uso coherente de esta forma, cuando proceda, ayuda a mejorar el rendimiento en los escenarios de análisis complejos.</target>
@@ -350,6 +365,21 @@
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
         <target state="translated">No agregar identificadores de diagnóstico del analizador eliminados a una versión del analizador no incluida</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersDescription">
+        <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
+        <target state="new">The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersMessage">
+        <source>The symbol '{0}' is banned for use by analyzers{1}</source>
+        <target state="new">The symbol '{0}' is banned for use by analyzers{1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersTitle">
+        <source>Do not use APIs banned for analyzers</source>
+        <target state="new">Do not use APIs banned for analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">

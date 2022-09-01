@@ -257,6 +257,21 @@
         <target state="translated">註冊語法、符號或作業分析器動作時，必須個別指定至少一個語法、符號或作業種類。否則，分析期間絕不會叫用註冊的動作。</target>
         <note />
       </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
+        <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
+        <target state="new">A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
+        <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
+        <target state="new">'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
+        <source>Specify analyzer banned API enforcement setting</source>
+        <target state="new">Specify analyzer banned API enforcement setting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
         <target state="translated">檢查語法類型時，相較於 'syntax.Kind() == kind'，更建議使用 'syntax.IsKind(kind)'。使用 'IsKind' 的程式碼，在執行階段的效率稍高。因此在適用情況下，一致使用此格式有助改進複雜分析案例的效能。</target>
@@ -350,6 +365,21 @@
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
         <target state="translated">請勿將已移除的分析器診斷識別碼，新增至未送出的分析器版本</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersDescription">
+        <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
+        <target state="new">The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersMessage">
+        <source>The symbol '{0}' is banned for use by analyzers{1}</source>
+        <target state="new">The symbol '{0}' is banned for use by analyzers{1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersTitle">
+        <source>Do not use APIs banned for analyzers</source>
+        <target state="new">Do not use APIs banned for analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">

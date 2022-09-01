@@ -10,6 +10,9 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\SymbolIsBannedAnalyzerBase.cs" Link="SymbolIsBannedAnalyzerBase.cs" />
+    <EmbeddedResource Include="AnalyzerBannedSymbols.txt" />
+
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
