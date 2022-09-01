@@ -1680,7 +1680,7 @@ testHost, composition, @"record Goo(int Member)
 
         [Theory]
         [CombinatorialData]
-        public async Task NavigateToPrioritizeResultInCurrentDocument(TestHost testHost)
+        public async Task NavigateToPrioritizeResultInCurrentDocument1(TestHost testHost)
         {
             await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
 <Workspace>
@@ -1719,8 +1719,192 @@ testHost, composition, @"record Goo(int Member)
 
                 VerifyNavigateToResultItems(expectedItems, items);
 
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0"));
-                Assert.Single(items, i => i.SecondarySort.StartsWith("1"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0001"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument2(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0001"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument3(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C\D"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0002"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument4(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C\D"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0002"));
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NavigateToPrioritizeResultInCurrentDocument5(TestHost testHost)
+        {
+            await TestAsync(testHost, Composition.FirstActiveAndVisible, XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"" Folders=""A\B\C\D1"">
+            namespace N
+            {
+                public class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"" Folders=""A\B\C\D2"">
+            namespace N
+            {
+                public class D
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"), async workspace =>
+            {
+                _provider = CreateProvider(workspace);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = await _aggregator.GetItemsAsync("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
+                };
+
+                VerifyNavigateToResultItems(expectedItems, items);
+
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0003"));
             });
         }
     }
