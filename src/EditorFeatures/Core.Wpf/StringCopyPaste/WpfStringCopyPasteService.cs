@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
                 Clipboard.SetDataObject(copy, copy: false, retryTimes: 5, retryDelay: 50);
                 return true;
             }
-            catch (COMException ex) when ((uint)ex.ErrorCode == CLIPBRD_E_CANT_OPEN)
+            catch (ExternalException ex) when ((uint)ex.ErrorCode == CLIPBRD_E_CANT_OPEN)
             {
                 // Expected exception.  The clipboard is a shared windows resource that can be locked by any other
                 // process. If we weren't able to acquire it, then just bail out gracefully.
