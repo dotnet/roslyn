@@ -53,10 +53,13 @@ async Task<int> HandleAsync(HelixOptions helixOptions)
             throw new ArgumentException($"{helixOptions.TestAssembliesPath} does not exist");
         }
 
-        var assemblies = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(helixOptions.TestAssembliesPath));
-        if (assemblies == null)
+        var assemblies = File.ReadAllLines(helixOptions.TestAssembliesPath);
+        foreach (var assembly in assemblies)
         {
-            throw new ArgumentException($"Could not deserialize assembly list at {helixOptions.TestAssembliesPath}");
+            if (!File.Exists(assembly))
+            {
+                throw new ArgumentException($"{assembly} does not exist on disk");
+            }
         }
 
         // Partition the assemblies.
