@@ -5,13 +5,14 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Xunit;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using System.Linq;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -582,7 +583,8 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
                 //         s = ref s2; // Illegal, narrower escape scope
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s2").WithArguments("s", "s2").WithLocation(8, 9),
@@ -591,7 +593,16 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
                 // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
                 //         s = ref s3; // Illegal, narrower escape scope
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9)
+            };
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                expectedDiagnostics = expectedDiagnostics.Append(
+                    // (5,13): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     void M([UnscopedRef] ref Span<int> s)
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 13));
+            }
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

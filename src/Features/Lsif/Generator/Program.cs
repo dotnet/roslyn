@@ -66,10 +66,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 if (solution != null)
                 {
+                    await LocateAndRegisterMSBuild(logFile);
                     await GenerateFromSolutionAsync(solution, lsifWriter, logFile);
                 }
                 else if (project != null)
                 {
+                    await LocateAndRegisterMSBuild(logFile);
                     await GenerateFromProjectAsync(project, lsifWriter, logFile);
                 }
                 else if (compilerInvocation != null)
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
                 else
                 {
+                    await LocateAndRegisterMSBuild(logFile);
                     await GenerateFromBinaryLogAsync(binLog!, lsifWriter, logFile);
                 }
             }
@@ -112,8 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         private static async Task GenerateFromProjectAsync(FileInfo projectFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
-            await LocateAndRegisterMSBuild(logFile);
-            await GenerateWithMSBuildLocatedAsync(
+            await GenerateWithMSBuildWorkspaceAsync(
                 projectFile, lsifWriter, logFile,
                 async w =>
                 {
@@ -124,8 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
-            await LocateAndRegisterMSBuild(logFile);
-            await GenerateWithMSBuildLocatedAsync(
+            await GenerateWithMSBuildWorkspaceAsync(
                 solutionFile, lsifWriter, logFile,
                 w => w.OpenSolutionAsync(solutionFile.FullName));
         }
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise
         // we load ILogger prematurely which breaks MSBuildLocator.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static async Task GenerateWithMSBuildLocatedAsync(
+        private static async Task GenerateWithMSBuildWorkspaceAsync(
             FileInfo solutionOrProjectFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
             Func<MSBuildWorkspace, Task<Solution>> openAsync)
         {
@@ -192,6 +193,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
 
+        // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise we might load a type prematurely.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task GenerateFromBinaryLogAsync(FileInfo binLog, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
             await logFile.WriteLineAsync($"Reading binlog {binLog.FullName}...");

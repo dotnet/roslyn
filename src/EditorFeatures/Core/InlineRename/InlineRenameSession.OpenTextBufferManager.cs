@@ -144,10 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var view = sender as ITextView;
                 view.Closed -= OnTextViewClosed;
                 _textViews.Remove(view);
-                if (!_session._dismissed)
-                {
-                    _session.Cancel();
-                }
+                _session.Cancel();
             }
 
             internal void ConnectToView(ITextView textView)
@@ -654,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private struct SelectionTracking : IDisposable
+            private readonly struct SelectionTracking : IDisposable
             {
                 private readonly int? _anchor;
                 private readonly int? _active;

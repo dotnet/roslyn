@@ -15548,15 +15548,19 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol),
-                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol)
-                },
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "string a", FeaturesResources.parameter));
+
+            // TODO:
+            // edits.VerifySemantics(
+            //     new[]
+            //     {
+            //         SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+            //         SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+            //         SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol),
+            //         SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol)
+            //     },
+            //     capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -15567,15 +15571,19 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol),
-                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 3)?.ISymbol)
-                },
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "string b", FeaturesResources.parameter));
+
+            // TODO:
+            // edits.VerifySemantics(
+            //     new[]
+            //     {
+            //         SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+            //         SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+            //         SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol),
+            //         SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 3)?.ISymbol)
+            //     },
+            //     capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -15586,15 +15594,19 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 3)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
-                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol),
-                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol)
-                },
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(FeaturesResources.parameter, "string b")));
+
+            // TODO:
+            // edits.VerifySemantics(
+            //     new[]
+            //     {
+            //         SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+            //         SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 3)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
+            //         SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol),
+            //         SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.set_Item").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol)
+            //     },
+            //     capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]

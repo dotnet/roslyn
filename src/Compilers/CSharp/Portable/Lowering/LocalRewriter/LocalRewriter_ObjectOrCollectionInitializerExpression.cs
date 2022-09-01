@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(assignment.Right);
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, assignment.Type, used: false));
                                 return;
                             }
                         }

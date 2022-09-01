@@ -6,9 +6,6 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: buildJobName
-  type: string
-  default: ''
 - name: testArtifactName
   type: string
   default: ''
@@ -27,10 +24,9 @@ parameters:
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
