@@ -1102,7 +1102,7 @@ class C
         return 0;
     }
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {

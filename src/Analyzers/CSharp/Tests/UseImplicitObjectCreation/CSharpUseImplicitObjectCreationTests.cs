@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -662,6 +661,44 @@ class C
     {
         List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
     }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        [WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
+        public async Task TestMissingOnNullableStruct()
+        {
+            var source = @"
+class C
+{
+    int? i = new int?();
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+                TestCode = source,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        [WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
+        public async Task TestOnNullableReferenceType()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#nullable enable
+class C
+{
+    C? c = new [|C|]();
+}",
+                FixedCode = @"
+#nullable enable
+class C
+{
+    C? c = new();
 }",
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();

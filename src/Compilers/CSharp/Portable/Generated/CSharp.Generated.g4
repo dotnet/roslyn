@@ -157,7 +157,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist') '!!'? equals_value_clause?
   ;
 
 constructor_initializer
@@ -555,9 +555,11 @@ pattern
   | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | list_pattern
   | parenthesized_pattern
   | recursive_pattern
   | relational_pattern
+  | slice_pattern
   | type_pattern
   | unary_pattern
   | var_pattern
@@ -597,6 +599,10 @@ discard_pattern
   : '_'
   ;
 
+list_pattern
+  : '[' (pattern (',' pattern)* ','?)? ']' variable_designation?
+  ;
+
 parenthesized_pattern
   : '(' pattern ')'
   ;
@@ -633,6 +639,10 @@ relational_pattern
   | '==' expression
   | '>' expression
   | '>=' expression
+  ;
+
+slice_pattern
+  : '..' pattern?
   ;
 
 type_pattern
@@ -870,6 +880,8 @@ this_expression
 interpolated_string_expression
   : '$"' interpolated_string_content* '"'
   | '$@"' interpolated_string_content* '"'
+  | interpolated_multi_line_raw_string_start_token interpolated_string_content* interpolated_raw_string_end_token
+  | interpolated_single_line_raw_string_start_token interpolated_string_content* interpolated_raw_string_end_token
   ;
 
 interpolated_string_content
@@ -908,7 +920,9 @@ literal_expression
   | 'null'
   | 'true'
   | character_literal_token
+  | multi_line_raw_string_literal_token
   | numeric_literal_token
+  | single_line_raw_string_literal_token
   | string_literal_token
   ;
 
@@ -1337,11 +1351,31 @@ identifier_token
   : /* see lexical specification */
   ;
 
+interpolated_multi_line_raw_string_start_token
+  : /* see lexical specification */
+  ;
+
+interpolated_raw_string_end_token
+  : /* see lexical specification */
+  ;
+
+interpolated_single_line_raw_string_start_token
+  : /* see lexical specification */
+  ;
+
 interpolated_string_text_token
   : /* see lexical specification */
   ;
 
+multi_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
 numeric_literal_token
+  : /* see lexical specification */
+  ;
+
+single_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 

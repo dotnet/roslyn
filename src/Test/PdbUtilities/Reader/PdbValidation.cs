@@ -135,7 +135,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotEqual(default(DebugInformationFormat), format);
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens);
+            // Include module custom debug info, specifically compilation options and references.
+            // These shouldn't be emitted in EnC deltas and we want to validate that.
+            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens, PdbToXmlOptions.IncludeTokens | PdbToXmlOptions.IncludeModuleDebugInfo);
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb, actualIsConverted: false);
 
             AssertEx.AssertLinesEqual(
@@ -452,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  e.Name == "dynamicLocals" ||
                                  e.Name == "using" ||
                                  e.Name == "currentnamespace" ||
-                                 e.Name == "defaultnamespace" ||
+                                 (e.Name == "defaultnamespace" && e.Parent?.Name == "scope") ||
                                  e.Name == "importsforward" ||
                                  e.Name == "xmlnamespace" ||
                                  e.Name == "alias" ||

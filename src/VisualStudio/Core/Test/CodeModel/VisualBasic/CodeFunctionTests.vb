@@ -2881,7 +2881,7 @@ End Class
 
 #End Region
 
-        Private Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As IVBPartialMethodExtender
+        Private Shared Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As IVBPartialMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.VBPartialMethodExtender), IVBPartialMethodExtender)
         End Function
 

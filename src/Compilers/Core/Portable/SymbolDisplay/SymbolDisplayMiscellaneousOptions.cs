@@ -72,5 +72,11 @@ namespace Microsoft.CodeAnalysis
         /// Append '!' to non-nullable reference types.
         /// </summary>
         IncludeNotNullableReferenceTypeModifier = 1 << 8,
+
+        /// <summary>
+        /// Insert a tuple into the display parts as a single part instead of multiple parts (similar
+        /// to how anonymous types are inserted).
+        /// </summary>
+        CollapseTupleTypes = 1 << 9,
     }
 }

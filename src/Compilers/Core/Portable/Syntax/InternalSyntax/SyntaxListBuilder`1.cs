@@ -57,7 +57,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.Clear();
         }
 
-        public SyntaxListBuilder<TNode> Add(TNode node)
+        /// <summary>
+        /// Adds <paramref name="node"/> to the end of this builder.  No change happens if <see langword="null"/> is
+        /// passed in.
+        /// </summary>
+        public SyntaxListBuilder<TNode> Add(TNode? node)
         {
             _builder.Add(node);
             return this;

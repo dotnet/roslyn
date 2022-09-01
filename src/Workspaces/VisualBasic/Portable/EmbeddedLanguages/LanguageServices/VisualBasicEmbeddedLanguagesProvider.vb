@@ -14,9 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         Inherits AbstractEmbeddedLanguagesProvider
 
         Public Shared Info As New EmbeddedLanguageInfo(
-            SyntaxKind.CharacterLiteralToken,
-            SyntaxKind.StringLiteralToken,
-            SyntaxKind.InterpolatedStringTextToken,
             VisualBasicSyntaxFacts.Instance,
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)

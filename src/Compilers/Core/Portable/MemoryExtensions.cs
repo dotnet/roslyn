@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 index++;
             }
 
-            return memory.Slice(index, span.Length);
+            return memory.Slice(index, span.Length - index);
         }
 
         internal static ReadOnlyMemory<char> TrimEnd(this ReadOnlyMemory<char> memory)

@@ -2,31 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     public class RegexPatternDetectorTests
     {
-        private static void Match(string value, RegexOptions? expectedOptions = null, string prefix = "//")
+        private static void Match(string value, RegexOptions? expectedOptions = null)
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
-            Assert.True(matched);
+            MatchWorker($"/*{value}*/", expectedOptions);
+            MatchWorker($"/*{value} */", expectedOptions);
+            MatchWorker($"//{value}", expectedOptions);
+            MatchWorker($"// {value}", expectedOptions);
+            MatchWorker($"'{value}", expectedOptions);
+            MatchWorker($"' {value}", expectedOptions);
 
-            if (expectedOptions != null)
+            static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                Assert.Equal(expectedOptions.Value, options);
+                Assert.True(RegexLanguageDetector.TestAccessor.TryMatch(value, out var actualOptions));
+
+                if (expectedOptions != null)
+                    Assert.Equal(expectedOptions.Value, actualOptions);
             }
         }
 
-        private static void NoMatch(string value, string prefix = "//")
+        private static void NoMatch(string value)
         {
-            var (matched, _) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
-            Assert.False(matched);
+            NoMatchWorker($"/*{value}*/");
+            NoMatchWorker($"/*{value} */");
+            NoMatchWorker($"//{value}");
+            NoMatchWorker($"// {value}");
+            NoMatchWorker($"'{value}");
+            NoMatchWorker($"' {value}");
+
+            static void NoMatchWorker(string value)
+            {
+                Assert.False(RegexLanguageDetector.TestAccessor.TryMatch(value, out _));
+            }
         }
 
         [Fact]
@@ -34,12 +48,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
             => Match("lang=regex");
 
         [Fact]
-        public void TestSimpleFormVB()
-            => Match("' lang=regex", prefix: "");
+        public void TestIncompleteForm1()
+            => NoMatch("lan=regex");
 
         [Fact]
-        public void TestSimpleFormCSharpMultiLine()
-            => Match("/* lang=regex", prefix: "");
+        public void TestIncompleteForm2()
+            => NoMatch("lang=rege");
+
+        [Fact]
+        public void TestMissingEquals()
+            => NoMatch("lang regex");
 
         [Fact]
         public void TestEndingInP()
@@ -120,9 +138,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
         [Fact]
         public void TestInvalidOption2()
             => NoMatch("lang=regex,ecmascript,ignore");
-
-        [Fact]
-        public void TestNotOnDocComment()
-            => NoMatch("/// lang=regex,ignore", prefix: "");
     }
 }

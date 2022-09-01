@@ -598,9 +598,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     document.Project.Solution,
                     TypeToGenerateIn,
                     members.Concat(constructor),
-                    new CodeGenerationOptions(
-                        Token.GetLocation(),
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -618,7 +616,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var assignments = !withFields && !withProperties
                     ? ImmutableArray<SyntaxNode>.Empty
-                    : provider.GetService<SyntaxGenerator>().CreateAssignmentStatements(
+                    : provider.GetRequiredService<SyntaxGenerator>().CreateAssignmentStatements(
                         semanticModel, _parameters,
                         _parameterToExistingMemberMap,
                         withFields ? ParameterToNewFieldMap : ParameterToNewPropertyMap,
@@ -633,7 +631,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var newMemberMap =
                     withFields ? ParameterToNewFieldMap :
@@ -643,20 +641,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                     document.Project.Solution,
                     TypeToGenerateIn,
-                    provider.GetService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
+                    provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
                         semanticModel,
                         TypeToGenerateIn.Name,
                         TypeToGenerateIn,
                         _parameters,
+                        TypeToGenerateIn.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                         _parameterToExistingMemberMap,
                         newMemberMap,
                         addNullChecks: false,
                         preferThrowExpression: false,
                         generateProperties: withProperties,
                         IsContainedInUnsafeType),
-                    new CodeGenerationOptions(
-                        Token.GetLocation(),
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
         }

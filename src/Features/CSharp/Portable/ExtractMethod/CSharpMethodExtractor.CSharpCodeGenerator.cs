@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -131,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite();
                 var lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite();
 
-                Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent);
+                Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent
+                    || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(cancellationToken).ConfigureAwait(false);
 
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
-            => ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8;
+            => node.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp8;
 
             private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
                 return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
-                    ? (SimpleNameSyntax)SyntaxFactory.IdentifierName(_methodName)
+                    ? SyntaxFactory.IdentifierName(_methodName)
                     : SyntaxFactory.GenericName(_methodName, SyntaxFactory.TypeArgumentList(CreateMethodCallTypeVariables()));
             }
 
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
                 // Static local functions are only supported in C# 8.0 and later
-                var languageVersion = ((CSharpParseOptions)SemanticDocument.SyntaxTree.Options).LanguageVersion;
+                var languageVersion = SemanticDocument.SyntaxTree.Options.LanguageVersion();
 
                 if (LocalFunction && (!Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value || languageVersion < LanguageVersion.CSharp8))
                 {

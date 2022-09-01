@@ -32,10 +32,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversion(result, conversion.Type);
+                result = MakeImplicitConversionForInterpolatedString(result, conversion.Type);
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Helper method to generate a lowered conversion from the given <paramref name="rewrittenOperand"/> to the given <paramref name="rewrittenType"/>.
+        /// </summary>
+        private BoundExpression MakeImplicitConversionForInterpolatedString(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
+        {
+            Debug.Assert(rewrittenOperand.Type is object);
+
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            _diagnostics.Add(rewrittenOperand.Syntax, useSiteInfo);
+            if (!conversion.IsImplicit)
+            {
+                // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                _diagnostics.Add(
+                    ErrorCode.ERR_NoImplicitConv,
+                    rewrittenOperand.Syntax.Location,
+                    rewrittenOperand.Type,
+                    rewrittenType);
+
+                return _factory.NullOrDefault(rewrittenType);
+            }
+
+            // The lack of checks is unlikely to create problems because we are operating on types coming from well-known APIs.
+            // It is not worth adding complexity of performing them.
+            conversion.MarkUnderlyingConversionsCheckedRecursive();
+
+            return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
         }
 
         /// <summary>
@@ -187,14 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i <= n; i++)
             {
                 var part = node.Parts[i];
-                var fillin = part as BoundStringInsert;
-                if (fillin == null)
-                {
-                    Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
-                    // this is one of the literal parts
-                    stringBuilder.Append(part.ConstantValue.StringValue);
-                }
-                else
+                if (part is BoundStringInsert fillin)
                 {
                     // this is one of the expression holes
                     stringBuilder.Append('{').Append(nextFormatPosition++);
@@ -217,9 +239,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     expressions.Add(value); // NOTE: must still be lowered
                 }
+                else
+                {
+                    Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
+                    // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
+                    // they're treated the same way in string.Format.
+                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                }
             }
 
             format = _factory.StringLiteral(formatString.ToStringAndFree());
+            return;
+
+            static string escapeInterpolatedStringLiteral(string value)
+            {
+                var builder = PooledStringBuilder.GetInstance();
+                var stringBuilder = builder.Builder;
+                foreach (var c in value)
+                {
+                    stringBuilder.Append(c);
+                    if (c is '{' or '}')
+                    {
+                        stringBuilder.Append(c);
+                    }
+                }
+
+                // Avoid unnecessary allocation in the common case of nothing to escape.
+                var result = builder.Length == value.Length
+                    ? value
+                    : builder.Builder.ToString();
+                builder.Free();
+
+                return result;
+            }
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
@@ -258,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
-                        part = _factory.StringLiteral(ConstantValueUtils.UnescapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                        Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue is not null);
+                        part = _factory.StringLiteral(part.ConstantValue.StringValue);
                     }
 
                     result = result == null ?
@@ -270,9 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
                 // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
                 // we need to test for null and ensure "" if it is.
-                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
+                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue.IsString: true }))
                 {
-                    result = _factory.Coalesce(result!, _factory.StringLiteral(""));
+                    Debug.Assert(result is not null);
+                    Debug.Assert(result.Type is not null);
+                    Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
+                    var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
+                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, result.Type) { WasCompilerGenerated = true };
                 }
             }
             else
@@ -304,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversion(result, node.Type);
+                result = MakeImplicitConversionForInterpolatedString(result, node.Type);
             }
             return result;
         }
@@ -332,12 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: var operand })
                     {
-                        var data = operand switch
-                        {
-                            BoundInterpolatedString { InterpolationData: { } d } => d,
-                            BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
-                            _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
-                        };
+                        var data = operand.GetInterpolatedStringHandlerData();
                         Debug.Assert(((BoundObjectCreationExpression)data.Construction).Arguments.All(
                             a => a is BoundInterpolatedStringArgumentPlaceholder { ArgumentIndex: BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter }
                                       or not BoundInterpolatedStringArgumentPlaceholder));

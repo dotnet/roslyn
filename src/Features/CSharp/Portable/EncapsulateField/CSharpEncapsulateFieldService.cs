@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                     field.ConstantValue,
                     declarator.Initializer));
 
-                var withField = await codeGenService.AddFieldAsync(document.Project.Solution, field.ContainingType, fieldToAdd, new CodeGenerationOptions(), cancellationToken).ConfigureAwait(false);
+                var withField = await codeGenService.AddFieldAsync(document.Project.Solution, field.ContainingType, fieldToAdd, CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
                 root = await withField.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(tempAnnotation).First();

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>VBProject</RootNamespace>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+	
+  <ItemGroup>
+	<Import Include="System" />
+	<Import Include="LibraryHelperClass = Library.MyHelperClass" />
+	<Import Include="System.Linq" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\Library\Library.csproj" />
+  </ItemGroup>
+
+</Project>

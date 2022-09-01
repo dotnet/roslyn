@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -19,32 +20,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(
+        protected async Task<LSP.TextEdit[]?> GetTextEditsAsync(
             RequestContext context,
             LSP.FormattingOptions options,
             CancellationToken cancellationToken,
             LSP.Range? range = null)
         {
-            var edits = new ArrayBuilder<LSP.TextEdit>();
             var document = context.Document;
+            if (document == null)
+                return null;
 
-            if (document != null)
+            var edits = new ArrayBuilder<LSP.TextEdit>();
+
+            var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            TextSpan? textSpan = null;
+            if (range != null)
             {
-                var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                TextSpan? textSpan = null;
-                if (range != null)
-                {
-                    textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-                }
-
-                // We should use the options passed in by LSP instead of the document's options.
-                var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
-                    options, document, cancellationToken).ConfigureAwait(false);
-
-                var textChanges = await GetFormattingChangesAsync(formattingService, document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
-                edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+                textSpan = ProtocolConversions.RangeToTextSpan(range, text);
             }
+
+            // We should use the options passed in by LSP instead of the document's options.
+            var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
+                options, document, cancellationToken).ConfigureAwait(false);
+
+            var textChanges = await GetFormattingChangesAsync(formattingService, document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
 
             return edits.ToArrayAndFree();
         }

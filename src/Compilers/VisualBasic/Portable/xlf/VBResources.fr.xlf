@@ -3992,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' fermant attendu pour une section CDATA XML.</target>
+        <target state="translated">']]&gt;' fermant attendu pour une section CDATA XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -4007,7 +4007,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">&lt;' ouvrant attendu pour une balise XML.</target>
+        <target state="translated">'&lt;' ouvrant attendu pour une balise XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">

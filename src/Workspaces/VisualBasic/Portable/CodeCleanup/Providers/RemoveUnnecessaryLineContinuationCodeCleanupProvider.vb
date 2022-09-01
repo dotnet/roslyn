@@ -7,6 +7,8 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             ' Is this VB 9? If so, we shouldn't remove line continuations because implicit line continuation was introduced in VB 10.
             Dim parseOptions = TryCast(document.Project.ParseOptions, VisualBasicParseOptions)
             If parseOptions?.LanguageVersion <= LanguageVersion.VisualBasic9 Then
@@ -35,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End If
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Return Task.FromResult(Replacer.Process(root, spans, cancellationToken))
         End Function
 

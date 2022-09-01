@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                 ' Assert we don't have any errors to prevent any typos in the tests
                 Assert.Empty(compilation.GetDiagnostics().Where(Function(d) d.Severity = DiagnosticSeverity.Error))
 
-                Await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, project.Solution.Options)
+                Await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, GeneratorOptions.Default)
             Next
         End Function
 

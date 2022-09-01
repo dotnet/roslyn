@@ -4704,6 +4704,31 @@ End Class
                 SymbolDisplayPartKind.Punctuation)
         End Sub
 
+        <Fact()>
+        Public Sub TupleCollapseTupleTypes()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Private f As (Integer, String)
+End Class
+                    </file>
+                </compilation>, references:={TestMetadata.Net40.SystemCore})
+
+            Dim format = New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
+
+            Dim symbol = FindSymbol("C.f")(comp.GlobalNamespace)
+            Dim description = VisualBasic.SymbolDisplay.ToDisplayParts(symbol, format)
+
+            Assert.Equal(SymbolDisplayPartKind.FieldName, description(0).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Space, description(1).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Keyword, description(2).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Space, description(3).Kind)
+            Assert.Equal(SymbolDisplayPartKind.StructName, description(4).Kind)
+
+            Assert.True(DirectCast(description(4).Symbol, ITypeSymbol).IsTupleType)
+        End Sub
+
         <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
         <Fact()>
         Public Sub TupleWith1Arity()

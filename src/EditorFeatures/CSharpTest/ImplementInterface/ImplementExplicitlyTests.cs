@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
@@ -561,6 +560,161 @@ class C : IGoo, IBar
         return ((IGoo)this).M(1);
     }
 }", index: SingleMember);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithContraints()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A<T>(int value) where T : class;
+}
+
+class Repro : IRepro
+{
+    public void [||]A<T>(int value) where T : class
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A<T>(int value) where T : class;
+}
+
+class Repro : IRepro
+{
+    void IRepro.A<T>(int value)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithDefaultParameterValues()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 0)
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefaultParameterValues()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 1)
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value = 1)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefault1()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A(int value);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 1)
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A(int value);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value = 1)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefault2()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value)
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value)
+    {
+    }
+}");
         }
     }
 }

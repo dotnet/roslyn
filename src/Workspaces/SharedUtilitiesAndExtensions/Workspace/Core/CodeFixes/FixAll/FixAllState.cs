@@ -5,17 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal partial class FixAllState
+    internal sealed partial class FixAllState
     {
-        internal readonly int CorrelationId = LogAggregator.GetNextId();
+        public readonly int CorrelationId = LogAggregator.GetNextId();
 
-        internal FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
+        public FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
 
         public FixAllProvider? FixAllProvider { get; }
         public string? CodeActionEquivalenceKey { get; }
@@ -24,41 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public Document? Document { get; }
         public Project Project { get; }
         public FixAllScope Scope { get; }
-        public Solution Solution => this.Project.Solution;
+        public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
         internal FixAllState(
-            FixAllProvider? fixAllProvider,
-            Document document,
-            CodeFixProvider codeFixProvider,
-            FixAllScope scope,
-            string? codeActionEquivalenceKey,
-            IEnumerable<string> diagnosticIds,
-            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
-            : this(fixAllProvider, document, document.Project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-        }
-
-        internal FixAllState(
-            FixAllProvider? fixAllProvider,
-            Project project,
-            CodeFixProvider codeFixProvider,
-            FixAllScope scope,
-            string? codeActionEquivalenceKey,
-            IEnumerable<string> diagnosticIds,
-            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
-            : this(fixAllProvider, null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-        }
-
-        private FixAllState(
             FixAllProvider? fixAllProvider,
             Document? document,
             Project project,
@@ -66,71 +36,61 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
-            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
+            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
+            CodeActionOptionsProvider codeActionOptionsProvider)
         {
-            Contract.ThrowIfNull(project);
-            if (diagnosticIds == null)
-            {
-                throw new ArgumentNullException(nameof(diagnosticIds));
-            }
+            Debug.Assert(document == null || document.Project == project);
 
-            if (diagnosticIds.Any(d => d == null))
-            {
-                throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
-            }
-
-            this.FixAllProvider = fixAllProvider;
-            this.Document = document;
-            this.Project = project;
-            this.CodeFixProvider = codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider));
-            this.Scope = scope;
-            this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
-            this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            this.DiagnosticProvider = fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
+            FixAllProvider = fixAllProvider;
+            Document = document;
+            Project = project;
+            CodeFixProvider = codeFixProvider;
+            Scope = scope;
+            CodeActionEquivalenceKey = codeActionEquivalenceKey;
+            DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
+            DiagnosticProvider = fixAllDiagnosticProvider;
+            CodeActionOptionsProvider = codeActionOptionsProvider;
         }
 
-        internal bool IsFixMultiple => this.DiagnosticProvider is FixMultipleDiagnosticProvider;
+        public Solution Solution => Project.Solution;
+        internal bool IsFixMultiple => DiagnosticProvider is FixMultipleDiagnosticProvider;
 
         public FixAllState WithScope(FixAllScope scope)
-            => this.With(scope: scope);
+            => With(scope: scope);
 
-        public FixAllState WithCodeActionEquivalenceKey(string codeActionEquivalenceKey)
-            => this.With(codeActionEquivalenceKey: codeActionEquivalenceKey);
+        public FixAllState WithCodeActionEquivalenceKey(string? codeActionEquivalenceKey)
+            => With(codeActionEquivalenceKey: codeActionEquivalenceKey);
 
-        public FixAllState WithProject(Project project)
-            => this.With(project: project);
-
-        public FixAllState WithDocument(Document? document)
-            => this.With(document: document);
+        public FixAllState WithDocumentAndProject(Document? document, Project project)
+            => With(documentAndProject: (document, project));
 
         public FixAllState With(
-            Optional<Document?> document = default,
-            Optional<Project> project = default,
+            Optional<(Document? document, Project project)> documentAndProject = default,
             Optional<FixAllScope> scope = default,
             Optional<string?> codeActionEquivalenceKey = default)
         {
-            var newDocument = document.HasValue ? document.Value : this.Document;
-            var newProject = project.HasValue ? project.Value : this.Project;
-            var newScope = scope.HasValue ? scope.Value : this.Scope;
-            var newCodeActionEquivalenceKey = codeActionEquivalenceKey.HasValue ? codeActionEquivalenceKey.Value : this.CodeActionEquivalenceKey;
+            var (newDocument, newProject) = documentAndProject.HasValue ? documentAndProject.Value : (Document, Project);
+            var newScope = scope.HasValue ? scope.Value : Scope;
+            var newCodeActionEquivalenceKey = codeActionEquivalenceKey.HasValue ? codeActionEquivalenceKey.Value : CodeActionEquivalenceKey;
 
-            if (newDocument == this.Document &&
-                newProject == this.Project &&
-                newScope == this.Scope &&
-                newCodeActionEquivalenceKey == this.CodeActionEquivalenceKey)
+            if (newDocument == Document &&
+                newProject == Project &&
+                newScope == Scope &&
+                newCodeActionEquivalenceKey == CodeActionEquivalenceKey)
             {
                 return this;
             }
 
             return new FixAllState(
-                this.FixAllProvider,
+                FixAllProvider,
                 newDocument,
                 newProject,
-                this.CodeFixProvider,
+                CodeFixProvider,
                 newScope,
                 newCodeActionEquivalenceKey,
-                this.DiagnosticIds,
-                this.DiagnosticProvider);
+                DiagnosticIds,
+                DiagnosticProvider,
+                CodeActionOptionsProvider);
         }
 
         #region FixMultiple
@@ -139,32 +99,44 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllProvider fixAllProvider,
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
             CodeFixProvider codeFixProvider,
-            string codeActionEquivalenceKey)
+            string? codeActionEquivalenceKey,
+            CodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerDocument = diagnosticsToFix.First().Key;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
-                triggerDocument, codeFixProvider,
-                FixAllScope.Custom, codeActionEquivalenceKey,
-                diagnosticIds, diagnosticProvider);
+                triggerDocument,
+                triggerDocument.Project,
+                codeFixProvider,
+                FixAllScope.Custom,
+                codeActionEquivalenceKey,
+                diagnosticIds,
+                diagnosticProvider,
+                codeActionOptionsProvider);
         }
 
         internal static FixAllState Create(
             FixAllProvider fixAllProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
             CodeFixProvider codeFixProvider,
-            string codeActionEquivalenceKey)
+            string? codeActionEquivalenceKey,
+            CodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerProject = diagnosticsToFix.First().Key;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
-                triggerProject, codeFixProvider,
-                FixAllScope.Custom, codeActionEquivalenceKey,
-                diagnosticIds, diagnosticProvider);
+                document: null,
+                triggerProject,
+                codeFixProvider,
+                FixAllScope.Custom,
+                codeActionEquivalenceKey,
+                diagnosticIds,
+                diagnosticProvider,
+                codeActionOptionsProvider);
         }
 
         private static ImmutableHashSet<string> GetDiagnosticsIds(IEnumerable<ImmutableArray<Diagnostic>> diagnosticsCollection)

@@ -32,7 +32,7 @@ interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1);
+            CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             Assert.Empty(comp1.GetUsedAssemblyReferences());
 
@@ -53,7 +53,7 @@ public interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1);
+            CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             var source2 =
 @"
@@ -411,7 +411,7 @@ public interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1);
+            CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             var source2 =
 @"
@@ -713,7 +713,7 @@ public class C2
 
             verify(comp1Ref,
 @"
-using alias = N1.E1;
+using @alias = N1.E1;
 public class C2
 {
     public static void Main()
@@ -795,7 +795,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 public class C2
 {
     public static void Main()
@@ -807,7 +807,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     public static void Main()
@@ -854,7 +854,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 public class C2
 {
     public static void Main()
@@ -866,7 +866,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     public static void Main()
@@ -901,7 +901,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.C3;
+using @alias = C1<C0>.C3;
 public class C2
 {
     public static void Main()
@@ -913,7 +913,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     public static void Main()
@@ -1002,7 +1002,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 class C2
 {
     /// <summary>
@@ -1016,7 +1016,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 class C2
 {
     /// <summary>
@@ -1058,7 +1058,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.C3;
+using @alias = C1<C0>.C3;
 class C2
 {
     /// <summary>
@@ -1072,7 +1072,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 class C2
 {
     /// <summary>
@@ -1173,7 +1173,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 public class C2
 {
     [Test((int)alias.F1 + 1)]
@@ -1185,7 +1185,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     [Test((int)alias.E1.F1 + 1)]
@@ -1232,7 +1232,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 public class C2
 {
     [Test(Value = (int)alias.F1 + 1)]
@@ -1244,7 +1244,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     [Test(Value = (int)alias.E1.F1 + 1)]
@@ -1318,7 +1318,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 public class C2
 {
     public static void Main(int p = (int)alias.F1 + 1)
@@ -1329,7 +1329,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     public static void Main(int p = (int)alias.E1.F1 + 1)
@@ -2189,28 +2189,28 @@ public class C2
 
             verify1(comp1Ref,
 @"
-using alias = N1.C1;
+using @alias = N1.C1;
 
 public class C2
 {
 }
 ",
                 // (1001,1): hidden CS8019: Unnecessary using directive.
-                // using alias = N1.C1;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using alias = N1.C1;").WithLocation(1001, 1)
+                // using @alias = N1.C1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @alias = N1.C1;").WithLocation(1001, 1)
                 );
 
             verify1(comp1Ref,
 @"
-using alias = N1;
+using @alias = N1;
 
 public class C2
 {
 }
 ",
                 // (1001,1): hidden CS8019: Unnecessary using directive.
-                // using alias = N1;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using alias = N1;").WithLocation(1001, 1)
+                // using @alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @alias = N1;").WithLocation(1001, 1)
                 );
 
             verify1(comp1Ref.WithAliases(new[] { "N1C1" }),
@@ -2254,28 +2254,28 @@ public class C2
 
             verify1(comp1Ref,
 @"namespace N2 {
-using alias = N1.C1;
+using @alias = N1.C1;
 
 public class C2
 {
 }
 }",
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using alias = N1.C1;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using alias = N1.C1;").WithLocation(2, 1)
+                // using @alias = N1.C1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @alias = N1.C1;").WithLocation(2, 1)
                 );
 
             verify1(comp1Ref,
 @"namespace N2 {
-using alias = N1;
+using @alias = N1;
 
 public class C2
 {
 }
 }",
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using alias = N1;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using alias = N1;").WithLocation(2, 1)
+                // using @alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @alias = N1;").WithLocation(2, 1)
                 );
 
             verify1(comp1Ref.WithAliases(new[] { "N1C1" }),
@@ -3479,7 +3479,7 @@ public class C
 
             verifyNotUsed(
 @"
-using alias = C3<I3>;
+using @alias = C3<I3>;
 
 public class C
 {
@@ -3491,7 +3491,7 @@ public class C
 
             compileWithUsedAssemblyReferences(
 @"
-using alias = C3<I3>;
+using @alias = C3<I3>;
 
 public class C
 {
@@ -3605,7 +3605,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<S<C0>*[]>.E1;
+using @alias = C1<S<C0>*[]>.E1;
 public class C2
 {
     public static void Main()
@@ -3617,7 +3617,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<S<C0>*[]>;
+using @alias = C1<S<C0>*[]>;
 public class C2
 {
     public static void Main()
@@ -3681,7 +3681,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 public class C2
 {
     public static void Main()
@@ -3693,7 +3693,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 public class C2
 {
     public static void Main()
@@ -3762,7 +3762,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 class C2
 {
     /// <summary>
@@ -3776,7 +3776,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 class C2
 {
     /// <summary>
@@ -3881,7 +3881,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>.E1;
+using @alias = C1<C0>.E1;
 class C2
 {
     /// <summary>
@@ -3897,7 +3897,7 @@ class C2
 
             verify(comp0Ref, comp1Ref,
 @"
-using alias = C1<C0>;
+using @alias = C1<C0>;
 class C2
 {
     /// <summary>
@@ -3996,7 +3996,7 @@ public class C3
             }
 
             comp = CreateCompilation(@"
-using alias = C2.C1;
+using @alias = C2.C1;
 
 public class C3
 {
@@ -4026,7 +4026,7 @@ public class C3
 ", comp0Ref, comp1Ref);
 
             CompileWithUsedAssemblyReferences(@"
-using alias = C2.C1;
+using @alias = C2.C1;
 
 public class C3
 {
@@ -4092,7 +4092,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1.N2;
+using @alias = N1.N2;
 public class C2
 {
     public static void Main()
@@ -4104,7 +4104,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1;
+using @alias = N1;
 public class C2
 {
     public static void Main()
@@ -4175,7 +4175,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1.N2.E0;
+using @alias = N1.N2.E0;
 public class C2
 {
     public static void Main()
@@ -4199,7 +4199,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1.N2;
+using @alias = N1.N2;
 public class C2
 {
     public static void Main()
@@ -4223,7 +4223,7 @@ public class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1;
+using @alias = N1;
 public class C2
 {
     public static void Main()
@@ -4295,7 +4295,7 @@ class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1.N2;
+using @alias = N1.N2;
 class C2
 {
     /// <summary>
@@ -4311,7 +4311,7 @@ class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1;
+using @alias = N1;
 class C2
 {
     /// <summary>
@@ -4483,7 +4483,7 @@ class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1.N2;
+using @alias = N1.N2;
 class C2
 {
     /// <summary>
@@ -4499,7 +4499,7 @@ class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1.N2.E0;
+using @alias = N1.N2.E0;
 class C2
 {
     /// <summary>
@@ -4531,7 +4531,7 @@ class C2
 
             verify(comp0Ref, comp1Ref, comp2Ref,
 @"
-using alias = N1;
+using @alias = N1;
 class C2
 {
     /// <summary>
@@ -4630,7 +4630,7 @@ class C2
 
             var source2 =
 @"
-using alias = global;
+using @alias = global;
 class C2
 {
     static void Main()
@@ -4640,9 +4640,9 @@ class C2
 ";
 
             CreateCompilation(source2, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None)).VerifyDiagnostics(
-                // (2,15): error CS0246: The type or namespace name 'global' could not be found (are you missing a using directive or an assembly reference?)
-                // using alias = global;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "global").WithArguments("global").WithLocation(2, 15)
+                // (2,16): error CS0246: The type or namespace name 'global' could not be found (are you missing a using directive or an assembly reference?)
+                // using @alias = global;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "global").WithArguments("global").WithLocation(2, 16)
                 );
         }
 
@@ -4668,7 +4668,7 @@ class C2
 
             var source2 =
 @"
-using alias = global::;
+using @alias = global::;
 class C2
 {
     static void Main()
@@ -4678,9 +4678,9 @@ class C2
 ";
 
             CreateCompilation(source2, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None)).VerifyDiagnostics(
-                // (2,23): error CS1001: Identifier expected
-                // using alias = global::;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 23)
+                // (2,24): error CS1001: Identifier expected
+                // using @alias = global::;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 24)
                 );
         }
 

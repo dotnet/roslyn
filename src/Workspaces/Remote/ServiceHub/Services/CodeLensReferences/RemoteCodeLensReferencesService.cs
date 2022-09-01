@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static async ValueTask<SyntaxNode?> TryFindNodeAsync(Solution solution, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(documentId);
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document == null)
             {
                 return null;

@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.DecompiledSource
         /// <param name="document">The document to generate source into</param>
         /// <param name="symbolCompilation">The <see cref="Compilation"/> in which symbol is resolved.</param>
         /// <param name="symbol">The symbol to generate source for</param>
+        /// <param name="metadataReference">The reference that contains the symbol</param>
+        /// <param name="assemblyLocation">The location of the implementation assembly to decompile</param>
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
+        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, CancellationToken cancellationToken);
     }
 }

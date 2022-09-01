@@ -14,5 +14,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     internal interface ITodoCommentsListener
     {
         ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+        ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken);
     }
 }

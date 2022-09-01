@@ -259,7 +259,17 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCollectionElementInitializer.Syntax,
                                                boundCollectionElementInitializer.InvokedAsExtensionMethod);
                     }
-
+                case BoundKind.FunctionPointerInvocation:
+                    {
+                        var boundFunctionPointerInvocation = (BoundFunctionPointerInvocation)containingExpression;
+                        return DeriveArguments(boundFunctionPointerInvocation.FunctionPointer.Signature,
+                                               boundFunctionPointerInvocation.Arguments,
+                                               default,
+                                               BitVector.Empty,
+                                               false,
+                                               boundFunctionPointerInvocation.Syntax,
+                                               false);
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(containingExpression.Kind);
             }

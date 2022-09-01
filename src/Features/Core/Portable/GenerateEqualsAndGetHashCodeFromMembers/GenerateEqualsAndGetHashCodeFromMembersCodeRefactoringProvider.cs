@@ -88,15 +88,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
             if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
-            {
                 return;
-            }
 
             // No overrides in static classes.
             if (containingType.IsStatic)
-            {
                 return;
-            }
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
@@ -108,9 +104,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 .ToImmutableArray();
 
             if (viableMembers.Length == 0)
-            {
                 return;
-            }
 
             GetExistingMemberInfo(
                 containingType, out var hasEquals, out var hasGetHashCode);
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 document, typeDeclaration, containingType, viableMembers,
                 hasEquals, hasGetHashCode, withDialog: true, cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactorings(actions);
+            context.RegisterRefactorings(actions, textSpan);
         }
 
         private static bool HasOperators(INamedTypeSymbol containingType)

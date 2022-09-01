@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 .WithModifiers(GenerateModifiers(constructor, destination, options)) _
                 .WithParameterList(ParameterGenerator.GenerateParameterList(constructor.Parameters, options))
 
-            Dim hasNoBody = Not options.GenerateMethodBodies
+            Dim hasNoBody = Not options.Context.GenerateMethodBodies
 
             Dim declaration =
                 If(hasNoBody,

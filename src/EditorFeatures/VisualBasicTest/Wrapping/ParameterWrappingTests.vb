@@ -23,6 +23,20 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestAvailableWithSyntaxErrorAfter() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    function Goobar([||]i as integer, j as integer) as
+    end function
+end class",
+"class C
+    function Goobar(i as integer,
+                    j as integer) as
+    end function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestMissingWithSelection() As Task
             Await TestMissingAsync(
 "class C

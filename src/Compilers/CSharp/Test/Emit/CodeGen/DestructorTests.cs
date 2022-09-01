@@ -698,7 +698,7 @@ public class B : A
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
 
             // We produce unverifiable code here as per bug resolution (compat concerns, not common case).
-            CompileAndVerify(compilation, verify: Verification.Fails).VerifyIL("B.Finalize",
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify).VerifyIL("B.Finalize",
 
                 @"
 {

@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 }";
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
-            CheckStart(session.Session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

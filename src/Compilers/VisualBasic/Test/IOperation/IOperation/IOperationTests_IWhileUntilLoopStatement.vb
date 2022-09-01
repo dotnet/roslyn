@@ -1222,12 +1222,12 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               Children(3):
                   IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Math.Max')
                     Children(1):
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Math')
+                        IOperation:  (OperationKind.None, Type: System.Math) (Syntax: 'System.Math')
                   IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'System.Thre ... ecrement(x)')
                     Children(2):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'System.Thre ... d.Decrement')
                           Children(1):
-                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Thre ... Interlocked')
+                              IOperation:  (OperationKind.None, Type: System.Threading.Interlocked) (Syntax: 'System.Thre ... Interlocked')
                         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.SByte) (Syntax: 'x')
                   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + 1')
                     Left: 

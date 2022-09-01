@@ -9603,7 +9603,7 @@ public class C
   IL_0066:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref int, object)""
   IL_006b:  ret
 }
-");
+", verify: Verification.FailsILVerify); // ILVerify doesn't support TypedReference
         }
 
         [Fact]

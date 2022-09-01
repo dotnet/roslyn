@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, CancellationToken cancellationToken);
         ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken);
+        ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken);
     }
 
     [DataContract]

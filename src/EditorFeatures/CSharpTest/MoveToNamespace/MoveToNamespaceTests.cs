@@ -1280,7 +1280,7 @@ namespace B
 
             var (_, action) = await GetCodeActionsAsync(workspace, default);
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
-            var result = ApplyOperationsAndGetSolution(workspace, operations);
+            var result = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
 
             // Make sure both linked documents are changed.
             foreach (var id in workspace.Documents.Select(d => d.Id))

@@ -170,13 +170,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (remainingChecksumsToFind.Count == 0)
                     break;
 
-                if (solutionState.TryGetStateChecksums(projectId, out var tuple))
-                    await tuple.checksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                if (solutionState.TryGetStateChecksums(projectId, out var checksums))
+                    await checksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

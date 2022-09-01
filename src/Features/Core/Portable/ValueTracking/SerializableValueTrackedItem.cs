@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -48,21 +49,20 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return new SerializableValueTrackedItem(valueTrackedItem.SymbolKey, valueTrackedItem.Span, valueTrackedItem.DocumentId, parent);
         }
 
-        public async Task<ValueTrackedItem?> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<ValueTrackedItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var document = solution.GetRequiredDocument(DocumentId);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolResolution = SymbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken);
-
-            if (symbolResolution.Symbol is null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(symbolResolution.Symbol);
 
             cancellationToken.ThrowIfCancellationRequested();
             var parent = Parent is null ? null : await Parent.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            return await ValueTrackedItem.TryCreateAsync(document, TextSpan, symbolResolution.Symbol, parent, cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            return new ValueTrackedItem(SymbolKey, sourceText, TextSpan, DocumentId, symbolResolution.Symbol.GetGlyph(), parent);
         }
     }
 }

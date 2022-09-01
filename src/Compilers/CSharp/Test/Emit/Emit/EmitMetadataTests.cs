@@ -206,7 +206,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.FailsILVerify, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -242,7 +242,8 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
+            // ILVerify: Assembly or module not found: netModule1
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.FailsILVerify, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 

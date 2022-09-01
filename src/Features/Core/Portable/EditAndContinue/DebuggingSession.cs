@@ -621,6 +621,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
+                    if (!document.Project.SupportsEditAndContinue())
+                    {
+                        // document is in a project that does not support EnC
+                        continue;
+                    }
+
                     // Multiple documents may have the same path (linked file).
                     // The documents represent the files that #line directives map to.
                     // Documents that have the same path must have different project id.
@@ -643,6 +649,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var newProject = solution.GetRequiredProject(projectId);
                     var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -659,7 +666,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
                         var analysis = await analyzer.AnalyzeDocumentAsync(
-                            LastCommittedSolution.GetRequiredProject(documentId.ProjectId),
+                            oldProject,
                             EditSession.BaseActiveStatements,
                             newDocument,
                             newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsValidContextInJoinClause(context, cancellationToken) ||
                 IsInParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsTypeParameterVarianceContext();
         }

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23583",
-            Constraint = nameof(AnalyzerHelper.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
+            Constraint = nameof(AnalyzerOptionsExtensions.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
             var syntaxFacts = GetSyntaxFacts();
@@ -96,10 +96,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            var option = context.GetOption(
-                    ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
-                    context.SemanticModel.Language);
-            if (option == false)
+            if (!context.Options.GetIdeOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
             {
                 return;
             }

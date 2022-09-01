@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal interface ICallback
         {
             ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
-            ValueTask ReferenceItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask ReferenceItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
             ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
             ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken);
 
             ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
-            ValueTask LiteralItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask LiteralItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
         }
 

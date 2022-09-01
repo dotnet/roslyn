@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -23,9 +24,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// </summary>
         internal sealed class Type : AnalyzedPattern
         {
+            private static readonly SyntaxAnnotation s_annotation = new();
+
+            public static Type? TryCreate(BinaryExpressionSyntax binaryExpression, IIsTypeOperation operation)
+            {
+                Contract.ThrowIfNull(operation.SemanticModel);
+                if (binaryExpression.Right is not TypeSyntax typeSyntax)
+                {
+                    return null;
+                }
+
+                // We are coming from a type pattern, which likes to bind to types, but converting to
+                // patters which like to bind to expressions. For example, given:
+                //
+                // if (T is C.X || T is Y) { }
+                //
+                // we would want to convert to:
+                //
+                // if (T is C.X or Y)
+                //
+                // In the first case the compiler will bind to types named C or Y that are in scope
+                // but in the second it will also bind to a fields, methods etc. which for 'Y' changes
+                // semantics, and for 'C.X' could be a compile error.
+                //
+                // So lets create a pattern syntax and make sure the result is the same
+                var dummyStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName("_"),
+                    SyntaxFactory.IsPatternExpression(
+                        binaryExpression.Left,
+                        SyntaxFactory.ConstantPattern(SyntaxFactory.ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
+                    )
+                ));
+
+                if (operation.SemanticModel.TryGetSpeculativeSemanticModel(typeSyntax.SpanStart, dummyStatement, out var speculativeModel))
+                {
+                    var originalInfo = operation.SemanticModel.GetTypeInfo(binaryExpression.Right);
+                    var newInfo = speculativeModel.GetTypeInfo(dummyStatement.GetAnnotatedNodes(s_annotation).Single());
+                    if (!originalInfo.Equals(newInfo))
+                    {
+                        return null;
+                    }
+                }
+
+                return new Type(typeSyntax, operation.ValueOperand);
+            }
+
             public readonly TypeSyntax TypeSyntax;
 
-            public Type(TypeSyntax type, IOperation target) : base(target)
+            private Type(TypeSyntax type, IOperation target) : base(target)
                 => TypeSyntax = type;
         }
 

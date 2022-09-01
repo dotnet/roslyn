@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private CSharpSemanticFacts()
         {
         }
+
+        public ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         public bool SupportsImplicitInterfaceImplementation => true;
 
@@ -235,6 +238,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+        {
+            foreach (var syntaxReference in parameterSymbol.DeclaringSyntaxReferences)
+            {
+                if (syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
+                    && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
         {
@@ -254,8 +271,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -333,5 +353,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+            {
+                var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);
+                var node = syntaxReference.GetSyntax(cancellationToken);
+
+                foreach (var localFunction in node.DescendantNodes().Where(CSharpSyntaxFacts.Instance.IsLocalFunctionStatement))
+                {
+                    var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+                    if (localFunctionSymbol is IMethodSymbol methodSymbol)
+                    {
+                        builder.Add(methodSymbol);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
     }
 }

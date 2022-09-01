@@ -86,7 +86,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             If Not Me._disposedValue Then
                 If disposing Then
-                    VisualStudioWorkspace.Dispose()
+                    ' Ensure the existing project is removed from the ProjectCodeModelFactory; we otherwise later might try updating any state
+                    ' for it.
+                    Dim projectId = Workspace.CurrentSolution.ProjectIds.Single()
+                    Dim projectCodeModel = Workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory)().GetProjectCodeModel(projectId)
+                    projectCodeModel.OnProjectClosed()
+
                     Workspace.Dispose()
                 End If
             End If

@@ -25,6 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Protected Overrides Function GetInitializedMembers(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As HashSet(Of String)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
             token = token.GetPreviousTokenIfTouchingWord(position)
@@ -90,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Tuple.Create(symbol, initializerLocation)
         End Function
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return text(characterPosition) = "."c
         End Function
 

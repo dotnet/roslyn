@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
                 helpers.IsBetweenTypeMembers(semanticDocument.Text, semanticDocument.Root, textSpan.Start, out typeDeclaration))
             {
                 classType = semanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
-                return classType?.TypeKind == TypeKind.Class;
+                return classType?.TypeKind is TypeKind.Class or TypeKind.Struct;
             }
 
             var syntaxTree = semanticDocument.SyntaxTree;

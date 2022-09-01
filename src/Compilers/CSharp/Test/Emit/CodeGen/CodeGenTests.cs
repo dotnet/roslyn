@@ -77,7 +77,8 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 59, Found = readonly address of '[...]DoubleAndStruct', Expected = address of '[...]DoubleAndStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -164,7 +165,8 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 34, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -4359,7 +4361,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4492,7 +4494,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5259,6 +5261,12 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
+            // PEVerify:
+            // [ : Program::GetElementRef[T]][mdToken=0x6000004][offset 0x00000009][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // [ : Program::GetElementRef[T]][mdToken= 0x6000004][offset 0x00000017][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // ILVerify:
+            // Unexpected type on the stack. { Offset = 9, Found = readonly address of 'T', Expected = address of 'T' }
+            // Unexpected type on the stack. { Offset = 23, Found = readonly address of 'T', Expected = address of 'T' }
             var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
 
             var expectedIL = @"
@@ -10458,7 +10466,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -12280,7 +12288,8 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12433,7 +12442,8 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -13322,7 +13332,6 @@ class A
             }
         }
     }
-
 }
 ";
             var compilation = CompileAndVerify(
@@ -17216,7 +17225,7 @@ class Program
 System.Threading.Tasks.Task`1[System.Object]
 Success
 True
-").VerifyDiagnostics();
+", verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
     }
 }

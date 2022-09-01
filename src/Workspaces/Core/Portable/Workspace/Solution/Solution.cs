@@ -1759,6 +1759,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        internal Solution WithoutFrozenSourceGeneratedDocuments()
+        {
+            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Gets an objects that lists the added, changed and removed projects between
         /// this solution and the specified solution.
         /// </summary>

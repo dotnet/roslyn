@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -140,23 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
         /// <summary>
-        /// Nullable analysis data for methods, parameter default values, and attributes.
-        /// The key is a symbol for methods or parameters, and syntax for attributes.
-        /// The data is collected during testing only.
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
+        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
         /// </summary>
-        internal NullableData? NullableAnalysisData;
-
-        internal sealed class NullableData
-        {
-            internal readonly int MaxRecursionDepth;
-            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
-
-            internal NullableData(int maxRecursionDepth = -1)
-            {
-                MaxRecursionDepth = maxRecursionDepth;
-                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
-            }
-        }
+        internal object? TestOnlyCompilationData;
 
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
@@ -1218,7 +1207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var referenceManager = GetBoundReferenceManager();
 
-            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            int length = referenceManager.ReferencedAssemblies.Length;
+
+            assemblies.EnsureCapacity(assemblies.Count + length);
+
+            for (int i = 0; i < length; i++)
             {
                 if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {
@@ -1574,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
-            if ((object)result == null)
+            if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
                 diagnostics.Add(errorType.ErrorInfo, NoLocation.Singleton);
@@ -1602,9 +1595,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
 
-                if ((object)symbol == null)
+                if (symbol is null)
                 {
                     MetadataTypeName mdName = MetadataTypeName.FromNamespaceAndTypeName(HostObjectType.Namespace ?? String.Empty,
                                                                                         HostObjectType.Name,
@@ -3286,15 +3279,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool GenerateResourcesAndDocumentationComments(
+        internal override bool GenerateResources(
             CommonPEModuleBuilder moduleBuilder,
-            Stream? xmlDocStream,
             Stream? win32Resources,
             bool useRawWin32Resources,
-            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? resourceDiagnostics = DiagnosticBag.GetInstance();
 
@@ -3306,11 +3299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken))
-            {
-                return false;
-            }
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken);
+        }
 
+        internal override bool GenerateDocumentationComments(
+            Stream? xmlDocStream,
+            string? outputNameOverride,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
@@ -3812,7 +3809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation)));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -4058,30 +4055,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // LanguageVersion should already be mapped to a specific version
             Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
-            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+            writeValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
 
             if (Options.CheckOverflow)
             {
-                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+                writeValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
             }
 
             if (Options.NullableContextOptions != NullableContextOptions.Disable)
             {
-                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+                writeValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
             }
 
             if (Options.AllowUnsafe)
             {
-                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+                writeValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
             }
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
             {
-                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+                writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
 
-            void WriteValue(string key, string value)
+            void writeValue(string key, string value)
             {
                 builder.WriteUTF8(key);
                 builder.WriteByte(0);

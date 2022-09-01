@@ -82,6 +82,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             public static readonly ProjectIdFormatter Instance = new ProjectIdFormatter();
 
+            /// <summary>
+            /// Keep a copy of the most recent project ID to avoid duplicate instances when many consecutive IDs
+            /// reference the same project.
+            /// </summary>
+            /// <remarks>
+            /// Synchronization is not required for this field, since it's only intended to be an opportunistic (lossy)
+            /// cache.
+            /// </remarks>
+            private ProjectId? _previousProjectId;
+
             public ProjectId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 try
@@ -95,7 +105,13 @@ namespace Microsoft.CodeAnalysis.Remote
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
                     var debugName = reader.ReadString();
 
-                    return ProjectId.CreateFromSerialized(id, debugName);
+                    var previousId = _previousProjectId;
+                    if (previousId is not null && previousId.Id == id && previousId.DebugName == debugName)
+                        return previousId;
+
+                    var currentId = ProjectId.CreateFromSerialized(id, debugName);
+                    _previousProjectId = currentId;
+                    return currentId;
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)
                 {

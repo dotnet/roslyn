@@ -1261,5 +1261,111 @@ class MyClass
 "
 );
         }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            Greeting.Goodbye or _ => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            _ or Greeting.Goodbye => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            Greeting.Goodbye => ""Bye!"",
+            _ and var v => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            Greeting.Goodbye => ""Bye!"",
+            var x and var y => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
     }
 }

@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
+        private static bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
         {
             if (symbol.Kind == SymbolKind.Method)
             {

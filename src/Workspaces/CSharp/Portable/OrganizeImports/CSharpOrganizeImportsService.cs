@@ -8,7 +8,9 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
 
@@ -23,15 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         {
         }
 
-        public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            var blankLineBetweenGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups);
-
-            var rewriter = new Rewriter(placeSystemNamespaceFirst, blankLineBetweenGroups);
+            var rewriter = new Rewriter(options);
             var newRoot = rewriter.Visit(root);
 
             return document.WithSyntaxRoot(newRoot);

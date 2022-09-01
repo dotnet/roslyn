@@ -308,6 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Usages of TestOptions.RegularNext and LanguageVersionFacts.CSharpNext
         /// will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
         /// </summary>
+        /// <remarks>
+        /// Corresponds to Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext.
+        /// </remarks>
         internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
 
         /// <summary>

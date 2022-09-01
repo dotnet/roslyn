@@ -222,6 +222,11 @@
         <target state="translated">L'attribut AsyncMethodBuilder n'est pas autorisé pour les méthodes anonymes sans type de retour explicite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeMadeNullable">
+        <source>'{0}' cannot be made nullable.</source>
+        <target state="translated">'{0}' ne peut pas être null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="translated">Le type de récepteur '{0}' n’est pas un type d’enregistrement valide et n’est pas un type struct.</target>
@@ -255,6 +260,11 @@
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
         <target state="translated">Impossible d'utiliser une méthode d'extension avec un récepteur en tant que cible d'un opérateur '&amp;'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">Impossible d'utiliser 'ref', 'in' ou 'out' dans la signature d'une méthode attribuée avec 'UnmanagedCallersOnly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
@@ -347,6 +357,11 @@
         <target state="translated">Une variable ne peut pas être déclarée dans un modèle 'not' ou 'or'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="translated">Le paramètre de rejet ne peut pas être vérifié par un contrôle nul.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Le modèle d'abandon n'est pas autorisé en tant qu'étiquette case dans une instruction switch. Utilisez 'case var _:' pour un modèle d'abandon, ou 'case @_:' pour une constante nommée '_'.</target>
@@ -395,6 +410,11 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' ne peut pas démarrer d'instruction.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="translated">Mise à jour impossible, car un type délégué déduit a changé.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -452,7 +472,7 @@
         <target state="translated">Une arborescence de l’expression ne peut pas contenir une conversion de gestionnaire de chaîne interpolée.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
         <target state="translated">Une arborescence de l'expression ne peut pas contenir de modèle d'accès à l'indexeur System.Index ou System.Range</target>
         <note />
@@ -582,6 +602,11 @@
         <target state="translated">Le membre '{0}' positionnel trouvé correspondant à ce paramètre est masqué.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="translated">La séquence de caractères '@' n'est pas autorisée. Une chaîne de caractères ou un identifiant verbatim ne peut comporter qu'un seul caractère '@' et une chaîne de caractères brute ne peut en comporter aucun.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">L'opérateur de suppression n'est pas autorisé dans ce contexte</target>
@@ -677,6 +702,11 @@
         <target state="translated">La méthode du gestionnaire de chaînes interpolées « {0} » est incorrecte. Il ne retourne pas « void » ou « bool ».</target>
         <note>void and bool are keywords</note>
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="translated">Les conversions de gestionnaires de chaînes interpolées qui font référence à l'instance en cours d'indexation ne peuvent pas être utilisées dans les initialiseurs de membres d'indexeur.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}' n'est pas un modificateur de type de retour de pointeur de fonction valide. Les modificateurs valides sont 'ref' et 'ref readonly'.</target>
@@ -747,9 +777,24 @@
         <target state="translated">La méthode '{0}' avec un bloc itérateur doit être 'async' pour retourner '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="translated">Le mot clé contextuel 'var' ne peut pas être utilisé comme type de retour lambda explicite</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="translated">Une expression lambda avec un corps d'instruction ne peut pas être convertie en arborescence de l'expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineContainsDifferentWhitespace">
+        <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
+        <target state="translated">La ligne contient un espace blanc différent de la ligne de fermeture du littéral de chaîne brute : '{0}' par rapport à '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
+        <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
+        <target state="translated">La ligne ne commence pas par le même espace que la dernière ligne du littéral de chaîne brute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -762,9 +807,24 @@
         <target state="translated">La valeur de directive #line est manquante ou hors limites</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ListPatternRequiresLength">
+        <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
+        <target state="translated">Les modèles de liste ne peuvent pas être utilisés pour une valeur de type '{0}'. Aucune propriété 'Longueur' ou 'Compte' appropriée n’a été trouvée.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Aucune surcharge pour '{0}' ne correspond au pointeur de fonction '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedRecord">
+        <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
+        <target state="translated">Mot clé 'record' inattendu. Vouliez-vous dire « struct d’enregistrement » ou « classe d’enregistrement » ?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedSlicePattern">
+        <source>Slice patterns may only be used once and directly inside a list pattern.</source>
+        <target state="translated">Les modèles de tranche ne peuvent être utilisés qu'une seule fois et directement à l'intérieur d'un modèle de liste.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -822,14 +882,19 @@
         <target state="translated">Seule une déclaration partielle d'un seul enregistrement peut avoir une liste de paramètres</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="translated">Le paramètre '{0}' peut uniquement avoir une vérification null de point d’exclamation dans les méthodes d’implémentation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">La contrainte 'new()' ne peut pas être utilisée avec la contrainte 'unmanaged'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
-        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">Les sauts de ligne ne sont pas autorisés à l’intérieur d’une chaîne interpolée non textuelle</target>
+        <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
+        <target state="translated">Les nouvelles lignes à l'intérieur d'une chaîne interpolée non textuelle ne sont pas prises en charge en C# {0}. Veuillez utiliser la version linguistique {1} ou supérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -852,6 +917,16 @@
         <target state="translated">Aucun constructeur de copie accessible n'a été trouvé dans le type de base '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="translated">Le mot clé « délégué » ne peut pas être utilisé comme contrainte. Vouliez-vous dire « System.Delegate » ?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoEnumConstraint">
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="translated">Le mot clé 'enum' ne peut pas être utilisé comme contrainte. Vouliez-vous dire « struct, System.Enum » ?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
         <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
         <target state="translated">L’expression conditionnelle n’est pas valide dans la version de langage {0}, car il n’existe pas de type commun entre « {1} » et « {2} ». Pour utiliser une conversion de type cible, effectuez une mise à niveau vers la version de langage {3} ou ultérieure.</target>
@@ -860,6 +935,11 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Impossible de déterminer le répertoire de sortie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="translated">Le paramètre '{0}' est un type valeur non nullable et ne peut pas faire l’objet d’une vérification de valeur Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -882,6 +962,16 @@
         <target state="translated">Le constructeur de structure sans paramètre doit être « public ».</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
+        <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
+        <target state="translated">L'interpolation doit se terminer par le même nombre d'accolades fermantes que le nombre de caractères'$' par lesquels le littéral de la chaîne brute a commencé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotEnoughQuotesForRawString">
+        <source>Not enough quotes for raw string literal.</source>
+        <target state="translated">Guillemets insuffisants pour le littéral de chaîne brute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
         <target state="translated">« {0} » n’est pas une méthode d’instance, le récepteur ne peut pas être un argument de gestionnaire de chaîne interpolé.</target>
@@ -890,6 +980,11 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' doit autoriser la substitution, car l'enregistrement contenant n'est pas sealed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="translated">Le paramètre 'out' '{0}' ne peut pas avoir la valeur NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1007,6 +1102,26 @@
         <target state="translated">Un sous-modèle de propriété nécessite une correspondance de la référence à la propriété ou au champ. Exemple : '{{ Nom: {0} }}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
+        <source>Raw string literal delimiter must be on its own line.</source>
+        <target state="translated">Le délimiteur de littéral de chaîne brute doit se trouver sur sa propre ligne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
+        <target state="translated">Les littéraux de chaîne brute multiligne sont uniquement autorisés dans les chaînes interpolées textuellement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringMustContainContent">
+        <source>Multi-line raw string literals must contain at least one line of content.</source>
+        <target state="translated">Les littéraux de chaîne brute multiligne doivent contenir au moins une ligne de contenu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringNotInDirectives">
+        <source>Raw string literals are not allowed in preprocessor directives.</source>
+        <target state="translated">Les littéraux de chaîne brute ne sont pas autorisés dans les directives de préprocesseur.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Impossible d'incorporer le type '{0}', car il a une nouvelle abstraction d'un membre de l'interface de base. Affectez la valeur false à la propriété 'Incorporer les types interop'.</target>
@@ -1024,7 +1139,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
+        <target state="translated">Un constructeur déclaré dans un 'record struct' avec une liste de paramètres doit avoir un initialiseur 'this' qui appelle le constructeur principal ou un constructeur explicitement déclaré.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1147,6 +1262,16 @@
         <target state="translated">L'argument stdin '-' est spécifié, mais l'entrée n'a pas été redirigée à partir du flux d'entrée standard.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="translated">La chaîne doit commencer par le guillemet : "</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="translated">Un 'struct' avec des initialiseurs de champ doit inclure un constructeur explicitement déclaré.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">Le modèle est inaccessible. Il a déjà été traité par un bras précédent de l'expression switch ou la mise en correspondance est impossible.</target>
@@ -1165,6 +1290,21 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">Des parenthèses sont obligatoires autour de l'expression régissant switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyCloseBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
+        <target state="translated">Le littéral de chaîne brute interpolée ne commence pas par suffisamment de caractères '$' pour autoriser autant d’accolades fermante consécutives comme contenu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyOpenBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
+        <target state="translated">Le littéral brut interpolé de la chaîne de caractères ne commence pas par un nombre suffisant de caractères '$' pour permettre un tel nombre d'accolades ouvrantes consécutives comme contenu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyQuotesForRawString">
+        <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
+        <target state="translated">Le littéral brut de la chaîne de caractères ne commence pas par un nombre suffisant de caractères de guillemets pour autoriser un tel nombre de caractères de guillemets consécutifs comme contenu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1212,6 +1352,21 @@
         <target state="translated">'{0}' est attribué avec 'UnmanagedCallersOnly' et ne peut pas être converti en type délégué. Obtenez un pointeur de fonction vers cette méthode.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForListPattern">
+        <source>List patterns may not be used for a value of type '{0}'.</source>
+        <target state="translated">Les modèles de liste ne peuvent pas être utilisés pour une valeur de type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
+        <source>Slice patterns may not be used for a value of type '{0}'.</source>
+        <target state="translated">Les modèles de tranche ne peuvent pas être utilisés pour une valeur de type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnterminatedRawString">
+        <source>Unterminated raw string literal.</source>
+        <target state="translated">Littéral de chaîne brute inachevé.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Un type de retour de type tâche générique est attendu, mais le type « {0} » trouvé dans l’attribut ’AsyncMethodBuilder’ n’était pas approprié. Il doit s’agir d’un type générique indépendant d’arité One, et son type conteneur (le cas échéant) doit être non générique.</target>
@@ -1240,6 +1395,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">discards (éléments ignorés)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDisposalPattern">
+        <source>pattern-based disposal</source>
+        <target state="translated">élimination basée sur un modèle</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
@@ -1292,6 +1452,16 @@
         <target state="translated">directive de l’étendue de ligne</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="translated">modèle de liste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNewLinesInInterpolations">
+        <source>newlines in interpolations</source>
+        <target state="translated">sauts de ligne dans les interpolations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">constructeurs de struct sans paramètre</target>
@@ -1300,6 +1470,11 @@
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">champs positionnels dans les enregistrements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRawStringLiterals">
+        <source>raw string literals</source>
+        <target state="translated">littéraux de chaîne brute</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
@@ -1330,6 +1505,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="translated">avec sur structs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="translated">vérification de la valeur null du paramètre</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1442,6 +1622,16 @@
         <target state="translated">InterpolatedStringHandlerArgument n’a aucun effet lorsqu’il est appliqué aux paramètres lambda et qu’il est ignoré sur le site d’appel.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName">
+        <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="translated">Le nom de type '{0}' contient uniquement des caractères ascii en minuscules. De tels noms peuvent devenir réservés pour la langue.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName_Title">
+        <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="translated">Le nom de type contient uniquement des caractères ascii en minuscules. De tels noms peuvent devenir réservés pour la langue.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">Impossible de convertir le groupe de méthodes '{0}' en type non-délégué '{1}'. Souhaitiez-vous appeler la méthode?</target>
@@ -1450,6 +1640,26 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">Conversion d’un groupe de méthodes en type non-délégué</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="translated">Le paramètre '{0}' a la valeur Null, mais est null par défaut.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="translated">Le paramètre est contrôlé comme nul mais est nul par défaut.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="translated">Le type nullable '{0}' a la valeur Null et lève la valeur null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="translated">Le type Nullable est activé pour null et lèvera si null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1463,8 +1673,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Le paramètre {0} se produit après {1} dans la liste de paramètres, mais est utilisé en tant qu’argument pour les conversions de gestionnaire de chaîne interpolées. Cela demande à l’appelant de réorganiser les paramètres avec des arguments nommés sur le site d’appel. Envisagez de placer le paramètre de gestionnaire de chaîne interpolé après tous les arguments concernés.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="translated">Le paramètre '{0}' apparaît après '{1}' dans la liste des paramètres, mais est utilisé comme argument pour les conversions de gestionnaires de chaînes interpolées. Cela nécessitera que l'appelant réorganise les paramètres avec des arguments nommés sur le site d'appel. Envisagez de placer le paramètre de gestionnaire de chaîne interpolé après tous les arguments impliqués.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

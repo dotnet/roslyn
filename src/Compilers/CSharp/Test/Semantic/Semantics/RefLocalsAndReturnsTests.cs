@@ -2412,21 +2412,36 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (7,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a[ref i];    // error 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[ref i]").WithArguments("object", "int").WithLocation(7, 13),
                 // (7,19): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         j = a[ref i];    // error 1
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(7, 19),
+                // (8,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a[out i];    // error 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[out i]").WithArguments("object", "int").WithLocation(8, 13),
                 // (8,19): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         j = a[out i];    // error 2
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "out").WithLocation(8, 19),
                 // (9,22): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         j = this[ref i]; // error 3
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(9, 22),
+                // (10,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a2[i, out i]; // error 4
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a2[i, out i]").WithArguments("object", "int").WithLocation(10, 13),
                 // (10,23): error CS1615: Argument 2 may not be passed with the 'out' keyword
                 //         j = a2[i, out i]; // error 4
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("2", "out").WithLocation(10, 23),
+                // (11,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a2[i, ref i]; // error 5
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a2[i, ref i]").WithArguments("object", "int").WithLocation(11, 13),
                 // (11,23): error CS1615: Argument 2 may not be passed with the 'ref' keyword
                 //         j = a2[i, ref i]; // error 5
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("2", "ref").WithLocation(11, 23),
+                // (12,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a2[ref i, out i]; // error 6
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a2[ref i, out i]").WithArguments("object", "int").WithLocation(12, 13),
                 // (12,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         j = a2[ref i, out i]; // error 6
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(12, 20)

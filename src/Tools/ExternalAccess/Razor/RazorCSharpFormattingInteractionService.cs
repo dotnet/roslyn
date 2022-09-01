@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
-            return formattingService.SupportsFormattingOnTypedCharacter(document, ch);
+            var options = AutoFormattingOptions.From(document.Project);
+            return formattingService.SupportsFormattingOnTypedCharacter(document, options, ch);
         }
 
         /// <summary>

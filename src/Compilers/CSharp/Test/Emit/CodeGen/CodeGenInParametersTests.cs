@@ -3982,7 +3982,8 @@ public class Test
 
             var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("Test..ctor()", @"
 {

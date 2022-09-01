@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)tree.Options).LanguageVersion;
+            var languageVersion = tree.Options.LanguageVersion();
 
             foreach (var diagnostic in diagnostics)
             {

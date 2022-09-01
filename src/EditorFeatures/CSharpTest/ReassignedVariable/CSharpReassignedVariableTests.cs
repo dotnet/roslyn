@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReassignedVariable
@@ -653,6 +654,23 @@ class C
         }
 
         [Fact]
+        public async Task TestReadonlyRefLocalWithNoReassignment1()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p = 0;
+        ref readonly int refP = ref p!;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestPointerCausingPossibleReassignment()
         {
             await TestAsync(
@@ -994,6 +1012,22 @@ class C
     {
         p = 1;
     }
+}");
+        }
+
+        [Fact, WorkItem(58161, "https://github.com/dotnet/roslyn/issues/58161")]
+        public async Task TestRefToSuppression1()
+        {
+            await TestAsync(
+@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+
+class C
+{
+    public static T EnsureInitialized<T>([NotNull] ref T? [|target|]) where T : class
+        => Volatile.Read(ref [|target|]!);
 }");
         }
     }

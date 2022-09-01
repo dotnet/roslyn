@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
         }
 
         [Fact]
-        public async Task GenerateConstructorTypedPrivate()
+        public async Task GenerateConstructorTypedPrivateWithoutIntentData()
         {
             var initialText =
 @"class C
@@ -60,6 +60,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 }";
 
             await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task GenerateConstructorTypedPrivateWithIntentData()
+        {
+            var initialText =
+@"class C
+{
+    private readonly int _someInt;
+
+    {|typed:private C|}
+}";
+            var expectedText =
+@"class C
+{
+    private readonly int _someInt;
+
+    private C(int someInt)
+    {
+        _someInt = someInt;
+    }
+}";
+
+            // lang=json
+            var intentData = @"{ ""accessibility"": ""Private""}";
+
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task GenerateConstructorTypedPrivateProtectedWithIntentData()
+        {
+            var initialText =
+@"class C
+{
+    private readonly int _someInt;
+
+    {|typed:private protected C|}
+}";
+            var expectedText =
+@"class C
+{
+    private readonly int _someInt;
+
+    private protected C(int someInt)
+    {
+        _someInt = someInt;
+    }
+}";
+
+            // lang=json
+            var intentData = @"{ ""accessibility"": ""ProtectedAndInternal""}";
+
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
         }
 
         [Fact]

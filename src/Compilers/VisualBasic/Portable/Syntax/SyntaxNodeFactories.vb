@@ -138,6 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Parse tokens in the input.
+        ''' Since this API does not create a <see cref="SyntaxNode"/> that owns all produced tokens,
+        ''' the <see cref="SyntaxToken.GetLocation"/> API may yield surprising results for
+        ''' the produced tokens and its behavior is generally unspecified.
         ''' </summary>
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>

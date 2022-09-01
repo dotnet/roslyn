@@ -233,7 +233,7 @@ System.Console$$.WriteLine(message)
 ", LanguageNames.VisualBasic, SourceCodeKind.Regular)
         End Sub
 
-        Private Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
+        Private Shared Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
             Dim xml = <Workspace>
                           <Project Language=<%= languageName %> CommonReferences="True">
                               <Document>
@@ -257,7 +257,7 @@ System.Console$$.WriteLine(message)
             End Using
         End Sub
 
-        Private Sub VerifyBlock(markup As String, languageName As String, expectedDescription As String)
+        Private Shared Sub VerifyBlock(markup As String, languageName As String, expectedDescription As String)
             Dim xml = <Workspace>
                           <Project Language=<%= languageName %> CommonReferences="True">
                               <Document>

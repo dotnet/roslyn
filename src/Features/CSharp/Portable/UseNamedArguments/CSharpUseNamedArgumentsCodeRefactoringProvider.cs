@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => !parameters.Last().IsParams || parameters.Length >= argumentCount;
 
             protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
-                => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+                => options.LanguageVersion() >= LanguageVersion.CSharp7_2;
 
             protected override bool IsImplicitIndexOrRangeIndexer(ImmutableArray<IParameterSymbol> parameters, TSyntax argument, SemanticModel semanticModel)
             {

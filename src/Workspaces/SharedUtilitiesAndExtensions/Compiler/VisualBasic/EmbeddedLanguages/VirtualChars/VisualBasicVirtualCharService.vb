@@ -3,7 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
     Friend Class VisualBasicVirtualCharService
@@ -20,10 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function IsStringOrCharLiteralToken(token As SyntaxToken) As Boolean
-            Return token.Kind() = SyntaxKind.StringLiteralToken OrElse
-                   token.Kind() = SyntaxKind.CharacterLiteralToken
-        End Function
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
 
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
             Debug.Assert(Not token.ContainsDiagnostics)

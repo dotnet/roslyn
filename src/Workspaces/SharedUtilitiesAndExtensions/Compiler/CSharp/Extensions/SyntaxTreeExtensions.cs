@@ -351,21 +351,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
+        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
+            if (!token.IsKind(
+                    SyntaxKind.StringLiteralToken,
+                    SyntaxKind.CharacterLiteralToken,
+                    SyntaxKind.SingleLineRawStringLiteralToken,
+                    SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            var startLength = 1;
-            if (token.IsVerbatimStringLiteral())
-            {
-                startLength = 2;
-            }
+            if (position != token.Span.End)
+                return false;
 
-            return position == token.Span.End &&
-                (token.Span.Length == startLength || (token.Span.Length > startLength && token.ToString().Cast<char>().LastOrDefault() != lastChar));
+            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                var sourceText = token.SyntaxTree!.GetText(cancellationToken);
+                var startDelimeterLength = 0;
+                var endDelimeterLength = 0;
+                for (int i = token.SpanStart, n = token.Span.End; i < n; i++)
+                {
+                    if (sourceText[i] != '"')
+                        break;
+
+                    startDelimeterLength++;
+                }
+
+                for (int i = token.Span.End - 1, n = token.Span.Start; i >= n; i--)
+                {
+                    if (sourceText[i] != '"')
+                        break;
+
+                    endDelimeterLength++;
+                }
+
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && endDelimeterLength < startDelimeterLength);
+            }
+            else
+            {
+                var startDelimeterLength = token.IsVerbatimStringLiteral() ? 2 : 1;
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && token.Text[^1] != lastChar);
+            }
         }
 
         public static bool IsEntirelyWithinStringOrCharLiteral(
@@ -388,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -396,10 +425,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // "|"
                 // "|  (e.g. incomplete string literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringTextToken, SyntaxKind.InterpolatedStringEndToken))
+            if (token.IsKind(
+                    SyntaxKind.InterpolatedStringStartToken,
+                    SyntaxKind.InterpolatedStringTextToken,
+                    SyntaxKind.InterpolatedStringEndToken,
+                    SyntaxKind.InterpolatedRawStringEndToken,
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken,
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken))
             {
                 return token.SpanStart < position && token.Span.End > position;
             }
@@ -429,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // '|'
                 // '|  (e.g. incomplete char literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'', cancellationToken);
             }
 
             return false;

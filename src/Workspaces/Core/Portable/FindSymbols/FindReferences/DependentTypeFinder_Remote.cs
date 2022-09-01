@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var projectIds = projects?.SelectAsArray(p => p.Id) ?? default;
+                    var projectIds = projects?.Where(p => RemoteSupportedLanguages.IsSupported(p.Language)).SelectAsArray(p => p.Id) ?? default;
 
                     var result = await client.TryInvokeAsync<IRemoteDependentTypeFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                         solution,

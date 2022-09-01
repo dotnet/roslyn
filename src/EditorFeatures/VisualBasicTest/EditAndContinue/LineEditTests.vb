@@ -73,7 +73,7 @@ End Class
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),
+                New SourceLineUpdate(5, 5),
                 New SourceLineUpdate(6, 2)
             }, {})
         End Sub
@@ -118,9 +118,9 @@ End Class
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(6),
+                New SourceLineUpdate(6, 6),
                 New SourceLineUpdate(7, 2),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(10)
+                New SourceLineUpdate(10, 10)
             }, {})
         End Sub
 
@@ -791,7 +791,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -980,7 +981,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
-                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 #End Region
 
@@ -1295,7 +1297,7 @@ End Class
                 {
                     New SequencePointUpdates("a", ImmutableArray.Create(
                         New SourceLineUpdate(1, 11), ' x, y, F1, F2
-                        AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),' lines between F2 And D ctor
+                        New SourceLineUpdate(5, 5),' lines between F2 And D ctor
                         New SourceLineUpdate(7, 17)))' D ctor
                 },
                 semanticEdits:=

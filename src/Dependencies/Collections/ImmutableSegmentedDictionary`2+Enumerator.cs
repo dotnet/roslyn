@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public KeyValuePair<TKey, TValue> Current => _enumerator.Current;
 
-            object IEnumerator.Current => _returnType == ReturnType.DictionaryEntry ? (object)((IDictionaryEnumerator)this).Entry : Current;
+            object IEnumerator.Current => _returnType == ReturnType.DictionaryEntry ? ((IDictionaryEnumerator)this).Entry : Current;
 
             DictionaryEntry IDictionaryEnumerator.Entry => new(Current.Key, Current.Value);
 

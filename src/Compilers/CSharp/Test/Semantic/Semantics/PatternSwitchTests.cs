@@ -699,6 +699,240 @@ null";
         }
 
         [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption09()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = null;
+        switch (o)
+        {
+            case I1 and Base:
+                break;
+            case Derived s: // 1
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and I1:
+                break;
+            case Derived s: // 2
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and not null:
+                break;
+            case Derived s: // 3
+                break;
+        }
+
+        switch (o) {
+            case ValueType and int and 1:
+                break;
+            case int and 1: // 4
+                break;
+        }
+
+        switch (o) {
+            case int and 1:
+                break;
+            case ValueType and int and 1: // 5
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base:
+                break;
+            case Derived s: // 6
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { F1: 1 }:
+                break;
+            case Derived { F2: 1 }:
+                break;
+            case Derived { P1: 1 }:
+                break;
+            case Derived { F1: 1 } s: // 7
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { P1: 1 }:
+                break;
+            case Derived { F1: 1 }:
+                break;
+            case Derived { P2: 1 }:
+                break;
+            case Derived { P1: 1 } s: // 8
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base(1, _):
+                break;
+            case Derived(2, _):
+                break;
+            case Derived(1, _, _):
+                break;
+            case Derived(1, _) s: // 9
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { F3: (1, _) }:
+                break;
+            case Derived { F3: (_, 1) }:
+                break;
+            case Derived { F3: (1, _) } s: // 10
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base:
+                break;
+            case Base and I2: // 11
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and I2:
+                break;
+            case I2 and Base: // 12
+                break;
+        }
+    }
+}
+
+interface I1 {}
+interface I2 {}
+
+class Base : I1
+{
+    public int F1 = 0;
+    public int F2 = 0;
+    public object F3 = null;
+    public int P1 {get; set;}
+    public int P2 {get; set;}
+    public void Deconstruct(out int x, out int y) => throw null;
+    public void Deconstruct(out int x, out int y, out int z) => throw null;
+}
+
+class Derived : Base, I2
+{
+}
+";
+            var compilation = CreateCompilation(new[] { source, _iTupleSource }, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(11, 18),
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 2
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(19, 18),
+                // (27,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 3
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(27, 18),
+                // (34,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int and 1: // 4
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int and 1").WithLocation(34, 18),
+                // (41,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case ValueType and int and 1: // 5
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "ValueType and int and 1").WithLocation(41, 18),
+                // (49,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 6
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(49, 18),
+                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { F1: 1 } s: // 7
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { F1: 1 } s").WithLocation(61, 18),
+                // (73,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { P1: 1 } s: // 8
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { P1: 1 } s").WithLocation(73, 18),
+                // (85,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived(1, _) s: // 9
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived(1, _) s").WithLocation(85, 18),
+                // (95,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { F3: (1, _) } s: // 10
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { F3: (1, _) } s").WithLocation(95, 18),
+                // (103,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Base and I2: // 11
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Base and I2").WithLocation(103, 18),
+                // (111,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case I2 and Base: // 12
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "I2 and Base").WithLocation(111, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption10()
+        {
+            var source =
+@"
+using System;
+public class C {
+    public void M1(object o) {
+        switch (o) {
+            case IConvertible and IComparable:
+                break;
+            case int:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption11()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = null;
+        switch (o)
+        {
+            case IComparable and object:
+                break;
+            case string s: // error: subsumed by previous case
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case string s: // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "string s").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
         public void EqualConstant03()
         {
             var source =

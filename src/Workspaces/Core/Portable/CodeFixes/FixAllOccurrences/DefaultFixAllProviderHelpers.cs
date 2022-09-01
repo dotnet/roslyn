@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
 
         private static Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocument(null)));
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocumentAndProject(document: null, fixAllContext.Project)));
 
         private static Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
             return fixAllContextsAsync(
                 fixAllContext,
-                sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
+                sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithDocumentAndProject(document: null, p)));
         }
     }
 }
