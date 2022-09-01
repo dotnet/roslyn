@@ -45,7 +45,7 @@ pr:
 
 variables:
 - name: poolName
-  value: NetCore-Public
+  value: NetCore-Svc-Public
 - name: queueName
   value: windows.vs2022.amd64.open 
 
