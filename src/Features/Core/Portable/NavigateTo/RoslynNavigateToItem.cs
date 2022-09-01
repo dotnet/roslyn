@@ -123,72 +123,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 _secondarySort = new Lazy<string>(ComputeSecondarySort);
             }
 
-            private string ComputeSecondarySort()
-            {
-                using var _ = ArrayBuilder<string>.GetInstance(out var parts);
-
-                // Ensure if all else is equal, that high-pri items (e.g. from the user's current file) come first
-                // before low pri items.  This only applies if things like the MatchKind are the same.  So we'll
-                // still show an exact match from another file before a substring match from the current file.
-                parts.Add(ComputeFolderDistance().ToString("X4"));
-
-                parts.Add(_item.DeclaredSymbolInfo.ParameterCount.ToString("X4"));
-                parts.Add(_item.DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
-                parts.Add(_item.DeclaredSymbolInfo.Name);
-
-                // For partial types, we break up the file name into pieces.  i.e. If we have
-                // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
-                // the secondary sort string.  That way "Outer.cs" will be weighted above
-                // "Outer.Inner.cs"
-                var fileName = Path.GetFileNameWithoutExtension(_itemDocument.FilePath ?? "");
-                parts.AddRange(fileName.Split(s_dotArray));
-
-                return string.Join(" ", parts);
-
-                // How close these files are in terms of file system path.  Identical files will have distance 0. Files
-                // in the same folder will have distance 1.  Files in different folders will have increasing values here
-                // depending on how many folder elements they share/differ on.
-                int ComputeFolderDistance()
-                {
-                    // No need to compute anything if there is no active document.  Consider all documents equal.
-                    if (_activeDocument == null)
-                        return 0;
-
-                    // The result was in the active document, this get highest priority.
-                    if (_activeDocument == _itemDocument)
-                        return 0;
-
-                    var activeFolders = _activeDocument.Folders;
-                    var itemFolders = _itemDocument.Folders;
-
-                    // see how many folder they have in common.
-                    var commonCount = GetCommonFolderCount();
-
-                    // from this, we can see how many folders then differ between them.
-                    var activeDiff = activeFolders.Count - commonCount;
-                    var itemDiff = itemFolders.Count - commonCount;
-
-                    // Add one more to the result.  This way if they share all the same folders that we still return
-                    // '1', indicating that this close to, but not as good a match as an exact file match.
-                    return activeDiff + itemDiff + 1;
-                }
-
-                int GetCommonFolderCount()
-                {
-                    var activeFolders = _activeDocument.Folders;
-                    var itemFolders = _itemDocument.Folders;
-
-                    var maxCommon = Math.Min(activeFolders.Count, itemFolders.Count);
-                    for (var i = 0; i < maxCommon; i++)
-                    {
-                        if (activeFolders[i] != itemFolders[i])
-                            return i;
-                    }
-
-                    return maxCommon;
-                }
-            }
-
             private string ComputeAdditionalInformation()
             {
                 // For partial types, state what file they're in so the user can disambiguate the results.
@@ -274,6 +208,72 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray<TextSpan> INavigateToSearchResult.NameMatchSpans => _item.NameMatchSpans;
 
             string INavigateToSearchResult.SecondarySort => _secondarySort.Value;
+
+            private string ComputeSecondarySort()
+            {
+                using var _ = ArrayBuilder<string>.GetInstance(out var parts);
+
+                // Ensure if all else is equal, that high-pri items (e.g. from the user's current file) come first
+                // before low pri items.  This only applies if things like the MatchKind are the same.  So we'll
+                // still show an exact match from another file before a substring match from the current file.
+                parts.Add(ComputeFolderDistance().ToString("X4"));
+
+                parts.Add(_item.DeclaredSymbolInfo.ParameterCount.ToString("X4"));
+                parts.Add(_item.DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                parts.Add(_item.DeclaredSymbolInfo.Name);
+
+                // For partial types, we break up the file name into pieces.  i.e. If we have
+                // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
+                // the secondary sort string.  That way "Outer.cs" will be weighted above
+                // "Outer.Inner.cs"
+                var fileName = Path.GetFileNameWithoutExtension(_itemDocument.FilePath ?? "");
+                parts.AddRange(fileName.Split(s_dotArray));
+
+                return string.Join(" ", parts);
+
+                // How close these files are in terms of file system path.  Identical files will have distance 0. Files
+                // in the same folder will have distance 1.  Files in different folders will have increasing values here
+                // depending on how many folder elements they share/differ on.
+                int ComputeFolderDistance()
+                {
+                    // No need to compute anything if there is no active document.  Consider all documents equal.
+                    if (_activeDocument == null)
+                        return 0;
+
+                    // The result was in the active document, this get highest priority.
+                    if (_activeDocument == _itemDocument)
+                        return 0;
+
+                    var activeFolders = _activeDocument.Folders;
+                    var itemFolders = _itemDocument.Folders;
+
+                    // see how many folder they have in common.
+                    var commonCount = GetCommonFolderCount();
+
+                    // from this, we can see how many folders then differ between them.
+                    var activeDiff = activeFolders.Count - commonCount;
+                    var itemDiff = itemFolders.Count - commonCount;
+
+                    // Add one more to the result.  This way if they share all the same folders that we still return
+                    // '1', indicating that this close to, but not as good a match as an exact file match.
+                    return activeDiff + itemDiff + 1;
+                }
+
+                int GetCommonFolderCount()
+                {
+                    var activeFolders = _activeDocument.Folders;
+                    var itemFolders = _itemDocument.Folders;
+
+                    var maxCommon = Math.Min(activeFolders.Count, itemFolders.Count);
+                    for (var i = 0; i < maxCommon; i++)
+                    {
+                        if (activeFolders[i] != itemFolders[i])
+                            return i;
+                    }
+
+                    return maxCommon;
+                }
+            }
 
             string? INavigateToSearchResult.Summary => null;
 
