@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,9 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -269,41 +268,48 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync()
             {
-                // Ask subclass to produce whole nested list of wrapping code actions
-                var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
-
-                var result = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var group in wrappingGroups)
+                try
                 {
-                    // if a group is empty just ignore it.
-                    var wrappingActions = group.WrappingActions.WhereNotNull().ToImmutableArray();
-                    if (wrappingActions.Length == 0)
+                    // Ask subclass to produce whole nested list of wrapping code actions
+                    var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
+
+                    var result = ArrayBuilder<CodeAction>.GetInstance();
+                    foreach (var group in wrappingGroups)
                     {
-                        continue;
+                        // if a group is empty just ignore it.
+                        var wrappingActions = group.WrappingActions.WhereNotNull().ToImmutableArray();
+                        if (wrappingActions.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        // If a group only has one item, and subclass says the item is inlinable,
+                        // then just directly return that nested item as a top level item.
+                        if (wrappingActions.Length == 1 && group.IsInlinable)
+                        {
+                            result.Add(wrappingActions[0]);
+                            continue;
+                        }
+
+                        // Otherwise, sort items and add to the resultant list
+                        var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
+
+                        // Make our code action low priority.  This option will be offered *a lot*, and 
+                        // much of  the time will not be something the user particularly wants to do.  
+                        // It should be offered after all other normal refactorings.
+                        result.Add(CodeActionWithNestedActions.Create(
+                            wrappingActions[0].ParentTitle, sorted,
+                            group.IsInlinable, CodeActionPriority.Low));
                     }
 
-                    // If a group only has one item, and subclass says the item is inlinable,
-                    // then just directly return that nested item as a top level item.
-                    if (wrappingActions.Length == 1 && group.IsInlinable)
-                    {
-                        result.Add(wrappingActions[0]);
-                        continue;
-                    }
-
-                    // Otherwise, sort items and add to the resultant list
-                    var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
-
-                    // Make our code action low priority.  This option will be offered *a lot*, and 
-                    // much of  the time will not be something the user particularly wants to do.  
-                    // It should be offered after all other normal refactorings.
-                    result.Add(CodeActionWithNestedActions.Create(
-                        wrappingActions[0].ParentTitle, sorted,
-                        group.IsInlinable, CodeActionPriority.Low));
+                    // Finally, sort the topmost list we're building and return that.  This ensures that
+                    // both the top level items and the nested items are ordered appropriate.
+                    return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
                 }
-
-                // Finally, sort the topmost list we're building and return that.  This ensures that
-                // both the top level items and the nested items are ordered appropriate.
-                return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, ErrorSeverity.Diagnostic, CancellationToken))
+                {
+                    throw;
+                }
             }
         }
     }
