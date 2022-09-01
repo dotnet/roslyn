@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
@@ -28,12 +30,19 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
 
         _logger.LogInformation("Shutting down language server.");
 
-        var messageParams = new LogMessageParams()
+        try
         {
-            MessageType = MessageType.Error,
-            Message = message
-        };
-        await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, CancellationToken.None).ConfigureAwait(false);
+            var messageParams = new LogMessageParams()
+            {
+                MessageType = MessageType.Error,
+                Message = message
+            };
+            await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (ConnectionLostException)
+        {
+            //Don't fail shutdown just because jsonrpc has already been cancelled.
+        }
     }
 
     public async Task ExitAsync()
