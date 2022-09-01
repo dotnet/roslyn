@@ -127,39 +127,57 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 nonConflictLocationTagToReplacementText As Dictionary(Of String, String),
                 Optional expectFailure As Boolean = False,
                 Optional sourceGenerator As ISourceGenerator = Nothing) As Task(Of RenameEngineResult)
-            Dim workspace = CreateTestWorkspace(helper, workspaceXml, If(inProcess, RenameTestHost.InProcess, RenameTestHost.OutOfProcess_SingleCall), sourceGenerator)
-            Dim symbolToRenameInfo = Await GetRenamedSymbolInfoMapAsync(workspace, renameSymbolTagToReplacementStringAndOptions).ConfigureAwait(False)
-            Dim tagToSymbol = Await GetTagToSymbolMapAsync(workspace, renameSymbolTagToReplacementStringAndOptions).ConfigureAwait(False)
-            Dim nonConflictLocationsToReplacementTextMapBuilder = New Dictionary(Of DocumentId, Dictionary(Of TextSpan, String))
 
-            AddNonConflictRenameLocationForAnnotatedLocations(
+            Dim success = False
+            Dim engineResult As RenameEngineResult = Nothing
+            Dim workspace = CreateTestWorkspace(helper, workspaceXml, If(inProcess, RenameTestHost.InProcess, RenameTestHost.OutOfProcess_SingleCall), sourceGenerator)
+            Try
+                Dim symbolToRenameInfo = Await GetRenamedSymbolInfoMapAsync(workspace, renameSymbolTagToReplacementStringAndOptions).ConfigureAwait(False)
+                Dim tagToSymbol = Await GetTagToSymbolMapAsync(workspace, renameSymbolTagToReplacementStringAndOptions).ConfigureAwait(False)
+                Dim nonConflictLocationsToReplacementTextMapBuilder = New Dictionary(Of DocumentId, Dictionary(Of TextSpan, String))
+
+                AddNonConflictRenameLocationForAnnotatedLocations(
                 workspace,
                 nonConflictLocationTagToReplacementText,
                 nonConflictLocationsToReplacementTextMapBuilder)
-            Dim nonConflictLocationsToReplacementTextMap = nonConflictLocationsToReplacementTextMapBuilder.ToImmutableDictionary(
+                Dim nonConflictLocationsToReplacementTextMap = nonConflictLocationsToReplacementTextMapBuilder.ToImmutableDictionary(
                 Function(pair) pair.Key,
                 Function(pair) pair.Value.ToImmutableDictionary())
 
-            Dim solution = workspace.CurrentSolution
-            Dim conflictResolution = Await Renamer.RenameSymbolsAsync(
+                Dim solution = workspace.CurrentSolution
+                Dim conflictResolution = Await Renamer.RenameSymbolsAsync(
                 solution,
                 symbolToRenameInfo,
                 CodeActionOptions.DefaultProvider,
                 ImmutableArray(Of SymbolKey).Empty,
                 CancellationToken.None).ConfigureAwait(False)
 
-            If expectFailure Then
-                Assert.False(conflictResolution.IsSuccessful)
-                Assert.NotNull(conflictResolution.ErrorMessage)
-            Else
-                Assert.True(conflictResolution.IsSuccessful)
-            End If
+                If expectFailure Then
+                    Assert.False(conflictResolution.IsSuccessful)
+                    Assert.NotNull(conflictResolution.ErrorMessage)
+                Else
+                    Assert.True(conflictResolution.IsSuccessful)
+                End If
 
-            Dim engineResult = New RenameEngineResult(
+                engineResult = New RenameEngineResult(
                 workspace,
                 conflictResolution,
                 nonConflictLocationsToReplacementTextMap,
                 tagToSymbol)
+                engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
+
+                success = True
+            Finally
+                If Not success Then
+                    ' Something blew up, so we still own the test workspace
+                    If engineResult IsNot Nothing Then
+                        engineResult.Dispose()
+                    Else
+                        Workspace.Dispose()
+                    End If
+                End If
+            End Try
+
             Return engineResult
         End Function
 
