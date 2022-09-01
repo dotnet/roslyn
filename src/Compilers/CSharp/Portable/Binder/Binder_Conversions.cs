@@ -1322,6 +1322,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
+        public static void CheckDefaultParameterMatch(ErrorCode code, ParameterSymbol source, ParameterSymbol target, Location location, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(code is ErrorCode.ERR_OptionalParamValueMismatch or ErrorCode.WRN_OptionalParamValueMismatch);
+
+            var sourceParamDefault = source.ExplicitDefaultConstantValue;
+            if (sourceParamDefault is not null && !sourceParamDefault.IsBad)
+            {
+                var targetParamDefault = target.ExplicitDefaultConstantValue;
+                if (targetParamDefault?.IsBad != true && sourceParamDefault != targetParamDefault)
+                {
+                    // Parameter {0} has default value '{1}' in (lambda|method group) and '{2}' in target delegate type.
+                    diagnostics.Add(code, location, source.Ordinal + 1, sourceParamDefault, targetParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
+                }
+            }
+        }
+
         private static void CheckForDefaultParameterMismatch(SyntaxNode methodGroupSyntax, MethodSymbol sourceMethod, MethodSymbol targetDelegateInvoke, bool isExtensionMethod, BindingDiagnosticBag diagnostics)
         {
             var start = isExtensionMethod ? 1 : 0;
@@ -1332,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var delegateParameter = targetDelegateInvoke.Parameters[isExtensionMethod ? i - 1 : i];
                 if (delegateParameter.HasExplicitDefaultValue)
                 {
-                    Conversions.CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceMethod.Parameters[i], delegateParameter, paramIdx: i + 1, methodGroupSyntax.Location, diagnostics);
+                    CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceMethod.Parameters[i], delegateParameter, methodGroupSyntax.Location, diagnostics);
                 }
             }
         }

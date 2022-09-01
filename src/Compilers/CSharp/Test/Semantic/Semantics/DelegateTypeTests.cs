@@ -12759,6 +12759,8 @@ public class Program
     }
 }
 """;
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
             var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify);
             verifier.VerifyDiagnostics(
                 // (20,19): warning CS9068: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
@@ -12791,7 +12793,7 @@ public class Program
 namespace ProgramExtensions {
     public static class PExt
     {
-        public static string M(this Program p, string s = "b", long l = 1) => $"{p.field} {s} {l}";
+        public static string M(this Program p, string s = "a", long l = 0L) => $"{p.field} {s} {l}";
     }
 }
 
@@ -12881,6 +12883,7 @@ public class Program
         {
             var source = """
 using System;
+using ProgramExtensions;
 
 namespace ProgramExtensions {
     public static class PExt
@@ -12897,16 +12900,25 @@ public class Program
     public static void Main()
     {
         var m = ProgramExtensions.PExt.M;
+        var n = (new Program()).M;
         Report(m);
+        Report(n);
         Console.WriteLine(m(new Program() { Field = 20 }));
+        Console.WriteLine(n());
     }
 }
 """;
-            CompileAndVerify(source, expectedOutput:
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput:
 @"<>f__AnonymousDelegate0
-20 b 1");
+<>f__AnonymousDelegate1
+20 b 1
+10 b 1");
         }
 
+        // PROTOTYPE: Add this change to type inference for method groups to the breaking
+        // changes doc.
         [Fact]
         public void MethodGroupInferenceCompatBreak()
         {

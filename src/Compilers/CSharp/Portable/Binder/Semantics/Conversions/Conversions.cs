@@ -41,22 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(_binder, currentRecursionDepth, includeNullability, this);
         }
 
-        public static void CheckDefaultParameterMatch(ErrorCode code, ParameterSymbol source, ParameterSymbol target, int paramIdx, Location location, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(code == ErrorCode.ERR_OptionalParamValueMismatch || code == ErrorCode.WRN_OptionalParamValueMismatch);
-
-            var sourceParamDefault = source.ExplicitDefaultConstantValue;
-            if (sourceParamDefault is not null && !sourceParamDefault.IsBad)
-            {
-                var targetParamDefault = target.ExplicitDefaultConstantValue;
-                if (targetParamDefault?.IsBad != true && sourceParamDefault != targetParamDefault)
-                {
-                    // Parameter {0} has default value '{1}' in (lambda|method group) and '{2}' in target delegate type.
-                    diagnostics.Add(code, location, paramIdx, sourceParamDefault, targetParamDefault ?? ((object)MessageID.IDS_Missing.Localize()));
-                }
-            }
-        }
-
         public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Must be a bona fide delegate type, not an expression tree type.
