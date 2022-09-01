@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -24,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             SyntaxToken left, SyntaxTriviaList newLeftTrailingTrivia,
             SyntaxToken right, SyntaxTriviaList newRightLeadingTrivia)
         {
+            Contract.ThrowIfTrue(left.Span.End > right.Span.Start, $"Left token: '{left.ToString()}' had an end past the start of right token: '{right.ToString()}'");
+
             Left = left;
             Right = right;
             NewLeftTrailingTrivia = newLeftTrailingTrivia;
@@ -63,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             SyntaxNodeOrToken left, SyntaxTriviaList leftTrailingTrivia,
             SyntaxTriviaList rightLeadingTrivia, SyntaxNodeOrToken right)
         {
-            var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode().GetLastToken();
-            var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode().GetFirstToken();
+            var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode()!.GetLastToken();
+            var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode()!.GetFirstToken();
             return new Edit(leftLastToken, leftTrailingTrivia, rightFirstToken, rightLeadingTrivia);
         }
     }
