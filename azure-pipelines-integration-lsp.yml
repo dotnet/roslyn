@@ -36,7 +36,7 @@ jobs:
 - job: VS_Integration_LSP
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2022preview.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 135
 
   steps:
