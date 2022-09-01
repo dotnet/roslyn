@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
                 copy.SetData(GetFormat(key), data);
 
-                // Similar to what WinForms does, except that instead of blocking for up to 1s, we only block for up to 100ms.
+                // Similar to what WinForms does, except that instead of blocking for up to 1s, we only block for up to 250ms.
                 // https://github.com/dotnet/winforms/blob/0f76e65878b1a0958175f17c4360b8198f8b36ba/src/System.Windows.Forms/src/System/Windows/Forms/Clipboard.cs#L31
-                Clipboard.SetDataObject(copy, copy: false, retryTimes: 5, retryDelay: 20);
+                Clipboard.SetDataObject(copy, copy: false, retryTimes: 5, retryDelay: 50);
                 return true;
             }
             catch (COMException ex) when ((uint)ex.ErrorCode == CLIPBRD_E_CANT_OPEN)
