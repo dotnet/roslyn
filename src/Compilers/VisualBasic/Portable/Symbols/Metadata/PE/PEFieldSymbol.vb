@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         ''' <summary>
         ''' This symbol is used as a type for a "fake" required custom modifier added for ByRef fields.
-        ''' This allows us to report use site errors for ByRef fields, and, at the same time, allows
+        ''' This allows us to report use site errors for ByRef fields, and, at the same time, allows us
         ''' to accurately match them by signature (since this instance is unique and is not used for anything else)
         ''' without adding full support for RefKind and RefCustomModifiers
         ''' </summary>
