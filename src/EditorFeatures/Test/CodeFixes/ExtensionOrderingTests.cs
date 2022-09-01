@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -118,17 +119,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var providers = ExportProvider.GetExports<CodeFixProvider, CodeChangeProviderMetadata>();
             var providersPerLanguage = providers.ToPerLanguageMapWithMultipleLanguages();
 
-            var csharpProviders = providersPerLanguage[LanguageNames.CSharp];
+            TestCodeFixServiceOrderIsCorrectForLanguage(LanguageNames.CSharp, providersPerLanguage);
+            TestCodeFixServiceOrderIsCorrectForLanguage(LanguageNames.VisualBasic, providersPerLanguage);
+        }
+
+        private static void TestCodeFixServiceOrderIsCorrectForLanguage(
+            string language, ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> providersPerLanguage)
+        {
+            var providers = providersPerLanguage[language];
 
             // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException if cycle is detected.
-            ExtensionOrderer.TestAccessor.CheckForCycles(csharpProviders);
+            ExtensionOrderer.TestAccessor.CheckForCycles(providers);
 
             // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
             // break the cycle and the resulting order will end up being unpredictable.
-            var expectedOrder = ExtensionOrderer.Order(csharpProviders).Select(lazy => lazy.Value).ToImmutableArray();
+            var expectedOrder = ExtensionOrderer.Order(providers).Select(lazy => lazy.Value).ToImmutableArray();
 
             var codeFixService = (CodeFixService)ExportProvider.GetExportedValue<ICodeFixService>();
-            var codeFixPriorityMap = codeFixService.GetTestAccessor().GetFixerPriorityPerLanguageMap(services: null!)[LanguageNames.CSharp].Value;
+            var codeFixPriorityMap = codeFixService.GetTestAccessor().GetFixerPriorityPerLanguageMap(services: null!)[language].Value;
 
             Assert.True(codeFixPriorityMap.Count > 0);
 
