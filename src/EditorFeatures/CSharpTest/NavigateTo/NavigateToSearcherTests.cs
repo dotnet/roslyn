@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                      ImmutableArray<Document> priorityDocuments,
                      string pattern,
                      IImmutableSet<string> kinds,
+                     Document? activeDocument,
                      Func<INavigateToSearchResult, Task> onResultFound,
                      CancellationToken cancellationToken) =>
                     {
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     (Project project,
                      string pattern,
                      IImmutableSet<string> kinds,
+                     Document? activeDocument,
                      Func<INavigateToSearchResult, Task> onResultFound,
                      CancellationToken cancellationToken) =>
                     {
@@ -84,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                      ImmutableArray<Document> priorityDocuments,
                      string pattern2,
                      IImmutableSet<string> kinds,
+                     Document? activeDocument,
                      Func<INavigateToSearchResult, Task> onResultFound2,
                      CancellationToken cancellationToken) =>
                     {
