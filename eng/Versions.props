@@ -240,6 +240,7 @@
     <SystemIOPipelinesVersion>6.0.1</SystemIOPipelinesVersion>
     <SystemManagementVersion>5.0.0-preview.8.20407.11</SystemManagementVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
+    <SystemPrivateUriVersion>4.3.2</SystemPrivateUriVersion>
     <SystemResourcesExtensionsVersion>6.0.0</SystemResourcesExtensionsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemRuntimeInteropServicesNFloatInternalVersion>6.0.1</SystemRuntimeInteropServicesNFloatInternalVersion>
