@@ -54,18 +54,17 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
 
             var subjectBuffer = args.SubjectBuffer;
-            var workspace = subjectBuffer.GetWorkspace();
-            if (workspace == null)
+            if (!subjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            {
                 return;
+            }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return;
 
             if (!_globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, document.Project.Language))
-                return;
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
                 return;
 
             var solution = document.Project.Solution;

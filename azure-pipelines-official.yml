@@ -79,7 +79,7 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022
+    demands: ImageOverride -equals windows.vs2022.amd64
 
   jobs:
   - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
@@ -134,6 +134,14 @@ stages:
     - task: NuGetAuthenticate@0
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+    # Needed for SBOM tool
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 runtime'
+      inputs:
+        packageType: runtime
+        version: 3.1.28
+        installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2

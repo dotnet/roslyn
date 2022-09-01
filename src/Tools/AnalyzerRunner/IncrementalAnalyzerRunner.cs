@@ -76,7 +76,7 @@ namespace AnalyzerRunner
                 {
                     case nameof(SymbolTreeInfoIncrementalAnalyzerProvider):
                         var symbolTreeInfoCacheService = _workspace.Services.GetRequiredService<SymbolTreeInfoCacheService>();
-                        var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetSourceSymbolTreeInfoAsync(_workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
+                        var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
                         if (symbolTreeInfo is null)
                         {
                             throw new InvalidOperationException("Benchmark failed to calculate symbol tree info.");

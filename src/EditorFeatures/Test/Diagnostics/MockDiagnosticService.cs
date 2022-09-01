@@ -25,20 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private DiagnosticData? _diagnostic;
 
-        public IGlobalOptionService GlobalOptions { get; }
-
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MockDiagnosticService(IGlobalOptionService globalOptions)
+        public MockDiagnosticService()
         {
-            GlobalOptions = globalOptions;
         }
-
-        [Obsolete]
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetPullDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
