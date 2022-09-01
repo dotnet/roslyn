@@ -24623,5 +24623,17 @@ BC37208: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, Public
 ]]></errors>)
         End Sub
 
+        <Fact>
+        <WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")>
+        Public Sub ErrorInfo_01()
+            Dim [error] = New MissingMetadataTypeSymbol.Nested(New UnsupportedMetadataTypeSymbol(), "Test", 0, False)
+            Dim info = [error].ErrorInfo
+
+            Assert.Equal(ERRID.ERR_UnsupportedType1, CType(info.Code, ERRID))
+            Assert.Null([error].ContainingModule)
+            Assert.Null([error].ContainingAssembly)
+            Assert.NotNull([error].ContainingSymbol)
+        End Sub
+
     End Class
 End Namespace

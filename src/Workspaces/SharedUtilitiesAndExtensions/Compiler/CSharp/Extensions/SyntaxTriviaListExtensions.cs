@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
                     var currentLineIsBlank = currentLine.All(static t =>
-                        t.Kind() == SyntaxKind.EndOfLineTrivia ||
-                        t.Kind() == SyntaxKind.WhitespaceTrivia);
+                        t.Kind() is SyntaxKind.EndOfLineTrivia or
+                        SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)
                     {
                         break;

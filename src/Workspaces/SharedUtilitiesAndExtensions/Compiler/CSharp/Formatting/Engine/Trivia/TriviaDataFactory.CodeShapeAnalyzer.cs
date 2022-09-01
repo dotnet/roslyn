@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 foreach (var trivia in list)
                 {
-                    if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia ||
-                        trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    if (trivia.Kind() is SyntaxKind.SkippedTokensTrivia or
+                        SyntaxKind.PreprocessingMessageTrivia)
                     {
                         return true;
                     }
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool OnSkippedTokensOrText(SyntaxTrivia trivia)
             {
-                if (trivia.Kind() != SyntaxKind.SkippedTokensTrivia &&
-                    trivia.Kind() != SyntaxKind.PreprocessingMessageTrivia)
+                if (trivia.Kind() is not SyntaxKind.SkippedTokensTrivia and
+                    not SyntaxKind.PreprocessingMessageTrivia)
                 {
                     return false;
                 }
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)
             {
-                if (trivia.Kind() != SyntaxKind.RegionDirectiveTrivia &&
-                    trivia.Kind() != SyntaxKind.EndRegionDirectiveTrivia)
+                if (trivia.Kind() is not SyntaxKind.RegionDirectiveTrivia and
+                    not SyntaxKind.EndRegionDirectiveTrivia)
                 {
                     return false;
                 }

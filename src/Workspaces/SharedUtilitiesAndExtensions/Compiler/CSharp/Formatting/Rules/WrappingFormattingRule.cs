@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
+            if (node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block)
             {
                 return;
             }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (!(!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block))
+            if (!(node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block))
             {
                 var firstToken = statementNode.GetFirstToken(includeZeroWidth: true);
                 var lastToken = statementNode.GetLastToken(includeZeroWidth: true);

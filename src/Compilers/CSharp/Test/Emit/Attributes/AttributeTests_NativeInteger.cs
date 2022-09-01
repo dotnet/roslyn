@@ -1075,8 +1075,15 @@ class Program
         return f();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            AssertNoNativeIntegerAttributes(comp);
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular9,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program+<>c").GetMethod("<M>b__0_0");
+                    AssertNativeIntegerAttribute(method.GetReturnTypeAttributes());
+                });
         }
 
         [Fact]
@@ -1092,8 +1099,15 @@ class Program
         a(null);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            AssertNoNativeIntegerAttributes(comp);
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular9,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("Program+<>c").GetMethod("<M>b__0_0");
+                    AssertNativeIntegerAttribute(method.Parameters[0].GetAttributes());
+                });
         }
 
         [Fact]
@@ -1141,6 +1155,118 @@ class Program
                     var method = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("<M>g__L|0_0");
                     AssertNativeIntegerAttribute(method.Parameters[0].GetAttributes());
                 });
+        }
+
+        [Fact]
+        public void EmitAttribute_Lambda_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var a1 = (nint n) => { };
+        a1(1);
+        var a2 = nuint[] () => null;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         var a1 = (nint n) => { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(5, 19),
+                // (7,29): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         var a2 = nuint[] () => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunction_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void L1(nint n) { };
+        L1(1);
+        nuint[] L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         void L1(nint n) { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(5, 17),
+                // (7,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         nuint[] L2() => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint[]").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void EmitAttribute_Lambda_MissingAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        private NativeIntegerAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        var a1 = (nint n) => { };
+        a1(1);
+        var a2 = nuint[] () => null;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         var a1 = (nint n) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(5, 19),
+                // (7,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         var a2 = nuint[] () => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunction_MissingAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        private NativeIntegerAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        void L1(nint n) { };
+        L1(1);
+        nuint[] L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         void L1(nint n) { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(5, 17),
+                // (7,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
+                //         nuint[] L2() => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "nuint[]").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute", ".ctor").WithLocation(7, 9));
         }
 
         [Fact]
@@ -1251,6 +1377,7 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
         }
 
         [Fact]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void EmitAttribute_PartialMethods()
         {
             var source =
@@ -1262,13 +1389,21 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
     static partial void F2(nuint x);
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular9);
-            // Ideally should not emit any attributes. Compare with dynamic/object.
             var expected =
 @"Program
     void F2(System.UIntPtr x)
         [NativeInteger] System.UIntPtr x
 ";
             AssertNativeIntegerAttributes(comp, expected);
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (4,25): warning CS8826: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' have signature differences.
+                //     static partial void F2(System.UIntPtr x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void Program.F2(nuint x)", "void Program.F2(UIntPtr x)").WithLocation(4, 25),
+                // (5,25): warning CS8826: Partial method declarations 'void Program.F1(IntPtr x)' and 'void Program.F1(nint x)' have signature differences.
+                //     static partial void F1(nint x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void Program.F1(IntPtr x)", "void Program.F1(nint x)").WithLocation(5, 25));
         }
 
         // Shouldn't depend on [NullablePublicOnly].
@@ -1455,7 +1590,7 @@ C
         private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
         {
             var actualNames = handles.Select(h => GetAttributeConstructorName(reader, h)).ToArray();
-            AssertEx.Equal(actualNames, expectedNames);
+            AssertEx.Equal(expectedNames, actualNames);
         }
 
         private static void AssertNoNativeIntegerAttribute(ImmutableArray<CSharpAttributeData> attributes)
@@ -1471,7 +1606,7 @@ C
         private static void AssertAttributes(ImmutableArray<CSharpAttributeData> attributes, params string[] expectedNames)
         {
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
-            AssertEx.Equal(actualNames, expectedNames);
+            AssertEx.Equal(expectedNames, actualNames);
         }
 
         private static void AssertNoNativeIntegerAttributes(CSharpCompilation comp)

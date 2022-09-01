@@ -204,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
                                                                m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                               !IsPropertyWithNonPublicImplementableAccessor(m));
+                                                               !IsPropertyWithNonPublicImplementableAccessor(m) &&
+                                                               IsImplicitlyImplementable(m, within));
                 }
 
                 return type.GetMembers();
@@ -225,6 +226,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             static bool IsNonPublicImplementableAccessor(IMethodSymbol? accessor)
             {
                 return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
+
+            static bool IsImplicitlyImplementable(ISymbol member, ISymbol within)
+            {
+                if (member is IMethodSymbol { IsStatic: true, IsAbstract: true, MethodKind: MethodKind.UserDefinedOperator } method)
+                {
+                    // For example, the following is not implementable implicitly.
+                    // interface I { static abstract int operator -(I x); }
+                    // But the following is implementable:
+                    // interface I<T> where T : I<T> { static abstract int operator -(T x); }
+
+                    // See https://github.com/dotnet/csharplang/blob/main/spec/classes.md#unary-operators.
+                    return method.Parameters.Any(p => p.Type.Equals(within, SymbolEqualityComparer.Default));
+                }
+
+                return true;
             }
         }
 
@@ -322,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfNull(interfacesOrAbstractClasses);
             Contract.ThrowIfNull(isImplemented);
 
-            if (classOrStructType.TypeKind != TypeKind.Class && classOrStructType.TypeKind != TypeKind.Struct)
+            if (classOrStructType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
@@ -396,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var q = from m in interfaceMemberGetter(interfaceType, classOrStructType)
                     where m.Kind != SymbolKind.NamedType
-                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind == MethodKind.Ordinary
+                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator
                     where m.Kind != SymbolKind.Property || ((IPropertySymbol)m).IsIndexer || ((IPropertySymbol)m).CanBeReferencedByName
                     where m.Kind != SymbolKind.Event || ((IEventSymbol)m).CanBeReferencedByName
                     where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
@@ -501,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !containingType.IsImplicitClass &&
                 !containingType.IsStatic)
             {
-                if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
+                if (containingType.TypeKind is TypeKind.Class or TypeKind.Struct)
                 {
                     var baseTypes = containingType.GetBaseTypes().Reverse();
                     foreach (var type in baseTypes)

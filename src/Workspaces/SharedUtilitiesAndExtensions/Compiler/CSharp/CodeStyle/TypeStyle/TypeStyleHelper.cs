@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            if (!(semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is IMethodSymbol methodSymbol))
+            if (semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is not IMethodSymbol methodSymbol)
             {
                 return false;
             }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             if (symbol is null)
                 return null;
 
-            if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+            if (symbol is not INamedTypeSymbol namedTypeSymbol)
                 return symbol;
 
             return namedTypeSymbol.TupleUnderlyingType ?? symbol;

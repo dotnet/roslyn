@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../RebuildResources.resx">
+    <body>
+      <trans-unit id="0_exists_1_times_in_compilation_options">
+        <source>'{0}' exists '{1}' times in compilation options.</source>
+        <target state="translated">'{0}' 在編譯選項中已存在 '{1}' 次。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_non_null_PDB_stream_must_be_provided_because_the_compilation_does_not_have_an_embedded_PDB">
+        <source>A non-null PDB stream must be provided because the compilation does not have an embedded PDB.</source>
+        <target state="translated">必須提供非 Null 的 PDB 資料流程，因為編譯沒有內嵌的 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_create_compilation_options_0">
+        <source>Cannot create compilation options: {0}</source>
+        <target state="translated">無法建立編譯選項: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_get_PDB_file_path">
+        <source>Could not get PDB file path.</source>
+        <target state="translated">無法取得 PDB 檔案路徑。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Does_not_contain_metadata_compilation_options">
+        <source>Does not contain metadata compilation options.</source>
+        <target state="translated">不包含中繼資料編譯選項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encountered_null_or_empty_key_for_compilation_options_pairs">
+        <source>Encountered null or empty key for compilation options pairs.</source>
+        <target state="translated">編譯選項群組遇到 Null 或空的金鑰。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encountered_unexpected_byte_0_when_expecting_a_null_terminator">
+        <source>Encountered unexpected byte '{0}' when expecting a null terminator.</source>
+        <target state="translated">預期 Null 結束字元時遇到未預期的位元組 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_language_name">
+        <source>Invalid language name.</source>
+        <target state="translated">無效的語言名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PDB_stream_must_be_null_because_the_compilation_has_an_embedded_PDB">
+        <source>PDB stream must be null because the compilation has an embedded PDB.</source>
+        <target state="translated">PDB 資料流程必須為 Null，因為編譯具有內嵌的 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_value_for_EmbedInteropTypes_MetadataImageKind_0">
+        <source>Unexpected value for EmbedInteropTypes/MetadataImageKind '{0}'.</source>
+        <target state="translated">EmbedInteropTypes/MetadataImageKind '{0}' 未預期的值。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

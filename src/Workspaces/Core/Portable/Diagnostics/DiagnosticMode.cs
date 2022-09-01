@@ -16,5 +16,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// responding to LSP pull requests for them.
         /// </summary>
         Pull,
+
+        /// <summary>
+        /// Default mode - when the option is set to default we use a feature flag to determine if we're
+        /// is in <see cref="Push"/> or <see cref="Pull"/>
+        /// </summary>
+        Default,
     }
 }

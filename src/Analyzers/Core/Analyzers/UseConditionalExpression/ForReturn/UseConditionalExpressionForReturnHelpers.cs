@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (falseStatement == null)
             {
-                if (!(ifOperation.Parent is IBlockOperation parentBlock))
+                if (ifOperation.Parent is not IBlockOperation parentBlock)
                     return false;
 
                 var ifIndex = parentBlock.Operations.IndexOf(ifOperation);

@@ -102,6 +102,11 @@
         <target state="translated">偏移量和长度超出数组的界限，或者计数大于从索引到源集合结尾处的元素数量。</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">找不到旧值</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">更改非并发集合的操作必须具有独占访问权限才能成功。某操作对此集合执行了并发更新，并已损坏其状态。该集合的状态不再正确。</target>

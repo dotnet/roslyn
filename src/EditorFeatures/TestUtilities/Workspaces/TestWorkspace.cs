@@ -55,10 +55,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
 
-        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = WorkspaceKind.Host, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+        public TestWorkspace(
+            ExportProvider? exportProvider = null,
+            TestComposition? composition = null,
+            string? workspaceKind = WorkspaceKind.Host,
+            Guid solutionTelemetryId = default,
+            bool disablePartialSolutions = true,
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
         {
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
+
+            SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();

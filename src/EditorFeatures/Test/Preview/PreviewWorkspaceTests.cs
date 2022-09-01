@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -136,9 +137,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnostic()
         {
             var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
+            var exportProvider = (IMefHostExportProvider)hostServices;
 
-            var diagnosticService = (IDiagnosticUpdateSource)((IMefHostExportProvider)hostServices).GetExportedValue<IDiagnosticAnalyzerService>();
+            var diagnosticService = (IDiagnosticUpdateSource)exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
             RoslynDebug.AssertNotNull(diagnosticService);
+            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.GetPushDiagnostics(previewWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
+            Assert.True(args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
         }
 
         [WpfFact]

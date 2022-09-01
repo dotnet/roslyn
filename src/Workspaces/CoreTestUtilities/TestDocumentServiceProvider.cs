@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -61,9 +62,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public bool SupportsMappingImportDirectives { get; }
 
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+                Document oldDocument,
+                Document newDocument,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
             {
-                return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);
+                throw new NotImplementedException();
             }
         }
     }

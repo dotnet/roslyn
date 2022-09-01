@@ -102,6 +102,11 @@
         <target state="translated">O deslocamento e o comprimento estavam fora dos limites para a matriz ou a contagem é maior do que o número de elementos do índice até o fim da coleção de origem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Não consigo encontrar o valor antigo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">As operações que alteram coleções não simultâneas precisam ter acesso exclusivo. Uma atualização simultânea foi executada nesta coleção e corrompeu o estado dela. O estado da coleção não está mais correto.</target>

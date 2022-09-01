@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class InlineRenameService : IInlineRenameService
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
             IThreadingContext threadingContext,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             IFeatureServiceFactory featureServiceFactory,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferFactoryService = textBufferFactoryService;
             _featureServiceFactory = featureServiceFactory;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 document.Project.Solution.Workspace,
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
                 renameInfo,
-                _waitIndicator,
+                _uiThreadOperationExecutor,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,
                 _featureServiceFactory,

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // make sure key is either documentId or projectId
             private static void AssertKey((object key, string stateKey) key)
-                => Contract.ThrowIfFalse(key.key is DocumentId || key.key is ProjectId);
+                => Contract.ThrowIfFalse(key.key is DocumentId or ProjectId);
         }
 
         // in memory cache entry

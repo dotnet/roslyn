@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object? obj)
             {
-                if (!(obj is HostArgsId other))
+                if (obj is not HostArgsId other)
                 {
                     return false;
                 }

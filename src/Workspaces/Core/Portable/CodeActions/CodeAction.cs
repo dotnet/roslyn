@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey = null)
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public SolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string? equivalenceKey = null)
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             public NoChangeAction(
                 string title,
-                string? equivalenceKey = null)
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
             }

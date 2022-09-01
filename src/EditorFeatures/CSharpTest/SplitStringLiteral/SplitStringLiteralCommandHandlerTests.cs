@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             {
                 snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
             }
+
             view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();

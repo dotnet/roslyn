@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Return Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(
                                             New AnonymousTypeDescriptor(
-                                                ImmutableArray.Create(New AnonymousTypeField(StringConstants.ItAnonymous,
+                                                ImmutableArray.Create(New AnonymousTypeField(GeneratedNameConstants.ItAnonymous,
                                                                        delegateParams(1).Type,
                                                                        Syntax.QueryClauseKeywordOrRangeVariableIdentifier.GetLocation(),
                                                                        True)),

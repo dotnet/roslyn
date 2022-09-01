@@ -25,21 +25,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private readonly ImmutableArray<SourceReferenceItem>.Builder _referenceItems =
             ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
-        public override CancellationToken CancellationToken { get; }
-
-        public SimpleFindUsagesContext(CancellationToken cancellationToken)
-            => CancellationToken = cancellationToken;
+        public SimpleFindUsagesContext()
+        {
+        }
 
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
 
-        public override ValueTask ReportMessageAsync(string message)
+        public override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
         {
             Message = message;
             return default;
         }
 
-        public override ValueTask SetSearchTitleAsync(string title)
+        public override ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
         {
             SearchTitle = title;
             return default;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return default;
         }
 
-        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
         {
             lock (_gate)
             {

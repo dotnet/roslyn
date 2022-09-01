@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Recommendations
         where TSyntaxContext : SyntaxContext
     {
         protected abstract TSyntaxContext CreateContext(
-            Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
             TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
 
-        public RecommendedSymbols GetRecommendedSymbolsAtPosition(Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
+        public RecommendedSymbols GetRecommendedSymbolsAtPosition(Document document, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var context = CreateContext(workspace, semanticModel, position, cancellationToken);
+            var context = CreateContext(document, semanticModel, position, cancellationToken);
             var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
             var result = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
 

@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -323,8 +324,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected override void CancelBuildProject()
             => _dte.ExecuteCommand("Build.Cancel");
 
-        protected override IWaitIndicator GetWaitIndicator()
-            => _componentModel.GetService<IWaitIndicator>();
+        protected override IUIThreadOperationExecutor GetUIThreadOperationExecutor()
+            => _componentModel.GetService<IUIThreadOperationExecutor>();
 
         /// <summary>
         /// Return namespaces that can be resolved in the latest interactive compilation.

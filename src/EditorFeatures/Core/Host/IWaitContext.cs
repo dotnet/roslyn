@@ -10,12 +10,14 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
 {
+    [Obsolete("You should now use UIThreadOperationStatus, which is a platform supported version of this.")]
     internal enum WaitIndicatorResult
     {
         Completed,
         Canceled,
     }
 
+    [Obsolete("You should now use IUIThreadOperationContext, which is a platform supported version of this.")]
     internal interface IWaitContext : IDisposable
     {
         CancellationToken CancellationToken { get; }

@@ -947,6 +947,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend NotOverridable Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return m_CurriedFromParameter.CallerArgumentExpressionParameterIndex - 1
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
             Get
                 Return m_CurriedFromParameter.HasExplicitDefaultValue

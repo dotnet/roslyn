@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is TodoTableItem otherTodoItem))
+            if (other is not TodoTableItem otherTodoItem)
             {
                 return false;
             }

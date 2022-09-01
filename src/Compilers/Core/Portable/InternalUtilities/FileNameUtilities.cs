@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -39,13 +40,13 @@ namespace Roslyn.Utilities
         /// Returns 0 for path ".goo".
         /// Returns -1 for path "goo.".
         /// </remarks>
-        private static int IndexOfExtension(string? path)
-        {
-            if (path == null)
-            {
-                return -1;
-            }
+        private static int IndexOfExtension(string? path) =>
+            path is null
+                ? -1
+                : IndexOfExtension(path.AsSpan());
 
+        private static int IndexOfExtension(ReadOnlySpan<char> path)
+        {
             int length = path.Length;
             int i = length;
 
@@ -88,6 +89,12 @@ namespace Roslyn.Utilities
 
             int index = IndexOfExtension(path);
             return (index >= 0) ? path.Substring(index) : string.Empty;
+        }
+
+        internal static ReadOnlyMemory<char> GetExtension(ReadOnlyMemory<char> path)
+        {
+            int index = IndexOfExtension(path.Span);
+            return (index >= 0) ? path.Slice(index) : default;
         }
 
         /// <summary>

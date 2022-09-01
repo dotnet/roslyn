@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 using Task = System.Threading.Tasks.Task;
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IHierarchyItemToProjectIdMap _projectMap;
 
@@ -60,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IVsHierarchyItemManager vsHierarchyItemManager)
         {
             _workspace = workspace;
@@ -69,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _codeFixService = codeFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _editHandlerService = editHandlerService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _vsHierarchyItemManager = vsHierarchyItemManager;
             _fixMultipleOccurencesService = workspace.Services.GetService<IFixMultipleOccurrencesService>();
             _projectMap = workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
@@ -137,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+            var builder = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance();
 
             var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
             var solution = _workspace.CurrentSolution;
@@ -193,9 +195,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {
             var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
-            void computeDiagnosticsToFix(IWaitContext context)
+            void computeDiagnosticsToFix(IUIThreadOperationContext context)
             {
-                var cancellationToken = context.CancellationToken;
+                var cancellationToken = context.UserCancellationToken;
 
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
                 // Otherwise, get all diagnostics from the diagnostic service.
@@ -211,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var result = InvokeWithWaitDialog(computeDiagnosticsToFix, title, waitDialogMessage);
 
             // Bail out if the user cancelled.
-            if (result == WaitIndicatorResult.Canceled)
+            if (result == UIThreadOperationStatus.Canceled)
             {
                 return null;
             }
@@ -249,9 +251,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var newSolution = _workspace.CurrentSolution;
             HashSet<string> languages = null;
 
-            void computeDiagnosticsAndFix(IWaitContext context)
+            void computeDiagnosticsAndFix(IUIThreadOperationContext context)
             {
-                var cancellationToken = context.CancellationToken;
+                var cancellationToken = context.UserCancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
                 documentDiagnosticsToFixMap = GetDocumentDiagnosticsToFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: filterStaleDiagnostics, cancellationToken: cancellationToken)
                     .WaitAndGetResult(cancellationToken);
@@ -345,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var result = InvokeWithWaitDialog(computeDiagnosticsAndFix, title, waitDialogMessage);
 
             // Bail out if the user cancelled.
-            if (cancelled || result == WaitIndicatorResult.Canceled)
+            if (cancelled || result == UIThreadOperationStatus.Canceled)
             {
                 return false;
             }
@@ -371,21 +373,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             waitDialogMessage = isAddSuppression ? ServicesVSResources.Applying_suppressions_fix : ServicesVSResources.Applying_remove_suppressions_fix;
-            void applyFix(IWaitContext context)
+            void applyFix(IUIThreadOperationContext context)
             {
                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                var cancellationToken = context.CancellationToken;
+                var cancellationToken = context.UserCancellationToken;
+                var scope = context.AddScope(allowCancellation: true, description: "");
                 _editHandlerService.Apply(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
-                    progressTracker: context.ProgressTracker,
+                    progressTracker: new UIThreadOperationContextProgressTracker(scope),
                     cancellationToken: cancellationToken);
             }
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);
-            if (result == WaitIndicatorResult.Canceled)
+            if (result == UIThreadOperationStatus.Canceled)
             {
                 return false;
             }
@@ -426,14 +429,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private WaitIndicatorResult InvokeWithWaitDialog(
-            Action<IWaitContext> action, string waitDialogTitle, string waitDialogMessage)
+        private UIThreadOperationStatus InvokeWithWaitDialog(
+            Action<IUIThreadOperationContext> action, string waitDialogTitle, string waitDialogMessage)
         {
             var cancelled = false;
-            var result = _waitIndicator.Wait(
+            var result = _uiThreadOperationExecutor.Execute(
                 waitDialogTitle,
                 waitDialogMessage,
-                allowCancel: true,
+                allowCancellation: true,
                 showProgress: true,
                 action: waitContext =>
                 {
@@ -447,7 +450,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     }
                 });
 
-            return cancelled ? WaitIndicatorResult.Canceled : result;
+            return cancelled ? UIThreadOperationStatus.Canceled : result;
         }
 
         private static ImmutableDictionary<Document, ImmutableArray<Diagnostic>> GetDocumentDiagnosticsMappedToNewSolution(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsToFixMap, Solution newSolution, string language)

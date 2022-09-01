@@ -27,6 +27,16 @@
         <target state="translated">switch ステートメントを式に変換します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="translated">範囲指定されたブロックが設定された namespace に変換</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="translated">範囲指定されたファイルが設定された namespace に変換</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">変数の宣言を分解</target>
@@ -85,6 +95,16 @@
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
         <target state="translated">式の無効化 (セマンティクスを変更)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="translated">null値 チェックを明確にできます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
@@ -235,6 +255,11 @@
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">パターン マッチングを使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="translated">パターン マッチングを使用する (コードが変わる可能性があります)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

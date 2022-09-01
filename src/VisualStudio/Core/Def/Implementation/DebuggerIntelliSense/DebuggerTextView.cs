@@ -223,10 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public ITextDataModel TextDataModel
         {
-            get
-            {
-                return _innerTextView.TextDataModel;
-            }
+            get { return _innerTextView.TextDataModel; }
         }
 
         public ITextBuffer TextBuffer

@@ -3408,7 +3408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     If ShouldReportImplementationError(ifaceMember) Then
                                         If implementingSet.Count = 0 Then
                                             'member was not implemented.
-                                            Dim diag = If(useSiteInfo.DiagnosticInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMember3,
+                                            Dim diag = If(useSiteInfo.DiagnosticInfo, ErrorFactory.ErrorInfo(If(ifaceMember.IsShared, ERRID.ERR_UnimplementedSharedMember, ERRID.ERR_UnimplementedMember3),
                                                                             If(Me.IsStructureType(), "Structure", "Class"),
                                                                             CustomSymbolDisplayFormatter.ShortErrorName(Me),
                                                                             ifaceMember,
@@ -3441,11 +3441,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Should we report implementation errors for this member?
         ' We don't report errors on accessors, because we already report the errors on their containing property/event.
         Private Function ShouldReportImplementationError(interfaceMember As Symbol) As Boolean
-            If interfaceMember.Kind = SymbolKind.Method AndAlso DirectCast(interfaceMember, MethodSymbol).MethodKind <> MethodKind.Ordinary Then
+            Dim method = TryCast(interfaceMember, MethodSymbol)
+
+            If method IsNot Nothing AndAlso
+               method.MethodKind <> MethodKind.Ordinary AndAlso
+               method.MethodKind <> MethodKind.UserDefinedOperator AndAlso
+               method.MethodKind <> MethodKind.Conversion Then
                 Return False
-            Else
-                Return True
             End If
+
+            Return True
         End Function
 
         ''' <summary>

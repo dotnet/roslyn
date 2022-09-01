@@ -260,7 +260,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             // Modify the file and raise a mock file change
             File.WriteAllText(ruleSetFile.Path, ruleSetSource.Replace("Error", "Warning"));
-            environment.RaiseFileChange(ruleSetFile.Path);
+            await environment.RaiseFileChangeAsync(ruleSetFile.Path);
 
             var listenerProvider = environment.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.RuleSetEditor);
