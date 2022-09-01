@@ -210,7 +210,7 @@ stages:
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
@@ -253,7 +253,7 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
@@ -271,7 +271,7 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
@@ -313,7 +313,7 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
@@ -344,7 +344,7 @@ stages:
 
   - job: Correctness_Analyzers
     pool:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
     timeoutInMinutes: 35
     steps:
