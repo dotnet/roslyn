@@ -18,7 +18,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
     public CSharpMakeStructReadOnlyDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId,
                EnforceOnBuildValues.MakeStructReadOnly,
-               CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
+               CSharpCodeStyleOptions.PreferReadOnlyStruct,
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_struct_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Struct_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {
