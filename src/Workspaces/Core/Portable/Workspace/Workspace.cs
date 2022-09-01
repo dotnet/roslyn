@@ -75,11 +75,7 @@ namespace Microsoft.CodeAnalysis
             _services = host.CreateWorkspaceServices(this);
 
             _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>();
-
-            if (CanUpdateOptions)
-            {
-                _legacyOptions.RegisterWorkspace(this);
-            }
+            _legacyOptions.RegisterWorkspace(this);
 
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
@@ -262,11 +258,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal virtual bool CanUpdateOptions => true;
-
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            Debug.Assert(!CanUpdateOptions);
             SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
         }
 
@@ -367,10 +360,7 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            if (CanUpdateOptions)
-            {
-                _legacyOptions.UnregisterWorkspace(this);
-            }
+            _legacyOptions.UnregisterWorkspace(this);
 
             // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
             // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct

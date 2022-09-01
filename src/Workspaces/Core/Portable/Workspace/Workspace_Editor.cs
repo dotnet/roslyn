@@ -474,8 +474,7 @@ namespace Microsoft.CodeAnalysis
                 _newText = newText;
             }
 
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(
-                Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);

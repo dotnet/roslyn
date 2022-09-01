@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,34 +18,34 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
-        /// <summary>
-        /// Immutable workspace passed to public APIs of this type that take <see cref="Workspace"/> instance.
-        /// We no longer pass the actual workspace around. To avoid breaking dervied types that may access the workspace entirely
-        /// we pass in a dummy <see cref="ImmutableEmptyWorkspace"/>. This workspace won't have the services that would have been previously available
-        /// if used e.g. in VS layer though so a break is still possible.
-        /// </summary>
-        private protected static readonly Workspace DummyWorkspace = new ImmutableEmptyWorkspace(Host.Mef.MefHostServices.DefaultHost, WorkspaceKind.Custom);
-
-        private static readonly DocumentId _dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId("dummy"));
-
         private const double MaxDelaySecs = 1.0;
         private const int MaxRetries = 5;
         internal static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(MaxDelaySecs / MaxRetries);
 
         internal virtual string? FilePath => null;
 
-        internal Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-            => LoadTextAndVersionAsync(DummyWorkspace, _dummyDocumentId, cancellationToken);
+        /// <summary>
+        /// Load a text and a version of the document.
+        /// </summary>
+        /// <exception cref="IOException" />
+        /// <exception cref="InvalidDataException"/>
+        /// <exception cref="OperationCanceledException"/>
+        public virtual Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+#pragma warning disable CS0618 // Type or member is obsolete
+            => LoadTextAndVersionAsync(workspace: null, documentId: null, cancellationToken);
+#pragma warning restore CS0618
 
         /// <summary>
         /// Load a text and a version of the document.
         /// </summary>
-        /// <param name="workspace">Obsolete. Default, immutable <see cref="Workspace"/> instance.</param>
-        /// <param name="documentId">Obsolete. Dummy <see cref="DocumentId"/>.</param>
+        /// <param name="workspace">Obsolete. Null.</param>
+        /// <param name="documentId">Obsolete. Null.</param>
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
-        public abstract Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
+        [Obsolete("Use LoadTextAndVersionAsync(CancellationToken) instead")]
+        public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => LoadTextAndVersionAsync(cancellationToken);
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             internal TextDocumentLoader(TextAndVersion textAndVersion)
                 => _textAndVersion = textAndVersion;
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
                 => Task.FromResult(_textAndVersion);
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                 _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
                 => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)

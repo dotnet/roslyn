@@ -11,6 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// <see cref="FileTextLoader"/> that uses workspace services (i.e. <see cref="ITextFactoryService"/>) to load file content.
+    /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal class WorkspaceFileTextLoader : FileTextLoader
     {

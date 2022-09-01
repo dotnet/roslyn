@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 internal PreviewTextLoader(SourceText documentText)
                     => _text = documentText;
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
                     => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
 
                 internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)

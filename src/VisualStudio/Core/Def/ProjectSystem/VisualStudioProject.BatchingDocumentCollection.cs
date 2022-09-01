@@ -612,7 +612,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _filePath = filePath;
                 }
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
                     => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
             }
         }
