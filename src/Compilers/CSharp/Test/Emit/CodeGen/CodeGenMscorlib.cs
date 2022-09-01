@@ -391,7 +391,15 @@ public class C1
     public struct Int32 { }
     public struct Boolean { }
     public struct Decimal { }
-    public class Attribute{ }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public class ObsoleteAttribute: Attribute
     {
         public ObsoleteAttribute(string message, bool error){}
@@ -978,6 +986,15 @@ namespace System
     public struct Char { }
     public struct Boolean { }
     public class Exception { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 
     public class String 
     { 
@@ -1086,6 +1103,15 @@ namespace System
     public struct Char { }
     public struct Boolean { }
     public class Exception { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 
     public class String 
     { 
