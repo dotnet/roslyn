@@ -15,7 +15,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using Roslyn.Utilities;
-using RunTests;
 using Xunit;
 using Process = System.Diagnostics.Process;
 

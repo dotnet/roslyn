@@ -65,9 +65,6 @@
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Tools\Source\RunTests\ProcDumpUtil.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
