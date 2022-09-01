@@ -16705,6 +16705,69 @@ class B2 : I<object>
         }
 
         [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_10(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+}
+public delegate void D1<T>(out T t1);
+public delegate void D2<T>(R<T> r2);
+public delegate void D3<T>(ref R<T> r3);
+public delegate void D4<T>(in R<T> r4);
+public delegate void D5<T>(out R<T> r5);
+";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(out int i1) { i1 = 0; } // 1
+    static void F2(R<int> r2) { }
+    static void F3(ref R<int> r3) { } // 2
+    static void F4(in R<int> r4) { } // 3
+    static void F5(out R<int> r5) { r5 = default; } // 4
+    static void Main()
+    {
+        D1<int> d1 = F1; // 1
+        D2<int> d2 = F2;
+        D3<int> d3 = F3; // 2
+        D4<int> d4 = F4; // 3
+        D5<int> d5 = F5; // 4
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+
+            if (languageVersionA == LanguageVersion.CSharp11 &&
+                languageVersionB == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,22): error CS8986: The 'scoped' modifier of parameter 'i1' doesn't match target 'D1<int>'.
+                    //         D1<int> d1 = F1; // 1
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F1").WithArguments("i1", "D1<int>").WithLocation(10, 22),
+                    // (12,22): error CS8986: The 'scoped' modifier of parameter 'r3' doesn't match target 'D3<int>'.
+                    //         D3<int> d3 = F3; // 2
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r3", "D3<int>").WithLocation(12, 22),
+                    // (13,22): error CS8986: The 'scoped' modifier of parameter 'r4' doesn't match target 'D4<int>'.
+                    //         D4<int> d4 = F4; // 3
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F4").WithArguments("r4", "D4<int>").WithLocation(13, 22),
+                    // (14,22): error CS8986: The 'scoped' modifier of parameter 'r5' doesn't match target 'D5<int>'.
+                    //         D5<int> d5 = F5; // 4
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F5").WithArguments("r5", "D5<int>").WithLocation(14, 22));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
         [InlineData(0)]
         [InlineData(-1)]
         [InlineData(11)]
