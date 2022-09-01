@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     It.IsAny<ImmutableArray<Document>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
                     It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Project project,
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     It.IsAny<Project>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
                     It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Project project,
@@ -75,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     It.IsAny<ImmutableArray<Document>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
                     It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Project project,
