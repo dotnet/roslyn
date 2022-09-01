@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Represents the combination of an IL offset and a source text span.
         /// </summary>
-        private struct OffsetAndSpan
+        private readonly struct OffsetAndSpan
         {
             public readonly int Offset;
             public readonly TextSpan Span;
