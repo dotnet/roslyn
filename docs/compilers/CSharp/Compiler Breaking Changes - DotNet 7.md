@@ -6,7 +6,7 @@
 
 When a `ref` struct type is used in an 'is' or 'as' operator, in some scenarios compiler was previously reporting
 an erroneous warning about the type test always failing at runtime, omitting the actual type check, and leading to
-an incorrect behavior. When an incorrect behavior at execution time was possible, compiler will now produce an error instead.
+incorrect behavior. When incorrect behavior at execution time was possible, compiler will now produce an error instead.
 
 ```csharp
 ref struct G<T>
