@@ -30,7 +30,7 @@ namespace RunTests
 
         private static string GetResultsFilePath(string assemblyPath, Options options)
         {
-            var fileName = $"{Path.GetFileName(assemblyPath)}_test_results.xml}}";
+            var fileName = $"{Path.GetFileName(assemblyPath)}_test_results.xml";
             return Path.Combine(options.LogFilesDirectory, fileName);
         }
 

@@ -436,7 +436,7 @@ function TestUsingRunTests() {
     $testRunnerExecutableArgs = "$runTests --dotnet `"$dotnetExe`" --logs `"$LogDir`" artifactsPath `"$ArtifactsDir`" --procdumpPath `"$procdumpFilePath`" --dotnetTestArgs `"$dotnetTestAdditionalArgs`" --testAssembliesPath `"$testAssembliesPath`""
     if ($collectDumps)
     {
-      $testRunnerExecutable += " --collectDumps"
+      $testRunnerExecutableArgs += " --collectDumps"
     }
   }
   elseif ($helix)
