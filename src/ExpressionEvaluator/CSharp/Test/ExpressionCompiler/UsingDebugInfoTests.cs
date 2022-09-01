@@ -231,8 +231,9 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { aliasedRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: parseOptions).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef }, parseOptions: parseOptions);
             WithRuntimeInstance(comp, runtime =>
             {
                 var info = GetMethodDebugInfo(runtime, "B.C.M");
@@ -281,8 +282,9 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { aliasedRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var aliasedRef = CreateCompilation(libSource, assemblyName: "Lib", parseOptions: parseOptions).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef }, parseOptions: parseOptions);
 
             WithRuntimeInstance(comp, runtime =>
             {
@@ -333,8 +335,9 @@ namespace D
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { aliasedRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: parseOptions).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef }, parseOptions: parseOptions);
 
             WithRuntimeInstance(comp, runtime =>
             {

@@ -6530,8 +6530,9 @@ class C
         [Fact]
         public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
         {
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var reference = CreateCompilation(@"
-public delegate void D(in int p);");
+public delegate void D(in int p);", parseOptions: parseOptions);
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -6545,7 +6546,7 @@ public class Test
     void M(D lambda)
     {
     }
-}", references: new[] { reference.EmitToImageReference() });
+}", references: new[] { reference.EmitToImageReference() }, parseOptions: parseOptions);
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -6566,8 +6567,9 @@ public class Test
         [Fact]
         public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
         {
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var reference = CreateCompilation(@"
-public delegate ref readonly int D();");
+public delegate ref readonly int D();", parseOptions: parseOptions);
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -6582,7 +6584,7 @@ public class Test
     void M(D lambda)
     {
     }
-}", references: new[] { reference.EmitToImageReference() });
+}", references: new[] { reference.EmitToImageReference() }, parseOptions: parseOptions);
 
             CompileAndVerify(comp, symbolValidator: module =>
             {

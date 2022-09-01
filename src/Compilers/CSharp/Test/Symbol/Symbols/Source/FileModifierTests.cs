@@ -227,7 +227,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol symbol)
         {
-            Assert.Equal(new[] { "<Module>", "C", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "C", "Program", "Microsoft", "System" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
             var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
         }
@@ -277,7 +277,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol symbol)
         {
-            Assert.Equal(new[] { "<Module>", "C", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "C", "Program", "Microsoft", "System" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
             var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
         }
@@ -322,7 +322,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol symbol)
         {
-            Assert.Equal(new[] { "<Module>", "E", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "E", "Program", "Microsoft", "System" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
             var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(new[] { "value__", "E1", "E2", ".ctor" }, classC.MemberNames);
         }
@@ -364,7 +364,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol symbol)
         {
-            Assert.Equal(new[] { "<Module>", "E", "Attr", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "E", "Attr", "Program", "Microsoft", "System" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
             var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(new[] { "value__", "E1", "E2", ".ctor" }, classC.MemberNames);
         }
@@ -440,7 +440,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol symbol)
         {
-            Assert.Equal(new[] { "<Module>", "E", "Attr", "Program" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "E", "Attr", "Program", "Microsoft", "System" }, symbol.GlobalNamespace.GetMembers().Select(m => m.Name));
             var classC = symbol.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(new[] { "value__", "E1", "E2", ".ctor" }, classC.MemberNames);
         }
@@ -512,7 +512,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol module)
         {
-            Assert.Equal(new[] { "<Module>", "Program", "C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "Program", "C", "Microsoft", "System" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
 
             var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             AssertEx.Equal("<MyFile>F5E7157F91336401EED4848664C7CEB8A5E156C0D713F4211A61BDB8932B19EF2__C`1", classC.MetadataName);
@@ -545,7 +545,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol module)
         {
-            Assert.Equal(new[] { "<Module>", "Program", "C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "Program", "C", "Microsoft", "System" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
             var expectedSymbol = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             AssertEx.Equal(expectedMetadataName, expectedSymbol.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
@@ -576,7 +576,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol module)
         {
-            Assert.Equal(new[] { "<Module>", "Program", "C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "Program", "C", "Microsoft", "System" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
             var expectedSymbol = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             AssertEx.Equal("<MyGeneratedFile_g>F18307E6C553D2E6465CEA162655C06E2BB2896889519559EB1EE5FA53513F0E8__C", expectedSymbol.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
@@ -813,7 +813,7 @@ public class FileModifierTests : CSharpTestBase
 
         void symbolValidator(ModuleSymbol module)
         {
-            Assert.Equal(new[] { "<Module>", "Program", "C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
+            Assert.Equal(new[] { "<Module>", "Program", "C", "Microsoft", "System" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
             var expectedSymbol = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(sourceFileTypeSymbol.MetadataName, expectedSymbol.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
