@@ -43,6 +43,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
+            var vsInternalServerCapabilities = new VSInternalServerCapabilities
+            {
+                TextDocumentSync = new TextDocumentSyncOptions
+                {
+                    OpenClose = true,
+                    Change = TextDocumentSyncKind.Incremental
+                },
+                HoverProvider = true,
+                CompletionProvider = new CompletionOptions
+                {
+                    ResolveProvider = true,
+                    TriggerCharacters = new string[] { " ", "=", "," },
+                    AllCommitCharacters = new string[] { "=", " ", "," },
+                },
+                SupportsDiagnosticRequests = true,
+            };
+
             var serverCapabilities = new ServerCapabilities
             {
                 TextDocumentSync = new TextDocumentSyncOptions
@@ -59,7 +76,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig
                 },
             };
 
-            return serverCapabilities;
+            var capabilities = clientCapabilities.HasVisualStudioLspCapability() ? vsInternalServerCapabilities : serverCapabilities;
+
+            return capabilities;
         }
 
         public override bool ShowNotificationOnInitializeFailed => true;

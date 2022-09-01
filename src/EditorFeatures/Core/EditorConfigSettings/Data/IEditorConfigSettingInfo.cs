@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data
 {
@@ -31,6 +27,16 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data
         /// Gets the description of editorconfig setting values, returns null if the value doesn't have a description.
         /// </summary>
         string? GetValueDocumentation(string value);
+
+        /// <summary>
+        /// Returns if the string is a valid value for the setting
+        /// </summary>
+        bool IsValueValid(string value);
+
+        /// <summary>
+        /// Returns true if the setting supports severities definition, returns false otherwise.
+        /// </summary>
+        bool SupportsSeverities();
 
         /// <summary>
         /// Returns wether the setting can have multiple values.

@@ -82,5 +82,15 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
             return bool.TryParse(key, out var result) ? result : new Optional<bool>();
         }
+
+        public override bool IsValueValid(string value)
+        {
+            if (ValueToSettingName != null)
+            {
+                ValueToSettingName.TryGetValue(value.Trim(), out var _);
+            }
+
+            return bool.TryParse(value, out var _);
+        }
     }
 }

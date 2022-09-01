@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public string GetSettingNameDocumentation();
         public bool GetAllowsMultipleValues();
         public ImmutableArray<string> GetAllSettingValues();
+        public bool IsValueValid(string value);
         public string[] GetAllSettingValuesDocumentation();
         public string? GetSettingValueDocumentation(string key);
     }
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public abstract ImmutableArray<string> GetAllSettingValues();
         public abstract string[] GetAllSettingValuesDocumentation();
         public abstract string? GetSettingValueDocumentation(string key);
+        public abstract bool IsValueValid(string value);
 
         public abstract string GetEditorConfigStringFromValue(T value);
         public abstract Optional<T> GetValueFromEditorConfigString(string key);

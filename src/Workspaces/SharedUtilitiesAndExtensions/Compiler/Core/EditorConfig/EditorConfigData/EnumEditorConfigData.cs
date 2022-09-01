@@ -78,5 +78,10 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             }
             return ValueToSettingName.TryGetValue(key.Trim(), out var value2) ? value2 : DefaultValue ?? ValueToSettingName.GetValueOrDefault(key)!;
         }
+
+        public override bool IsValueValid(string value)
+        {
+            return ValueToSettingName.TryGetValue(value.Trim(), out var _);
+        }
     }
 }

@@ -54,5 +54,10 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             ValueToSettingName.TryGetValue(key.Trim(), out var value);
             return value;
         }
+
+        public override bool IsValueValid(string value)
+        {
+            return ValueToSettingName.TryGetValue(value.Trim(), out var _);
+        }
     }
 }

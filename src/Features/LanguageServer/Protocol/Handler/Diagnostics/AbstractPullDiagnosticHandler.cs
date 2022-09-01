@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private static readonly Option2<DiagnosticMode> s_liveShareDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "LiveShareDiagnosticMode", defaultValue: DiagnosticMode.Pull);
 
         /// <summary>
+        /// Diagnostic mode setting for .editorconfig files.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in .editorconfig files.
+        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
+        /// </summary>
+        private static readonly Option2<DiagnosticMode> s_editorConfigDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "EditorConfigDiagnosticMode", defaultValue: DiagnosticMode.Pull);
+
+        /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
         /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
         /// while the latter are cached and may be stale.
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return new ProjectOrDocumentId(project.Id);
                 }
 
-                var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
+                var additionalDocument = solution.GetTextDocument(textDocumentIdentifier);
                 if (additionalDocument != null)
                 {
                     return new ProjectOrDocumentId(additionalDocument.Id);
@@ -232,6 +238,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
                 WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
+                WellKnownLspServerKinds.EditorConfigLspServer => s_editorConfigDiagnosticMode,
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 

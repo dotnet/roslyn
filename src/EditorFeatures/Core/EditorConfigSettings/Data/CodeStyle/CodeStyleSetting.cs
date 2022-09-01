@@ -109,27 +109,18 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return new PerLanguageEnumCodeStyleSetting<T>(option, description, enumValues, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData);
         }
 
-        public string? GetSettingName()
-        {
-            return EditorConfigData.GetSettingName();
-        }
+        public string? GetSettingName() => EditorConfigData.GetSettingName();
 
-        public string GetDocumentation()
-        {
-            return EditorConfigData.GetSettingNameDocumentation();
-        }
+        public string GetDocumentation() => EditorConfigData.GetSettingNameDocumentation();
 
-        public ImmutableArray<string>? GetSettingValues()
-        {
-            return EditorConfigData.GetAllSettingValues();
-        }
+        public ImmutableArray<string>? GetSettingValues() => EditorConfigData.GetAllSettingValues();
 
-        public string? GetValueDocumentation(string value)
-        {
-            return EditorConfigData.GetSettingValueDocumentation(value);
-        }
+        public string? GetValueDocumentation(string value) => EditorConfigData.GetSettingValueDocumentation(value);
+
+        public bool IsValueValid(string value) => EditorConfigData.IsValueValid(value);
+
+        public bool SupportsSeverities() => true;
 
         public bool AllowsMultipleValues() => false;
-
     }
 }

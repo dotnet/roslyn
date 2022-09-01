@@ -154,29 +154,18 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return new EnumWhitespaceSetting<T>(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
         }
 
-        public string? GetSettingName()
-        {
-            return EditorConfigData.GetSettingName();
-        }
+        public string? GetSettingName() => EditorConfigData.GetSettingName();
 
-        public string GetDocumentation()
-        {
-            return EditorConfigData.GetSettingNameDocumentation();
-        }
+        public string GetDocumentation() => EditorConfigData.GetSettingNameDocumentation();
 
-        public ImmutableArray<string>? GetSettingValues()
-        {
-            return EditorConfigData.GetAllSettingValues();
-        }
+        public ImmutableArray<string>? GetSettingValues() => EditorConfigData.GetAllSettingValues();
 
-        public string? GetValueDocumentation(string value)
-        {
-            return EditorConfigData.GetSettingValueDocumentation(value);
-        }
+        public string? GetValueDocumentation(string value) => EditorConfigData.GetSettingValueDocumentation(value);
 
-        public bool AllowsMultipleValues()
-        {
-            return EditorConfigData.GetAllowsMultipleValues();
-        }
+        public bool IsValueValid(string value) => EditorConfigData.IsValueValid(value);
+
+        public bool SupportsSeverities() => false;
+
+        public bool AllowsMultipleValues() => EditorConfigData.GetAllowsMultipleValues();
     }
 }
