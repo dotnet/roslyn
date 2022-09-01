@@ -5,6 +5,7 @@
 using System;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -16,13 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             public readonly MetadataReader MetadataReader;
             public readonly EmitBaseline Baseline;
             public readonly Action<GenerationVerifier> Verifier;
+            public readonly CompilationDifference? CompilationDifference;
 
-            public GenerationInfo(CSharpCompilation compilation, MetadataReader reader, EmitBaseline baseline, Action<GenerationVerifier> verifier)
+            public GenerationInfo(CSharpCompilation compilation, MetadataReader reader, CompilationDifference? diff, EmitBaseline baseline, Action<GenerationVerifier> verifier)
             {
                 Compilation = compilation;
                 MetadataReader = reader;
                 Baseline = baseline;
                 Verifier = verifier;
+                CompilationDifference = diff;
             }
         }
     }

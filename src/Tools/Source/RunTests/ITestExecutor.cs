@@ -16,8 +16,9 @@ namespace RunTests
         internal string? TestFilter { get; }
         internal bool IncludeHtml { get; }
         internal bool Retry { get; }
+        internal bool CollectDumps { get; }
 
-        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? testFilter, bool includeHtml, bool retry)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? testFilter, bool includeHtml, bool retry, bool collectDumps)
         {
             DotnetFilePath = dotnetFilePath;
             ProcDumpInfo = procDumpInfo;
@@ -25,6 +26,7 @@ namespace RunTests
             TestFilter = testFilter;
             IncludeHtml = includeHtml;
             Retry = retry;
+            CollectDumps = collectDumps;
         }
     }
 

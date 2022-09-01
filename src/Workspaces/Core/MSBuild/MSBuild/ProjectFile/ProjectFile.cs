@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static bool IsInGAC(string filePath)
         {
-            return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => PathUtilities.IsChildPath(gloc, filePath));
+            return GlobalAssemblyCacheLocation.RootLocations.Any(static (gloc, filePath) => PathUtilities.IsChildPath(gloc, filePath), filePath);
         }
 
         private static string? s_frameworkRoot;

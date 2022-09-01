@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseBraceToken);
 
-        protected override int AdjustFormattingEndPoint(SourceText text, SyntaxNode root, int startPoint, int endPoint)
+        protected override int AdjustFormattingEndPoint(ParsedDocument document, int startPoint, int endPoint)
         {
             // Only format outside of the completed braces if they're on the same line for array/collection/object initializer expressions.
             // Example:   `var x = new int[]{}`:
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Incorrect: `var x = new int[] { }`
             // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios.
             // see bug Devdiv:823958
-            if (text.Lines.GetLineFromPosition(startPoint) == text.Lines.GetLineFromPosition(endPoint))
+            if (document.Text.Lines.GetLineFromPosition(startPoint) == document.Text.Lines.GetLineFromPosition(endPoint))
             {
-                var startToken = root.FindToken(startPoint, findInsideTrivia: true);
+                var startToken = document.Root.FindToken(startPoint, findInsideTrivia: true);
                 if (IsValidOpeningBraceToken(startToken) &&
                     (startToken.Parent?.IsInitializerForArrayOrCollectionCreationExpression() == true ||
                      startToken.Parent is AnonymousObjectCreationExpressionSyntax))
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)
         {
-            var indentStyle = options.AutoFormattingOptions.IndentStyle;
+            var indentStyle = options.IndentStyle;
             return ImmutableArray.Create(BraceCompletionFormattingRule.ForIndentStyle(indentStyle));
         }
 
@@ -92,25 +92,25 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             private static readonly Predicate<SuppressOperation> s_predicate = o => o == null || o.Option.IsOn(SuppressOption.NoWrapping);
 
             private static readonly ImmutableArray<BraceCompletionFormattingRule> s_instances = ImmutableArray.Create(
-                new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.None),
-                new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.Block),
-                new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.Smart));
+                new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.None),
+                new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.Block),
+                new BraceCompletionFormattingRule(FormattingOptions2.IndentStyle.Smart));
 
-            private readonly FormattingOptions.IndentStyle _indentStyle;
+            private readonly FormattingOptions2.IndentStyle _indentStyle;
             private readonly CSharpSyntaxFormattingOptions _options;
 
-            public BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle)
+            public BraceCompletionFormattingRule(FormattingOptions2.IndentStyle indentStyle)
                 : this(indentStyle, CSharpSyntaxFormattingOptions.Default)
             {
             }
 
-            private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle, CSharpSyntaxFormattingOptions options)
+            private BraceCompletionFormattingRule(FormattingOptions2.IndentStyle indentStyle, CSharpSyntaxFormattingOptions options)
             {
                 _indentStyle = indentStyle;
                 _options = options;
             }
 
-            public static AbstractFormattingRule ForIndentStyle(FormattingOptions.IndentStyle indentStyle)
+            public static AbstractFormattingRule ForIndentStyle(FormattingOptions2.IndentStyle indentStyle)
             {
                 Debug.Assert(s_instances[(int)indentStyle]._indentStyle == indentStyle);
                 return s_instances[(int)indentStyle];
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
             {
                 base.AddAlignTokensOperations(list, node, in nextOperation);
-                if (_indentStyle == FormattingOptions.IndentStyle.Block)
+                if (_indentStyle == FormattingOptions2.IndentStyle.Block)
                 {
                     var bracePair = node.GetBracePair();
                     if (bracePair.IsValidBracketOrBracePair())

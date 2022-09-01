@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         {
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Node.SyntaxTree;
-            var preference = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, syntaxTree, cancellationToken);
+            var preference = context.GetCSharpAnalyzerOptions().PreferSimpleDefaultExpression;
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;

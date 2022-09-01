@@ -26,139 +26,139 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static BaseNamespaceDeclarationSyntax AddMethodTo(
             BaseNamespaceDeclarationSyntax destination,
             IMethodSymbol method,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, options, cancellationToken);
+            var declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, info, cancellationToken);
 
-            var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
+            var members = Insert(destination.Members, declaration, info, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
 
         internal static CompilationUnitSyntax AddMethodTo(
             CompilationUnitSyntax destination,
             IMethodSymbol method,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateMethodDeclaration(
-                method, CodeGenerationDestination.CompilationUnit, options,
+                method, CodeGenerationDestination.CompilationUnit, info,
                 cancellationToken);
 
-            var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
+            var members = Insert(destination.Members, declaration, info, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
 
         internal static TypeDeclarationSyntax AddMethodTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var methodDeclaration = GenerateMethodDeclaration(
-                method, GetDestination(destination), options, cancellationToken);
+                method, GetDestination(destination), info, cancellationToken);
 
             // Create a clone of the original type with the new method inserted. 
-            var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastMethod);
+            var members = Insert(destination.Members, methodDeclaration, info, availableIndices, after: LastMethod);
 
             return AddMembersTo(destination, members, cancellationToken);
         }
 
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
             IMethodSymbol method, CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MethodDeclarationSyntax>(method, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MethodDeclarationSyntax>(method, info);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
             var declaration = GenerateMethodDeclarationWorker(
-                method, destination, options);
+                method, destination, info);
 
             return AddAnnotationsTo(method,
-                ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken));
+                ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
         }
 
         public static LocalFunctionStatementSyntax GenerateLocalFunctionDeclaration(
             IMethodSymbol method,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<LocalFunctionStatementSyntax>(method, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<LocalFunctionStatementSyntax>(method, info);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
             var declaration = GenerateLocalFunctionDeclarationWorker(
-                method, destination, options);
+                method, destination, info);
 
             return AddAnnotationsTo(method,
-                ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken));
+                ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
         }
 
         private static MethodDeclarationSyntax GenerateMethodDeclarationWorker(
             IMethodSymbol method, CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options)
+            CSharpCodeGenerationContextInfo info)
         {
             // Don't rely on destination to decide if method body should be generated.
             // Users of this service need to express their intention explicitly, either by  
             // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
             // `method` abstract. This would provide more flexibility.
-            var hasNoBody = !options.Context.GenerateMethodBodies || method.IsAbstract;
+            var hasNoBody = !info.Context.GenerateMethodBodies || method.IsAbstract;
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
-                attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
-                modifiers: GenerateModifiers(method, destination, options),
+                attributeLists: GenerateAttributes(method, info, explicitInterfaceSpecifier != null),
+                modifiers: GenerateModifiers(method, destination, info),
                 returnType: method.GenerateReturnTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
-                typeParameterList: GenerateTypeParameterList(method, options),
-                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
+                typeParameterList: GenerateTypeParameterList(method, info),
+                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, info),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 expressionBody: null,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            methodDeclaration = UseExpressionBodyIfDesired(options, methodDeclaration);
+            methodDeclaration = UseExpressionBodyIfDesired(info, methodDeclaration);
             return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
         }
 
         private static LocalFunctionStatementSyntax GenerateLocalFunctionDeclarationWorker(
             IMethodSymbol method, CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options)
+            CSharpCodeGenerationContextInfo info)
         {
             var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
-                modifiers: GenerateModifiers(method, destination, options),
+                modifiers: GenerateModifiers(method, destination, info),
                 returnType: method.GenerateReturnTypeSyntax(),
                 identifier: method.Name.ToIdentifierToken(),
-                typeParameterList: GenerateTypeParameterList(method, options),
-                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options),
+                typeParameterList: GenerateTypeParameterList(method, info),
+                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: StatementGenerator.GenerateBlock(method),
                 expressionBody: null,
                 semicolonToken: default);
 
-            localFunctionDeclaration = UseExpressionBodyIfDesired(options, localFunctionDeclaration);
+            localFunctionDeclaration = UseExpressionBodyIfDesired(info, localFunctionDeclaration);
             return AddFormatterAndCodeGeneratorAnnotationsTo(localFunctionDeclaration);
         }
 
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationOptions options, MethodDeclarationSyntax methodDeclaration)
+            CSharpCodeGenerationContextInfo info, MethodDeclarationSyntax methodDeclaration)
         {
             if (methodDeclaration.ExpressionBody == null)
             {
                 if (methodDeclaration.Body?.TryConvertToArrowExpressionBody(
-                    methodDeclaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedMethods,
+                    methodDeclaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedMethods.Value,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return methodDeclaration.WithBody(null)
@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static LocalFunctionStatementSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationOptions options, LocalFunctionStatementSyntax localFunctionDeclaration)
+            CSharpCodeGenerationContextInfo info, LocalFunctionStatementSyntax localFunctionDeclaration)
         {
             if (localFunctionDeclaration.ExpressionBody == null)
             {
                 if (localFunctionDeclaration.Body?.TryConvertToArrowExpressionBody(
-                    localFunctionDeclaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedLocalFunctions,
+                    localFunctionDeclaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedLocalFunctions.Value,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return localFunctionDeclaration.WithBody(null)
@@ -189,14 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IMethodSymbol method, CSharpCodeGenerationOptions options, bool isExplicit)
+            IMethodSymbol method, CSharpCodeGenerationContextInfo info, bool isExplicit)
         {
             var attributes = new List<AttributeListSyntax>();
 
             if (!isExplicit)
             {
-                attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options));
-                attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), options, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
+                attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
+                attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
             }
 
             return attributes.ToSyntaxList();
@@ -244,13 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static TypeParameterListSyntax? GenerateTypeParameterList(
-            IMethodSymbol method, CSharpCodeGenerationOptions options)
+            IMethodSymbol method, CSharpCodeGenerationContextInfo info)
         {
-            return TypeParameterGenerator.GenerateTypeParameterList(method.TypeParameters, options);
+            return TypeParameterGenerator.GenerateTypeParameterList(method.TypeParameters, info);
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationOptions options)
+            IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -269,12 +269,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                // If we're generating into an interface, then we don't use any modifiers.
-                if (destination is not CodeGenerationDestination.CompilationUnit and
-                    not CodeGenerationDestination.Namespace and
-                    not CodeGenerationDestination.InterfaceType)
+                // If we're generating into an interface, then allow modifiers for static abstract members
+                if (destination is CodeGenerationDestination.InterfaceType)
                 {
-                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, options, Accessibility.Private);
+                    if (method.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
+                        // We only generate the abstract keyword in interfaces for static abstract members
+                        if (method.IsAbstract)
+                        {
+                            tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        }
+                    }
+                }
+                else if (destination is not CodeGenerationDestination.CompilationUnit and
+                    not CodeGenerationDestination.Namespace)
+                {
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (method.IsStatic)
                     {

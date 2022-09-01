@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -34,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
+    [Order(Before = PredefinedCommandHandlerNames.StringCopyPaste)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class FormatCommandHandler :
         ICommandHandler<FormatDocumentCommandArgs>,
@@ -60,15 +60,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             _globalOptions = globalOptions;
         }
 
-        private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = formattingService.GetFormattingChangesAsync(
-                    document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = formattingService.GetFormattingChangesAsync(document, textBuffer, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.IsEmpty)
                 {
                     return;
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
 
-                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
+                changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
                 {
                     return;
@@ -162,19 +161,17 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
-                textChanges = service.GetFormattingChangesOnReturnAsync(
-                    document, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var options = AutoFormattingOptions.From(document.Project);
-                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
+                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
                 {
                     return;
                 }
 
                 textChanges = service.GetFormattingChangesAsync(
-                    document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

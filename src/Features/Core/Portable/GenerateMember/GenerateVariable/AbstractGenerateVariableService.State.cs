@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // If we're in an lambda/local function we're not actually 'in' the constructor.
                 // i.e. we can't actually write to read-only fields here.
                 var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (simpleName.AncestorsAndSelf().Any(n => syntaxFacts.IsAnonymousOrLocalFunction(n)))
+                if (simpleName.AncestorsAndSelf().Any(syntaxFacts.IsAnonymousOrLocalFunction))
                     return false;
 
                 return syntaxFacts.IsInConstructor(simpleName);

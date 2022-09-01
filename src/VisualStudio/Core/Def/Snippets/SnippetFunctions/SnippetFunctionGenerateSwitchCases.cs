@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -56,7 +57,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return (VSConstants.S_OK, snippetFunctionService.SwitchDefaultCaseForm, hasCurrentValue);
             }
 
-            var value = await snippetFunctionService.GetSwitchExpansionAsync(document, caseGenerationSpan.Value, switchExpressionSpan.Value, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await document.GetSimplifierOptionsAsync(snippetExpansionClient.GlobalOptions, cancellationToken).ConfigureAwait(false);
+
+            var value = await snippetFunctionService.GetSwitchExpansionAsync(document, caseGenerationSpan.Value, switchExpressionSpan.Value, simplifierOptions, cancellationToken).ConfigureAwait(false);
             if (value == null)
             {
                 return (VSConstants.S_OK, snippetFunctionService.SwitchDefaultCaseForm, hasCurrentValue);

@@ -4151,6 +4151,29 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(54709, "https://github.com/dotnet/roslyn/issues/54709")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void YieldReturn()
+        {
+            var code = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber($$)
+    }
+}";
+            var expected = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber();$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         [InlineData("/$$* comments */")]

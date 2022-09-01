@@ -86,21 +86,21 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         }
 
         protected static IReadOnlyList<SyntaxNode> WalkDownScopeBlocks(
-            ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+            IBlockFacts blockFacts,
+            IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements only contain a single block, walk down the block and any subsequent nested blocks
             // to get the real statements inside.
 
-            while (statements.Count == 1 && syntaxFacts.IsScopeBlock(statements[0]))
-            {
-                statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
-            }
+            while (statements.Count == 1 && blockFacts.IsScopeBlock(statements[0]))
+                statements = blockFacts.GetExecutableBlockStatements(statements[0]);
 
             return statements;
         }
 
         protected static IReadOnlyList<SyntaxNode> WalkUpScopeBlocks(
-            ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+            IBlockFactsService blockFacts,
+            IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements are inside a block, walk up the block and any subsequent nested blocks that contain
             // no other statements to get the topmost block. The last check is necessary to make sure we stop
@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // }
 
             while (statements.Count > 0 && statements[0].Parent is var parent &&
-                   syntaxFacts.IsScopeBlock(parent) &&
-                   syntaxFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
+                   blockFacts.IsScopeBlock(parent) &&
+                   blockFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
             {
                 statements = ImmutableArray.Create(parent);
             }

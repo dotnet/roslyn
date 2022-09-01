@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     memberAccess = (MemberAccessExpressionSyntax)memberAccess.Parent;
                 }
 
-                if (memberAccess is { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } } })
+                if (memberAccess is { Parent.Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } })
                 {
                     propertyPatternClause = found;
                     return true;

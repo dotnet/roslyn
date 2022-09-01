@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -29,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
             TextDocument document, StateSet stateSet,
             AnalysisKind kind, VersionStamp version,
-            BackgroundAnalysisScope analysisScope, bool isActiveDocument,
+            BackgroundAnalysisScope analysisScope,
+            CompilerDiagnosticsScope compilerDiagnosticsScope,
+            bool isActiveDocument, bool isVisibleDocument,
             bool isOpenDocument, bool isGeneratedRazorDocument,
             CancellationToken cancellationToken)
         {
@@ -47,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
                 if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
-                    !IsAnalyzerEnabledForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
+                    !IsAnalyzerEnabledForDocument(stateSet.Analyzer, existingData, analysisScope, compilerDiagnosticsScope,
+                        isActiveDocument, isVisibleDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                 }
@@ -61,8 +65,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             static bool IsAnalyzerEnabledForDocument(
                 DiagnosticAnalyzer analyzer,
+                DocumentAnalysisData previousData,
                 BackgroundAnalysisScope analysisScope,
+                CompilerDiagnosticsScope compilerDiagnosticsScope,
                 bool isActiveDocument,
+                bool isVisibleDocument,
                 bool isOpenDocument,
                 bool isGeneratedRazorDocument)
             {
@@ -76,10 +83,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (analyzer.IsCompilerAnalyzer())
                 {
-                    // Compiler analyzer is treated specially.
-                    // It is executed for all documents (open and closed) for 'BackgroundAnalysisScope.FullSolution'
-                    // and executed for just open documents for other analysis scopes.
-                    return analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
+                    return compilerDiagnosticsScope switch
+                    {
+                        // Compiler diagnostics are disabled for all documents.
+                        CompilerDiagnosticsScope.None => false,
+
+                        // Compiler diagnostics are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
+                        CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics => isVisibleDocument || (isOpenDocument && !previousData.Items.IsEmpty),
+
+                        // Compiler diagnostics are enabled for all open documents.
+                        CompilerDiagnosticsScope.OpenFiles => isOpenDocument,
+
+                        // Compiler diagnostics are enabled for all documents.
+                        CompilerDiagnosticsScope.FullSolution => true,
+
+                        _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
+                    };
                 }
                 else
                 {
@@ -144,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
         /// </summary>
         private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, IEnumerable<StateSet> stateSets, bool forceAnalyzerRun, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets, bool forceAnalyzerRun, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
             {
@@ -157,17 +176,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // We can't return here if we have open file only analyzers since saved data for open file only analyzer
                     // is incomplete -- it only contains info on open files rather than whole project.
-                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, project.Solution.Options))
+                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.CleanupOptions?.SimplifierOptions))
                     {
                         return existingData;
                     }
 
                     // PERF: Check whether we want to analyze this project or not.
-                    if (!FullAnalysisEnabled(project, forceAnalyzerRun))
+                    var fullAnalysisEnabled = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled);
+                    if (forceAnalyzerRun)
+                    {
+                        // We are forcing full solution analysis for all diagnostics.
+                        fullAnalysisEnabled = true;
+                        compilerFullAnalysisEnabled = true;
+                        analyzersFullAnalysisEnabled = true;
+                    }
+
+                    if (!fullAnalysisEnabled)
                     {
                         Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
 
-                        return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
+                        // If we are producing document diagnostics for some other document in this project, we still want to show
+                        // certain project-level diagnostics that would cause file-level diagnostics to be broken. We will only do this though if
+                        // some file that's open is depending on this project though -- that way we're going to only be analyzing projects
+                        // that have already had compilations produced for.
+                        var shouldProduceOutput = false;
+
+                        var projectDependencyGraph = project.Solution.GetProjectDependencyGraph();
+
+                        foreach (var openDocumentId in project.Solution.Workspace.GetOpenDocumentIds())
+                        {
+                            if (openDocumentId.ProjectId == project.Id || projectDependencyGraph.DoesProjectTransitivelyDependOnProject(openDocumentId.ProjectId, project.Id))
+                            {
+                                shouldProduceOutput = true;
+                                break;
+                            }
+                        }
+
+                        var results = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+
+                        if (shouldProduceOutput)
+                        {
+                            (results, _) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(
+                                results,
+                                project,
+                                version,
+                                cancellationToken).ConfigureAwait(false);
+                        }
+
+                        return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, results);
+                    }
+
+                    // Reduce the state sets to analyze based on individual full solution analysis values
+                    // for compiler diagnostics and analyzers.
+                    if (!compilerFullAnalysisEnabled)
+                    {
+                        Debug.Assert(analyzersFullAnalysisEnabled);
+                        stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer());
+                    }
+                    else if (!analyzersFullAnalysisEnabled)
+                    {
+                        stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer());
                     }
 
                     var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, existingData.Result, cancellationToken).ConfigureAwait(false);
@@ -186,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilationWithAnalyzers, OptionSet options)
+        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilationWithAnalyzers, SimplifierOptions? options)
         {
             if (compilationWithAnalyzers == null)
             {
@@ -269,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, IEnumerable<StateSet> stateSets, bool forcedAnalysis,
+            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets, bool forcedAnalysis,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
         {
             try
@@ -281,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, project, version, existing, out var analyzersToRun))
+                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, ideOptions, out var analyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
@@ -332,13 +400,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzers compilationWithAnalyzers, Project project, VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
+            CompilationWithAnalyzers compilationWithAnalyzers, VersionStamp version,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, IdeAnalyzerOptions ideOptions,
             out ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             analyzers = default;
-
-            var options = project.Solution.Options;
 
             var existingAnalyzers = compilationWithAnalyzers.Analyzers;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -346,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (existing.TryGetValue(analyzer, out var analysisResult) &&
                     analysisResult.Version == version &&
-                    !analyzer.IsOpenFileOnly(options))
+                    !analyzer.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions))
                 {
                     // we already have up to date result.
                     continue;
@@ -378,8 +444,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                var (fileLoadAnalysisResult, failedDocuments) = await GetDocumentLoadFailuresAsync(project, version, cancellationToken).ConfigureAwait(false);
-                result = result.SetItem(FileContentLoadAnalyzer.Instance, fileLoadAnalysisResult);
+                (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result, project, version, cancellationToken).ConfigureAwait(false);
 
                 foreach (var analyzer in ideAnalyzers)
                 {
@@ -428,7 +493,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private static async Task<(DiagnosticAnalysisResult loadDiagnostics, ImmutableHashSet<Document>? failedDocuments)> GetDocumentLoadFailuresAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
+        private static async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results,
+            Project project,
+            VersionStamp version,
+            CancellationToken cancellationToken)
         {
             ImmutableHashSet<Document>.Builder? failedDocuments = null;
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
@@ -446,16 +515,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            var result = DiagnosticAnalysisResult.Create(
-                project,
-                version,
-                syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                others: ImmutableArray<DiagnosticData>.Empty,
-                documentIds: null);
+            results = results.SetItem(
+                FileContentLoadAnalyzer.Instance,
+                DiagnosticAnalysisResult.Create(
+                    project,
+                    version,
+                    syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                    semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                    nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                    others: ImmutableArray<DiagnosticData>.Empty,
+                    documentIds: null));
 
-            return (result, failedDocuments?.ToImmutable());
+            var generatorDiagnostics = await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
+            foreach (var generatorDiagnostic in generatorDiagnostics)
+            {
+                // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
+                // we want that to be refreshed and deduplicated with regular document analysis.
+                diagnosticResultBuilder.AddDiagnosticTreatedAsLocalSemantic(generatorDiagnostic);
+            }
+
+            results = results.SetItem(
+                GeneratorDiagnosticsPlaceholderAnalyzer.Instance,
+                DiagnosticAnalysisResult.CreateFromBuilder(diagnosticResultBuilder));
+
+            return (results, failedDocuments?.ToImmutable());
         }
 
         private void UpdateAnalyzerTelemetryData(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)
@@ -465,17 +549,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
                 _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
-        }
-
-        internal bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
-        {
-            if (forceAnalyzerRun)
-            {
-                // asked to ignore any checks.
-                return true;
-            }
-
-            return GlobalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.FullSolution;
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

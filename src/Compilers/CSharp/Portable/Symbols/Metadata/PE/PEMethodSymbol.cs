@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -72,7 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // s = IsInitOnlyBit. 1 bit.
             // t = IsInitOnlyPopulatedBit. 1 bit.
             // u = IsUnmanagedCallersOnlyAttributePopulated. 1 bit.
-            // 6 bits remain for future purposes.
+            // v = IsSetsRequiredMembersBit. 1 bit.
+            // w = IsSetsRequiredMembersPopulated. 1 bit.
+            // 4 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsInitOnlyBit = 0x1 << 24;
             private const int IsInitOnlyPopulatedBit = 0x1 << 25;
             private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
+            private const int HasSetsRequiredMembersBit = 0x1 << 27;
+            private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
 
             private int _bits;
 
@@ -134,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
             public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
             public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
+            public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
+            public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -239,6 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void SetIsUnmanagedCallersOnlyAttributePopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsUnmanagedCallersOnlyAttributePopulatedBit);
+            }
+
+            public bool InitializeSetsRequiredMembersBit(bool value)
+            {
+                int bitsToSet = HasSetsRequiredMembersPopulatedBit;
+                if (value) bitsToSet |= HasSetsRequiredMembersBit;
+
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
         }
 
@@ -519,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Final is a little special - if a method has the virtual, newslot, and final attr
         // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
         public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract &&
-                                          (this._containingType.IsInterface ? this.IsMetadataNewSlot() : !this.IsOverride);
+                                          (this._containingType.IsInterface ? (this.IsStatic || this.IsMetadataNewSlot()) : !this.IsOverride);
 
         // Has to be metadata virtual and cannot be a destructor.  
         // Must either lack the newslot flag or be an explicit override (i.e. via the MethodImpl table).
@@ -938,14 +952,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      ? _packedFlags.IsReadOnly
                      : IsValidReadOnlyTarget;
 
+                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly)
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers)
                 {
-                    containingPEModuleSymbol.LoadCustomAttributesFilterCompilerAttributes(_handle,
-                        ref attributeData,
-                        out isExtensionMethod,
-                        out isReadOnly);
+                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
+                        filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
+                        filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
+                        filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
+                        filterOut2: AttributeDescription.IsReadOnlyAttribute,
+                        filteredOutAttribute3: out _,
+                        filterOut3: (checkForRequiredMembers && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        filteredOutAttribute4: out _,
+                        filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
+                        filteredOutAttribute5: out _,
+                        filterOut5: default);
+
+                    isExtensionMethod = !extensionAttribute.IsNil;
+                    isReadOnly = !isReadOnlyAttribute.IsNil;
                 }
                 else
                 {
@@ -1118,9 +1144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     switch (_name)
                     {
+                        case WellKnownMemberNames.CheckedAdditionOperatorName:
                         case WellKnownMemberNames.AdditionOperatorName:
                         case WellKnownMemberNames.BitwiseAndOperatorName:
                         case WellKnownMemberNames.BitwiseOrOperatorName:
+                        case WellKnownMemberNames.CheckedDivisionOperatorName:
                         case WellKnownMemberNames.DivisionOperatorName:
                         case WellKnownMemberNames.EqualityOperatorName:
                         case WellKnownMemberNames.ExclusiveOrOperatorName:
@@ -1131,21 +1159,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.LessThanOperatorName:
                         case WellKnownMemberNames.LessThanOrEqualOperatorName:
                         case WellKnownMemberNames.ModulusOperatorName:
+                        case WellKnownMemberNames.CheckedMultiplyOperatorName:
                         case WellKnownMemberNames.MultiplyOperatorName:
                         case WellKnownMemberNames.RightShiftOperatorName:
+                        case WellKnownMemberNames.UnsignedRightShiftOperatorName:
+                        case WellKnownMemberNames.CheckedSubtractionOperatorName:
                         case WellKnownMemberNames.SubtractionOperatorName:
                             return IsValidUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                        case WellKnownMemberNames.CheckedDecrementOperatorName:
                         case WellKnownMemberNames.DecrementOperatorName:
                         case WellKnownMemberNames.FalseOperatorName:
+                        case WellKnownMemberNames.CheckedIncrementOperatorName:
                         case WellKnownMemberNames.IncrementOperatorName:
                         case WellKnownMemberNames.LogicalNotOperatorName:
                         case WellKnownMemberNames.OnesComplementOperatorName:
                         case WellKnownMemberNames.TrueOperatorName:
+                        case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                         case WellKnownMemberNames.UnaryNegationOperatorName:
                         case WellKnownMemberNames.UnaryPlusOperatorName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
                         case WellKnownMemberNames.ImplicitConversionName:
                         case WellKnownMemberNames.ExplicitConversionName:
+                        case WellKnownMemberNames.CheckedExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
                             //case WellKnownMemberNames.ConcatenateOperatorName:
@@ -1335,6 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 CalculateUseSiteDiagnostic(ref result);
 
                 var diagnosticInfo = result.DiagnosticInfo;
+                MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
@@ -1346,10 +1382,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
+                if (diagnosticInfo == null && this.ShouldCheckRequiredMembers() && ContainingType.HasRequiredMembersError)
+                {
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_RequiredMembersInvalid, ContainingType);
+                }
+
                 return InitializeUseSiteDiagnostic(result.AdjustDiagnosticInfo(diagnosticInfo));
             }
 
             return GetCachedUseSiteInfo();
+        }
+
+        private DiagnosticInfo DeriveCompilerFeatureRequiredDiagnostic()
+        {
+            var containingModule = _containingType.ContainingPEModule;
+            var decoder = new MetadataDecoder(containingModule, this);
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
+
+            if (diag != null)
+            {
+                return diag;
+            }
+
+            diag = Signature.ReturnParam.DeriveCompilerFeatureRequiredDiagnostic(decoder);
+            if (diag != null)
+            {
+                return diag;
+            }
+
+            foreach (var param in Parameters)
+            {
+                diag = ((PEParameterSymbol)param).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+                if (diag != null)
+                {
+                    return diag;
+                }
+            }
+
+            foreach (var typeParam in TypeParameters)
+            {
+                diag = ((PETypeParameterSymbol)typeParam).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+                if (diag != null)
+                {
+                    return diag;
+                }
+            }
+
+            return _containingType.GetCompilerFeatureRequiredDiagnostic();
         }
 
         private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()
@@ -1402,6 +1481,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        protected override bool HasSetsRequiredMembersImpl
+        {
+            get
+            {
+                Debug.Assert(MethodKind == MethodKind.Constructor);
+                if (!_packedFlags.HasSetsRequiredMembersPopulated)
+                {
+                    var result = _containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.SetsRequiredMembersAttribute);
+                    _packedFlags.InitializeSetsRequiredMembersBit(result);
+                }
+
+                return _packedFlags.HasSetsRequiredMembers;
+            }
+        }
+
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable;
@@ -1413,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsObsoleteAttributePopulated)
                 {
-                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule, ignoreByRefLikeMarker: false);
+                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule, ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: MethodKind == MethodKind.Constructor);
                     if (result != null)
                     {
                         result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);

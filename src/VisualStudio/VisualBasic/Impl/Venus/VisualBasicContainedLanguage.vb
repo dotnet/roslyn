@@ -19,7 +19,6 @@ Imports IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IV
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
-
     Friend Class VisualBasicContainedLanguage
         Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
@@ -88,6 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemidInsertionPoint,
                 useHandlesClause:=True,
                 additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
+                GlobalOptions,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1

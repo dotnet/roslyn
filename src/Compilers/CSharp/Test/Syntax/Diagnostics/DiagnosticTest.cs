@@ -270,8 +270,7 @@ class X
                         case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
-                        case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                        case ErrorCode.WRN_NullCheckingOnNullableType:
+                        case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -349,6 +348,12 @@ class X
                         case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                         case ErrorCode.WRN_CompileTimeCheckedOverflow:
                         case ErrorCode.WRN_MethGrpToNonDel:
+                        case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
+                        case ErrorCode.WRN_UnassignedThisSupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                        case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -357,12 +362,14 @@ class X
                         case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_StaticInAsOrIs:
                         case ErrorCode.WRN_PrecedenceInversion:
-                        case ErrorCode.WRN_UnassignedThisAutoProperty:
-                        case ErrorCode.WRN_UnassignedThis:
+                        case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                        case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                         case ErrorCode.WRN_ParamUnassigned:
                         case ErrorCode.WRN_UseDefViolationProperty:
                         case ErrorCode.WRN_UseDefViolationField:
-                        case ErrorCode.WRN_UseDefViolationThis:
+                        case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
                         case ErrorCode.WRN_UseDefViolationOut:
                         case ErrorCode.WRN_UseDefViolation:
                         case ErrorCode.WRN_SyncAndAsyncEntryPoints:
@@ -413,8 +420,6 @@ class X
                 // Nullable-unrelated warnings in the C# 8 range should be added to this array.
                 var nullableUnrelatedWarnings = new[]
                 {
-                    ErrorCode.WRN_NullCheckingOnNullableType,
-                    ErrorCode.WRN_NullCheckedHasDefaultNull,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
@@ -425,12 +430,12 @@ class X
                     ErrorCode.WRN_ConstOutOfRangeChecked,
                     ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
                     ErrorCode.WRN_PrecedenceInversion,
-                    ErrorCode.WRN_UnassignedThisAutoProperty,
-                    ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion,
+                    ErrorCode.WRN_UnassignedThisUnsupportedVersion,
                     ErrorCode.WRN_ParamUnassigned,
                     ErrorCode.WRN_UseDefViolationProperty,
                     ErrorCode.WRN_UseDefViolationField,
-                    ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.WRN_UseDefViolationThisUnsupportedVersion,
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
                     ErrorCode.WRN_SyncAndAsyncEntryPoints,
@@ -2679,7 +2684,7 @@ class Program
             }
         }
 
-        internal class MockMessageProvider : TestMessageProvider
+        internal sealed class MockMessageProvider : TestMessageProvider
         {
             public override DiagnosticSeverity GetSeverity(int code)
             {
@@ -2756,6 +2761,15 @@ class Program
             {
                 return MessageProvider.Instance.GetErrorDisplayString(symbol);
             }
+
+            public override bool GetIsEnabledByDefault(int code)
+            {
+                return true;
+            }
+
+#if DEBUG
+            internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => false;
+#endif
         }
 
         #endregion

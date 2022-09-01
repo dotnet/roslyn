@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 case CodeGenerationOperatorKind.Modulus:
                 case CodeGenerationOperatorKind.Multiplication:
                 case CodeGenerationOperatorKind.RightShift:
+                case CodeGenerationOperatorKind.UnsignedRightShift:
                 case CodeGenerationOperatorKind.Subtraction:
                     return 2;
                 case CodeGenerationOperatorKind.Increment:
@@ -105,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 CodeGenerationOperatorKind.Multiplication => WellKnownMemberNames.MultiplyOperatorName,
                 CodeGenerationOperatorKind.OnesComplement => WellKnownMemberNames.OnesComplementOperatorName,
                 CodeGenerationOperatorKind.RightShift => WellKnownMemberNames.RightShiftOperatorName,
+                CodeGenerationOperatorKind.UnsignedRightShift => WellKnownMemberNames.UnsignedRightShiftOperatorName,
                 CodeGenerationOperatorKind.Subtraction => WellKnownMemberNames.SubtractionOperatorName,
                 CodeGenerationOperatorKind.True => WellKnownMemberNames.TrueOperatorName,
                 CodeGenerationOperatorKind.UnaryPlus => WellKnownMemberNames.UnaryPlusOperatorName,

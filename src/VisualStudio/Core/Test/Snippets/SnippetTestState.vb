@@ -216,7 +216,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 End Get
             End Property
 
-            Friend Overrides Function AddImports(document As Document, options As AddImportPlacementOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
+            Friend Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
                 Return document
             End Function
         End Class

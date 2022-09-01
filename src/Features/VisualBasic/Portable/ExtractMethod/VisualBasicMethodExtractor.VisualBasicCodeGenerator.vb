@@ -12,38 +12,41 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Partial Private MustInherit Class VisualBasicCodeGenerator
-            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax)
+            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
 
             Private ReadOnly _methodName As SyntaxToken
 
-            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Dim generator = Create(insertionPoint, selectionResult, analyzerResult)
+            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+                Dim generator = Create(insertionPoint, selectionResult, analyzerResult, options)
                 Return Await generator.GenerateAsync(cancellationToken).ConfigureAwait(False)
             End Function
 
-            Private Shared Function Create(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult) As VisualBasicCodeGenerator
+            Private Shared Function Create(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
 
                 If ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult) Then
-                    Return New ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult)
+                    Return New ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
                 If SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult) Then
-                    Return New SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult)
+                    Return New SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
                 If MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult) Then
-                    Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult)
+                    Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options)
                 End If
 
-                throw ExceptionUtilities.UnexpectedValue(selectionResult)
+                Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
-            Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                MyBase.New(insertionPoint, selectionResult, analyzerResult)
+            Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                MyBase.New(insertionPoint, selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

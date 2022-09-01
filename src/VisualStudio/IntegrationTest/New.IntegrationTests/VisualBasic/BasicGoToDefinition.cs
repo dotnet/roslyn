@@ -67,7 +67,7 @@ End Class", HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Int32 [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("Int32 [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
         }
 
@@ -85,7 +85,7 @@ End Class", HangMitigatingCancellationToken);
 End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Overrides", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Object [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("Object [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync(@"Public Overridable Function ToString$$() As String", assertCaretPosition: true);
         }
     }

@@ -13,7 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {

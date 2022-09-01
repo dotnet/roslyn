@@ -1618,7 +1618,7 @@ public class QueryExpressionTest
                     // Test0.cs(10,31): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(10, 31, 10, 36),
                     // Test0.cs(10,31): error CS1003: Syntax error, 'in' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 31, 10, 36).WithArguments("in", "fixed"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 31, 10, 36).WithArguments("in"),
                     // Test0.cs(10,31): error CS1525: Invalid expression term 'fixed'
                     DiagnosticResult.CompilerError("CS1525").WithSpan(10, 31, 10, 36).WithArguments("fixed"),
                     // Test0.cs(10,31): error CS1525: Invalid expression term 'fixed'
@@ -1634,9 +1634,9 @@ public class QueryExpressionTest
                     // Test0.cs(10,37): error CS1001: Identifier expected
                     DiagnosticResult.CompilerError("CS1001").WithSpan(10, 37, 10, 39),
                     // Test0.cs(10,37): error CS1003: Syntax error, '(' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 37, 10, 39).WithArguments("(", "in"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 37, 10, 39).WithArguments("("),
                     // Test0.cs(10,37): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 37, 10, 39).WithArguments(",", "in"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 37, 10, 39).WithArguments(","),
                     // Test0.cs(10,37): error CS1031: Type expected
                     DiagnosticResult.CompilerError("CS1031").WithSpan(10, 37, 10, 39),
                     // Test0.cs(10,40): error CS0118: 'expr2' is a variable but is used like a type
@@ -1656,7 +1656,7 @@ public class QueryExpressionTest
                     // Test0.cs(10,64): error CS0246: The type or namespace name 'select' could not be found (are you missing a using directive or an assembly reference?)
                     DiagnosticResult.CompilerError("CS0246").WithSpan(10, 64, 10, 70).WithArguments("select"),
                     // Test0.cs(10,64): error CS1003: Syntax error, '(' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 64, 10, 70).WithArguments("(", ""),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 64, 10, 70).WithArguments("("),
                     // Test0.cs(10,71): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                     DiagnosticResult.CompilerError("CS0209").WithSpan(10, 71, 10, 71),
                     // Test0.cs(10,71): error CS0210: You must provide an initializer in a fixed or using statement declaration
@@ -1682,7 +1682,7 @@ public class QueryExpressionTest
                     // Test0.cs(10,86): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(10, 86, 10, 87),
                     // Test0.cs(10,86): error CS1003: Syntax error, '(' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 86, 10, 87).WithArguments("(", "}"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 86, 10, 87).WithArguments("("),
                     // Test0.cs(10,86): error CS1026: ) expected
                     DiagnosticResult.CompilerError("CS1026").WithSpan(10, 86, 10, 87),
                     // Test0.cs(10,86): error CS1031: Type expected
@@ -1706,7 +1706,7 @@ public class QueryExpressionTest
                     // Test0.cs(13,30): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(13, 30, 13, 35),
                     // Test0.cs(13,30): error CS1003: Syntax error, 'in' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 30, 13, 35).WithArguments("in", "fixed"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 30, 13, 35).WithArguments("in"),
                     // Test0.cs(13,30): error CS1525: Invalid expression term 'fixed'
                     DiagnosticResult.CompilerError("CS1525").WithSpan(13, 30, 13, 35).WithArguments("fixed"),
                     // Test0.cs(13,30): error CS1525: Invalid expression term 'fixed'
@@ -1720,9 +1720,9 @@ public class QueryExpressionTest
                     // Test0.cs(13,36): error CS1001: Identifier expected
                     DiagnosticResult.CompilerError("CS1001").WithSpan(13, 36, 13, 38),
                     // Test0.cs(13,36): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 36, 13, 38).WithArguments(",", "in"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 36, 13, 38).WithArguments(","),
                     // Test0.cs(13,36): error CS1003: Syntax error, '[' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 36, 13, 38).WithArguments("[", "in"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 36, 13, 38).WithArguments("["),
                     // Test0.cs(13,36): error CS1031: Type expected
                     DiagnosticResult.CompilerError("CS1031").WithSpan(13, 36, 13, 38),
                     // Test0.cs(13,36): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1732,19 +1732,19 @@ public class QueryExpressionTest
                     // Test0.cs(13,39): error CS0103: The name 'expr2' does not exist in the current context
                     DiagnosticResult.CompilerError("CS0103").WithSpan(13, 39, 13, 44).WithArguments("expr2"),
                     // Test0.cs(13,45): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 45, 13, 47).WithArguments(",", ""),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 45, 13, 47).WithArguments(","),
                     // Test0.cs(13,48): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 48, 13, 49).WithArguments(",", ""),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 48, 13, 49).WithArguments(","),
                     // Test0.cs(13,50): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 50, 13, 56).WithArguments(",", ""),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 50, 13, 56).WithArguments(","),
                     // Test0.cs(13,57): error CS0443: Syntax error; value expected
                     DiagnosticResult.CompilerError("CS0443").WithSpan(13, 57, 13, 57),
                     // Test0.cs(13,57): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(13, 57, 13, 62),
                     // Test0.cs(13,57): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 57, 13, 62).WithArguments(",", "fixed"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 57, 13, 62).WithArguments(","),
                     // Test0.cs(13,57): error CS1003: Syntax error, ']' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 57, 13, 62).WithArguments("]", "fixed"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 57, 13, 62).WithArguments("]"),
                     // Test0.cs(13,63): error CS0246: The type or namespace name 'select' could not be found (are you missing a using directive or an assembly reference?)
                     DiagnosticResult.CompilerError("CS0246").WithSpan(13, 63, 13, 69).WithArguments("select"),
                     // Test0.cs(13,63): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
@@ -1758,7 +1758,7 @@ public class QueryExpressionTest
                     // Test0.cs(13,70): error CS1001: Identifier expected
                     DiagnosticResult.CompilerError("CS1001").WithSpan(13, 70, 13, 73),
                     // Test0.cs(13,70): error CS1003: Syntax error, '[' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 70, 13, 73).WithArguments("[", "new"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 70, 13, 73).WithArguments("["),
                     // Test0.cs(13,70): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     DiagnosticResult.CompilerError("CS0214").WithSpan(13, 70, 13, 79),
                     // Test0.cs(13,70): error CS7092: A fixed buffer may only have one dimension.
@@ -1770,9 +1770,9 @@ public class QueryExpressionTest
                     // Test0.cs(13,79): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(13, 79, 13, 84),
                     // Test0.cs(13,79): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 79, 13, 84).WithArguments(",", "fixed"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 79, 13, 84).WithArguments(","),
                     // Test0.cs(13,79): error CS1003: Syntax error, ']' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 79, 13, 84).WithArguments("]", "fixed"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 79, 13, 84).WithArguments("]"),
                     // Test0.cs(13,79): error CS1513: } expected
                     DiagnosticResult.CompilerError("CS1513").WithSpan(13, 79, 13, 84),
                     // Test0.cs(13,85): error CS0102: The type 'QueryExpressionTest' already contains a definition for ''
@@ -1790,9 +1790,9 @@ public class QueryExpressionTest
                     // Test0.cs(13,85): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(13, 85, 13, 86),
                     // Test0.cs(13,85): error CS1003: Syntax error, '[' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 85, 13, 86).WithArguments("[", "}"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 85, 13, 86).WithArguments("["),
                     // Test0.cs(13,85): error CS1003: Syntax error, ']' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 85, 13, 86).WithArguments("]", "}"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(13, 85, 13, 86).WithArguments("]"),
                     // Test0.cs(13,85): error CS1031: Type expected
                     DiagnosticResult.CompilerError("CS1031").WithSpan(13, 85, 13, 86),
                     // Test0.cs(14,3): error CS1022: Type or namespace definition, or end-of-file expected
@@ -1982,6 +1982,145 @@ class Program
 }
 ",
                 LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleUsing()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;|}
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleUsings()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;
+using System.Threading.Tasks;|}
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_NotAllFirstGroupIsDeleted()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;|}
+using System.Threading.Tasks;
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+        Task task = null;
+    }
+}
+",
+                FixedCode =
+@"using System.Threading.Tasks;
+
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+        Task task = null;
+    }
+}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_AllLastGroupIsDeleted()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|using System.Collections.Generic;
+
+{|IDE0005:using System;
+using System.Threading.Tasks;|}|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+"
             }.RunAsync();
         }
     }

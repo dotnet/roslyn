@@ -665,8 +665,7 @@ namespace N
             }
 
             Assert.True(result.IsSingle());
-            Assert.Equal(1, result.Single().RudeEditErrors.Count());
-            Assert.Equal(RudeEditKind.Insert, result.Single().RudeEditErrors.Single().Kind);
+            Assert.Empty(result.Single().RudeEditErrors);
         }
 
         [Fact]

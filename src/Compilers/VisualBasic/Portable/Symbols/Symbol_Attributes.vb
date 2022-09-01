@@ -197,6 +197,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.CompilerFeatureRequiredAttribute) Then
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseCompilerFeatureRequired, arguments.AttributeSyntaxOpt.Location)
             End If
         End Sub
 
@@ -383,12 +385,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Return explicitTarget = symbolPart
             End If
-        End Function
-
-        Private Shared Function GetAttributesToBind(attributeBlockSyntaxList As SyntaxList(Of AttributeListSyntax)) As ImmutableArray(Of AttributeSyntax)
-            Dim attributeSyntaxBuilder As ArrayBuilder(Of AttributeSyntax) = Nothing
-            GetAttributesToBind(attributeBlockSyntaxList, attributeSyntaxBuilder)
-            Return If(attributeSyntaxBuilder IsNot Nothing, attributeSyntaxBuilder.ToImmutableAndFree(), ImmutableArray(Of AttributeSyntax).Empty)
         End Function
 
         Friend Shared Sub GetAttributesToBind(attributeBlockSyntaxList As SyntaxList(Of AttributeListSyntax), ByRef attributeSyntaxBuilder As ArrayBuilder(Of AttributeSyntax))

@@ -23,13 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     internal abstract class AbstractSnippetCommandHandler :
-        ForegroundThreadAffinitizedObject,
         ICommandHandler<TabKeyCommandArgs>,
         ICommandHandler<BackTabKeyCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
         ICommandHandler<EscapeKeyCommandArgs>,
         ICommandHandler<InsertSnippetCommandArgs>
     {
+        protected readonly IThreadingContext ThreadingContext;
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
         protected readonly IExpansionManager ExpansionManager;
         protected readonly IGlobalOptionService GlobalOptions;
@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IExpansionServiceProvider expansionServiceProvider,
             IExpansionManager expansionManager,
             IGlobalOptionService globalOptions)
-            : base(threadingContext)
         {
+            ThreadingContext = threadingContext;
             ExpansionServiceProvider = expansionServiceProvider;
             ExpansionManager = expansionManager;
             GlobalOptions = globalOptions;
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (!AreSnippetsEnabled(args))
             {
                 return false;
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public CommandState GetCommandState(TabKeyCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (!AreSnippetsEnabled(args))
             {
                 return false;
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (!AreSnippetsEnabled(args))
             {
                 return false;
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool ExecuteCommand(BackTabKeyCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (!AreSnippetsEnabled(args))
             {
                 return false;
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public CommandState GetCommandState(BackTabKeyCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool ExecuteCommand(InsertSnippetCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public CommandState GetCommandState(InsertSnippetCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)

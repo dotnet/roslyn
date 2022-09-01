@@ -129,8 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-        private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
-        private bool _documentOptionsProvidersInitialized = false;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private readonly IAsynchronousOperationListener _workspaceListener;
@@ -145,7 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-            _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -250,8 +247,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
 
+            var logDelta = _globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
             var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.InitializeTelemetrySession(telemetrySession);
+            telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
             Logger.Log(FunctionId.Run_Environment,
                 KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
@@ -2037,23 +2035,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }).ConfigureAwait(false);
             });
-        }
-
-        internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
-        {
-            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
-            // UI-affinitized experimentation service
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            _foregroundObject.AssertIsForeground();
-
-            if (_documentOptionsProvidersInitialized)
-            {
-                return;
-            }
-
-            _documentOptionsProvidersInitialized = true;
-            RegisterDocumentOptionProviders(_documentOptionsProviderFactories);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54137", AllowLocks = false)]

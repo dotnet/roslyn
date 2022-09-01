@@ -13,9 +13,9 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// This service is used by the SolutionChecksumUpdater to proactively update the solution snapshot in
-    /// the out-of-process workspace. We do this to limit the amount of time required to synchronize a solution over after an edit
-    /// once a feature is asking for a snapshot.
+    /// This service is used by the SolutionChecksumUpdater to proactively update the solution snapshot in the
+    /// out-of-process workspace. We do this to limit the amount of time required to synchronize a solution over after
+    /// an edit once a feature is asking for a snapshot.
     /// </summary>
     internal sealed class RemoteAssetSynchronizationService : BrokeredServiceBase, IRemoteAssetSynchronizationService
     {
@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
+        public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

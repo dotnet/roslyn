@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -28,14 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         {
         }
 
-        protected override async Task<SyntaxNode> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode?> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             if (!span.IsEmpty)
                 return null;
 
-            var position = span.Start;
+            if (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) is not CompilationUnitSyntax compilationUnit)
+                return null;
 
-            var compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var position = span.Start;
             var namespaceDecls = compilationUnit.DescendantNodes(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
                 .OfType<BaseNamespaceDeclarationSyntax>().ToImmutableArray();
 

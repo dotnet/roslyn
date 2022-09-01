@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public string DisplayName => EditorFeaturesResources.Rename;
 
-        protected abstract bool DashboardShouldReceiveKeyboardNavigation(ITextView textView);
+        protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
 
         protected abstract void SetFocusToTextView(ITextView textView);
 
-        protected abstract void SetFocusToDashboard(ITextView textView);
+        protected abstract void SetFocusToAdornment(ITextView textView);
 
-        protected abstract void SetDashboardFocusToPreviousElement(ITextView textView);
+        protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
 
-        protected abstract void SetDashboardFocusToNextElement(ITextView textView);
+        protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
 
         private CommandState GetCommandState(Func<CommandState> nextHandler)
         {

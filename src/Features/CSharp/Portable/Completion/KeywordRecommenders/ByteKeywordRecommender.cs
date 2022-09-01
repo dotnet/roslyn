@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
-
             return
                 context.IsAnyExpressionContext ||
                 context.IsDefiniteCastTypeContext ||

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// When set, we ignore private reference fields of structs loaded from metadata.
         /// </summary>
-        private readonly bool _dev12CompilerCompatibility;
+        internal readonly bool _dev12CompilerCompatibility;
 
         private readonly SourceAssemblySymbol _sourceAssembly;
 

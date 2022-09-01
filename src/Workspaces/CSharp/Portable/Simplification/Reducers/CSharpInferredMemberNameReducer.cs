@@ -21,5 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public CSharpInferredMemberNameReducer() : base(s_pool)
         {
         }
+
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+            => true;
     }
 }

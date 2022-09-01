@@ -1333,7 +1333,7 @@ struct S
 
     S(int unused1, int unused2)
     {
-        // CS0171: E not initialized
+        // CS0171: E not initialized before C# 11
         // No error for F
     }
 
@@ -1346,13 +1346,18 @@ struct S
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (11,5): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (11,5): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     S(int unused1, int unused2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.E"),
-                // (21,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.E", "preview").WithLocation(11, 5),
+                // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
                 //         This.E = null; //CS1612: receiver is not a variable
-                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This"));
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
+
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
+                //         This.E = null; //CS1612: receiver is not a variable
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
         }
 
         [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]

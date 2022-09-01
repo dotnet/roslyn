@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                                         var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
                                         properties = default;
-                                        return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                                        return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
                                     });
                                 var flags = local.IsWritableVariable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var local = method.LocalsForBinding[localIndex];
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, new BindingDiagnosticBag(diagnostics)), type: local.Type);
                 properties = default;
-                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
             });
         }
 
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter);
                 properties = default;
-                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
             });
         }
 
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
                 properties = default;
-                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
             });
         }
 
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
                 var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
-                var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                var statement = new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
                 properties = default;
                 return statement;
             });
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
-            return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
         }
 
         private static bool IsDeconstruction(ExpressionSyntax syntax)

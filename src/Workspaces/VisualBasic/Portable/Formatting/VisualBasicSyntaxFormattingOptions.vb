@@ -2,41 +2,52 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.Serialization
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+    <DataContract>
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
+        Implements IEquatable(Of VisualBasicSyntaxFormattingOptions)
 
-        Public Sub New(useTabs As Boolean,
-                       tabSize As Integer,
-                       indentationSize As Integer,
-                       newLine As String,
-                       separateImportDirectiveGroups As Boolean)
+        Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions()
 
-            MyBase.New(useTabs,
-                       tabSize,
-                       indentationSize,
-                       newLine,
-                       separateImportDirectiveGroups)
-        End Sub
+        Public Shared Shadows Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSyntaxFormattingOptions) As VisualBasicSyntaxFormattingOptions
+            fallbackOptions = If(fallbackOptions, [Default])
 
-        Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions(
-            useTabs:=FormattingOptions2.UseTabs.DefaultValue,
-            tabSize:=FormattingOptions2.TabSize.DefaultValue,
-            indentationSize:=FormattingOptions2.IndentationSize.DefaultValue,
-            newLine:=FormattingOptions2.NewLine.DefaultValue,
-            separateImportDirectiveGroups:=GenerationOptions.SeparateImportDirectiveGroups.DefaultValue)
+            Return New VisualBasicSyntaxFormattingOptions() With
+            {
+                .Common = options.GetCommonSyntaxFormattingOptions(fallbackOptions.Common)
+            }
+        End Function
 
-        Public Shared Shadows Function Create(options As AnalyzerConfigOptions) As VisualBasicSyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(
-                useTabs:=options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=options.GetOption(FormattingOptions2.TabSize),
-                indentationSize:=options.GetOption(FormattingOptions2.IndentationSize),
-                newLine:=options.GetOption(FormattingOptions2.NewLine),
-                separateImportDirectiveGroups:=options.GetOption(GenerationOptions.SeparateImportDirectiveGroups))
+        Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions
+            Return New VisualBasicSyntaxFormattingOptions() With
+            {
+                .Common = New CommonOptions() With
+                {
+                    .LineFormatting = lineFormatting,
+                    .SeparateImportDirectiveGroups = SeparateImportDirectiveGroups,
+                    .AccessibilityModifiersRequired = AccessibilityModifiersRequired
+                }
+            }
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, VisualBasicSyntaxFormattingOptions))
+        End Function
+
+        Public Overloads Function Equals(other As VisualBasicSyntaxFormattingOptions) As Boolean Implements IEquatable(Of VisualBasicSyntaxFormattingOptions).Equals
+            Return other IsNot Nothing AndAlso
+                   Common.Equals(other.Common)
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Common.GetHashCode()
         End Function
     End Class
 End Namespace

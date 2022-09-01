@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -81,19 +82,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Style_PreferObjectInitializer_FadeOutCode As Boolean
             Get
-                Return GetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode)
+                Return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, value)
+                SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization, value)
             End Set
         End Property
 
         Public Property Style_PreferCollectionInitializer_FadeOutCode As Boolean
             Get
-                Return GetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode)
+                Return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, value)
+                SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization, value)
             End Set
         End Property
 
@@ -207,10 +208,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Style_RequireAccessibilityModifiers As String
             Get
-                Return GetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers)
+                Return GetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired)
             End Get
             Set(value As String)
-                SetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers, value)
+                SetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired, value)
             End Set
         End Property
 

@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string GetErrorDisplayString(ISymbol symbol);
 
+        public abstract bool GetIsEnabledByDefault(int code);
+
         /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
         /// </summary>
@@ -148,6 +150,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#if DEBUG
+        internal abstract bool ShouldAssertExpectedMessageArgumentsLength(int errorCode);
+#endif
+
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }
@@ -169,6 +175,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int WRN_AnalyzerCannotBeCreated { get; }
         public abstract int WRN_NoAnalyzerInAssembly { get; }
         public abstract int WRN_AnalyzerReferencesFramework { get; }
+        public abstract int WRN_AnalyzerReferencesNewerCompiler { get; }
         public abstract int ERR_CantReadRulesetFile { get; }
         public abstract int ERR_CompileCancelled { get; }
 

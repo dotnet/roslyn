@@ -818,7 +818,7 @@ public class Outer<T, U>
                     testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       60 (0x3c)

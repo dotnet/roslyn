@@ -231,7 +231,7 @@ public struct C
     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(9, 40),
     // (10,40): error CS0206: A property or indexer may not be passed as an out or ref parameter
     //         TypedReference tr4 = __makeref(P); // CS0206
-    Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("C.P").WithLocation(10, 40),
+    Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(10, 40),
     // (11,40): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
     //         TypedReference tr5 = __makeref(R); // CS0199
     Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "R").WithLocation(11, 40)

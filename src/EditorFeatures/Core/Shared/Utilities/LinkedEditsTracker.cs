@@ -20,13 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <summary>
         /// The list of active tracking spans.
         /// </summary>
-        private readonly List<ITrackingSpan> _trackingSpans;
+        private readonly List<ITrackingSpan> _trackingSpans = new();
 
         public LinkedEditsTracker(ITextBuffer subjectBuffer)
         {
             Contract.ThrowIfNull(subjectBuffer);
 
-            _trackingSpans = new List<ITrackingSpan>();
             _subjectBuffer = subjectBuffer;
         }
 

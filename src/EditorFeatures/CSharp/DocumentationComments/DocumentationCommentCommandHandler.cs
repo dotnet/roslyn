@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Operations;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [Name(PredefinedCommandHandlerNames.DocumentationComments)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal class DocumentationCommentCommandHandler
+    internal sealed class DocumentationCommentCommandHandler
         : AbstractDocumentationCommentCommandHandler
     {
         [ImportingConstructor]
@@ -28,8 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         public DocumentationCommentCommandHandler(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
+            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
         {
         }
 

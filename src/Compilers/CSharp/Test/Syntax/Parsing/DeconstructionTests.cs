@@ -3245,7 +3245,7 @@ class C
             UsingStatement(@"var? (x, y) = e;",
                 // (1,16): error CS1003: Syntax error, ':' expected
                 // var? (x, y) = e;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 16),
                 // (1,16): error CS1525: Invalid expression term ';'
                 // var? (x, y) = e;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 16)

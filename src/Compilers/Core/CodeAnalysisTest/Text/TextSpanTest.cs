@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             TextSpan span = new TextSpan(0, int.MaxValue - 1);
             Assert.Equal(0, span.Start);
-            Assert.Equal(span.End, int.MaxValue - 1);
-            Assert.Equal(span.Length, int.MaxValue - 1);
+            Assert.Equal(int.MaxValue - 1, span.End);
+            Assert.Equal(int.MaxValue - 1, span.Length);
         }
 
         [Fact]

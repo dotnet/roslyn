@@ -36,6 +36,8 @@ pr:
   paths:
     exclude:
       - docs/*
+      - eng/config/OptProf.json
+      - eng/config/PublishData.json
       - .vscode/*
       - .github/*
       - .devcontainer/*
@@ -54,7 +56,7 @@ jobs:
   pool:
     name: NetCore-Public
     demands: ImageOverride -equals $(queueName)
-  timeoutInMinutes: 135
+  timeoutInMinutes: 150
   variables:
     - name: XUNIT_LOGS
       value: $(Build.SourcesDirectory)\artifacts\log\Debug
@@ -70,7 +72,7 @@ jobs:
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 135
+    timeoutInMinutes: 150
     variables:
       - name: XUNIT_LOGS
         value: $(Build.SourcesDirectory)\artifacts\log\Debug

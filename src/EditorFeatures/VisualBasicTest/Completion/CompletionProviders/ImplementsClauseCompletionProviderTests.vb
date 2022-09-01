@@ -642,7 +642,7 @@ End Interface
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)
-                AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
+                AssertEx.Any(completionList.ItemsList, Function(c) c.DisplayText = "Workcover")
             End Using
         End Function
 

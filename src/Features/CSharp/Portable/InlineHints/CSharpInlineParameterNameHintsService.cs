@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInlineParameterNameHintsService(IGlobalOptionService globalOptions)
-            : base(globalOptions)
+        public CSharpInlineParameterNameHintsService()
         {
         }
 

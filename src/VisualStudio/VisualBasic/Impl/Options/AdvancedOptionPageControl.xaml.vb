@@ -18,8 +18,10 @@ Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.SolutionCrawler
@@ -28,7 +30,6 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
-Imports Microsoft.VisualStudio.LanguageServices.Telemetry
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
@@ -47,6 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Analysis
             BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic)
+            BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic)
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
@@ -59,18 +61,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
                          End Function)
 
+            ' Go To Definition
+            BindToOption(Navigate_asynchronously_exerimental, FeatureOnOffOptions.NavigateAsynchronously)
+
+            ' Rename
+            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously)
+
             ' Import directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic)
-            BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic,
-                         Function()
-                             ' This option used to be backed by an experimentation flag but Is no longer.
-                             ' Having the option still a bool? keeps us from running into storage related issues,
-                             ' but if the option was stored as null we want it to respect this default
-                             Return False
-                         End Function)
+            BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic)
 
             ' Quick Actions
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
@@ -85,6 +87,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Outlining
             BindToOption(EnableOutlining, FeatureOnOffOptions.Outlining, LanguageNames.VisualBasic)
+            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_sourcelink_embedded_decompiled_files_on_open, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_metadata_signature_files_on_open, BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.VisualBasic)
@@ -99,7 +105,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic)
 
             ' Comments
-            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
+            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
 
             ' Editor help
@@ -113,10 +119,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace,
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
+                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
                          End Function)
 
             ' Regular expressions
@@ -155,12 +161,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
 
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
-                         Function()
-                             ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
-                             Return True
-                         End Function)
+            ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
+            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic, Function() True)
             BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
+            BindToOption(IncludeGlobalImports, FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -203,6 +207,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub DisplayInlineParameterNameHints_Unchecked()
             Me.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, False)
             UpdateInlineHintsOptions()
+        End Sub
+
+        Private Sub EnableOutlining_Checked(sender As Object, e As RoutedEventArgs)
+            Collapse_regions_on_file_open.IsEnabled = True
+            Collapse_imports_on_file_open.IsEnabled = True
+            Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = True
+            Collapse_metadata_signature_files_on_open.IsEnabled = True
+        End Sub
+
+        Private Sub EnableOutlining_Unchecked(sender As Object, e As RoutedEventArgs)
+            Collapse_regions_on_file_open.IsEnabled = False
+            Collapse_imports_on_file_open.IsEnabled = False
+            Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = False
+            Collapse_metadata_signature_files_on_open.IsEnabled = False
         End Sub
     End Class
 End Namespace

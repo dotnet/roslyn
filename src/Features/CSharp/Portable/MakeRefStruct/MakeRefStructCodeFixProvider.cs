@@ -55,7 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             if (!structDeclarationSymbol.IsRefLikeType)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(c => FixCodeAsync(document, structDeclaration, c)),
+                    CodeAction.Create(
+                        CSharpFeaturesResources.Make_ref_struct,
+                        c => FixCodeAsync(document, structDeclaration, c),
+                        nameof(CSharpFeaturesResources.Make_ref_struct)),
                     context.Diagnostics);
             }
         }
@@ -88,16 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             // Could be declared in a class or even in a nested class inside a struct,
             // so find only the first parent declaration
             return member.GetAncestor<TypeDeclarationSyntax>() as StructDeclarationSyntax;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Make_ref_struct,
-                    createChangedDocument,
-                    CSharpFeaturesResources.Make_ref_struct)
-            {
-            }
         }
     }
 }

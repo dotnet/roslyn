@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
@@ -81,17 +82,33 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void Log(TraceEventType errorType, string message)
             => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 
-        protected ValueTask<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        protected async ValueTask<T> RunWithSolutionAsync<T>(
+            Checksum solutionChecksum,
+            Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, solutionInfo.ProjectId, cancellationToken);
+            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+            var (_, result) = await workspace.RunWithSolutionAsync(
+                assetProvider,
+                solutionChecksum,
+                implementation,
+                cancellationToken).ConfigureAwait(false);
+
+            return result;
         }
 
         protected ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
             return RunServiceImplAsync(implementation, cancellationToken);
+        }
+
+        protected ValueTask<T> RunServiceAsync<T>(
+            Checksum solutionChecksum, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(
+                c => RunWithSolutionAsync(solutionChecksum, implementation, c), cancellationToken);
         }
 
         internal static async ValueTask<T> RunServiceImplAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
@@ -112,6 +129,23 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceImplAsync(implementation, cancellationToken);
         }
 
+        protected ValueTask RunServiceAsync(
+            Checksum solutionChecksum, Func<Solution, ValueTask> implementation, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(
+                async c =>
+                {
+                    await RunWithSolutionAsync(
+                        solutionChecksum,
+                        async s =>
+                        {
+                            await implementation(s).ConfigureAwait(false);
+                            // bridge this void 'implementation' callback to the non-void type the underlying api needs.
+                            return false;
+                        }, c).ConfigureAwait(false);
+                }, cancellationToken);
+        }
+
         internal static async ValueTask RunServiceImplAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             try
@@ -123,6 +157,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+#if TODO // https://github.com/microsoft/vs-streamjsonrpc/issues/789
+        internal static async ValueTask<TOptions> GetClientOptionsAsync<TOptions, TCallbackInterface>(
+            RemoteCallback<TCallbackInterface> callback,
+            RemoteServiceCallbackId callbackId,
+            HostLanguageServices languageServices,
+            CancellationToken cancellationToken)
+            where TCallbackInterface : class, IRemoteOptionsCallback<TOptions>
+        {
+            var cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
+            var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<TOptions>(GetRemoteOptions, cacheResult: true));
+            return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            Task<TOptions> GetRemoteOptions(CancellationToken cancellationToken)
+                => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
+        }
+#endif
 
         private static void SetNativeDllSearchDirectories()
         {

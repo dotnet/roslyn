@@ -11,6 +11,8 @@ about: Report a bug in Roslyn
 2. 
 3. 
 
+(A [sharplab](https://sharplab.io/) repro is ideal for compiler/language issues whenever possible)
+
 **Expected Behavior**:
 
 **Actual Behavior**:

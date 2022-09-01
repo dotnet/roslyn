@@ -386,7 +386,8 @@ namespace RunTests
                 testResultsDirectory: options.TestResultsDirectory,
                 testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
-                retry: options.Retry);
+                retry: options.Retry,
+                collectDumps: options.CollectDumps);
             return new ProcessTestExecutor(testExecutionOptions);
         }
 

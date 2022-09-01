@@ -11,13 +11,15 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
-    internal abstract class AbstractController<TSession, TModel, TPresenterSession, TEditorSession> : ForegroundThreadAffinitizedObject, IController<TModel>
+    internal abstract class AbstractController<TSession, TModel, TPresenterSession, TEditorSession> : IController<TModel>
         where TSession : class, ISession<TModel>
         where TPresenterSession : IIntelliSensePresenterSession
     {
+        protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
@@ -43,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             string asyncOperationId)
-            : base(threadingContext)
         {
             this.GlobalOptions = globalOptions;
+            ThreadingContext = threadingContext;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
             this.Presenter = presenter;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         private void OnTextViewClosed(object sender, EventArgs e)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             DismissSessionIfActive();
 
             this.TextView.Closed -= OnTextViewClosed;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         public TModel WaitForController()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             VerifySessionIsActive();
             return sessionOpt.WaitForController();
         }
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         {
             // This is only called from the model computation if it was not cancelled.  And if it was 
             // not cancelled then we must have a pointer to it (as well as the presenter session).
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             VerifySessionIsActive();
 
             this.OnModelUpdated(result, updateController);
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         IAsyncToken IController<TModel>.BeginAsyncOperation(string name, object tag, string filePath, int lineNumber)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             VerifySessionIsActive();
             name = String.IsNullOrEmpty(name)
                 ? _asyncOperationId
@@ -104,19 +106,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         protected void VerifySessionIsActive()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfFalse(IsSessionActive);
         }
 
         protected void VerifySessionIsInactive()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfTrue(IsSessionActive);
         }
 
         protected void DismissSessionIfActive()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             if (IsSessionActive)
             {
                 this.StopModelComputation();
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         public void StopModelComputation()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             VerifySessionIsActive();
 
             // Make a local copy so that we won't do anything that causes us to recurse and try to
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         public bool TryHandleEscapeKey()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Escape simply dismissed a session if it's up. Otherwise let the next thing in the
             // chain handle us.

@@ -99,7 +99,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function AddImports(
                 document As Document,
-                options As AddImportPlacementOptions,
+                addImportOptions As AddImportPlacementOptions,
+                formattingOptions As SyntaxFormattingOptions,
                 position As Integer,
                 snippetNode As XElement,
                 cancellationToken As CancellationToken) As Document
@@ -124,10 +125,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
 
-            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, options.PlaceSystemNamespaceFirst)
+            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, addImportOptions.PlaceSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
-            Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
             document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken)
 
             Return formattedDocument

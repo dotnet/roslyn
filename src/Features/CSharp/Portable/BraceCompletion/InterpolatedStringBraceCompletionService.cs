@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
     /// other double quote completions.
     /// </summary>
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class InterpolatedStringBraceCompletionService : AbstractBraceCompletionService
+    internal class InterpolatedStringBraceCompletionService : AbstractCSharpBraceCompletionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         }
 
         protected override char OpeningBrace => DoubleQuote.OpenCharacter;
-
         protected override char ClosingBrace => DoubleQuote.CloseCharacter;
 
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken rightToken)
             => rightToken.IsKind(SyntaxKind.InterpolatedStringEndToken);
 
-        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
-            => Task.FromResult(IsValidOpeningBraceToken(token) && token.Span.End - 1 == position);
+        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
+            => IsValidOpeningBraceToken(token) && token.Span.End - 1 == position;
 
         /// <summary>
         /// Returns true when the input position could be starting an interpolated string if opening quotes were typed.

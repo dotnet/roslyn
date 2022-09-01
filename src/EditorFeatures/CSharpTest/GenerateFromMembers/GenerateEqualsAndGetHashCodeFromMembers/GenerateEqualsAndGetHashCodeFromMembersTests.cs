@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private class TestWithDialog : VerifyCS.Test
         {
             private static readonly TestComposition s_composition =
-                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
+                EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));
 
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
@@ -3024,8 +3025,6 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 27).WithArguments("System.Object"),
     // /0/Test0.cs(16,28): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
     DiagnosticResult.CompilerError("CS1069").WithSpan(16, 28, 16, 33).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-    // /0/Test0.cs(16,34): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
-    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 34, 16, 45).WithArguments("Class1.GetHashCode()"),
     // /0/Test0.cs(18,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(18, 16, 18, 25).WithArguments("System.Int32"),
     // /0/Test0.cs(18,28): error CS0103: The name 'EqualityComparer' does not exist in the current context

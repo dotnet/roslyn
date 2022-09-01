@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
@@ -104,10 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                     // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                     await navigationService.TryNavigateToLineAndOffsetAsync(
+                        this.ThreadingContext,
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
                         sourceLocation.StartPosition.Character,
+                        NavigationOptions.Default,
                         cancellationToken).ConfigureAwait(false);
                 }
             }

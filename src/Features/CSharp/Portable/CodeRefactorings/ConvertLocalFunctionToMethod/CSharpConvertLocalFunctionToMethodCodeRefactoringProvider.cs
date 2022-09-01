@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -59,8 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                CodeAction.Create(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, context.Options, c),
+                    nameof(CSharpFeaturesResources.Convert_to_method)),
                 localFunction.Span);
         }
 
@@ -69,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             Document document,
             BlockSyntax parentBlock,
             LocalFunctionStatementSyntax localFunction,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -125,8 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var defaultOptions = await CSharpCodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, cancellationToken);
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = (CSharpCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -311,14 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             return NameGenerator.EnsureUniqueness(
                 baseName: declaredSymbol.Name,
                 reservedNames: declaredSymbol.ContainingType.GetMembers().Select(m => m.Name));
-        }
-
-        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument, nameof(CSharpFeaturesResources.Convert_to_method))
-            {
-            }
         }
     }
 }

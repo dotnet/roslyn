@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return null;
             }
 
-            return new CodeStyleOption<T>(option.Value, (NotificationOption?)option.Notification);
+            return new CodeStyleOption<T>(option.Value, (NotificationOption)option.Notification);
         }
 
         [return: NotNullIfNotNull("option")]

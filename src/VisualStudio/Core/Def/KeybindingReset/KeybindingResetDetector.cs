@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
         private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
-        private readonly VisualStudioInfoBar _infoBarService;
+        private readonly VisualStudioInfoBar _infoBar;
 
         // All mutable fields are UI-thread affinitized
 
@@ -91,13 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public KeybindingResetDetector(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
-            VisualStudioInfoBar infoBarService,
-            SVsServiceProvider serviceProvider)
+            SVsServiceProvider serviceProvider,
+            IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _globalOptions = globalOptions;
-            _infoBarService = infoBarService;
             _serviceProvider = serviceProvider;
+            _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
         }
 
         public Task InitializeAsync()
@@ -236,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
-            _infoBarService.ShowInfoBar(
+            _infoBar.ShowInfoBar(
                 string.Format(message, ReSharperExtensionName),
                 new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,

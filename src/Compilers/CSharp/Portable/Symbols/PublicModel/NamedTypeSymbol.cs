@@ -208,6 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return visitor.VisitNamedType(this);
         }
 
+        protected sealed override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNamedType(this, argument);
+        }
+
         #endregion
     }
 }

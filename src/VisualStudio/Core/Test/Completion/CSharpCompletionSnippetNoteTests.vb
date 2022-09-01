@@ -36,23 +36,23 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
-            Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
-                state.SendTypeChars("var t = (interfac")
+            Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "glob")
+                state.SendTypeChars("var t = (glob")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="global", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("(interfac:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(glob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
-            Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
-                state.SendTypeChars("var t = (1, interfac")
+            Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "glob")
+                state.SendTypeChars("var t = (1, glob")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="global", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("(1, interfac:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(1, glob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

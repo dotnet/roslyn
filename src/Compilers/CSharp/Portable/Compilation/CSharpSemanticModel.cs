@@ -1599,9 +1599,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Method type parameters are not in scope outside a method
                 // body unless the position is either:
                 // a) in a type-only context inside an expression, or
-                // b) inside of an XML name attribute in an XML doc comment.
+                // b) inside of an XML name attribute in an XML doc comment,
+                // c) inside a nameof context.
                 var parentExpr = token.Parent as ExpressionSyntax;
-                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr))
+                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr) && !binder.IsInsideNameof)
                 {
                     options |= LookupOptions.MustNotBeMethodTypeParameter;
                 }
@@ -2032,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref discardedUseSiteInfo));
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, isChecked: false, ref discardedUseSiteInfo));
             }
             if (lowestBoundNode is BoundPropertySubpatternMember member)
             {
@@ -2192,7 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // There is a sequence of conversions; we use ClassifyConversionFromExpression to report the most pertinent.
                         var binder = this.GetEnclosingBinder(boundExpr.Syntax.Span.Start);
                         var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref discardedUseSiteInfo);
+                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, isChecked: ((BoundConversion)highestBoundExpr).Checked, ref discardedUseSiteInfo);
                     }
                 }
                 else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
@@ -2818,7 +2819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !cdestination.IsErrorType())
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref discardedUseSiteInfo);
+
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo);
                 }
             }
 
@@ -2869,7 +2871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !destination.IsErrorType())
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref discardedUseSiteInfo, forCast: true);
+
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo, forCast: true);
                 }
             }
 
@@ -3765,7 +3768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)unaryOperator.MethodOpt == null && unaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = unaryOperator.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type.StrippedType(),
-                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: unaryOperator.OperatorKind.IsChecked()),
                                                                                                  unaryOperator.Type.StrippedType(),
                                                                                                  unaryOperator.OperatorKind.IsChecked()));
                 resultKind = unaryOperator.ResultKind;
@@ -3789,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
-                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
                                                                                                  increment.Type.StrippedType(),
                                                                                                  increment.OperatorKind.IsChecked()));
                 resultKind = increment.ResultKind;
@@ -3823,7 +3826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = binaryOperator.Type.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
 
                     symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(objectType,
-                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
+                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked: binaryOperator.OperatorKind.IsChecked()),
                                                                                              objectType,
                                                                                              binaryOperator.Type,
                                                                                              binaryOperator.OperatorKind.IsChecked()));
@@ -3865,7 +3868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return new SynthesizedIntrinsicOperatorSymbol(leftType,
-                                                          OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
+                                                          OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
                                                           rightType,
                                                           returnType,
                                                           isChecked);
@@ -5284,6 +5287,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken)
         {
             return this.GetEnclosingSymbol(position, cancellationToken);
+        }
+
+        private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)
+        {
+            position = CheckAndAdjustPosition(position);
+            var binder = GetEnclosingBinder(position);
+            var builder = ArrayBuilder<IImportScope>.GetInstance();
+
+            for (var chain = binder?.ImportChain; chain != null; chain = chain.ParentOpt)
+            {
+                var imports = chain.Imports;
+                if (imports.IsEmpty)
+                    continue;
+
+                Debug.Assert(imports.Usings.All(static u => u.UsingDirectiveReference != null));
+
+                // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
+                // node corresponding to this set of imports and chain it to that.
+                builder.Add(new SimpleImportScope(
+                    imports.UsingAliases.SelectAsArray(static kvp => kvp.Value.Alias.GetPublicSymbol()),
+                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
+                    imports.Usings.SelectAsArray(static n => new ImportedNamespaceOrType(n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
+                    xmlNamespaces: ImmutableArray<ImportedXmlNamespace>.Empty));
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)

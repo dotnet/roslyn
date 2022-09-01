@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,11 +53,25 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
     internal static class IStreamingFindUsagesPresenterExtensions
     {
+        public static async Task<bool> TryPresentLocationOrNavigateIfOneAsync(
+            this IStreamingFindUsagesPresenter presenter,
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            string title,
+            ImmutableArray<DefinitionItem> items,
+            CancellationToken cancellationToken)
+        {
+            var location = await presenter.GetStreamingLocationAsync(
+                threadingContext, workspace, title, items, cancellationToken).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
-        /// If there's only a single item, navigates to it.  Otherwise, presents all the
-        /// items to the user.
+        /// Returns a navigable location that will take the user to the location there's only destination, or which will
+        /// present all the locations if there are many.
         /// </summary>
-        public static async Task<bool> TryNavigateToOrPresentItemsAsync(
+        public static async Task<INavigableLocation?> GetStreamingLocationAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
             Workspace workspace,
@@ -68,47 +80,40 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             CancellationToken cancellationToken)
         {
             if (items.IsDefaultOrEmpty)
-                return false;
+                return null;
 
-            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
+            using var _ = ArrayBuilder<(DefinitionItem item, INavigableLocation location)>.GetInstance(out var builder);
             foreach (var item in items)
             {
                 // Ignore any definitions that we can't navigate to.
-                if (await item.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false))
-                    definitionsBuilder.Add(item);
+                var navigableItem = await item.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+                if (navigableItem != null)
+                {
+                    // If there's a third party external item we can navigate to.  Defer to that item and finish.
+                    if (item.IsExternal)
+                        return navigableItem;
+
+                    builder.Add((item, navigableItem));
+                }
             }
 
-            var definitions = definitionsBuilder.ToImmutable();
+            if (builder.Count == 0)
+                return null;
 
-            // See if there's a third party external item we can navigate to.  If so, defer 
-            // to that item and finish.
-            var externalItems = definitions.WhereAsArray(d => d.IsExternal);
-            foreach (var item in externalItems)
-            {
-                // If we're directly going to a location we need to activate the preview so
-                // that focus follows to the new cursor position. This behavior is expected
-                // because we are only going to navigate once successfully
-                if (await item.TryNavigateToAsync(workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false))
-                    return true;
-            }
-
-            var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
-            if (nonExternalItems.Length == 0)
-            {
-                return false;
-            }
-
-            if (nonExternalItems.Length == 1 &&
-                nonExternalItems[0].SourceSpans.Length <= 1)
+            if (builder.Count == 1 &&
+                builder[0].item.SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
-                return await nonExternalItems[0].TryNavigateToAsync(
-                    workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                return builder[0].location;
             }
 
-            if (presenter != null)
+            if (presenter == null)
+                return null;
+
+            var navigableItems = builder.SelectAsArray(t => t.item);
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
                 // Can only navigate or present items on UI thread.
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -121,16 +126,16 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 var (context, _) = presenter.StartSearch(title, supportsReferences: false);
                 try
                 {
-                    foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+                    foreach (var item in navigableItems)
+                        await context.OnDefinitionFoundAsync(item, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
                     await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
-            }
 
-            return true;
+                return true;
+            });
         }
     }
 }

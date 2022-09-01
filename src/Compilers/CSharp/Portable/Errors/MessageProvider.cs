@@ -118,6 +118,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.CSharpShortErrorMessageFormat);
         }
 
+        public override bool GetIsEnabledByDefault(int code) =>
+            (ErrorCode)code is not (
+                ErrorCode.WRN_UseDefViolationPropertySupportedVersion
+                or ErrorCode.WRN_UseDefViolationFieldSupportedVersion
+                or ErrorCode.WRN_UseDefViolationThisSupportedVersion
+                or ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion
+                or ErrorCode.WRN_UnassignedThisSupportedVersion
+            );
+
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
             bool hasPragmaSuppression;
@@ -135,6 +144,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               CancellationToken.None, // We don't have a tree so there's no need to pass cancellation to the SyntaxTreeOptionsProvider
                                                               out hasPragmaSuppression);
         }
+
+#if DEBUG
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode)
+        {
+            return (ErrorCode)errorCode switch
+            {
+                0 => false,
+                ErrorCode.Unknown => false,
+                ErrorCode.Void => false,
+                ErrorCode.ERR_IdentifierExpectedKW => false, // message uses {1} rather than {0}
+                ErrorCode.WRN_XMLParseError => false, // XmlSyntaxDiagnosticInfo.GetMessage() uses distinct error code 
+                _ => true
+            };
+        }
+#endif
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
         public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;
@@ -154,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int WRN_NoAnalyzerInAssembly => (int)ErrorCode.WRN_NoAnalyzerInAssembly;
         public override int WRN_UnableToLoadAnalyzer => (int)ErrorCode.WRN_UnableToLoadAnalyzer;
         public override int WRN_AnalyzerReferencesFramework => (int)ErrorCode.WRN_AnalyzerReferencesFramework;
+        public override int WRN_AnalyzerReferencesNewerCompiler => (int)ErrorCode.WRN_AnalyzerReferencesNewerCompiler;
         public override int INF_UnableToLoadSomeTypesInAnalyzer => (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer;
         public override int ERR_CantReadRulesetFile => (int)ErrorCode.ERR_CantReadRulesetFile;
         public override int ERR_CompileCancelled => (int)ErrorCode.ERR_CompileCancelled;

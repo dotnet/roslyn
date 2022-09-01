@@ -255,5 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _stateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

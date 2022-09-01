@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
 
             var usings = member.GetEnclosingUsingDirectives();
-            var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } });
+            var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier.ValueText: nameof(System) });
 
             using var _ = PooledHashSet<string>.GetInstance(out var seenExceptionTypes);
             foreach (var throwExpressionOrStatement in throwExpressionsAndStatements)
@@ -208,15 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                         return true;
 
                     if (hasUsingSystem &&
-                        catchClause.Declaration.Type is IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } })
+                        catchClause.Declaration.Type is IdentifierNameSyntax { Identifier.ValueText: nameof(Exception) })
                     {
                         return true;
                     }
 
                     if (catchClause.Declaration.Type is QualifiedNameSyntax
                         {
-                            Left: IdentifierNameSyntax { Identifier: { ValueText: nameof(System) } },
-                            Right: IdentifierNameSyntax { Identifier: { ValueText: nameof(Exception) } },
+                            Left: IdentifierNameSyntax { Identifier.ValueText: nameof(System) },
+                            Right: IdentifierNameSyntax { Identifier.ValueText: nameof(Exception) },
                         })
                     {
                         return true;

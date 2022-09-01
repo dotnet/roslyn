@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // Insert the semicolon using next command handler
             nextCommandHandler();
 
-            transaction.Complete();
+            transaction?.Complete();
         }
 
         private bool BeforeExecuteCommand(bool speculative, TypeCharCommandArgs args, CommandExecutionContext executionContext)
@@ -108,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
             if (!TryGetStartingNode(root, caret, out var currentNode, cancellationToken))
             {
@@ -124,13 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// Determines which node the caret is in.  
         /// Must be called on the UI thread.
         /// </summary>
-        /// <param name="root"></param>
-        /// <param name="caret"></param>
-        /// <param name="startingNode"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        private static bool TryGetStartingNode(SyntaxNode root, SnapshotPoint caret,
-            out SyntaxNode startingNode, CancellationToken cancellationToken)
+        private static bool TryGetStartingNode(
+            SyntaxNode root,
+            SnapshotPoint caret,
+            [NotNullWhen(true)] out SyntaxNode? startingNode,
+            CancellationToken cancellationToken)
         {
             // on the UI thread
             startingNode = null;
@@ -144,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            startingNode = token.Parent;
+            startingNode = token.GetRequiredParent();
 
             // If the caret is before an opening delimiter or after a closing delimeter,
             // start analysis with node outside of delimiters.
@@ -163,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
             {
-                startingNode = startingNode.Parent;
+                startingNode = startingNode.GetRequiredParent();
             }
 
             return true;
@@ -177,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             SnapshotPoint originalCaret,
             SnapshotPoint caret,
             ISyntaxFactsService syntaxFacts,
-            SyntaxNode currentNode,
+            SyntaxNode? currentNode,
             bool isInsideDelimiters,
             CancellationToken cancellationToken)
         {
@@ -216,12 +212,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
                 if (!TryGetStartingNode(root, newCaret, out currentNode, cancellationToken))
-                {
                     return false;
-                }
 
-                return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret, newCaret, syntaxFacts, currentNode,
-                    isInsideDelimiters: true, cancellationToken);
+                return MoveCaretToSemicolonPosition(
+                    speculative, args, document, root, originalCaret, newCaret, syntaxFacts, currentNode, isInsideDelimiters: true, cancellationToken);
             }
             else if (currentNode.IsKind(SyntaxKind.DoStatement))
             {
@@ -241,8 +235,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 // keep caret the same, but continue analyzing with the parent of the current node
                 currentNode = currentNode.Parent;
-                return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret, caret, syntaxFacts, currentNode,
-                    isInsideDelimiters, cancellationToken);
+                return MoveCaretToSemicolonPosition(
+                    speculative, args, document, root, originalCaret, caret, syntaxFacts, currentNode, isInsideDelimiters, cancellationToken);
             }
         }
 
@@ -258,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
-            if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+            if (currentNode is RecordDeclarationSyntax { OpenBraceToken.IsMissing: true })
             {
                 return true;
             }
@@ -282,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
-            if (!currentNode.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax doStatement))
+            if (!currentNode.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax? doStatement))
             {
                 return false;
             }
@@ -339,6 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
+                case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -359,13 +354,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool TryGetForStatementCaret(SnapshotPoint originalCaret, ForStatementSyntax forStatement, out SnapshotPoint forStatementCaret)
         {
-            if (CaretIsInForStatementCondition(originalCaret, forStatement))
+            if (CaretIsInForStatementCondition(originalCaret, forStatement, out var condition))
             {
-                forStatementCaret = GetCaretAtPosition(forStatement.Condition.Span.End);
+                forStatementCaret = GetCaretAtPosition(condition.Span.End);
             }
-            else if (CaretIsInForStatementDeclaration(originalCaret, forStatement))
+            else if (CaretIsInForStatementDeclaration(originalCaret, forStatement, out var declaration))
             {
-                forStatementCaret = GetCaretAtPosition(forStatement.Declaration.Span.End);
+                forStatementCaret = GetCaretAtPosition(declaration.Span.End);
             }
             else if (CaretIsInForStatementInitializers(originalCaret, forStatement))
             {
@@ -383,18 +378,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             SnapshotPoint GetCaretAtPosition(int position) => originalCaret.Snapshot.GetPoint(position);
         }
 
-        private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
+        private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax, [NotNullWhen(true)] out ExpressionSyntax? condition)
+        {
+            condition = forStatementSyntax.Condition;
+            if (condition == null)
+                return false;
+
             // If condition is null and caret is in the condition section, as in `for ( ; $$; )`, 
             // we will have bailed earlier due to not being inside supported delimiters
-            => forStatementSyntax.Condition == null
-                ? false
-                : caretPosition > forStatementSyntax.Condition.SpanStart &&
-                  caretPosition <= forStatementSyntax.Condition.Span.End;
+            return caretPosition > condition.SpanStart && caretPosition <= condition.Span.End;
+        }
 
-        private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
-            => forStatementSyntax.Declaration != null &&
-                caretPosition > forStatementSyntax.Declaration.Span.Start &&
-                caretPosition <= forStatementSyntax.Declaration.Span.End;
+        private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax, [NotNullWhen(true)] out VariableDeclarationSyntax? declaration)
+        {
+            declaration = forStatementSyntax.Declaration;
+            if (declaration == null)
+                return false;
+
+            return caretPosition > declaration.Span.Start && caretPosition <= declaration.Span.End;
+        }
 
         private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax)
             => forStatementSyntax.Initializers.Count != 0 &&

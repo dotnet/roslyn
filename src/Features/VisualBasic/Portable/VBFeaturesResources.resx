@@ -226,9 +226,6 @@
     <value>Remove 'Me' qualification</value>
     <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="Name_can_be_simplified" xml:space="preserve">
-    <value>Name can be simplified</value>
-  </data>
   <data name="can_t_determine_valid_range_of_statements_to_extract_out" xml:space="preserve">
     <value>can't determine valid range of statements to extract out</value>
   </data>
@@ -270,9 +267,6 @@
   </data>
   <data name="no_valid_statement_range_to_extract_out" xml:space="preserve">
     <value>no valid statement range to extract out</value>
-  </data>
-  <data name="Invalid_selection" xml:space="preserve">
-    <value>Invalid selection</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
@@ -440,9 +434,6 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</valu
   </data>
   <data name="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse" xml:space="preserve">
     <value>Specifies the group that the loop variable in a For Each statement is to traverse.</value>
-  </data>
-  <data name="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query" xml:space="preserve">
-    <value>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</value>
   </data>
   <data name="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces" xml:space="preserve">
     <value>Causes the current class or interface to inherit the attributes, variables, properties, procedures, and events from another class or set of interfaces.</value>
@@ -956,17 +947,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line" xml:space="preserve">
     <value>Enables reporting of specified warnings in the portion of the source file below the current line.</value>
   </data>
-  <data name="Insert_Await" xml:space="preserve">
-    <value>Insert 'Await'.</value>
-  </data>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
-  </data>
-  <data name="Convert_0_to_Iterator" xml:space="preserve">
-    <value>Convert {0} to Iterator</value>
-  </data>
-  <data name="Replace_Return_with_Yield" xml:space="preserve">
-    <value>Replace 'Return' with 'Yield</value>
   </data>
   <data name="Use_the_correct_control_variable" xml:space="preserve">
     <value>Use the correct control variable</value>
@@ -1127,9 +1109,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="attributes" xml:space="preserve">
     <value>attributes</value>
   </data>
-  <data name="Too_many_arguments_to_0" xml:space="preserve">
-    <value>Too many arguments to '{0}'.</value>
-  </data>
   <data name="Type_0_is_not_defined" xml:space="preserve">
     <value>Type '{0}' is not defined.</value>
   </data>
@@ -1207,9 +1186,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
   </data>
-  <data name="Add_Obsolete" xml:space="preserve">
-    <value>Add &lt;Obsolete&gt;</value>
-  </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
     <comment>{Locked="Import"}</comment>
@@ -1221,21 +1197,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Introduce_Using_statement" xml:space="preserve">
     <value>Introduce 'Using' statement</value>
     <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
-  </data>
-  <data name="Make_0_inheritable" xml:space="preserve">
-    <value>Make '{0}' inheritable</value>
-  </data>
-  <data name="Apply_Me_qualification_preferences" xml:space="preserve">
-    <value>Apply Me qualification preferences</value>
-    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
-  </data>
-  <data name="Apply_Imports_directive_placement_preferences" xml:space="preserve">
-    <value>Apply Imports directive placement preferences</value>
-    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
-  </data>
-  <data name="Make_private_field_ReadOnly_when_possible" xml:space="preserve">
-    <value>Make private field ReadOnly when possible</value>
-    <comment>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Organize_Imports" xml:space="preserve">
     <value>Organize Imports</value>
@@ -1262,5 +1223,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Apply_object_creation_preferences" xml:space="preserve">
     <value>Apply object creation preferences</value>
+  </data>
+  <data name="Project_level_Imports" xml:space="preserve">
+    <value>Project level 'Imports'</value>
   </data>
 </root>

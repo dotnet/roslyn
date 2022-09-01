@@ -2,19 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -22,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class TreeItemViewModel : TreeViewItemBase
+    internal abstract class TreeItemViewModel : TreeViewItemBase
     {
         private readonly SourceText _sourceText;
         private readonly Glyph _glyph;
@@ -47,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ImmutableArray<Inline> Inlines => CalculateInlines();
         public override string AutomationName => _sourceText.ToString(TextSpan);
 
-        public TreeItemViewModel(
+        protected TreeItemViewModel(
             TextSpan textSpan,
             SourceText sourceText,
             DocumentId documentId,
@@ -103,19 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             };
         }
 
-        public virtual void NavigateTo()
-        {
-            var navigationService = Workspace.Services.GetService<IDocumentNavigationService>();
-            if (navigationService is null)
-            {
-                return;
-            }
-
-            // While navigating do not activate the tab, which will change focus from the tool window
-            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
-            this.ThreadingContext.JoinableTaskFactory.Run(() => navigationService.TryNavigateToLineAndOffsetAsync(
-                Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken));
-        }
+        public abstract void NavigateTo();
 
         private ImmutableArray<Inline> CalculateInlines()
         {

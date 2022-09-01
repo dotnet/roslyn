@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
+        public CommitManagerProvider(
+            IThreadingContext threadingContext,
+            RecentItemsManager recentItemsManager,
+            IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInLspEditorContext())
+            if (textView.IsInLspEditorContext())
             {
                 return null;
             }

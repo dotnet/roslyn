@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -92,8 +93,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
     {
-        // Should only be called on the UI thread.
-        Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var subjectBuffer = args.SubjectBuffer;
         var caret = args.TextView.GetCaretPoint(subjectBuffer);
@@ -127,8 +127,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // and failure ourselves.
         try
         {
-            // Should only be called on the UI thread.
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Make an tracking token so that integration tests can wait until we're complete.
             using var token = _listener.BeginAsyncOperation($"{GetType().Name}.{nameof(ExecuteCommandAsync)}");
@@ -190,7 +189,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             if (definitions.Length > 0)
             {
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
-                await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                var location = await _streamingPresenter.TryPresentLocationOrNavigateIfOneAsync(
                     _threadingContext,
                     document.Project.Solution.Workspace,
                     title ?? DisplayName,

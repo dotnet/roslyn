@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
 
             var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
-                point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
+                point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.TextSnapshot);
             if (mappedPoint == null)
             {
                 return null;

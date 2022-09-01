@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly string? StateMachineTypeName;
         public readonly ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlotsOpt;
         public readonly ImmutableArray<Cci.ITypeReference?> StateMachineAwaiterSlotsOpt;
+        public readonly StateMachineStatesDebugInfo StateMachineStates;
 
         public AddedOrChangedMethodInfo(
             DebugId methodId,
@@ -32,17 +33,18 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             string? stateMachineTypeName,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlotsOpt,
-            ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlotsOpt)
+            ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlotsOpt,
+            StateMachineStatesDebugInfo stateMachineStates)
         {
             // An updated method will carry its id over,
             // an added method id has generation set to the current generation ordinal.
             Debug.Assert(methodId.Generation >= 0);
 
             // each state machine has to have awaiters:
-            Debug.Assert(stateMachineAwaiterSlotsOpt.IsDefault == (stateMachineTypeName == null));
+            Debug.Assert(stateMachineAwaiterSlotsOpt.IsDefault == stateMachineTypeName is null);
 
             // a state machine might not have hoisted variables:
-            Debug.Assert(stateMachineHoistedLocalSlotsOpt.IsDefault || (stateMachineTypeName != null));
+            Debug.Assert(stateMachineHoistedLocalSlotsOpt.IsDefault || stateMachineTypeName is not null);
 
             MethodId = methodId;
             Locals = locals;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Emit
             StateMachineTypeName = stateMachineTypeName;
             StateMachineHoistedLocalSlotsOpt = stateMachineHoistedLocalSlotsOpt;
             StateMachineAwaiterSlotsOpt = stateMachineAwaiterSlotsOpt;
+            StateMachineStates = stateMachineStates;
         }
 
         public AddedOrChangedMethodInfo MapTypes(SymbolMatcher map)
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? default :
                 ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, static (typeRef, map) => (typeRef is null) ? null : map.MapReference(typeRef), map);
 
-            return new AddedOrChangedMethodInfo(MethodId, mappedLocals, LambdaDebugInfo, ClosureDebugInfo, StateMachineTypeName, mappedHoistedLocalSlots, mappedAwaiterSlots);
+            return new AddedOrChangedMethodInfo(MethodId, mappedLocals, LambdaDebugInfo, ClosureDebugInfo, StateMachineTypeName, mappedHoistedLocalSlots, mappedAwaiterSlots, StateMachineStates);
         }
 
         private static EncLocalInfo MapLocalInfo(EncLocalInfo info, SymbolMatcher map)

@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -25,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    ImmutableArray.Create(SyntaxKind.OperatorDeclaration))
         {
         }
+
+        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
+            => options.PreferExpressionBodiedOperators;
 
         protected override BlockSyntax GetBody(OperatorDeclarationSyntax declaration)
             => declaration.Body;

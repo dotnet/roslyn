@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить атрибут "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Добавить явное приведение</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Добавить имя элемента</target>
@@ -425,11 +420,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Изменения запрещены, когда выполнение остановлено при исключении</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAppliedWhileRunning">
-        <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="translated">Изменения, внесенные в проект "{0}", не будут применены во время выполнения приложения.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
         <target state="translated">Одно или несколько изменений приведут к созданию нового типа компилятором. Это не поддерживается средой выполнения, поэтому требуется перезапустить приложение.</target>
@@ -463,6 +453,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
         <target state="translated">Для изменения псевдонастраиваемого атрибута "{0}" для {1} требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
+        <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
+        <target state="translated">Чтобы изменить содержащее пространство имен "{0}" с "{1}" на "{2}", необходимо перезапустить приложение</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -530,6 +525,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Конструкторы не разрешены</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_Member">
+        <source>Containing Member</source>
+        <target state="translated">Содержащий член</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_Type">
+        <source>Containing Type</source>
+        <target state="translated">Содержащий тип</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Преобразовать в LINQ</target>
@@ -570,11 +575,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Преобразовать в кортеж</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">Преобразовать тип в "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">Не удалось найти переносимый PDB-файл на диске или во внедренном источнике.</target>
@@ -583,6 +583,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
         <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
         <target state="translated">Не удалось найти PDB-файл на диске, во внедренном источнике или на сервере символов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="translated">Не найдена реализация символа "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -605,6 +610,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Создать и назначить оставшиеся как свойства</target>
         <note />
       </trans-unit>
+      <trans-unit id="Decompiled">
+        <source>decompiled</source>
+        <target state="translated">декомпилировано</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Для удаления {0} вокруг активного оператора требуется перезапустить приложение.</target>
@@ -618,6 +628,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">Для удаления зафиксированной переменной "{0}" требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directives_from_0">
+        <source>Directives from '{0}'</source>
+        <target state="translated">Директивы из "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -638,11 +653,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
         <target state="translated">Операция "Изменить и продолжить"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EditAndContinueDisallowedByModule">
-        <source>Edit and Continue disallowed by module</source>
-        <target state="translated">Операция "Изменить и продолжить" запрещена модулем</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
@@ -695,11 +705,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Явно реализованные методы записей должны иметь имена параметров, соответствующие компилятору, созданному эквивалентом '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Explicitly_inherit_documentation">
-        <source>Explicitly inherit documentation</source>
-        <target state="translated">Явно наследовать документацию</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Извлечь базовый класс...</target>
@@ -725,19 +730,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удалось проанализировать поток данных для: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Исправить форматирование</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Исправьте опечатку "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Форматировать документ</target>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="translated">Исправление "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -980,11 +980,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить локальный оператор</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_parameter">
-        <source>Introduce parameter</source>
-        <target state="translated">Ввести параметр</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="translated">Ввести параметр для "{0}"</target>
@@ -1043,16 +1038,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
         <target state="translated">Проблема JSON: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_class_abstract">
-        <source>Make class 'abstract'</source>
-        <target state="translated">Сделать класс абстрактным</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_member_static">
-        <source>Make static</source>
-        <target state="translated">Сделать статическим</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -1164,11 +1149,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
         <target state="translated">Для изменения оператора try/catch/finally при активном блоке finally требуется перезапустить приложение.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
-        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="translated">Для изменения активного {0} с операторами On Error или Resume требуется перезапустить приложение.</target>
-        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
         <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
@@ -1333,11 +1313,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Извлечь элементы до базового типа...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="translated">Получение элементов для нового базового класса...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2011,11 +1986,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
 Можно сцепить два или более диапазонов символов. Например, чтобы указать диапазон десятичных цифр от 0 до 9, диапазон строчных букв от a до f и диапазон прописных букв от A до F, используйте [0-9a-fA-F].</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_negative_character_range_short">
-        <source>negative character range</source>
-        <target state="translated">отрицательный диапазон символов</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
         <target state="translated">Конструкция регулярного выражения \P{ имя } соответствует любому символу, который не относится к общей категории Юникода или именованному блоку, где "имя" — это сокращение названия категории или имя именованного блока.</target>
@@ -2550,6 +2520,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Замените '{0}' на '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="translated">Заменить условное выражение операторами</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Разрешение меток конфликтов</target>
@@ -2653,6 +2628,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Сборка "{0}", содержащая тип "{1}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2908,11 +2888,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Использовать тело выражения для лямбда-выражений</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_interpolated_verbatim_string">
-        <source>Use interpolated verbatim string</source>
-        <target state="translated">Использовать интерполированную буквальную строку</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_colon">
@@ -3765,11 +3740,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">Создать вложенный {0} "{1}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_Namespace">
-        <source>Global Namespace</source>
-        <target state="translated">Глобальное пространство имен</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">Реализовать интерфейс абстрактно</target>
@@ -3954,16 +3924,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Непредвиденный тип члена интерфейса: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_symbol_kind">
-        <source>Unknown symbol kind</source>
-        <target state="translated">Неизвестный тип символа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Requested_assembly_already_loaded_from_0">
-        <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">Запрошенная сборка уже загружена из "{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
         <source>The symbol does not have an icon.</source>
         <target state="translated">Символ не имеет значка.</target>
@@ -4093,26 +4053,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Внедрите интерфейс с шаблоном освобождения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_triage_0_currently_1">
-        <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">Повторное рассмотрение {0} (в настоящее время "{1}")</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_have_a_null_element">
-        <source>Argument cannot have a null element.</source>
-        <target state="translated">Аргумент не может содержать элемент NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_be_empty">
-        <source>Argument cannot be empty.</source>
-        <target state="translated">Аргумент не может быть пустым.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
-        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">Зарегистрированное диагностическое событие с идентификатором "{0}" не поддерживается в анализаторе.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -4540,11 +4480,6 @@ This version used in: {2}</source>
         <target state="translated">Интерфейсы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Locals">
-        <source>Locals</source>
-        <target state="translated">Локальные переменные</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Methods">
         <source>Methods</source>
         <target state="translated">Методы</target>
@@ -4668,26 +4603,6 @@ This version used in: {2}</source>
       <trans-unit id="Snippets">
         <source>Snippets</source>
         <target state="translated">Фрагменты кода</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_lowercase">
-        <source>All lowercase</source>
-        <target state="translated">Все строчные</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_uppercase">
-        <source>All uppercase</source>
-        <target state="translated">Все прописные</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_capitalized">
-        <source>First word capitalized</source>
-        <target state="translated">Первое слово с прописной буквы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">ВсеЧастиСПрописнойБуквы</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -4850,11 +4765,6 @@ This version used in: {2}</source>
         <target state="translated">в {0} (проект {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">Добавить модификаторы доступа</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Переместить объявление рядом со ссылкой</target>
@@ -4890,11 +4800,6 @@ This version used in: {2}</source>
         <target state="translated">индексатор</target>
         <note />
       </trans-unit>
-      <trans-unit id="Alias_ambiguous_type_0">
-        <source>Alias ambiguous type '{0}'</source>
-        <target state="translated">Неоднозначный тип псевдонима "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
         <target state="translated">Внимание! Коллекция изменена во время итерации.</target>
@@ -4903,11 +4808,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
         <target state="translated">Внимание! Переменная итерации вышла за границу функции.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
-        <source>Warning: Collection may be modified during iteration.</source>
-        <target state="translated">Внимание! Коллекция может быть изменена во время итерации.</target>
         <note />
       </trans-unit>
       <trans-unit id="universal_full_date_time">

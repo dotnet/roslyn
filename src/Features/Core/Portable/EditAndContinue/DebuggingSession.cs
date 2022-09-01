@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var oldActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
-                if (oldActiveStatements.Any(s => s.Statement == activeStatement))
+                if (oldActiveStatements.Any(static (s, activeStatement) => s.Statement == activeStatement, activeStatement))
                 {
                     return documentId;
                 }

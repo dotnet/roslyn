@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -18,11 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         private class MetadataDefinitionItemEntry : AbstractItemEntry, ISupportsNavigation
         {
+            private readonly IThreadingContext _threadingContext;
+
             public MetadataDefinitionItemEntry(
                 AbstractTableDataSourceFindUsagesContext context,
-                RoslynDefinitionBucket definitionBucket)
+                RoslynDefinitionBucket definitionBucket,
+                IThreadingContext threadingContext)
                 : base(definitionBucket, context.Presenter)
             {
+                _threadingContext = threadingContext;
             }
 
             protected override object? GetValueWorker(string keyName)
@@ -45,9 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => true;
 
-            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-                => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
-                    Presenter._workspace, options, cancellationToken); // Only activate the tab if requested
+            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
+            {
+                var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
+                    Presenter._workspace, cancellationToken).ConfigureAwait(false);
+                await location.TryNavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
+            }
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts

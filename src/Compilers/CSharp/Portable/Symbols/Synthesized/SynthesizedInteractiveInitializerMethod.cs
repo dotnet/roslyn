@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // type declarations but this simple approach matches C#8 behavior.
                 var compilation = DeclaringCompilation;
                 bool value = (compilation.Options.NullableContextOptions != NullableContextOptions.Disable) ||
-                    compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new TextSpan(0, tree.Length)) == true);
+                    compilation.SyntaxTrees.Any(static tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new TextSpan(0, tree.Length)) == true);
                 _lazyIsNullableAnalysisEnabled = value.ToThreeState();
             }
             return _lazyIsNullableAnalysisEnabled == ThreeState.True;
@@ -275,5 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : compilation.GetTypeByReflectionType(submissionReturnTypeOpt, diagnostics);
             returnType = taskT.Construct(resultType);
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

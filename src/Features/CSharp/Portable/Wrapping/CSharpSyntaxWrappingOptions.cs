@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
@@ -16,24 +15,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
         public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
 
         public CSharpSyntaxWrappingOptions(
-            bool useTabs,
-            int tabSize,
-            string newLine,
+            CSharpSyntaxFormattingOptions formattingOptions,
             int wrappingColumn,
             OperatorPlacementWhenWrappingPreference operatorPlacement,
             bool newLinesForBracesInObjectCollectionArrayInitializers)
-            : base(useTabs, tabSize, newLine, wrappingColumn, operatorPlacement)
+            : base(formattingOptions, wrappingColumn, operatorPlacement)
         {
             NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
         }
+    }
 
-        public static CSharpSyntaxWrappingOptions Create(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
+    internal static class CSharpSyntaxWrappingOptionsProviders
+    {
+        public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this AnalyzerConfigOptions options, CodeActionOptions fallbackOptions)
             => new(
-                useTabs: options.GetOption(FormattingOptions2.UseTabs),
-                tabSize: options.GetOption(FormattingOptions2.TabSize),
-                newLine: options.GetOption(FormattingOptions2.NewLine),
+                options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions),
                 operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
-                wrappingColumn: ideOptions.WrappingColumn,
+                wrappingColumn: fallbackOptions.WrappingColumn,
                 newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers));
     }
 }

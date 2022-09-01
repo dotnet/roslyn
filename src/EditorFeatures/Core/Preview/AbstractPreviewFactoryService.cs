@@ -30,12 +30,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : ForegroundThreadAffinitizedObject, IPreviewFactoryService
+    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : IPreviewFactoryService
         where TDifferenceViewer : IDifferenceViewer
     {
         private const double DefaultZoomLevel = 0.75;
         private readonly ITextViewRoleSet _previewRoleSet;
-
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
@@ -43,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IDifferenceBufferFactoryService _differenceBufferService;
         private readonly IGlobalOptionService _globalOptions;
+
+        protected readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -56,10 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IDifferenceBufferFactoryService differenceBufferService,
             ITextViewRoleSet previewRoleSet,
             IGlobalOptionService globalOptions)
-            : base(threadingContext)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
-
+            ThreadingContext = threadingContext;
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;

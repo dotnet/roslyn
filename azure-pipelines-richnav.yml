@@ -23,7 +23,7 @@ jobs:
     demands: ImageOverride -equals windows.vs2022.amd64.open
   variables:
     EnableRichCodeNavigation: true
-  timeoutInMinutes: 200
+  timeoutInMinutes: 260
 
   steps:
     - task: PowerShell@2

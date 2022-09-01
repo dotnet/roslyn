@@ -33,12 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
                 if (info.TypesParts.Count > 0)
-                {
                     AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
-                    foreach (var (group, parts) in _groupMap.ToArray())
-                        _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
-                }
+                foreach (var (group, parts) in _groupMap.ToArray())
+                    _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
             }
         }
     }
