@@ -40,6 +40,12 @@ pr:
       - CONTRIBUTING.md
       - README.md
 
+variables:
+- name: poolName
+  value: NetCore-Public
+- name: queueName
+  value: windows.vs2022.amd64.open 
+
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: VS_Integration_Debug_32
