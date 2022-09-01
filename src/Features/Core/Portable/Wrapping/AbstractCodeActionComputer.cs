@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             ///     2. Edits would change more than whitespace.
             ///     3. A previous code action was created that already had the same effect.
             /// </summary>
-            protected async Task<WrapItemsAction> TryCreateCodeActionAsync(
+            protected async Task<WrapItemsAction?> TryCreateCodeActionAsync(
                 ImmutableArray<Edit> edits, string parentTitle, string title)
             {
                 // First, rewrite the tree with the edits provided.
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // Now, format the part of the tree that we edited.  This will ensure we properly 
                 // respect the user preferences around things like comma/operator spacing.
                 var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat).ConfigureAwait(false);
-                var formattedRoot = await formattedDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
+                var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
 
                 // Now, check if this new formatted tree matches our starting tree, or any of the
                 // trees we've already created for our other code actions.  If so, we don't want to
@@ -223,13 +222,14 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 Dictionary<SyntaxToken, SyntaxTriviaList> leftTokenToTrailingTrivia,
                 Dictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia)
             {
-                var root = await OriginalDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
+                var root = await OriginalDocument.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
                 var tokens = leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct().ToImmutableArray();
 
                 // Find the closest node that contains all the tokens we're editing.  That's the
                 // node we'll format at the end.  This will ensure that all formattin respects
                 // user settings for things like spacing around commas/operators/etc.
                 var nodeToFormat = tokens.SelectAsArray(t => t.Parent).FindInnermostCommonNode<SyntaxNode>();
+                Contract.ThrowIfNull(nodeToFormat);
 
                 // Rewrite the tree performing the following actions:
                 //
@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     trivia: null,
                     computeReplacementTrivia: null);
 
+                Contract.ThrowIfNull(rewrittenRoot);
                 var trackedNode = rewrittenRoot.GetAnnotatedNodes(s_toFormatAnnotation).Single();
 
                 return (root, rewrittenRoot, trackedNode.Span);
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     // both the top level items and the nested items are ordered appropriate.
                     return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, ErrorSeverity.Diagnostic, CancellationToken))
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, CancellationToken, ErrorSeverity.Diagnostic))
                 {
                     throw;
                 }

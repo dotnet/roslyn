@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         {
             // Used for analyzing dumps
 #pragma warning disable IDE0052 // Remove unread private members
-            private readonly SyntaxTree _tree;
+            private readonly SyntaxTree? _tree;
             private readonly SyntaxToken _left;
             private readonly SyntaxToken _right;
 #pragma warning restore IDE0052 // Remove unread private members
