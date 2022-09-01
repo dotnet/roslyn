@@ -731,6 +731,41 @@ class C2
             verifier.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(63570, "https://github.com/dotnet/roslyn/issues/63570")]
+        public void UsingVariableInSwitchCase_05()
+        {
+            var source = """
+                using System;
+                StringSplitOptions temp = StringSplitOptions.RemoveEmptyEntries;
+                switch (temp)
+                {
+                    default:
+                        Console.WriteLine("Default");
+                        break;
+
+                    case StringSplitOptions.RemoveEmptyEntries:
+                    {
+                        using var streamReader = new C1();
+                        goto default;
+                    }
+                }
+                
+                class C1 : IDisposable
+                {
+                    public void Dispose()
+                    {
+                        Console.WriteLine("Disposed");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Disposed
+                Default
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
         [Fact]
         public void UsingVariableDiagnosticsInDeclarationAreOnlyEmittedOnce()
         {
