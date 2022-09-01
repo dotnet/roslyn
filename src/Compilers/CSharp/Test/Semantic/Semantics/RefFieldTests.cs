@@ -16728,11 +16728,11 @@ public delegate void D5<T>(out R<T> r5);
             var sourceB =
 @"class Program
 {
-    static void F1(out int i1) { i1 = 0; } // 1
+    static void F1(out int i1) { i1 = 0; }
     static void F2(R<int> r2) { }
-    static void F3(ref R<int> r3) { } // 2
-    static void F4(in R<int> r4) { } // 3
-    static void F5(out R<int> r5) { r5 = default; } // 4
+    static void F3(ref R<int> r3) { }
+    static void F4(in R<int> r4) { }
+    static void F5(out R<int> r5) { r5 = default; }
     static void Main()
     {
         D1<int> d1 = F1; // 1
