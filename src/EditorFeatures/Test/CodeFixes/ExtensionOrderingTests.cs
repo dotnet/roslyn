@@ -110,8 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(actualOrder.Length > 0);
         }
 
-        [Fact, WorkItem(1599579, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1599579")]
-        public void TestCodeFixServiceOrderIsCorrect()
+        [Theory, WorkItem(1599579, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1599579")]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public void TestCodeFixServiceOrderIsCorrect(string language)
         {
             // This test will fail if a cycle is detected in the ordering of our code fix providers.
             // If this test fails, you can break the cycle by inspecting and fixing up the contents of
@@ -119,21 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var providers = ExportProvider.GetExports<CodeFixProvider, CodeChangeProviderMetadata>();
             var providersPerLanguage = providers.ToPerLanguageMapWithMultipleLanguages();
 
-            TestCodeFixServiceOrderIsCorrectForLanguage(LanguageNames.CSharp, providersPerLanguage);
-            TestCodeFixServiceOrderIsCorrectForLanguage(LanguageNames.VisualBasic, providersPerLanguage);
-        }
-
-        private static void TestCodeFixServiceOrderIsCorrectForLanguage(
-            string language, ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> providersPerLanguage)
-        {
-            var providers = providersPerLanguage[language];
+            var langProviders = providersPerLanguage[language];
 
             // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException if cycle is detected.
-            ExtensionOrderer.TestAccessor.CheckForCycles(providers);
+            ExtensionOrderer.TestAccessor.CheckForCycles(langProviders);
 
             // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
             // break the cycle and the resulting order will end up being unpredictable.
-            var expectedOrder = ExtensionOrderer.Order(providers).Select(lazy => lazy.Value).ToImmutableArray();
+            var expectedOrder = ExtensionOrderer.Order(langProviders).Select(lazy => lazy.Value).ToImmutableArray();
 
             var codeFixService = (CodeFixService)ExportProvider.GetExportedValue<ICodeFixService>();
             var codeFixPriorityMap = codeFixService.GetTestAccessor().GetFixerPriorityPerLanguageMap(services: null!)[language].Value;
