@@ -13041,7 +13041,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,18): error CS9067: Parameter 1 has default value '4' in lambda and '3' in the target delegate type.
+                // (9,18): error CS9501: Parameter 1 has default value '4' in lambda and '3' in the target delegate type.
                 //         m = (int i = 4) => i;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "4", "3").WithLocation(9, 18));
         }
@@ -13064,7 +13064,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,18): error CS9067: Parameter 1 has default value '4' in lambda and '<missing>' in the target delegate type.
+                // (9,18): error CS9501: Parameter 1 has default value '4' in lambda and '<missing>' in the target delegate type.
                 //         m = (int i = 4) => i;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "4", "<missing>").WithLocation(9, 18),
                 // (10,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'

@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
-        public static void CheckDefaultParameterMatch(ErrorCode code, ParameterSymbol source, ParameterSymbol target, Location location, BindingDiagnosticBag diagnostics)
+        private static void CheckDefaultParameterMatch(ErrorCode code, ParameterSymbol source, ParameterSymbol target, Location location, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(code is ErrorCode.ERR_OptionalParamValueMismatch or ErrorCode.WRN_OptionalParamValueMismatch);
 
@@ -1343,12 +1343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var start = isExtensionMethod ? 1 : 0;
             Debug.Assert(sourceMethod.ParameterCount == targetDelegateInvoke.ParameterCount + start);
 
-            for (int i = start; i < sourceMethod.ParameterCount; i++)
+            for (int i = 0; i < targetDelegateInvoke.ParameterCount; i++)
             {
-                var delegateParameter = targetDelegateInvoke.Parameters[isExtensionMethod ? i - 1 : i];
+                var delegateParameter = targetDelegateInvoke.Parameters[i];
                 if (delegateParameter.HasExplicitDefaultValue)
                 {
-                    CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceMethod.Parameters[i], delegateParameter, methodGroupSyntax.Location, diagnostics);
+                    CheckDefaultParameterMatch(ErrorCode.WRN_OptionalParamValueMismatch, sourceMethod.Parameters[i + start], delegateParameter, methodGroupSyntax.Location, diagnostics);
                 }
             }
         }
