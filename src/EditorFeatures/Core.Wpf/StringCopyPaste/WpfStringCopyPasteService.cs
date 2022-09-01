@@ -4,7 +4,8 @@
 
 using System;
 using System.Composition;
-using System.Windows;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
         public bool TrySetClipboardData(string key, string data)
         {
+            const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
+
             try
             {
                 var dataObject = Clipboard.GetDataObject();
@@ -40,8 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
                 copy.SetData(GetFormat(key), data);
 
-                Clipboard.SetDataObject(copy);
+                // Similar to what WinForms does, except that instead of blocking for up to 1s, we only block for up to 100ms.
+                Clipboard.SetDataObject(copy, copy: false, retryTimes: 5, retryDelay: 20);
                 return true;
+            }
+            catch (COMException ex) when ((uint)ex.ErrorCode == CLIPBRD_E_CANT_OPEN)
+            {
+                // Expected exception.  The clipboard is a shared windows resource that can be locked by any other
+                // process. If we weren't able to acquire it, then just bail out gracefully.
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
