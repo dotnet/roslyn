@@ -13,7 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     Friend NotInheritable Class VisualBasicUnnecessaryImportsProvider
         Inherits AbstractUnnecessaryImportsProvider(Of ImportsClauseSyntax)
 
-        Private Const BC30561 As String = "BC30561" 'X' is ambiguous, imported from the namespaces or types...
+        Private Const BC30561 As String = NameOf(BC30561) 'X' is ambiguous, imported from the namespaces or types...
+        Private Const BC50000 As String = NameOf(BC50000) ' HDN_UnusedImportClause
+        Private Const BC50001 As String = NameOf(BC50001) ' HDN_UnusedImportStatement
 
         Public Shared Instance As New VisualBasicUnnecessaryImportsProvider
 
@@ -32,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Dim unnecessaryImports = ArrayBuilder(Of ImportsClauseSyntax).GetInstance()
 
             For Each diagnostic In diagnostics
-                If diagnostic.Id = "BC50000" Then
+                If diagnostic.Id = BC50000 Then
                     Dim node = TryCast(root.FindNode(diagnostic.Location.SourceSpan), ImportsClauseSyntax)
                     If node IsNot Nothing AndAlso predicate(node) Then
                         unnecessaryImports.Add(node)
                     End If
                 End If
 
-                If diagnostic.Id = "BC50001" Then
+                If diagnostic.Id = BC50001 Then
                     Dim node = TryCast(root.FindNode(diagnostic.Location.SourceSpan), ImportsStatementSyntax)
                     If node IsNot Nothing AndAlso predicate(node) Then
                         unnecessaryImports.AddRange(node.ImportsClauses)
