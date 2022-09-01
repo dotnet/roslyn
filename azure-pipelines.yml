@@ -182,7 +182,7 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
@@ -198,7 +198,7 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
@@ -240,7 +240,7 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
