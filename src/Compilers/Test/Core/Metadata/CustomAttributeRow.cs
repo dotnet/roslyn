@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    internal struct CustomAttributeRow : IEquatable<CustomAttributeRow>
+    internal readonly struct CustomAttributeRow : IEquatable<CustomAttributeRow>
     {
         public readonly EntityHandle ParentToken;
         public readonly EntityHandle ConstructorToken;

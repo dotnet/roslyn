@@ -588,6 +588,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
         /// <summary>
         /// Some method kinds do not participate in overriding/hiding (e.g. constructors).
         /// </summary>

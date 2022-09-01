@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Classification
             worker.Recurse(root);
         }
 
-        private ref struct Worker
+        private readonly ref struct Worker
         {
             private readonly AbstractEmbeddedLanguageClassificationService _owner;
             private readonly Project _project;
