@@ -144,24 +144,32 @@ internal static class MinimizeUtil
             }
 
             var builder = new StringBuilder();
+            var fileName = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
             foreach (var group in grouping)
             {
-                string filename;
                 builder.Clear();
                 if (isUnix)
                 {
-                    filename = "rehydrate.sh";
                     writeUnixRehydrateContent(builder, group);
-                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, "rehydrate.sh") + @"""");
+                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, fileName) + @"""");
                 }
                 else
                 {
-                    filename = "rehydrate.cmd";
                     writeWindowsRehydrateContent(builder, group);
-                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, "rehydrate.cmd"));
+                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, fileName));
                 }
 
-                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
+                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, fileName), builder.ToString());
+            }
+
+            // Even if we didn't have any duplicates, write out a file since later scripts rely on its existence.
+            var noDuplicatesGrouping = idToFilePathMap.Values
+                .SelectMany(v => v)
+                .GroupBy(v => getGroupDirectory(v.RelativeDirectory));
+            foreach (var noDuplicate in noDuplicatesGrouping)
+            {
+                var file = Path.Combine(destinationDirectory, noDuplicate.Key, fileName);
+                File.WriteAllText(file, "echo \"Nothing to rehydrate\"");
             }
 
             string rehydrateAllFilename = isUnix ? "rehydrate-all.sh" : "rehydrate-all.cmd";
