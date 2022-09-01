@@ -5,7 +5,7 @@ pr: none
 jobs:
 - job: RichCodeNav_Indexing
   pool:
-    name: NetCore1ESPool-Svc-Public
+    name: NetCore-Svc-Public
     demands: ImageOverride -equals windows.vs2019.amd64.open
   variables:
     EnableRichCodeNavigation: true
