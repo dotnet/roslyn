@@ -35,8 +35,44 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected ActiveSpanState currentState;
         protected bool updatePending = false;
 
+        private InlineRenameSession _currentSession;
+
         public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService)
-            => this.InlineRenameService = inlineRenameService;
+        {
+            this.InlineRenameService = inlineRenameService;
+            InlineRenameService.ActiveSessionChanged += InlineRenameService_ActiveSessionChanged;
+        }
+
+        private void InlineRenameService_ActiveSessionChanged(object sender, InlineRenameService.ActiveSessionChangedEventArgs e)
+        {
+            if (_currentSession is not null)
+            {
+                _currentSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
+            }
+
+            _currentSession = InlineRenameService.ActiveSession;
+
+            if (_currentSession is not null)
+            {
+                _currentSession.ReplacementTextChanged += InlineRenameSession_ReplacementTextChanged;
+            }
+        }
+
+        private void InlineRenameSession_ReplacementTextChanged(object sender, System.EventArgs e)
+        {
+            if (currentState.ReplacementText != _currentSession.ReplacementText)
+            {
+                // No need to update anchor points here, just make sure the state in the undo stack
+                // ends up with the correct replacement text. This can happen if the text buffer isn't
+                // edited directly
+                this.currentState = new ActiveSpanState()
+                {
+                    ReplacementText = _currentSession.ReplacementText,
+                    SelectionAnchorPoint = currentState.SelectionAnchorPoint,
+                    SelectionActivePoint = currentState.SelectionActivePoint
+                };
+            }
+        }
 
         public void Disconnect()
         {
