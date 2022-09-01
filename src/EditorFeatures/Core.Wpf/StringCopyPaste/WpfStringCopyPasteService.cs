@@ -5,6 +5,8 @@
 using System;
 using System.Composition;
 using System.Runtime.InteropServices;
+// Use of System.Windows.Forms over System.Windows is intentional here.  S.W.F has logic in its clipboard impl to help
+// with common errors.
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
