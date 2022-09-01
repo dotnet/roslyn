@@ -52,12 +52,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         [DataMember(Order = 7)]
         public readonly ImmutableArray<TextSpan> NameMatchSpans;
 
-        /// <summary>
-        /// How close these files are in terms of file system path.  Identical files will have distance 0. Files in the
-        /// same folder will have distance 1.  Files in different folders will have increasing values here depending on
-        /// how many folder elements they share/differ on.
-        /// </summary>
-
         public RoslynNavigateToItem(
             bool isStale,
             DocumentId documentId,
@@ -151,6 +145,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 return string.Join(" ", parts);
 
+                // How close these files are in terms of file system path.  Identical files will have distance 0. Files
+                // in the same folder will have distance 1.  Files in different folders will have increasing values here
+                // depending on how many folder elements they share/differ on.
                 int ComputeFolderDistance()
                 {
                     // No need to compute anything if there is no active document.  Consider all documents equal.
