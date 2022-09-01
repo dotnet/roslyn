@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 #pragma warning restore IDE0052 // Remove unread private members
 
             public InvalidEditException(SyntaxToken left, SyntaxToken right)
-                : base($"Left token: '{left}' had an end past the start of right token: '{right}'")
+                : base($"Left token had an end '{left.Span.End}' past the start of right token '{right.Span.Start}'")
             {
                 _tree = left.SyntaxTree;
                 _left = left;
