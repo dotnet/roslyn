@@ -864,10 +864,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var fixers = ExtensionOrderer.Order(lazyFixers);
                     for (var i = 0; i < fixers.Count; i++)
                     {
-                        if (!TryGetWorkspaceFixer(lazyFixers[i], services, logExceptionWithInfoBar: false, out var fixer))
-                        {
+                        if (!TryGetWorkspaceFixer(fixers[i], services, logExceptionWithInfoBar: false, out var fixer))
                             continue;
-                        }
 
                         priorityMap.Add(fixer, i);
                     }
