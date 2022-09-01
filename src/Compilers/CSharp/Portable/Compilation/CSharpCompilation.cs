@@ -3836,6 +3836,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetEntryPoint(cancellationToken).GetPublicSymbol();
         }
 
+        protected override ImmutableArray<IMethodSymbol> CommonGetEntryPointCandidates(CancellationToken cancellationToken)
+        {
+            // Global code is the entry point, ignore all other Mains.
+            var scriptClass = this.ScriptClass;
+            if (scriptClass is not null)
+            {
+                return ImmutableArray.Create(scriptClass.GetScriptEntryPoint().GetPublicSymbol());
+            }
+
+            var viableEntryPoints = ArrayBuilder<IMethodSymbol>.GetInstance();
+
+            // Add simple program entry point
+            var simpleProgramEntryPointSymbol = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this);
+            if (simpleProgramEntryPointSymbol is not null)
+            {
+                viableEntryPoints.Add(simpleProgramEntryPointSymbol.GetPublicSymbol());
+            }
+
+            // Find all static methods named "Main"
+            var staticMembersNamedMain = ArrayBuilder<MethodSymbol>.GetInstance();
+            AddEntryPointCandidates(
+                        staticMembersNamedMain,
+                        this.GetSymbolsWithNameCore(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
+
+
+            // Add as candidate if it has the correct signature
+            var diagnostics = BindingDiagnosticBag.Discarded;
+            var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate)>.GetInstance();
+            foreach (var candidate in staticMembersNamedMain)
+            {
+                var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, diagnostics);
+
+                if (IsTaskLike)
+                {
+                    taskEntryPoints.Add((IsCandidate, candidate));
+                }
+                else
+                {
+                    if (checkValid(candidate, IsCandidate))
+                    {
+                        if (!candidate.IsAsync)
+                        {
+                            viableEntryPoints.Add(candidate.GetPublicSymbol());
+                        }
+                    }
+                }
+            }
+
+            staticMembersNamedMain.Free();
+
+            // Add as candidate if async Main is allowed as a feature
+            foreach (var (IsValid, Candidate) in taskEntryPoints)
+            {
+                if (checkValid(Candidate, IsValid) &&
+                    CheckFeatureAvailability(Candidate.ExtractReturnTypeSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics))
+                {
+                    viableEntryPoints.Add(Candidate.GetPublicSymbol());
+                }
+            }
+            taskEntryPoints.Free();
+
+            return viableEntryPoints.ToImmutableAndFree();
+
+            static bool checkValid(MethodSymbol candidate, bool isCandidate)
+            {
+                if (!isCandidate)
+                {
+                    return false;
+                }
+
+                if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
         internal override int CompareSourceLocations(Location loc1, Location loc2)
         {
             Debug.Assert(loc1.IsInSource);

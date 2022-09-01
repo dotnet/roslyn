@@ -13,7 +13,5 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
     internal class CSharpRemoveUnusedMembersDiagnosticAnalyzer
         : AbstractRemoveUnusedMembersDiagnosticAnalyzer<DocumentationCommentTriviaSyntax, IdentifierNameSyntax>
     {
-        public override bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType)
-            => methodSymbol.IsCSharpEntryPoint(taskType, genericTaskType);
     }
 }

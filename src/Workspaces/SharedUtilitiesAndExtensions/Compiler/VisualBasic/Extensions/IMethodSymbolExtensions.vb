@@ -45,16 +45,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return False
         End Function
-
-        Private ReadOnly s_entryPointMethodNames As ImmutableArray(Of String) = ImmutableArray.Create(WellKnownMemberNames.EntryPointMethodName)
-
-        <Extension()>
-        Public Function IsVisualBasicEntryPoint(methodSymbol As IMethodSymbol) As Boolean
-            Return methodSymbol.IsEntryPoint(
-                VisualBasicSyntaxFacts.Instance.StringComparer,
-                s_entryPointMethodNames,
-                Nothing,
-                Nothing)
-        End Function
     End Module
 End Namespace

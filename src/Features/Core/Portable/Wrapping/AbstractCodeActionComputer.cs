@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 foreach (var group in wrappingGroups)
                 {
                     // if a group is empty just ignore it.
-                    var wrappingActions = group.WrappingActions.WhereNotNull().ToImmutableArray();
+                    var wrappingActions = group.WrappingActions.WhereNotNull();
                     if (wrappingActions.Length == 0)
                     {
                         continue;

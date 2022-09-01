@@ -5,43 +5,20 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
-    internal class EntryPointFinder : AbstractEntryPointFinder
+    internal class EntryPointFinder
     {
-        private readonly INamedTypeSymbol? _taskType;
-        private readonly INamedTypeSymbol? _taskOfType;
-
-        public EntryPointFinder(Compilation? compilation)
-        {
-            _taskType = compilation?.TaskType();
-            _taskOfType = compilation?.TaskOfTType();
-        }
-
         [Obsolete("FindEntryPoints on a INamespaceSymbol is deprecated, please pass in the Compilation instead.")]
         public static IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol)
         {
-            // This differs from the VB implementation (Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.EntryPointFinder)
-            // because we don't ever consider forms entry points.
-            // Techinically, this is wrong but it just doesn't matter since the
-            // ref assemblies are unlikely to have a random Main() method that matches
-            var visitor = new EntryPointFinder(symbol.ContainingCompilation);
-            visitor.Visit(symbol);
-            return visitor.EntryPoints;
+            return FindEntryPoints(symbol.ContainingCompilation!);
         }
 
         public static IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation)
-        {
-            var visitor = new EntryPointFinder(compilation);
-            visitor.Visit(compilation.SourceModule.GlobalNamespace);
-            return visitor.EntryPoints;
-        }
-
-        protected override bool IsEntryPoint(IMethodSymbol methodSymbol)
-            => methodSymbol.IsCSharpEntryPoint(_taskType, _taskOfType);
+            => compilation.GetEntryPointCandidates(default)
+                .SelectAsArray(static x => x.ContainingSymbol as INamedTypeSymbol)
+                .WhereNotNull();
     }
 }

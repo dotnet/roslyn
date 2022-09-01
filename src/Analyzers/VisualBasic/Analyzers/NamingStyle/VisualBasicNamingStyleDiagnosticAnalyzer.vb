@@ -28,9 +28,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
             Return False
         End Function
-
-        Protected Overrides Function IsEntryPoint(methodSymbol As IMethodSymbol, taskType As INamedTypeSymbol, genericTaskType As INamedTypeSymbol) As Boolean
-            Return methodSymbol.IsVisualBasicEntryPoint()
-        End Function
     End Class
 End Namespace

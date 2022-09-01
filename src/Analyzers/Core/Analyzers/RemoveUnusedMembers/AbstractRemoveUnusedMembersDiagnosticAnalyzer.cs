@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public abstract bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType);
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationStartContext
                 => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext, this));
@@ -85,7 +83,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
-            private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+            private readonly Compilation _compilation;
+            private readonly INamedTypeSymbol? _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol? _eventArgsType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
@@ -98,8 +97,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _gate = new object();
                 _analyzer = analyzer;
 
-                _taskType = compilation.TaskType();
-                _genericTaskType = compilation.TaskOfTType();
+                _compilation = compilation;
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
@@ -666,7 +664,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     }
 
                                     // Do not flag unused entry point (Main) method.
-                                    if (_analyzer.IsEntryPoint(methodSymbol, _taskType, _genericTaskType))
+                                    if (_compilation.IsEntryPointCandidate(methodSymbol))
                                     {
                                         return false;
                                     }

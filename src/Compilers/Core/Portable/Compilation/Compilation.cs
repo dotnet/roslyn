@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -926,6 +925,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IMethodSymbol? CommonGetEntryPoint(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns all valid entry points in the compilation or an empty collection if none are present.
+        /// </summary>
+        public ImmutableArray<IMethodSymbol> GetEntryPointCandidates(CancellationToken cancellationToken)
+        {
+            return CommonGetEntryPointCandidates(cancellationToken);
+        }
+
+        protected abstract ImmutableArray<IMethodSymbol> CommonGetEntryPointCandidates(CancellationToken cancellationToken);
 
         /// <summary>
         /// Get the symbol for the predefined type from the Cor Library referenced by this

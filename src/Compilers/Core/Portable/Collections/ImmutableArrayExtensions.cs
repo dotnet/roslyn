@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Linq;
@@ -251,9 +252,9 @@ namespace Microsoft.CodeAnalysis
                 return selector(source[0], arg, cancellationToken);
             }
 
-            return CreateTask();
+            return createTask();
 
-            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            async ValueTask<ImmutableArray<TResult>> createTask()
             {
                 var builder = ArrayBuilder<TResult>.GetInstance();
 
@@ -332,6 +333,15 @@ namespace Microsoft.CodeAnalysis
         /// <param name="predicate">The delegate that defines the conditions of the element to search for.</param>
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
             => WhereAsArrayImpl(array, predicateWithoutArg: null, predicate, arg);
+
+        private static readonly Func<object?, bool> s_notNullTest = x => x != null;
+
+        /// <summary>
+        /// Filters out null items from an immutable array
+        /// </summary>
+        public static ImmutableArray<T> WhereNotNull<T>(this ImmutableArray<T?> array)
+            where T : class
+            => WhereAsArrayImpl<T?, object?>(array, s_notNullTest, predicateWithArg: null, arg: null)!;
 
         private static ImmutableArray<T> WhereAsArrayImpl<T, TArg>(ImmutableArray<T> array, Func<T, bool>? predicateWithoutArg, Func<T, TArg, bool>? predicateWithArg, TArg arg)
         {
@@ -413,17 +423,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     return true;
                 }
-            }
-
-            return false;
-        }
-
-        public static bool Any<T, TArg1, TArg2>(this ImmutableArray<T> array, Func<T, TArg1, TArg2, bool> predicate, TArg1 arg1, TArg2 arg2)
-        {
-            foreach (var value in array)
-            {
-                if (predicate(value, arg1, arg2))
-                    return true;
             }
 
             return false;

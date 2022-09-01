@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // input "analyzerReferencesMap" is a dictionary, so there will be no duplication here.
-                builder.Add(reference.Key, analyzers.WhereNotNull().ToImmutableArray());
+                builder.Add(reference.Key, analyzers);
             }
 
             return builder.ToImmutable();

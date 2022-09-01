@@ -35,10 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
                 SyntaxKind.HandlesClause)
         End Sub
 
-        Public Overrides Function IsEntryPoint(methodSymbol As IMethodSymbol, taskType As INamedTypeSymbol, genericTaskType As INamedTypeSymbol) As Boolean
-            Return methodSymbol.IsVisualBasicEntryPoint()
-        End Function
-
         Private Shared Sub AnalyzeHandlesClause(context As SyntaxNodeAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
             ' Identify all symbol references within the HandlesClause.
             For Each node In context.Node.DescendantNodes()

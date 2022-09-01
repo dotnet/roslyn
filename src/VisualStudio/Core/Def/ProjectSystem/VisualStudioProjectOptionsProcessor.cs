@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 .WithConcurrentBuild(concurrent: false)
                 .WithXmlReferenceResolver(new XmlFileResolver(_commandLineArgumentsForCommandLine.BaseDirectory))
                 .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
-                .WithStrongNameProvider(new DesktopStrongNameProvider(_commandLineArgumentsForCommandLine.KeyFileSearchPaths.WhereNotNull().ToImmutableArray()));
+                .WithStrongNameProvider(new DesktopStrongNameProvider(_commandLineArgumentsForCommandLine.KeyFileSearchPaths));
 
             // Override the default documentation mode.
             var documentationMode = _commandLineArgumentsForCommandLine.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;

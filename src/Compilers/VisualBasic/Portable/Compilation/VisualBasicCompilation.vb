@@ -2925,6 +2925,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetEntryPoint(cancellationToken)
         End Function
 
+        Protected Overrides Function CommonGetEntryPointCandidates(cancellationToken As CancellationToken) As ImmutableArray(Of IMethodSymbol)
+            If ScriptClass IsNot Nothing Then
+                Return ImmutableArray.Create(Of IMethodSymbol)(ScriptClass.GetScriptEntryPoint())
+            End If
+
+            Dim entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
+
+            For Each candidate In Me.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken)
+                Dim method = TryCast(candidate, MethodSymbol)
+                If method?.IsEntryPointCandidate = True Then
+                    entryPointCandidates.Add(method)
+                End If
+            Next
+
+            Dim viableEntryPoints = ArrayBuilder(Of IMethodSymbol).GetInstance()
+
+            For Each candidate In entryPointCandidates
+                If Not candidate.IsViableMainMethod Then
+                    Continue For
+                End If
+
+                If candidate.IsGenericMethod OrElse candidate.ContainingType.IsGenericType OrElse candidate.IsAsync Then
+                    Continue For
+                Else
+                    viableEntryPoints.Add(candidate)
+                End If
+            Next
+
+            Return viableEntryPoints.ToImmutableAndFree()
+
+        End Function
+
         ''' <summary>
         ''' Return true if there is a source declaration symbol name that meets given predicate.
         ''' </summary>

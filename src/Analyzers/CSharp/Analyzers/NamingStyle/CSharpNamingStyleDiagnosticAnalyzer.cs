@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
                 SyntaxKind.Parameter,
                 SyntaxKind.TypeParameter);
 
-        protected override bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType)
-            => methodSymbol.IsCSharpEntryPoint(taskType, genericTaskType);
-
         protected override bool ShouldIgnore(ISymbol symbol)
         {
             if (symbol.IsKind(SymbolKind.Parameter)

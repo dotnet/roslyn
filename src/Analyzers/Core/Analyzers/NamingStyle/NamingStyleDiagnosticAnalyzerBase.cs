@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected abstract bool ShouldIgnore(ISymbol symbol);
 
-        protected abstract bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType);
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
 
@@ -114,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            if (symbol is IMethodSymbol methodSymbol && IsEntryPoint(methodSymbol, compilation.TaskType(), compilation.TaskOfTType()))
+            if (symbol is IMethodSymbol methodSymbol && compilation.IsEntryPointCandidate(methodSymbol, cancellationToken))
             {
                 return null;
             }

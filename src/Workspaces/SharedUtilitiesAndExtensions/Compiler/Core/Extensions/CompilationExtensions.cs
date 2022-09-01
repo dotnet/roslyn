@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -65,6 +66,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return type;
+        }
+
+        public static bool IsEntryPointCandidate(this Compilation compilation, IMethodSymbol methodSymbol, CancellationToken token = default)
+        {
+            var entryPoints = compilation.GetEntryPointCandidates(token);
+            return entryPoints.Any(static (e, m) => e.Equals(m), methodSymbol);
         }
     }
 }
