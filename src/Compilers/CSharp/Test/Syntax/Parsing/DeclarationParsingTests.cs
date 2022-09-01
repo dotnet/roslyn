@@ -5796,7 +5796,7 @@ class C {
             Assert.Equal(0, file.Errors().Length);
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,26): error CS9067: Parameter 1 has default value 'default(int)' in lambda and '<missing>' in the target delegate type.
+                // (5,26): error CS9501: Parameter 1 has default value 'default(int)' in lambda and '<missing>' in the target delegate type.
                 //      F f = delegate (int x = 0) { };
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "default(int)", "<missing>").WithLocation(5, 26));
         }
