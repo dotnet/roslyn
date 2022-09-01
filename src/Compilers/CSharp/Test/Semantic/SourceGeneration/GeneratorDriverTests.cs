@@ -3154,7 +3154,9 @@ public static readonly string F = ""a""
         public void Post_Init_Trees_Are_Reparsed_When_ParseOptions_Change()
         {
             var source = "class C{}";
-            var postInitSource = "class D {  (int, bool) _field; }";
+            var postInitSource = @"
+#pragma warning disable CS0169
+class D {  (int, bool) _field; }";
 
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
@@ -3167,10 +3169,11 @@ public static readonly string F = ""a""
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            compilation.VerifyDiagnostics();
             Assert.Empty(diagnostics);
 
             // change the parse options so that the tree is no longer accepted
-            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp1);
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp2);
             compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             driver = driver.WithUpdatedParseOptions(parseOptions);
 
@@ -3179,13 +3182,19 @@ public static readonly string F = ""a""
 
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
             diagnostics.Verify();
+            compilation.VerifyDiagnostics(
+                    // Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator\D.cs(3,12): error CS8022: Feature 'tuples' is not available in C# 2. Please use language version 7.0 or greater.
+                    // class D {  (int, bool) _field; }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "(int, bool)").WithArguments("tuples", "7.0").WithLocation(3, 12)
+                );
 
             // change them back to something where it is supported
             parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp8);
             compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             driver = driver.WithUpdatedParseOptions(parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
-            Assert.Empty(diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
         }
     }
 }
