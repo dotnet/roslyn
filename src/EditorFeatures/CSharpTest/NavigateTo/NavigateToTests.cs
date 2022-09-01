@@ -7,13 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -1678,6 +1675,11 @@ testHost, composition, @"record Goo(int Member)
 });
         }
 
+        private static bool IsFromFile(NavigateToItem item, string fileName)
+        {
+            return ((CodeAnalysis.NavigateTo.INavigateToSearchResult)item.Tag).NavigableItem.Document.Name == fileName;
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task NavigateToPrioritizeResultInCurrentDocument1(TestHost testHost)
@@ -1719,8 +1721,8 @@ testHost, composition, @"record Goo(int Member)
 
                 VerifyNavigateToResultItems(expectedItems, items);
 
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0001"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
             });
         }
 
@@ -1765,8 +1767,8 @@ testHost, composition, @"record Goo(int Member)
 
                 VerifyNavigateToResultItems(expectedItems, items);
 
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0001"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
             });
         }
 
@@ -1811,8 +1813,8 @@ testHost, composition, @"record Goo(int Member)
 
                 VerifyNavigateToResultItems(expectedItems, items);
 
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0002"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
             });
         }
 
@@ -1857,8 +1859,8 @@ testHost, composition, @"record Goo(int Member)
 
                 VerifyNavigateToResultItems(expectedItems, items);
 
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0002"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
             });
         }
 
@@ -1903,8 +1905,8 @@ testHost, composition, @"record Goo(int Member)
 
                 VerifyNavigateToResultItems(expectedItems, items);
 
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0000"));
-                Assert.Single(items, i => i.SecondarySort.StartsWith("0003"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
+                Assert.Single(items, i => i.SecondarySort.StartsWith("0003") && IsFromFile(i, "File2.cs"));
             });
         }
     }
