@@ -22,7 +22,7 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:
