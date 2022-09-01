@@ -426,6 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract DeclarationScope EffectiveScope { get; }
 
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
         public override bool HasUnsupportedMetadata

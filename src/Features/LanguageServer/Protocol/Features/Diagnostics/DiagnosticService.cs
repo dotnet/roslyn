@@ -32,19 +32,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate = new();
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = new();
 
-        public IGlobalOptionService GlobalOptions { get; }
-
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
-            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
-            GlobalOptions = globalOptions;
-
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events
             // fired before the aggregator is created.
@@ -202,10 +197,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // all events are serialized by async event handler
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
-
-        [Obsolete]
-        ImmutableArray<DiagnosticData> IDiagnosticService.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetPullDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
