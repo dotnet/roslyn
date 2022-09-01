@@ -3829,7 +3829,7 @@ public class FileModifierTests : CSharpTestBase
         var comp0 = CreateCompilation((fileTypeSource, filePath), options: TestOptions.SigningReleaseDll);
         comp0.VerifyDiagnostics();
         var classC1 = comp0.GetMember<NamedTypeSymbol>("C1");
-        var originalFileIdentifier = classC1.AssociatedFileIdentifier!.Value;
+        Assert.True(classC1.GetPublicSymbol().IsFileLocal);
 
         var reference = comp0.ToMetadataReference();
 
@@ -3854,7 +3854,9 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NameNotInContext, "C1").WithArguments("C1").WithLocation(5, 9));
         var retargeted = comp1.GetMember<NamedTypeSymbol>("C1");
         Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
+        Assert.False(retargeted.GetPublicSymbol().IsFileLocal);
 
+        var originalFileIdentifier = classC1.AssociatedFileIdentifier!.Value;
         var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!.Value;
         Assert.Equal(originalFileIdentifier.DisplayFilePath, retargetedFileIdentifier.DisplayFilePath);
         Assert.Equal((IEnumerable<byte>)originalFileIdentifier.FilePathChecksumOpt, (IEnumerable<byte>)retargetedFileIdentifier.FilePathChecksumOpt);
