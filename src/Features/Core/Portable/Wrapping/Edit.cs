@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -23,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             SyntaxToken left, SyntaxTriviaList newLeftTrailingTrivia,
             SyntaxToken right, SyntaxTriviaList newRightLeadingTrivia)
         {
-            Contract.ThrowIfTrue(left.Span.End > right.Span.Start, $"Left token: '{left.ToString()}' had an end past the start of right token: '{right.ToString()}'");
+            if (left.Span.End > right.Span.Start)
+                throw new InvalidEditException(left, right);
 
             Left = left;
             Right = right;
@@ -67,6 +69,24 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode()!.GetLastToken();
             var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode()!.GetFirstToken();
             return new Edit(leftLastToken, leftTrailingTrivia, rightFirstToken, rightLeadingTrivia);
+        }
+
+        private sealed class InvalidEditException : Exception
+        {
+            // Used for analyzing dumps
+#pragma warning disable IDE0052 // Remove unread private members
+            private readonly SyntaxTree _tree;
+            private readonly SyntaxToken _left;
+            private readonly SyntaxToken _right;
+#pragma warning restore IDE0052 // Remove unread private members
+
+            public InvalidEditException(SyntaxToken left, SyntaxToken right)
+                : base($"Left token: '{left}' had an end past the start of right token: '{right}'")
+            {
+                _tree = left.SyntaxTree;
+                _left = left;
+                _right = right;
+            }
         }
     }
 }
