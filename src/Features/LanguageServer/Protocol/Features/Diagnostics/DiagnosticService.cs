@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
