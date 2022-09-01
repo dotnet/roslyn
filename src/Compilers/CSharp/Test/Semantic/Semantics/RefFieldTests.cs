@@ -15894,5 +15894,32 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
         }
+
+        [Fact]
+        [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
+        public void CallUnscopedRefMethodFromScopedOne()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+
+ref struct A
+{
+    void Test()
+    {
+        this.GetSpan();
+    }
+
+    [UnscopedRef]
+    Span<byte> GetSpan() => default;
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         this.GetSpan();
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
+                );
+        }
     }
 }
