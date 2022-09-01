@@ -1,17 +1,18 @@
 # Branches that trigger a build on commit
 trigger:
-  include:
-  - main
-  - main-vs-deps
-  - release/*
-  - features/*
-  - demos/*
-  exclude:
-  # Since the version of VS on the integration VM images are a moving target,
-  # we are unable to reliably run integration tests on servicing branches.
-  - release/dev17.0-vs-deps
-  - release/dev17.2
-  - release/dev17.3
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+    exclude:
+    # Since the version of VS on the integration VM images are a moving target,
+    # we are unable to reliably run integration tests on servicing branches.
+    - release/dev17.0-vs-deps
+    - release/dev17.2
+    - release/dev17.3
 
 # Branches that trigger builds on PR
 pr:
@@ -41,6 +42,12 @@ pr:
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
+
+variables:
+- name: poolName
+  value: NetCore-Public
+- name: queueName
+  value: windows.vs2022.amd64.open 
 
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:

@@ -33,13 +33,15 @@ pr:
   - release/dev17.3
 
 variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+- name: XUNIT_LOGS
+  value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+- name: queueName
+  value: windows.vs2022.amd64.open  
 
 jobs:
 - job: VS_Integration_LSP
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 150
 
