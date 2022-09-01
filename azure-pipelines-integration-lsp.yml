@@ -25,7 +25,7 @@ variables:
 jobs:
 - job: VS_Integration_LSP
   pool:
-    name: NetCore1ESPool-Public
+    name: NetCore-Public
     demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 150
 
