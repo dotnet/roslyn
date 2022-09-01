@@ -4068,7 +4068,89 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndRefactorInitializerInSameClass()
+        public async Task TestMovePropertiesAndRefactorInitializerWithNullableReferenceTypes()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public C? Node { get; init; }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, C? Node);
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, null);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerWithNullableValueTypes()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool? B { get; init; }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool? B);
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, null);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass1()
         {
             var initialMarkup = @"
 namespace N
@@ -4098,6 +4180,78 @@ namespace N
         {
             return new C(0, false);
         }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass2()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public C? Node { get; init; }
+
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                Node = new C
+                {
+                    P = 1,
+                    Node = null,
+                }
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, C? Node)
+    {
+        public static C GetC()
+        {
+            return new C(0, new C(1, null));
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass3()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public static C Default = new C
+        {
+            P = 0,
+            B = true,
+        };
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public static C Default = new C(0, true);
     }
 }
 ";

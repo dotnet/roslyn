@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var propertiesToAssign = positionalParameterInfos.SelectAsArray(info => info.Symbol);
             var primaryConstructor = typeDeclaration.Members
                 .OfType<ConstructorDeclarationSyntax>()
-
                 .FirstOrDefault(constructor =>
                 {
                     var constructorSymbol = (IMethodSymbol)semanticModel
@@ -114,6 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 });
 
             var solutionEditor = new SolutionEditor(document.Project.Solution);
+            // we must refactor usages first because usages can appear within the class definition and
+            // individual members, and changing a parent first invalidates the tracking done on the child
             await RefactorInitializersAsync(type, solutionEditor, propertiesToAssign, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -207,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         var modifiedConstructor = constructor
                             .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
                             .WithInitializer(SyntaxFactory.ConstructorInitializer(
-                                SyntaxKind.ThisConstructorInitializer,
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                                    SyntaxKind.ThisConstructorInitializer,
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
                                     expressions.Select(SyntaxFactory.Argument)))));
 
                         documentEditor.ReplaceNode(constructor, modifiedConstructor);
@@ -464,20 +465,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 {
                     // since this is a CSharp-dependent file, we need to have specific VB support.
                     // for now skip VB usages.
+                    // https://github.com/dotnet/roslyn/issues/63756
                     continue;
                 }
 
                 var objectCreationExpressions = documentLocations
                     // we should find the identifier node of an object creation expression
                     .Select(referenceLocations => referenceLocations.Location.FindNode(cancellationToken).Parent)
-                    .OfType<ObjectCreationExpressionSyntax>();
+                    .OfType<ObjectCreationExpressionSyntax>()
+                    // order by smaller spans first so in the nested case we don't overwrite our previous changes
+                    .OrderBy(node => (node.FullWidth(), node.SpanStart));
+
                 foreach (var objectCreationExpression in objectCreationExpressions)
                 {
-                    if (documentEditor.SemanticModel.GetOperation(objectCreationExpression, cancellationToken)
-                        is not IObjectCreationOperation objectCreationOperation)
-                    {
-                        continue;
-                    }
+                    var objectCreationOperation = (IObjectCreationOperation)documentEditor.SemanticModel
+                        .GetRequiredOperation(objectCreationExpression, cancellationToken);
 
                     var expressions = ConvertToRecordHelpers.GetAssignmentValuesFromObjectCreation(
                         objectCreationOperation, positionalParameters);
@@ -486,31 +488,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         continue;
                     }
 
-                    // if we didn't have an initializer, expressions would be empty
-                    var newInitializer = objectCreationExpression.Initializer!.RemoveNodes(
-                        expressions
-                            // index can be null if expression is the factory created default or null
-                            .Select(expression => expression.Parent as AssignmentExpressionSyntax)
-                            .WhereNotNull(),
-                        RemovalOptions)!;
+                    var expressionIndices = expressions.SelectAsArray(
+                        // if initializer was null we wouldn't have found expressions
+                        // any constructed nodes (default/null) should give -1 because parent is null
+                        expression => objectCreationExpression.Initializer!.Expressions.IndexOf(expression.Parent));
 
-                    // if there are no more assignments other than the ones that
-                    // could go in the primary constructor, we can remove the block entirely
-                    if (newInitializer.Expressions.IsEmpty())
+                    documentEditor.ReplaceNode(objectCreationExpression, (node, generator) =>
                     {
-                        newInitializer = null;
-                    }
+                        var updatedObjectCreation = (ObjectCreationExpressionSyntax)node;
+                        var newInitializer = (InitializerExpressionSyntax)generator
+                            .RemoveNodes(updatedObjectCreation.Initializer!,
+                                expressionIndices
+                                    .Where(i => i != -1)
+                                    .Select(i => updatedObjectCreation.Initializer!.Expressions[i]));
 
-                    // replace: new C { Foo = 0; Bar = false; };
-                    // with: new C(0, false);
-                    var replacementNode = SyntaxFactory.ObjectCreationExpression(
-                        objectCreationExpression.NewKeyword,
-                        objectCreationExpression.Type.WithoutTrailingTrivia(),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                            expressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia())))),
-                        newInitializer);
+                        // if there are no more assignments other than the ones that
+                        // could go in the primary constructor, we can remove the block entirely
+                        if (newInitializer.Expressions.IsEmpty())
+                        {
+                            newInitializer = null;
+                        }
 
-                    documentEditor.ReplaceNode(objectCreationExpression, replacementNode);
+                        var updatedExpressions = expressions.Select((expression, idx) =>
+                        {
+                            if (expression.Parent == null)
+                            {
+                                // default/null constructed expression
+                                return expression;
+                            }
+                            else
+                            {
+                                // corresponds to a real node, need to get the updated one
+                                var assignmentExpression = (AssignmentExpressionSyntax)
+                                    updatedObjectCreation.Initializer!.Expressions[expressionIndices[idx]];
+                                return assignmentExpression.Right;
+                            }
+                        });
+
+                        // replace: new C { Foo = 0; Bar = false; };
+                        // with: new C(0, false);
+                        return SyntaxFactory.ObjectCreationExpression(
+                            updatedObjectCreation.NewKeyword,
+                            updatedObjectCreation.Type.WithoutTrailingTrivia(),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(updatedExpressions
+                                .Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia())))),
+                            newInitializer);
+                    });
                 }
             }
         }
