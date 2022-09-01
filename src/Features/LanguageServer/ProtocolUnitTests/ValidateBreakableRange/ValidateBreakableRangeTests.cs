@@ -144,6 +144,101 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
+        [Fact]
+        public async Task TypingInMultilineBreakpoint()
+        {
+            // This simulates the request we get just after the user types the semi-colon on the first line
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|breakpoint:int a = 1;
+        {|expected:Console.WriteLine(""hello"");|}|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var breakpoint = testLspServer.GetLocations("breakpoint").Single();
+
+            var expected = testLspServer.GetLocations("expected").Single().Range;
+
+            var result = await RunAsync(testLspServer, breakpoint);
+            AssertJsonEquals(expected, result);
+        }
+
+        [Fact]
+        public async Task TypingInMultilineBreakpoint2()
+        {
+            // This simulates the request we get just after the user types the semi-colon on the third line
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|breakpoint:int a 
+                = 
+                1;
+        {|expected:Console.WriteLine(
+                ""hello""
+            );|}|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var breakpoint = testLspServer.GetLocations("breakpoint").Single();
+
+            var expected = testLspServer.GetLocations("expected").Single().Range;
+
+            var result = await RunAsync(testLspServer, breakpoint);
+            AssertJsonEquals(expected, result);
+        }
+
+        [Fact]
+        public async Task ExpandToMultilineBreakpoint()
+        {
+            // This simulates the request we get just after the user types the equals sign on the first line
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|expected:int a =
+        {|breakpoint:GetSomeValue();|}|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var breakpoint = testLspServer.GetLocations("breakpoint").Single();
+
+            var expected = testLspServer.GetLocations("expected").Single().Range;
+
+            var result = await RunAsync(testLspServer, breakpoint);
+            AssertJsonEquals(expected, result);
+        }
+
+        [Fact]
+        public async Task DontShrinkValidMultilineBreakpoints()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|breakpoint:{|expected:int a =
+        GetSomeValue();|}|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var breakpoint = testLspServer.GetLocations("breakpoint").Single();
+
+            var expected = testLspServer.GetLocations("expected").Single().Range;
+
+            var result = await RunAsync(testLspServer, breakpoint);
+            AssertJsonEquals(expected, result);
+        }
+
         private static async Task<LSP.Range?> RunAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>(

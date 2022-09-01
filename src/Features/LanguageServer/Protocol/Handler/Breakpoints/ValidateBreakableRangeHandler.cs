@@ -80,7 +80,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // zero-width range means line breakpoint:
             var breakpointSpan = result.IsLineBreakpoint ? new TextSpan(span.Start, length: 0) : result.TextSpan;
 
-            return ProtocolConversions.TextSpanToRange(breakpointSpan, text);
+            var breakpointRange = ProtocolConversions.TextSpanToRange(breakpointSpan, text);
+
+            // if the breakpoint we get back covers fewer lines than what was requested, then we might be in a situation where
+            // the breakpoint was expanded due to the user typing some code above the placement. For example:
+            //
+            //     $$
+            // BP: Console.WriteLine(1);
+            //
+            // if the user types "int a =" we'll expand the breakpoint, as syntactically its an assigment expression, but then
+            // when they continue to type "1;" we'll get a request for a breakpoint that spans two lines, and then the above
+            // resolve call will shrink it to one. In that case, we prefer to stick to the end of the requested range.
+            if (!result.IsLineBreakpoint && CoversFewerLines(breakpointRange, request.Range))
+            {
+                var secondResult = await breakpointService.ResolveBreakpointAsync(document, new TextSpan(span.End, length: 0), cancellationToken).ConfigureAwait(false);
+                if (secondResult is not null)
+                {
+                    breakpointSpan = secondResult.IsLineBreakpoint ? new TextSpan(span.Start, length: 0) : secondResult.TextSpan;
+                    breakpointRange = ProtocolConversions.TextSpanToRange(breakpointSpan, text);
+                }
+            }
+
+            return breakpointRange;
         }
+
+        private static bool CoversFewerLines(LSP.Range range1, LSP.Range range2)
+            => range1.End.Line - range1.Start.Line < range2.End.Line - range2.Start.Line;
     }
 }
