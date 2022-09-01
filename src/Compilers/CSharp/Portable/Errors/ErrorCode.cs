@@ -2115,8 +2115,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RuntimeDoesNotSupportRefFields = 9064,
         ERR_ExplicitScopedRef = 9065,
         ERR_UnscopedScoped = 9066,
-        ERR_FileTypeNonUniquePath = 9067,
-        ERR_FilePathCannotBeConvertedToUtf8 = 9068,
+        WRN_DuplicateAnalyzerReference = 9067,
+        ERR_FileTypeNonUniquePath = 9068,
+        ERR_FilePathCannotBeConvertedToUtf8 = 9069,
 
         #endregion
 

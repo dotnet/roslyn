@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 {
-    internal struct UnifiedArgumentSyntax : IUnifiedArgumentSyntax
+    internal readonly struct UnifiedArgumentSyntax : IUnifiedArgumentSyntax
     {
         private readonly SyntaxNode _argument;
 

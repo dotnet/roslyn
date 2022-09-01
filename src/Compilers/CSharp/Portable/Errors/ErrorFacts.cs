@@ -501,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
                     return 1;
                 default:
                     return 0;
@@ -2217,6 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                     return false;
                 default:

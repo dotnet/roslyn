@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal struct EmbeddedLanguageClassificationContext
+    internal readonly struct EmbeddedLanguageClassificationContext
     {
         private readonly ArrayBuilder<ClassifiedSpan> _result;
 

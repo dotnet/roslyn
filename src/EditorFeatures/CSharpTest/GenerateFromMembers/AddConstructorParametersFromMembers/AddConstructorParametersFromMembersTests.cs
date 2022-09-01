@@ -419,6 +419,20 @@ class Program
         this.b = b;
     }
 }",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    bool b;
+    HashSet<string> s;
+
+    public Program(bool b, HashSet<string> s)
+    {
+        this.b = b;
+        this.s = s;
+    }
+}",
                 CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(bool)"), codeAction.Title)
             }.RunAsync();
         }
@@ -439,6 +453,20 @@ class Program
     public Program(bool b)
     {
         this.b = b;
+    }
+}",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    bool b;
+    HashSet<string> s;
+
+    public Program(bool b, HashSet<string> s = null)
+    {
+        this.b = b;
+        this.s = s;
     }
 }",
                 CodeActionIndex = 1,
@@ -1511,7 +1539,7 @@ class C
 @"
 using System;
 using System.Runtime.Serialization;
- 
+
 class C : {|CS0535:ISerializable|}
 {
     int [|i|];

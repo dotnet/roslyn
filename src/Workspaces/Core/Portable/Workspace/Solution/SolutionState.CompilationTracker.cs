@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -861,6 +862,9 @@ namespace Microsoft.CodeAnalysis
                             // END HACK HACK HACK HACK.
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
+
+                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo());
+
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
                             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null

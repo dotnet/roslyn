@@ -2502,7 +2502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
         }
 
-        private struct ImportInfo : IEquatable<ImportInfo>
+        private readonly struct ImportInfo : IEquatable<ImportInfo>
         {
             public readonly SyntaxTree Tree;
             public readonly SyntaxKind Kind;
