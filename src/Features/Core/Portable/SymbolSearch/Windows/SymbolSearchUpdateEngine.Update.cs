@@ -17,6 +17,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using static System.FormattableString;
 
@@ -553,9 +554,21 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 using var reader = XmlReader.Create(stream, settings);
 
-                var result = XElement.Load(reader);
-                await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
-                return result;
+                try
+                {
+                    var result = XElement.Load(reader);
+                    await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
+                    return result;
+                }
+                catch (XmlException e)
+                {
+                    // If the XML fails to load, the caller should try again. Since
+                    // this is dependent on file downloader it's possible network
+                    // errors or incomplete file streams. No reason to fail here, just try 
+                    // again
+                    await LogExceptionAsync(e, "Converting data to XElement failed", cancellationToken).ConfigureAwait(false);
+                    return null;
+                }
             }
 
             private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
