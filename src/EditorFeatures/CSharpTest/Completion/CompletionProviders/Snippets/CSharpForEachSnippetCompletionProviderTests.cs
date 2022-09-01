@@ -220,7 +220,7 @@ static void Main(string[] args)
             var expectedCodeAfterCommit =
 @"Func<int, int, bool> testForEquality = (x, y) =>
 {
-    foreach (var item in args)
+    foreach (var item in collection)
     {
         $$
     }
