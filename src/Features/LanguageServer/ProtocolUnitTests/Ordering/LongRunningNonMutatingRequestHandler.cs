@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
         public bool MutatesSolutionState => false;
 
-        public static bool RequiresLSPSolution => true;
+        public bool RequiresLSPSolution => true;
 
         public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {

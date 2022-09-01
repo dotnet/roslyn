@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         private readonly IGlobalOptionService _globalOptions;
 
         public bool MutatesSolutionState => false;
-        public static bool RequiresLSPSolution => true;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

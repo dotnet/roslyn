@@ -32,10 +32,14 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         }
 
         TextDocumentIdentifier? textDocumentIdentifier;
-        var textDocumentIdentifierHandler = queueItem.TextDocumentIdentifierHandler;
+        var textDocumentIdentifierHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
         if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
         {
             textDocumentIdentifier = tHandler.GetTextDocumentIdentifier(requestParam);
+        }
+        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier?> nullHandler)
+        {
+            textDocumentIdentifier = nullHandler.GetTextDocumentIdentifier(requestParam);
         }
         else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, Uri> uHandler)
         {
@@ -54,8 +58,19 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
             throw new NotImplementedException($"TextDocumentIdentifier in an unrecognized type for method: {queueItem.MethodName}");
         }
 
+        bool requiresLSPSolution;
+        if (queueItem.MethodHandler is ISolutionRequiredHandler requiredHandler)
+        {
+            requiresLSPSolution = requiredHandler.RequiresLSPSolution;
+        }
+        else
+        {
+            throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {queueItem.MethodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
+        }
+
         return RequestContext.CreateAsync(
             queueItem.MutatesServerState,
+            requiresLSPSolution,
             textDocumentIdentifier,
             serverInfoProvider.ServerKind,
             clientCapabilities,

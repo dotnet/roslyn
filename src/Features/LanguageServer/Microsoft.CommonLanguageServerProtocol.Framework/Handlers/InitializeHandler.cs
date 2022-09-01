@@ -20,7 +20,7 @@ public class InitializeHandler<RequestType, ResponseType, RequestContextType>
 
     public bool MutatesSolutionState => true;
 
-    public static bool RequiresLSPSolution => false;
+    public bool RequiresLSPSolution => false;
 
     public Task<ResponseType> HandleRequestAsync(RequestType request, RequestContextType context, CancellationToken cancellationToken)
     {

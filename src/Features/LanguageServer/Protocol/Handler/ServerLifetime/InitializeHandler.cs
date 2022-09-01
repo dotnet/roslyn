@@ -21,6 +21,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
     }
 
     public bool MutatesSolutionState => true;
+    public bool RequiresLSPSolution => false;
 
     public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {

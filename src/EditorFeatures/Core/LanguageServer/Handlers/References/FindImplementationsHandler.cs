@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public bool MutatesSolutionState => false;
-        public static bool RequiresLSPSolution => true;
+        public bool RequiresLSPSolution => true;
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 

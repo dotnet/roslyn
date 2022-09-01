@@ -19,6 +19,8 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
 {
     bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
 
+    bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
+
     public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);

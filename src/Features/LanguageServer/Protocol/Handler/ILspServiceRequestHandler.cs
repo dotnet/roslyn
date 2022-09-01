@@ -5,13 +5,18 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
-{
-    internal interface ILspServiceRequestHandler<RequestType, ResponseType> : ILspService, IRequestHandler<RequestType, ResponseType, RequestContext>
-    {
-    }
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-    internal interface ILspServiceDocumentRequestHandler<RequestType, ResponseType> : ILspService, IRequestHandler<RequestType, ResponseType, RequestContext>, ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifier>
-    {
-    }
+internal interface ILspServiceRequestHandler<RequestType, ResponseType> :
+    ILspService,
+    IRequestHandler<RequestType, ResponseType, RequestContext>,
+    ISolutionRequiredHandler
+{
+}
+
+internal interface ILspServiceDocumentRequestHandler<RequestType, ResponseType> :
+    ILspServiceRequestHandler<RequestType, ResponseType>,
+    ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifier>,
+    ISolutionRequiredHandler
+{
 }

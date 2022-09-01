@@ -47,7 +47,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
 
     public bool MutatesSolutionState => false;
 
-    public static bool RequiresLSPSolution => true;
+    public bool RequiresLSPSolution => true;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

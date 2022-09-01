@@ -29,5 +29,5 @@ public interface IQueueItem<RequestContextType>
     /// </summary>
     string MethodName { get; }
 
-    ITextDocumentIdentifierHandler? TextDocumentIdentifierHandler { get; }
+    IMethodHandler MethodHandler { get; }
 }

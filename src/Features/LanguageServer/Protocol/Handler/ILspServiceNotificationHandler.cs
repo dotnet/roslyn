@@ -6,10 +6,16 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal interface ILspServiceNotificationHandler : ILspService, INotificationHandler<RequestContext>
+internal interface ILspServiceNotificationHandler :
+    ILspService,
+    INotificationHandler<RequestContext>,
+    ISolutionRequiredHandler
 {
 }
 
-internal interface ILspServiceNotificationHandler<RequestType> : ILspService, INotificationHandler<RequestType, RequestContext>
+internal interface ILspServiceNotificationHandler<RequestType> :
+    ILspService,
+    INotificationHandler<RequestType, RequestContext>,
+    ISolutionRequiredHandler
 {
 }

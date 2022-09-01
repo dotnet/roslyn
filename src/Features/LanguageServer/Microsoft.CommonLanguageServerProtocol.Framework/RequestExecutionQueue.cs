@@ -117,7 +117,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
-        var textDocumentIdentifierHandler = GetTextDocumentIdentifierHandler<TRequestType, TResponseType>(methodName);
 
         var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
         // Create a combined cancellation token so either the client cancelling it's token or the queue
@@ -127,7 +126,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var (item, resultTask) = CreateQueueItem<TRequestType, TResponseType>(
             handler.MutatesSolutionState,
             methodName,
-            textDocumentIdentifierHandler,
+            handler,
             request,
             handler,
             lspServices,
@@ -151,13 +150,13 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     internal (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
         bool mutatesSolutionState,
         string methodName,
-        ITextDocumentIdentifierHandler? textDocumentIdentifier,
+        IMethodHandler methodHandler,
         TRequestType request,
         IMethodHandler handler,
         ILspServices lspServices,
         CancellationToken cancellationToken) => QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
             methodName,
-            textDocumentIdentifier,
+            methodHandler,
             request,
             handler,
             lspServices,

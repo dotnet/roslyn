@@ -23,6 +23,8 @@ internal class ExitHandler : ILspServiceNotificationHandler
 
     public bool MutatesSolutionState => true;
 
+    public bool RequiresLSPSolution => false;
+
     public async Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
     {
         if (requestContext.ClientCapabilities is null)
