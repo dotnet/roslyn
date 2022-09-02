@@ -24,11 +24,6 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10_000;
 
     /// <summary>
-    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15
-    /// </summary>
-    private const int RoslynCiBuildDefinitionId = 15;
-
-    /// <summary>
     /// The Azure devops project that the build pipeline is located in.
     /// </summary>
     private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng");
@@ -42,6 +37,8 @@ internal class TestHistoryManager
 
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
 
+        var pipelineDefinitionIdStr = options.PipelineDefinitionId ?? GetEnvironmentVariable("SYSTEM_DEFINITIONID");
+
         // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
         //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
         //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
@@ -49,9 +46,9 @@ internal class TestHistoryManager
 
         // We use the target branch of the current build to lookup the last successful build for the same branch.
         var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
-        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch))
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
-            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, phaseName={phaseName}, targetBranchName={targetBranch}");
+            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -63,11 +60,11 @@ internal class TestHistoryManager
 
         ConsoleUtil.WriteLine($"Getting last successful build for branch {targetBranch}");
         var adoBranch = $"refs/heads/{targetBranch}";
-        var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(RoslynCiBuildDefinitionId, adoBranch, buildClient, cancellationToken);
+        var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, adoBranch, buildClient, cancellationToken);
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {targetBranch}");
+            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
