@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract override DeclarationScope EffectiveScope { get; }
 
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
         public sealed override string Name
         {
             get

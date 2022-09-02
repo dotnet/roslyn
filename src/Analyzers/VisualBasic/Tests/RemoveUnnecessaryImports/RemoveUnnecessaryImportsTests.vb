@@ -1317,5 +1317,46 @@ Class C
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(63591, "https://github.com/dotnet/roslyn/issues/63591")>
+        Public Async Function TestAmbiguityWithProjectLevelMemberImport() As Task
+            Await TestAsync(
+"[|Imports System
+' need to keep 'Goo' to prevent ambiguity with 'Bar'.
+Imports Goo
+Module Program
+    Sub Main(c as C)
+    End Sub
+End Module|]
+
+Namespace Goo
+    Public Class C
+    End Class
+End Namespace
+Namespace Bar
+    Public Class C
+    End Class
+End Namespace
+",
+"' need to keep 'Goo' to prevent ambiguity with 'Bar'.
+Imports Goo
+Module Program
+    Sub Main(c as C)
+    End Sub
+End Module
+
+Namespace Goo
+    Public Class C
+    End Class
+End Namespace
+Namespace Bar
+    Public Class C
+    End Class
+End Namespace
+",
+parseOptions:=TestOptions.Regular,
+compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System"), GlobalImport.Parse("Goo"), GlobalImport.Parse("Bar")}))
+        End Function
     End Class
 End Namespace

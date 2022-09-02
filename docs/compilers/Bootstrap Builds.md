@@ -93,4 +93,16 @@ These type of errors, when not paired with a `Debug.Assert` failure, are almost 
 
 Note: when you encounter a case where the log file does not have an actionable description of why a build failed, strongly consider sending a PR that fixes this. This approach is why the log is such a valuable tool for tracking down bootstrap failures. 
 
+## Debugging
 
+To debug a bootstrap build failure locally do the following. 
+
+The first step is disabling the `ExitingTraceListener`. This is important for CI where the compiler needs to crash on a `Debug.Assert` failure vs. popping up a dialog that would hang CI. When debugging locally though developers want the `Debug.Assert` pops up a dialog behavior. To disable the `ExitingTraceListener` comment out the following line: 
+
+https://github.com/dotnet/roslyn/blob/d73d31cbccb9aa850f3582afb464b709fef88fd7/src/Compilers/Server/VBCSCompiler/VBCSCompiler.cs#L22
+
+Next just run the bootstrap build locally, wait for the `Debug.Assert` to trigger which pops up a dialog. From there you can attach to the VBCSCompiler process and debug through the problem
+
+```cmd
+> Build.cmd -bootstrap -bootstrapConfiguration Debug
+```

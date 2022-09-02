@@ -18,6 +18,7 @@
     <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
     <Compile Include="..\TestUtilities\WellKnownCommandNames.cs" Link="WellKnownCommandNames.cs" />
     <Compile Include="..\TestUtilities\WellKnownProjectTemplates.cs" Link="WellKnownProjectTemplates.cs" />
+    <Compile Include="..\TestUtilities\QuickInfoToStringConverter.cs" Link="QuickInfoToStringConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

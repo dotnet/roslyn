@@ -414,6 +414,17 @@ namespace System
 
     public class ValueType {{ }}
     public struct Void {{ }}
+    public struct Int32 {{ }}
+    public struct Boolean {{ }}
+    public class Attribute {{ }}
+    public class AttributeUsageAttribute : Attribute
+    {{
+        public AttributeUsageAttribute(AttributeTargets t) {{ }}
+        public bool AllowMultiple {{ get; set; }}
+        public bool Inherited {{ get; set; }}
+    }}
+    public struct Enum {{ }}
+    public enum AttributeTargets {{ }}
 }}
 ";
             Action<CSharpCompilation> validate = comp =>
@@ -615,6 +626,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
@@ -979,6 +991,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor:
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:

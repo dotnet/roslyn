@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -97,5 +98,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 WellKnownMemberNames.SubtractionOperatorName or WellKnownMemberNames.CheckedSubtractionOperatorName or WellKnownMemberNames.UnaryNegationOperatorName or WellKnownMemberNames.CheckedUnaryNegationOperatorName => PredefinedOperator.Subtraction,
                 _ => PredefinedOperator.None,
             };
+
+        /// <summary>
+        /// Tells if an async method returns a task-like type, awaiting for which produces <see langword="void"/> result
+        /// </summary>
+        public static bool IsAsyncReturningVoidTask(this IMethodSymbol method, Compilation compilation)
+        {
+            if (!method.IsAsync)
+                return false;
+
+            if (method.ReturnType is not INamedTypeSymbol { Arity: 0 })
+                return false;
+
+            // `Task` type doesn't have an `AsyncMethodBuilder` attribute, so we need to check for it separately
+            return method.ReturnType.Equals(compilation.TaskType()) ||
+                   method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
+        }
     }
 }
