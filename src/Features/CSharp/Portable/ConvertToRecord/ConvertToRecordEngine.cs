@@ -513,9 +513,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             newInitializer = null;
                         }
 
-                        var updatedExpressions = expressions.Select((expression, idx) =>
+                        // note: index here is the position in the initializer assignment list of the expression
+                        // if it was found at all. The expressions are actually in order of how they should be
+                        // supplied as arguments for the primary constructor. 
+                        var updatedExpressions = expressions.Zip(expressionIndices, (expression, index) =>
                         {
-                            if (expression.Parent == null)
+                            if (index == -1)
                             {
                                 // default/null constructed expression
                                 return expression;
@@ -524,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             {
                                 // corresponds to a real node, need to get the updated one
                                 var assignmentExpression = (AssignmentExpressionSyntax)
-                                    updatedObjectCreation.Initializer!.Expressions[expressionIndices[idx]];
+                                    updatedObjectCreation.Initializer!.Expressions[index];
                                 return assignmentExpression.Right;
                             }
                         });
