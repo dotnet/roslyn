@@ -16,7 +16,7 @@
       netstandard1.5/net46: Roslyn 2.x
       netstandard2.0/net472: Roslyn 3.x
     -->
-    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.5;netstandard2.0;net452;net46;net472</TestingLibraryTargetFrameworks>
+    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard2.0;net472</TestingLibraryTargetFrameworks>
 
     <!--
       netcoreapp3.1: Ensures full support for nullable reference types
