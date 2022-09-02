@@ -26,7 +26,7 @@ internal class TestHistoryManager
     /// <summary>
     /// The Azure devops project that the build pipeline is located in.
     /// </summary>
-    private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng");
+    private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng-public");
 
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
