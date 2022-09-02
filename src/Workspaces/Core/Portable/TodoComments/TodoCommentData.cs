@@ -77,29 +77,5 @@ namespace Microsoft.CodeAnalysis.TodoComments
                Hash.Combine(item.Message,
                Hash.Combine(item.OriginalLine,
                Hash.Combine(item.OriginalColumn, 0)))));
-
-        internal void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteInt32(Priority);
-            writer.WriteString(Message);
-            DocumentId.WriteTo(writer);
-            writer.WriteString(MappedFilePath);
-            writer.WriteString(OriginalFilePath);
-            writer.WriteInt32(MappedLine);
-            writer.WriteInt32(MappedColumn);
-            writer.WriteInt32(OriginalLine);
-            writer.WriteInt32(OriginalColumn);
-        }
-
-        internal static TodoCommentData ReadFrom(ObjectReader reader)
-            => new(priority: reader.ReadInt32(),
-                   message: reader.ReadString(),
-                   documentId: DocumentId.ReadFrom(reader),
-                   mappedFilePath: reader.ReadString(),
-                   originalFilePath: reader.ReadString(),
-                   mappedLine: reader.ReadInt32(),
-                   mappedColumn: reader.ReadInt32(),
-                   originalLine: reader.ReadInt32(),
-                   originalColumn: reader.ReadInt32());
     }
 }

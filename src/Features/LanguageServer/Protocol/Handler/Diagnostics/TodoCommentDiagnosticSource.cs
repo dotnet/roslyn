@@ -9,15 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        /// <summary>
+        /// <see cref="IDiagnosticSource"/> that computes todo items from a <see cref="ITodoCommentDataService"/> and
+        /// then converts them to diagnostics so they can be passed through the VS diagnostic subsystem to the VS task
+        /// list.
+        /// </summary>
         protected sealed record class TodoCommentDiagnosticSource(Document Document) : IDiagnosticSource
         {
             private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
@@ -46,10 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     id: "TODO",
                     category: "TODO",
                     message: comment.Message,
-                    severity: /*unused*/DiagnosticSeverity.Info,
-                    defaultSeverity:/*unused*/DiagnosticSeverity.Info,
+                    severity: DiagnosticSeverity.Info,
+                    defaultSeverity: DiagnosticSeverity.Info,
                     isEnabledByDefault: true,
-                    warningLevel: /*unused*/0,
+                    warningLevel: 0,
                     customTags: s_todoCommentCustomTags,
                     properties: ImmutableDictionary<string, string?>.Empty,
                     projectId: Document.Project.Id,
