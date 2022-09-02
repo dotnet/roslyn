@@ -329,10 +329,10 @@ if [[ "$test_core_clr" == true ]]; then
     while read line; do
       testRunnerExecutableArgs="$testRunnerExecutableArgs $line"
     done < "$testAssembliesFilePath"
-    testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${logFile}/TestResults.xml\""
+    testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${log_dir}/TestResults.xml\""
 
     if [[ "$ci" != true ]]; then
-      testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${logFile}/TestResults.html\""
+      testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${log_dir}/TestResults.html\""
     fi
   fi
 
