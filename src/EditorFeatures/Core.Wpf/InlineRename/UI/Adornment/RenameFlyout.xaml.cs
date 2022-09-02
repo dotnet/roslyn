@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 // Don't hook up our close events until we're done loading and have focused within the textbox
                 _textView.LostAggregateFocus += TextView_LostFocus;
-                IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged; ;
+                IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
             };
 
             InitializeComponent();
