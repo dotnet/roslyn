@@ -4620,6 +4620,58 @@ class Program
         }
 
         [Fact]
+        public void OverloadResolution_51()
+        {
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate void D2(int i = 2);
+    static int F(D1 d) => 1;
+    static object F(D2 d) => 2;
+    static void M(int i = 2) { }
+
+    static void Main()
+    {
+        int y = F(M);
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Program.D1)' and 'Program.F(Program.D2)'
+                //         int y = F(M);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(Program.D1)", "Program.F(Program.D2)").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void OverloadResolution_52()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate int D2(int j = 1);
+
+    static void F(D1 d) { }
+    static int F(D2 d) => d();
+    static int M(int i = 2) => i;
+
+    static void Main()
+    {
+        int y = F(M);
+        Console.WriteLine(y);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics(
+                // (14,19): warning CS9502: Parameter 1 has default value '2' in method group and '1' in the target delegate type.
+                //         int y = F(M);
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "2", "1").WithLocation(14, 19));
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
@@ -12420,6 +12472,483 @@ class Program
         }
 
         [Fact]
+        public void SimpleMethodGroupInference_DefaultParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int arg = 1)
+    {
+        return arg;
+    }
+
+    public static void Main()
+    {
+        var f = M;
+        int x = f();
+        Console.WriteLine(x);
+        Report(f);
+    }
+}
+""";
+
+            CompileAndVerify(source, expectedOutput:
+@"1
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void InstanceMethodGroupInference_DefaultParameter()
+        {
+            var source = """
+using System;
+
+class C
+{
+    public int Z;
+    public void SetZ(int x = 10)
+    {
+        this.Z = x;
+    }
+}
+
+class Program
+{
+    
+    public static void Main()
+    {
+        C c = new C();
+        var setZ = c.SetZ;
+        setZ();
+        Console.WriteLine(c.Z);
+        setZ(7);
+        Console.WriteLine(c.Z);
+    }
+}
+""";
+
+            CompileAndVerify(source, expectedOutput:
+@"10
+7");
+        }
+
+        [Fact]
+        public void MethodGroupInferenceMatchingSignaturesAndDefaultParameterValues()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int x = 3)
+    {
+        return x;
+    }
+
+    public static int N(int y = 3)
+    {
+        return y * 100;
+    }
+
+    public static void Main()
+    {
+        var m = M;
+        var n = N;
+
+        Report(m);
+        Report(n);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void MethodGroupInference_SignaturesMatchDefaultParameterMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int x = 3)
+    {
+        return x;
+    }
+
+    public static int N(int y = 4)
+    {
+        return y * 100;
+    }
+
+    public static void Main()
+    {
+        var m = M;
+        var n = N;
+
+        Report(m);
+        Report(n);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultValueMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "defaultstring");
+
+    public static string M(string s = "defaultstring")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "defaultstring");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "string1");
+
+    public static string M(string s = "string2")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics(
+                // (14,15): warning CS9068: Parameter 1 has default value '"string2"' in method group and '"string1"' in the target delegate type.
+                //         D d = M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", @"""string2""", @"""string1""").WithLocation(14, 15));
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultRequiredMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s);
+
+    public static string M(string s = "a string")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d("my string"));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "my string").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_ParameterOptionalInDelegateOnly()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "string1");
+
+    public static string M(string s) => s;
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroup_NamedDelegateConversion_MultipleValueMismatches()
+        {
+            var source = """
+class Program
+{
+    delegate int Del(int x, string s = "a", long l = 0L);
+    static int M(int x = 40, string s = "b", long l = 1) => x;
+
+    public static void Main()
+    {
+        Del del = M;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,19): warning CS9069: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
+                //         Del del = M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("2", @"""b""", @"""a""").WithLocation(8, 19),
+                // (8,19): warning CS9069: Parameter 3 has default value '1' in method group and 'default(long)' in the target delegate type.
+                //         Del del = M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("3", "1", "default(long)").WithLocation(8, 19));
+
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_TargetTypeConversion()
+        {
+            var source = """
+using System;
+using ProgramExtensions;
+
+namespace ProgramExtensions {
+    public static class ProgramExtensions
+    {
+        public static string M(this Program p, string s = "b", long l = 1L) => $"{p.field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int field = 10;
+    delegate string Del(string s = "a", long l = 0L);
+    public string M1(string s = "c", long l = 2L) => $"{this.field} {s} {l}";
+
+    public static void Main()
+    {
+        Program prog = new Program();
+        Del del = prog.M;
+        Console.WriteLine(del());
+    }
+}
+""";
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics(
+                // (20,19): warning CS9068: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
+                //         Del del = prog.M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "prog.M").WithArguments("2", @"""b""", @"""a""").WithLocation(20, 19),
+                // (20,19): warning CS9068: Parameter 3 has default value '1' in method group and 'default(long)' in the target delegate type.
+                //         Del del = prog.M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "prog.M").WithArguments("3", "1", "default(long)").WithLocation(20, 19));
+            verifier.VerifyIL("Program.Main",
+@"
+ {
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  ldftn      ""string ProgramExtensions.ProgramExtensions.M(Program, string, long)""
+  IL_000b:  newobj     ""Program.Del..ctor(object, System.IntPtr)""
+  IL_0010:  ldstr      ""a""
+  IL_0015:  ldc.i4.0
+  IL_0016:  conv.i8
+  IL_0017:  callvirt   ""string Program.Del.Invoke(string, long)""
+  IL_001c:  call       ""void System.Console.WriteLine(string)""
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_TargetTypeConversion_02()
+        {
+            var source = """
+namespace ProgramExtensions {
+    public static class PExt
+    {
+        public static string M(this Program p, string s = "a", long l = 0L) => $"{p.field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int field = 10;
+    delegate string Del(string s = "a", long l = 0L);
+
+    public static void Main()
+    {
+        Del del = ProgramExtensions.PExt.M;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (15,42): error CS0123: No overload for 'M' matches delegate 'Program.Del'
+                //         Del del = ProgramExtensions.PExt.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "Program.Del").WithLocation(15, 42));
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_TargetTypeConversion_03()
+        {
+            var source = """
+using System;
+
+namespace ProgramExtensions {
+    public static class PExt
+    {
+        public static string M(this Program p, string s = "b", long l = 1) => $"{p.Field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int Field = 10;
+    delegate string Del(Program p, string s = "a", long l = 0L);
+
+    public static void Main()
+    {
+        Del del = ProgramExtensions.PExt.M;
+        Console.WriteLine(del(new Program() { Field = -1 }));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "-1 a 0").VerifyDiagnostics(
+                // (17,19): warning CS9068: Parameter 2 has default value '"b"' in method group and '"a"' in the target delegate type.
+                //         Del del = ProgramExtensions.PExt.M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "ProgramExtensions.PExt.M").WithArguments("2", @"""b""", @"""a""").WithLocation(17, 19),
+                // (17,19): warning CS9068: Parameter 3 has default value '1' in method group and 'default(long)' in the target delegate type.
+                //         Del del = ProgramExtensions.PExt.M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "ProgramExtensions.PExt.M").WithArguments("3", "1", "default(long)").WithLocation(17, 19));
+        }
+
+        [Fact]
+        public void InstanceMethodGroup_DefaultParameters_TargetTypeConversion()
+        {
+            var source = """
+using System;
+
+public class Program
+{
+    public int field = 10;
+    delegate string Del(string s = "a", long l = 0L);
+    public string M1(string s = "c", long l = 2L) => $"{this.field} {s} {l}";
+
+    public static void Main()
+    {
+        Program prog = new Program();
+        Del del = prog.M1;
+        Console.WriteLine(del());
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: @"10 a 0");
+            verifier.VerifyDiagnostics(
+                // (12,19): warning CS9068: Parameter 1 has default value '"c"' in method group and '"a"' in the target delegate type.
+                //         Del del = prog.M1;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "prog.M1").WithArguments("1", @"""c""", @"""a""").WithLocation(12, 19),
+                // (12,19): warning CS9068: Parameter 2 has default value '2' in method group and 'default(long)' in the target delegate type.
+                //         Del del = prog.M1;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "prog.M1").WithArguments("2", "2", "default(long)").WithLocation(12, 19));
+        }
+
+        [Fact]
+        public void ExtensionMethodGroup_DefaultParameters_InferredType()
+        {
+            var source = """
+using System;
+using ProgramExtensions;
+
+namespace ProgramExtensions {
+    public static class PExt
+    {
+        public static string M(this Program p, string s = "b", long l = 1) => $"{p.Field} {s} {l}";
+    }
+}
+
+public class Program
+{
+    public int Field = 10;
+    public static void Report(object obj) => Console.WriteLine(obj.GetType());
+
+    public static void Main()
+    {
+        var m = ProgramExtensions.PExt.M;
+        var n = (new Program()).M;
+        Report(m);
+        Report(n);
+        Console.WriteLine(m(new Program() { Field = 20 }));
+        Console.WriteLine(n());
+    }
+}
+""";
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+20 b 1
+10 b 1");
+        }
+
+        // PROTOTYPE: Add this change to type inference for method groups to the breaking
+        // changes doc.
+        [Fact]
+        public void MethodGroupInferenceCompatBreak()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int Fun(int arg = 10) => arg + 1;
+
+    public static void PrintFunResult<T>(Func<T, T> f, T input)
+    {
+        Console.WriteLine(f(input));
+    }
+
+    public static void Main()
+    {
+        var f = Fun;
+        PrintFunResult(f, 3);
+    }
+
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (15,24): error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Func<int, int>'
+                    //         PrintFunResult(f, 3);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "f").WithArguments("1", "<anonymous delegate>", "System.Func<int, int>").WithLocation(15, 24));
+        }
+
+        [Fact]
         public void LambdaDefaultDiscardParameter_DelegateConversion_OptionalRequiredMismatch()
         {
             var source = """
@@ -12492,6 +13021,95 @@ class Program
                 // (12,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_01()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i = 3) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int i = 4) => i;
+        Console.WriteLine(m());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,18): error CS9501: Parameter 1 has default value '4' in lambda and '3' in the target delegate type.
+                //         m = (int i = 4) => i;
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "4", "3").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_02()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int i = 4) => i;
+        Console.WriteLine(m());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,18): error CS9501: Parameter 1 has default value '4' in lambda and '<missing>' in the target delegate type.
+                //         m = (int i = 4) => i;
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "4", "<missing>").WithLocation(9, 18),
+                // (10,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
+                //         Console.WriteLine(m());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "m").WithArguments("arg", "System.Func<int, int>").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_03()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i = 4) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int x) => x; 
+        Console.WriteLine(m());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodGroup_LambdaAssignment_DefaultParameterMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int M(int i = 3) => i;
+    public static void Main()
+    {
+        var m = M;
+        m = (int x = 3) => x; 
+        Console.WriteLine(m());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "3").VerifyDiagnostics();
         }
     }
 }

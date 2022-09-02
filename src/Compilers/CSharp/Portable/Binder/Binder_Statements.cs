@@ -2176,19 +2176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < anonymousFunction.ParameterCount; i++)
                 {
-                    var lambdaParamDefaultVal = lambdaSymbol.Parameters[i].ExplicitDefaultConstantValue;
-
-                    if (lambdaParamDefaultVal is not null && !lambdaParamDefaultVal.IsBad)
-                    {
-                        var delegateParamDefaultVal = delegateParameters[i].ExplicitDefaultConstantValue;
-                        if ((!delegateParamDefaultVal?.IsBad ?? true) && lambdaParamDefaultVal != delegateParamDefaultVal)
-                        {
-                            var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
-
-                            // Parameter {0} has default value '{1}' in lambda and '{2}' in target delegate type.
-                            Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1, lambdaParamDefaultVal, delegateParamDefaultVal ?? ((object)MessageID.IDS_Missing.Localize()));
-                        }
-                    }
+                    CheckDefaultParameterMatch(ErrorCode.ERR_OptionalParamValueMismatch, lambdaSymbol.Parameters[i], delegateParameters[i], anonymousFunction.ParameterLocation(i), diagnostics);
                 }
                 return;
             }

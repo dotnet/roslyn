@@ -2124,6 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // numbering is consecutive with respect to the previous fields
         ERR_ImplicitlyTypedDefaultParameter = 9500,
         ERR_OptionalParamValueMismatch = 9501,
+        WRN_OptionalParamValueMismatch = 9502,
         #endregion
 
         // Note: you will need to do the following after adding warnings:
