@@ -38,6 +38,7 @@ steps:
       testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }}'
     condition: always()
 
+  # Dumps from test timeouts or crashes get published to the test results directory by dotnet test, so make sure to publish any here.
   - task: PublishBuildArtifacts@1
     displayName: Publish Test Results Directory
     inputs:
