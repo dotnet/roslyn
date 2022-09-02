@@ -2218,6 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
