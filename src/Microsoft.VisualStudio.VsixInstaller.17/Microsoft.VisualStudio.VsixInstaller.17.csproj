@@ -32,6 +32,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" Version="1.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.0-previews-3-31605-261" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="17.0.0-previews-3-31605-261" />
+    <!--
+      A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
+      Override the reference to a secure version, but exclude it from the build and packaging.
+    -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />

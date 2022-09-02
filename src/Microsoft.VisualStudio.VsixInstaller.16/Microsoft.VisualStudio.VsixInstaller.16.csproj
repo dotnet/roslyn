@@ -29,7 +29,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" Version="1.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="16.0.28729" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="16.8.55" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <!--
+      A Newtonsoft.Json package reference with insecure defaults is inherited, but not needed by this project.
+      Override the reference to a secure version, but exclude it from the build and packaging.
+    -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="StreamJsonRpc" Version="2.7.67" />
   </ItemGroup>
 
