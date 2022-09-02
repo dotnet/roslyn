@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Metalama.Compiler.UnitTests.Transformers
+namespace Metalama.Compiler.UnitTests.ThirdParty
 {
-    public class CustomDummyTransformer : ISourceTransformer
+    public class ThirdPartyDummyTransformer : ISourceTransformer
     {
         public void Execute(TransformerContext context)
         {

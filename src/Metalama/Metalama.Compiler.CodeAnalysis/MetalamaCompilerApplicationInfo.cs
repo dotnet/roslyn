@@ -13,7 +13,7 @@ using Metalama.Backstage.Utilities;
 
 namespace Metalama.Compiler
 {
-    internal class ComponentInfo : ComponentInfoBase
+    internal class ComponentInfo : IComponentInfo
     {
         private readonly ISourceTransformer _transformer;
         private readonly AssemblyMetadataReader _metadataReader;
@@ -24,15 +24,15 @@ namespace Metalama.Compiler
             this._metadataReader = AssemblyMetadataReader.GetInstance(transformer.GetType().Assembly);
         }
 
-        public override string? Company => this._metadataReader.Company;
+        public string? Company => this._metadataReader.Company;
 
-        public override string Name => _transformer.GetType().FullName!;
+        public string Name => _transformer.GetType().FullName!;
 
-        public override string? Version => this._metadataReader.PackageVersion;
+        public string? Version => this._metadataReader.PackageVersion;
 
-        public override bool? IsPrerelease => this.Version?.Contains("-");
+        public bool? IsPrerelease => this.Version?.Contains("-");
 
-        public override DateTime? BuildDate => this._metadataReader.BuildDate;
+        public DateTime? BuildDate => this._metadataReader.BuildDate;
     }
 
     /// <summary>

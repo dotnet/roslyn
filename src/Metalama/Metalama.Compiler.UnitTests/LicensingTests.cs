@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
-using Metalama.Compiler.UnitTests.Transformers;
+using Metalama.Compiler.UnitTests.ThirdParty;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,15 +43,6 @@ namespace Metalama.Compiler.UnitTests
             = "1-ZEQQQQQQZEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEASD8CXFHZY99JSJCPGSS6F3Q258BHCEBQCCLP85GRPFUZWBPAKLCV8CDZQ3JUUZFPZQQDEZJGP4Q8USJG4X6P2";
 
         private const string MetalamaUltimateOpenSourceRedistribution
-            = "5-ZEAQQQQQXEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEAPQPUW2VKAJDJ45JUQENSNR7N3L5PGFRUVNNYP3CTNN4DE2U6PTPXWC9UA2GDLGPMZQQDEZJGP4Q8USJG4X6P2";
-
-        private const string NamespaceLimitedMetalamaUltimateBusiness
-            = "6-ZTAQQQQQZEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7YQXG6LX7DCS2JBNJGVB4MWNMGVD88KXCHR629X37TCA6KVNBGVVCUMNBFVT4UXNBDAEJVU2BU4NZCND5MQR3M9ZHSUEXFPJG72M4AZQUHMXKBYDQW8HW82EWDWJARNVBKDXUZQQDEZJGP4Q8USJG4X6P2";
-
-        private const string NamespaceLimitedMetalamaFreePersonal
-            = "7-ZUAQQQQQ6QZEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7YQXG6LX7DCS2JBNJGVB4MWNMGVD88KXCHR629X37TCA6KVNBGVVCUMNBFVT4UXNBDAEGPU3DDAH2CZCPE5KPFEEF6ERQX5ARC2LU3T3MSD3K564GWZBSAGTD5XBHGHH3WGTUZQQDEZJGP4Q8USJG4X6P2";
-
-        private const string NamespaceLimitedMetalamaUltimateOpenSourceRedistribution
             = "8-ZQZQQQQQXEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7YQ2GYCXBSF629W7YDRH29BN7JFYCJX3MFVVAHZXJ9RS29KYTHFS8KQ7TFRS6ZTBVWZLKJVF3HZZHWA4ZKSX3DXZYBKR4MWCZF4AW43L2DLEPB5T8HFVMFKBYLUG2X78SQQBTWB2P7QNG4B27RXP3";
 
         private TempFile? _src;
@@ -107,9 +98,6 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         [InlineData(MetalamaProfessionalBusiness)]
         [InlineData(MetalamaUltimateBusiness)]
         [InlineData(MetalamaUltimateOpenSourceRedistribution)]
-        [InlineData(NamespaceLimitedMetalamaUltimateBusiness)]
-        [InlineData(NamespaceLimitedMetalamaFreePersonal)]
-        [InlineData(NamespaceLimitedMetalamaUltimateOpenSourceRedistribution)]
         public void LicenseNotRequiredWithoutTransformers(string license)
         {
             Test(license: license);
@@ -125,10 +113,7 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         [InlineData(MetalamaProfessionalBusiness, true)]
         [InlineData(MetalamaUltimateBusiness, true)]
         [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
-        [InlineData(NamespaceLimitedMetalamaUltimateBusiness, true)]
-        [InlineData(NamespaceLimitedMetalamaFreePersonal, true)]
-        [InlineData(NamespaceLimitedMetalamaUltimateOpenSourceRedistribution, true)]
-        public void TransformersRequiringActiveSubscriptionRequireLicense(string license, bool shouldCompile)
+        public void TransformersByPostSharpRequireLicense(string license, bool shouldCompile)
         {
             Test(new DummyTransformer(), license: license, expectedErrorCode: shouldCompile ? null : "LAMA0608");
         }
@@ -143,12 +128,9 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         [InlineData(MetalamaProfessionalBusiness, true)]
         [InlineData(MetalamaUltimateBusiness, true)]
         [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
-        [InlineData(NamespaceLimitedMetalamaUltimateBusiness, true)]
-        [InlineData(NamespaceLimitedMetalamaFreePersonal, false)]
-        [InlineData(NamespaceLimitedMetalamaUltimateOpenSourceRedistribution, true)]
-        public void TransformersNotRequiringActiveSubscriptionRequireLicense(string license, bool shouldCompile)
+        public void ThirdPartyTransformersRequireLicense(string license, bool shouldCompile)
         {
-            Test(new DummyTransformer(), true, license, license == None ? "LAMA0608" : shouldCompile ? null : "LAMA0615");
+            Test(new ThirdPartyDummyTransformer(), true, license, license == None ? "LAMA0608" : shouldCompile ? null : "LAMA0615");
         }
 
         [Theory]
@@ -161,9 +143,6 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         [InlineData(MetalamaProfessionalBusiness, true)]
         [InlineData(MetalamaUltimateBusiness, true)]
         [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
-        [InlineData(NamespaceLimitedMetalamaUltimateBusiness, true)]
-        [InlineData(NamespaceLimitedMetalamaFreePersonal, false)]
-        [InlineData(NamespaceLimitedMetalamaUltimateOpenSourceRedistribution, true)]
         public void DebuggingTransformedCodeRequiresLicense(string license, bool shouldCompile)
         {
             Test(new DummyTransformer(), true, license, license == None ? "LAMA0608" : shouldCompile ? null : "LAMA0609");

@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
             if (licenseManager != null)
             {
-                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaCompiler))
+                if (!licenseManager.CanConsume(LicenseRequirement.Free))
                 {
                     diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                         (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
@@ -448,7 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var component in application.Components)
                 {
-                    if (!component.RequiresSubscription && !licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaSdk))
+                    // Metalama SDK is required for 3rd-party transformers.
+                    if (component.Company != "PostSharp Technologies" && !licenseManager.CanConsume(LicenseRequirement.Professional))
                     {
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                             (int)MetalamaErrorCode.ERR_InvalidLicenseForSdk, component.Name));
@@ -465,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (shouldDebugTransformedCode)
                 {
-                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaDebugTransformedCode))
+                    if (!licenseManager.CanConsume(LicenseRequirement.Starter))
                     {
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                             (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
@@ -475,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Run transformers.
-             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
+            ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
             var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
                 analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);

@@ -6,8 +6,7 @@
     <IsPackable>false</IsPackable>
 
     <!-- Changing the name of the company makes the transformers defined in this project
-         not require an active maintenance subscription for the transformers
-         and require a license enabling Metalama SDK feature. -->
+         considered third-party for licensing purposes. -->
     <Company>Test Company</Company>
   </PropertyGroup>
 
