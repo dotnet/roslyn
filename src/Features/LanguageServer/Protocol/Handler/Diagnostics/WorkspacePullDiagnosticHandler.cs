@@ -121,6 +121,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return;
                 }
 
+                // Compute todo-comments in all documents in this project.
+                var todoCommentDocuments = project.Documents.ToImmutableArray<TextDocument>();
+
                 var isFSAOn = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
                 var documents = ImmutableArray<TextDocument>.Empty;
                 // If FSA is on, then add all the documents in the project.  Other analysis scopes are handled by the document pull handler.
@@ -135,32 +138,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                     documents = documents.AddRange(sourceGeneratedDocuments);
+                    todoCommentDocuments = todoCommentDocuments.AddRange(sourceGeneratedDocuments);
                 }
 
-                foreach (var document in documents)
-                {
-                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
-                    // Each handler treats those as separate worlds that they are responsible for.
-                    if (context.IsTracking(document.GetURI()))
-                    {
-                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
-                        continue;
-                    }
-
-                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
-                    // for any razor file they are interested in.
-                    if (document.IsRazorDocument())
-                    {
-                        continue;
-                    }
-
-                    result.Add(new WorkspaceDocumentDiagnosticSource(document));
-                }
+                // Scan for todo-comments first.  It's syntactic and much faster than semantic analysis.
+                AddSourceIfTracked(todoCommentDocuments, static d => d is Document doc ? new TodoCommentDiagnosticSource(doc) : null);
+                AddSourceIfTracked(documents, static d => new WorkspaceDocumentDiagnosticSource(d));
 
                 // Finally, if FSA is on we also want to check for diagnostics associated with the project itself.
                 if (isFSAOn)
                 {
                     result.Add(new ProjectDiagnosticSource(project));
+                }
+
+                return;
+
+                void AddSourceIfTracked(ImmutableArray<TextDocument> documents, Func<TextDocument, IDiagnosticSource?> createSource)
+                {
+                    foreach (var document in documents)
+                    {
+                        // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+                        // Each handler treats those as separate worlds that they are responsible for.
+                        if (context.IsTracking(document.GetURI()))
+                        {
+                            context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                            continue;
+                        }
+
+                        // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+                        // for any razor file they are interested in.
+                        if (document.IsRazorDocument())
+                            continue;
+
+                        result.AddIfNotNull(createSource(document));
+                    }
                 }
             }
         }
