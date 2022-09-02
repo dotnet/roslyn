@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         protected sealed record class TodoCommentDiagnosticSource(Document Document) : IDiagnosticSource
         {
+            private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
+
             private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
                 Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TodoCommentDescriptor>.Empty);
 
@@ -38,6 +42,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var descriptors = GetAndCacheDescriptors(tokenList);
 
                 var comments = await service.GetTodoCommentsAsync(Document, descriptors, cancellationToken).ConfigureAwait(false);
+                return comments.SelectAsArray(comment => new DiagnosticData(
+                    id: "TODO",
+                    category: "TODO",
+                    message: comment.Message,
+                    severity: /*unused*/DiagnosticSeverity.Info,
+                    defaultSeverity:/*unused*/DiagnosticSeverity.Info,
+                    isEnabledByDefault: true,
+                    warningLevel: /*unused*/0,
+                    customTags: s_todoCommentCustomTags,
+                    properties: ImmutableDictionary<string, string?>.Empty,
+                    projectId: Document.Project.Id,
+                    language: Document.Project.Language,
+                    location: new DiagnosticDataLocation(Document.Id, new TextSpan(comment.Position, 0))));
             }
 
             private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
