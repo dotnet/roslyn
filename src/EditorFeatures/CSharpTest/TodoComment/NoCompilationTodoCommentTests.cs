@@ -50,8 +50,8 @@ $@"<Workspace>
     }
 
     [PartNotDiscoverable]
-    [ExportLanguageService(typeof(ITodoCommentService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTodoCommentService : ITodoCommentService
+    [ExportLanguageService(typeof(ITodoCommentDataService), language: NoCompilationConstants.LanguageName), Shared]
+    internal class NoCompilationTodoCommentService : ITodoCommentDataService
     {
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -59,7 +59,7 @@ $@"<Workspace>
         {
         }
 
-        public Task<ImmutableArray<TodoCommentData>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray.Create(new TodoCommentData(
                 commentDescriptors.First().Priority,
                 "Message",

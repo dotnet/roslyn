@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
             var documentId = hostDocument.Id;
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var service = document.GetLanguageService<ITodoCommentService>();
-            var todoComments = await service.GetTodoCommentsAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
+            var service = document.GetLanguageService<ITodoCommentDataService>();
+            var todoComments = await service.GetTodoCommentDataAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
 
             var expectedLists = hostDocument.SelectedSpans;
             Assert.Equal(todoComments.Length, expectedLists.Count);
