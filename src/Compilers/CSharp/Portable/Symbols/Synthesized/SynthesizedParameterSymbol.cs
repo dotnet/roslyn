@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override DeclarationScope DeclaredScope => _scope;
 
         internal sealed override DeclarationScope EffectiveScope => ParameterHelpers.CalculateEffectiveScopeIgnoringAttributes(this);
+
+        internal sealed override bool UseUpdatedEscapeRules => _container?.UseUpdatedEscapeRules ?? false;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
