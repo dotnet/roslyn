@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -980,6 +981,39 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9));
 
             CompileAndVerify(code, expectedOutput: "5");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void InParametersWouldErrorOutInEarlierCSharpVersions()
+        {
+            var code = @"
+public class Test
+{
+    public void DoSomething(in int x) { }
+}";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7.0. Please use language version 7.2 or greater.
+                //     public void DoSomething(in int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.2").WithLocation(4, 29));
+        }
+
+        [Fact]
+        public void ExtensionMethodsAreNotAvailableInEarlierCSharpVersions()
+        {
+            var code = @"
+ public static class Test
+ {
+     public static void DoSomething(this int x) { }
+ }";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp2)).VerifyDiagnostics(
+                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2. Please use language version 3 or greater.
+                //      public static void DoSomething(this int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.Latest)).VerifyDiagnostics();
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetNameAttributeValues(CSharpCompilation compilation)

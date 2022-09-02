@@ -3331,23 +3331,6 @@ public static class Extensions
                 );
         }
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void InParametersWouldErrorOutInEarlierCSharpVersions()
-        {
-            var code = @"
-public class Test
-{
-    public void DoSomething(in int x) { }
-}";
-
-            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
-                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.2 or greater.
-                // public void DoSomething(in int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.2").WithLocation(4, 29)
-            );
-        }
-
         [WorkItem(906072, "DevDiv/Personal")]
         [Fact]
         public void CS1102ERR_BadOutWithThis()
@@ -5652,23 +5635,6 @@ class C
                 // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = a => b;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "=>").WithArguments("lambda expression", "3"));
-        }
-
-        [Fact]
-        public void ExtensionMethodsAreNotAvailableInEarlierCSharpVersions()
-        {
-            var code = @"
- public static class Test
- {
-     public static void DoSomething(this int x) { }
- }";
-
-            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp2),
-                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2. Please use language version 3 or greater.
-                //      public static void DoSomething(this int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
-
-            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.Latest));
         }
 
         [Fact]
