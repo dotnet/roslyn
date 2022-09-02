@@ -552,6 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.InKeyword:
+                        Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences, diagnostics);
+
                         if (seenIn)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
