@@ -75,24 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-        {
-            // Navigation should not change the context of linked files and Shared Projects.
-            documentId = workspace.GetDocumentIdInCurrentContext(documentId);
-
-            if (!IsSecondaryBuffer(documentId))
-            {
-                return true;
-            }
-
-            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
-
-            return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
-                documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
-        }
-
         public async Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
@@ -137,32 +119,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _ => Task.FromResult(textSpan),
                 text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
-            Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-        {
-            if (!await this.CanNavigateToLineAndOffsetAsync(workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false))
-                return null;
-
-            return await GetNavigableLocationAsync(workspace,
-                documentId,
-                document => GetTextSpanFromLineAndOffsetAsync(document, lineNumber, offset, cancellationToken),
-                text => GetVsTextSpan(text, lineNumber, offset),
-                cancellationToken).ConfigureAwait(false);
-
-            static async Task<TextSpan> GetTextSpanFromLineAndOffsetAsync(Document document, int lineNumber, int offset, CancellationToken cancellationToken)
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var linePosition = new LinePosition(lineNumber, offset);
-                return text.Lines.GetTextSpan(new LinePositionSpan(linePosition, linePosition));
-            }
-
-            static VsTextSpan GetVsTextSpan(SourceText text, int lineNumber, int offset)
-            {
-                return text.GetVsTextSpanForLineOffset(lineNumber, offset);
-            }
         }
 
         public async Task<INavigableLocation?> GetLocationForPositionAsync(

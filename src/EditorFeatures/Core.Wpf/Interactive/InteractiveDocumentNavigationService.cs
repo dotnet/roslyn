@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
             => SpecializedTasks.True;
 
-        public Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
-
         public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 

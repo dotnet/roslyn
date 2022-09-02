@@ -40,17 +40,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
-        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
-            => CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, CancellationToken.None);
-
-        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-        {
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                service.CanNavigateToLineAndOffsetAsync(workspace, documentId, lineNumber, offset, cancellationToken));
-        }
-
-        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace)
             => CanNavigateToPosition(workspace, documentId, position, virtualSpace, CancellationToken.None);
 

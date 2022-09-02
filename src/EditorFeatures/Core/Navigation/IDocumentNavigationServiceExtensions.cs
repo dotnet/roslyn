@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Navigation
             if (location == null)
                 return false;
 
-            // This switch is currently unnecessary.  Howevver, it helps support a future where location.NavigateTo becomes
-            // async and must be on the UI thread.
+            // This switch is currently unnecessary.  However, it helps support a future where location.NavigateTo
+            // becomes async and must be on the UI thread.
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
         }
@@ -60,14 +60,6 @@ namespace Microsoft.CodeAnalysis.Navigation
             var location = await service.GetLocationForPositionAsync(
                 workspace, documentId, position, cancellationToken).ConfigureAwait(false);
             return await location.TryNavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async Task<bool> TryNavigateToLineAndOffsetAsync(
-            this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
-        {
-            var location = await service.GetLocationForLineAndOffsetAsync(
-                workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false);
-            return await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

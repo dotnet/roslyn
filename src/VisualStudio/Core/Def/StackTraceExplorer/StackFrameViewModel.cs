@@ -131,8 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     if (navigationService is null)
                         return;
 
-                    var location = await navigationService.TryNavigateToLineAndOffsetAsync(
-                        _threadingContext, _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
+                    var line = sourceText.Lines[Math.Max(lineNumber - 1, 0)];
+                    var location = await navigationService.TryNavigateToPositionAsync(
+                        _threadingContext, _workspace, document.Id, line.Start, virtualSpace: 0, options, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
