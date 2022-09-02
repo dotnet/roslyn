@@ -618,8 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKind = RefKind(i);
                 var scope = Scope(i);
                 var type = ParameterTypeWithAnnotations(i);
-                if (scope == DeclarationScope.Unscoped &&
-                    ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind, type))
+                if (scope == DeclarationScope.Unscoped && ParameterHelpers.IsRefScopedByDefault(refKind, type))
                 {
                     scope = DeclarationScope.RefScoped;
                 }

@@ -471,7 +471,7 @@ abstract public class A
                 Assert.Same(m5.TypeParameters[0], m5.Parameters[0].Type);
                 Assert.Same(m5.TypeParameters[1], m5.Parameters[1].Type);
 
-                Assert.Equal(10, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
+                Assert.Equal(6, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
             });
         }
 

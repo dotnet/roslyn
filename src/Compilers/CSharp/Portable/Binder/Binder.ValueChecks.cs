@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(AllParametersConsideredInEscapeAnalysisHaveArguments(argsOpt, parameters, argsToParamsOpt));
 #endif
 
-            if (UseUpdatedEscapeRulesForInvocation(symbol))
+            if (UseUpdatedEscapeRules)
             {
                 return GetInvocationEscapeWithUpdatedRules(symbol, receiver, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
             }
@@ -1606,7 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(AllParametersConsideredInEscapeAnalysisHaveArguments(argsOpt, parameters, argsToParamsOpt));
 #endif
 
-            if (UseUpdatedEscapeRulesForInvocation(symbol))
+            if (UseUpdatedEscapeRules)
             {
                 return CheckInvocationEscapeWithUpdatedRules(syntax, symbol, receiver, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape);
             }
@@ -1789,6 +1789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return (null, receiver, RefKind.None);
                 }
+                var containingType = symbol.ContainingType;
                 var method = symbol switch
                 {
                     MethodSymbol m => m,
@@ -1950,17 +1951,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, syntax, symbol, parameterName);
         }
 
-        private bool UseUpdatedEscapeRulesForInvocation(Symbol symbol)
-        {
-            var method = symbol switch
-            {
-                MethodSymbol m => m,
-                PropertySymbol p => p.GetMethod ?? p.SetMethod,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-            };
-            return method?.UseUpdatedEscapeRules == true;
-        }
-
         /// <summary>
         /// Validates whether the invocation is valid per no-mixing rules.
         /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
@@ -1976,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint scopeOfTheContainingExpression,
             BindingDiagnosticBag diagnostics)
         {
-            if (UseUpdatedEscapeRulesForInvocation(symbol))
+            if (UseUpdatedEscapeRules)
             {
                 return CheckInvocationArgMixingWithUpdatedRules(syntax, symbol, receiverOpt, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
             }

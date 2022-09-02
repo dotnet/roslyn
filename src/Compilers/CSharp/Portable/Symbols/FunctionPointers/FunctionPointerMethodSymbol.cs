@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 typeBinder,
                 diagnostics,
-                suppressUseSiteDiagnostics,
-                useUpdatedEscapeRules: typeBinder.UseUpdatedEscapeRules);
+                suppressUseSiteDiagnostics);
 
             static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
             {
@@ -324,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CSharpCustomModifier.CreateRequired(attributeType);
         }
 
-        public static FunctionPointerMethodSymbol CreateFromMetadata(ModuleSymbol containingModule, CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
-            => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes, useUpdatedEscapeRules: containingModule.UseUpdatedEscapeRules);
+        public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+            => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
 
         public FunctionPointerMethodSymbol SubstituteParameterSymbols(
             TypeWithAnnotations substitutedReturnType,
@@ -339,8 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 refCustomModifiers.IsDefault ? this.RefCustomModifiers : refCustomModifiers,
                 this.Parameters,
                 substitutedParameterTypes,
-                paramRefCustomModifiers,
-                this.UseUpdatedEscapeRules);
+                paramRefCustomModifiers);
 
         internal FunctionPointerMethodSymbol MergeEquivalentTypes(FunctionPointerMethodSymbol signature, VarianceKind variance)
         {
@@ -442,8 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<ParameterSymbol> originalParameters,
             ImmutableArray<TypeWithAnnotations> substitutedParameterTypes,
-            ImmutableArray<ImmutableArray<CustomModifier>> substitutedRefCustomModifiers,
-            bool useUpdatedEscapeRules)
+            ImmutableArray<ImmutableArray<CustomModifier>> substitutedRefCustomModifiers)
         {
             Debug.Assert(originalParameters.Length == substitutedParameterTypes.Length);
             Debug.Assert(substitutedRefCustomModifiers.IsDefault || originalParameters.Length == substitutedRefCustomModifiers.Length);
@@ -451,7 +448,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CallingConvention = callingConvention;
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
-            UseUpdatedEscapeRules = useUpdatedEscapeRules;
 
             if (originalParameters.Length > 0)
             {
@@ -497,8 +493,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind = refKind;
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnTypeWithAnnotations;
-            UseUpdatedEscapeRules = compilation.SourceModule.UseUpdatedEscapeRules;
-
             _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation, ParamRefCustomModifiers: parameterRefCustomModifiers),
                 (type, refKind, i, arg) =>
                 {
@@ -519,14 +513,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
             BindingDiagnosticBag diagnostics,
-            bool suppressUseSiteDiagnostics,
-            bool useUpdatedEscapeRules)
+            bool suppressUseSiteDiagnostics)
         {
             RefCustomModifiers = refCustomModifiers;
             CallingConvention = callingConvention;
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
-            UseUpdatedEscapeRules = useUpdatedEscapeRules;
+
             _parameters = syntax.ParameterList.Parameters.Count > 1
                 ? ParameterHelpers.MakeFunctionPointerParameters(
                     typeBinder,
@@ -537,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ImmutableArray<FunctionPointerParameterSymbol>.Empty;
         }
 
-        private FunctionPointerMethodSymbol(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes, bool useUpdatedEscapeRules)
+        private FunctionPointerMethodSymbol(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
         {
             Debug.Assert(retAndParamTypes.Length > 0);
 
@@ -549,7 +542,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ReturnTypeWithAnnotations = returnType;
             RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly, RefKind.Ref);
             Debug.Assert(RefKind != RefKind.Out);
-            UseUpdatedEscapeRules = useUpdatedEscapeRules;
             _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
 
             static ImmutableArray<FunctionPointerParameterSymbol> makeParametersFromMetadata(ReadOnlySpan<ParamInfo<TypeSymbol>> parameterTypes, FunctionPointerMethodSymbol parent)
@@ -757,8 +749,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode()));
 
         internal override CallingConvention CallingConvention { get; }
-        internal override bool UseUpdatedEscapeRules { get; }
-
         public override bool ReturnsVoid => ReturnTypeWithAnnotations.IsVoidType();
         public override RefKind RefKind { get; }
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }

@@ -188,11 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic template. Otherwise, use a non-generic template.
-            bool useUpdatedEscapeRules = Compilation.SourceModule.UseUpdatedEscapeRules;
-            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr))
+            if (allValidTypeArguments(typeDescr))
             {
                 var fields = typeDescr.Fields;
-                Debug.Assert(fields.All(f => hasDefaultScope(useUpdatedEscapeRules, f)));
+                Debug.Assert(fields.All(f => hasDefaultScope(f)));
 
                 bool returnsVoid = fields.Last().Type.IsVoidType();
                 int nTypeArguments = fields.Length - (returnsVoid ? 1 : 0);
@@ -244,24 +243,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     template.Construct(typeParameters);
             }
 
-            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr)
+            static bool allValidTypeArguments(AnonymousTypeDescriptor typeDescr)
             {
                 var fields = typeDescr.Fields;
                 int n = fields.Length;
                 for (int i = 0; i < n - 1; i++)
                 {
-                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i]))
+                    if (!isValidTypeArgument(fields[i]))
                     {
                         return false;
                     }
                 }
                 var returnParameter = fields[n - 1];
-                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter);
+                return returnParameter.Type.IsVoidType() || isValidTypeArgument(returnParameter);
             }
 
-            static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
+            static bool hasDefaultScope(AnonymousTypeField field)
             {
-                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(useUpdatedEscapeRules, field.RefKind, field.TypeWithAnnotations)) switch
+                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(field.RefKind, field.TypeWithAnnotations)) switch
                 {
                     (DeclarationScope.Unscoped, false) => true,
                     (DeclarationScope.RefScoped, true) => true,
@@ -269,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 };
             }
 
-            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field)
+            static bool isValidTypeArgument(AnonymousTypeField field)
             {
-                return hasDefaultScope(useUpdatedEscapeRules, field) &&
+                return hasDefaultScope(field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();

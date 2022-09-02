@@ -592,8 +592,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
-        internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
-
 #nullable enable
 
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol

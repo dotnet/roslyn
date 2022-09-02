@@ -217,15 +217,6 @@ class Program
             return false;
         }
     }
-    public class Attribute { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets validOn) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-    public struct Enum { }
-    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 

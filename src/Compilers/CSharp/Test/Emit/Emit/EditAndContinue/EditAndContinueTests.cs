@@ -2502,7 +2502,7 @@ namespace N
     }
 }";
 
-            var compilation0 = CreateCompilation(source0, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -11084,7 +11084,7 @@ public class Program
             <N:1>select a is int <N:2>x</N:2> && x == 0</N:1></N:0>;
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -11967,7 +11967,7 @@ public class C : Base
     static int M2(System.Func<int> x) => throw null;
 }" + baseClass);
 
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -12131,7 +12131,7 @@ public class C
     static int M2(System.Func<int> x) => throw null;
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -12381,7 +12381,7 @@ public class C
     static int M2(System.Func<int> x) => throw null;
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -12544,7 +12544,7 @@ public class Program
             <N:1>select M(a, out int <N:2>x</N:2>) + x</N:1></N:0>;
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -12748,7 +12748,7 @@ public class Program
             <N:1>select <N:2>M(a, out int <N:3>x</N:3>) + M2(<N:4>() => x - 1</N:4>)</N:2></N:1></N:0>;
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -12996,7 +12996,7 @@ public class Program
 
     static int N(out int x) { x = 1; return 0; }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source0.Tree);
 
@@ -13255,7 +13255,7 @@ namespace N
 }
 ";
 
-            var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1, IsExternalInitTypeDefinition });
 
             var printMembers0 = compilation0.GetMember<MethodSymbol>("N.R.PrintMembers");
@@ -13314,26 +13314,26 @@ namespace N
             CheckNames(readers, reader1.GetMethodDefNames(), "PrintMembers");
 
             CheckEncLog(reader1,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
+                Handle(20, TableIndex.TypeRef),
                 Handle(21, TableIndex.TypeRef),
                 Handle(22, TableIndex.TypeRef),
-                Handle(23, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
                 Handle(3, TableIndex.Param),
-                Handle(23, TableIndex.CustomAttribute),
+                Handle(22, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
-                Handle(3, TableIndex.AssemblyRef));
+                Handle(2, TableIndex.AssemblyRef));
         }
 
         [Fact]
@@ -13362,7 +13362,7 @@ namespace N
 }
 ";
 
-            var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, references: new[] { RefSafetyRulesAttributeLib }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1, IsExternalInitTypeDefinition });
 
             var method0 = compilation0.GetMember<MethodSymbol>("N.R.PrintMembers");

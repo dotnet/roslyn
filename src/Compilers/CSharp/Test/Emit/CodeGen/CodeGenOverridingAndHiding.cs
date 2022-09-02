@@ -3158,14 +3158,14 @@ class Test
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
-                            parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
+                            options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
             var comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
-                            parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
+                            options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 

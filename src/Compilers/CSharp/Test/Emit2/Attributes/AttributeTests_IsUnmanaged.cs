@@ -841,9 +841,8 @@ class Test<T> where T : unmanaged
 
                 case Accessibility.Public:
                     {
-                        var refSafetyRulesAttribute = attributeType.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.RefSafetyRulesAttribute.FullName);
-                        var embeddedAttribute = attributeType.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
-                        Assert.Equal(refSafetyRulesAttribute is null, embeddedAttribute is null);
+                        Assert.Null(attributeType.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+
                         break;
                     }
 

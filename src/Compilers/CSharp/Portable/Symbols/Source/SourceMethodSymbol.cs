@@ -81,7 +81,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
-
-        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
     }
 }

@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -45,9 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceSymbol _globalNamespace;
 
         private bool _hasBadAttributes;
-
-        private ThreeState _lazyUseUpdatedEscapeRules;
-        private ThreeState _lazyRequiresRefSafetyRulesAttribute;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
@@ -524,92 +520,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.RefSafetyRulesAttribute))
+                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
-            }
-        }
-
-#nullable enable
-
-        internal bool RequiresRefSafetyRulesAttribute()
-        {
-            if (_lazyRequiresRefSafetyRulesAttribute == ThreeState.Unknown)
-            {
-                bool value = UseUpdatedEscapeRules && namespaceIncludesRefs(GlobalNamespace);
-                _lazyRequiresRefSafetyRulesAttribute = value.ToThreeState();
-            }
-            return _lazyRequiresRefSafetyRulesAttribute.Value();
-
-            static bool namespaceIncludesRefs(NamespaceSymbol ns)
-            {
-                foreach (var member in ns.GetMembersUnordered())
-                {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Namespace:
-                            if (namespaceIncludesRefs((NamespaceSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                        case SymbolKind.NamedType:
-                            if (typeIncludesRefs((NamedTypeSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(member.Kind);
-                    }
-                }
-                return false;
-            }
-
-            static bool typeIncludesRefs(NamedTypeSymbol type)
-            {
-                if (type.IsRefLikeType)
-                {
-                    return true;
-                }
-                foreach (var member in type.GetMembersUnordered())
-                {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.NamedType:
-                            if (typeIncludesRefs((NamedTypeSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                        case SymbolKind.Method:
-                            if (methodIncludesRefs((MethodSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                    }
-                }
-                return false;
-            }
-
-            static bool methodIncludesRefs(MethodSymbol method)
-            {
-                if (method.RefKind != RefKind.None ||
-                    method.ReturnType.IsRefLikeType)
-                {
-                    return true;
-                }
-                return method.Parameters.Any(p => parameterIncludesRef(p));
-            }
-
-            static bool parameterIncludesRef(ParameterSymbol parameter)
-            {
-                return parameter.RefKind != RefKind.None ||
-                    parameter.Type.IsRefLikeType;
             }
         }
 
@@ -626,12 +542,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));
                 }
-            }
-
-            if (RequiresRefSafetyRulesAttribute())
-            {
-                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, 11));
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRefSafetyRulesAttribute(version));
             }
 
             if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
@@ -678,20 +588,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ModuleMetadata? GetMetadata() => null;
-
-        internal override bool UseUpdatedEscapeRules
-        {
-            get
-            {
-                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
-                {
-                    var compilation = _assemblySymbol.DeclaringCompilation;
-                    bool value = compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefFields) || _assemblySymbol.RuntimeSupportsByRefFields;
-                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
-                }
-                return _lazyUseUpdatedEscapeRules == ThreeState.True;
-            }
-        }
+        public override ModuleMetadata GetMetadata() => null;
     }
 }

@@ -1705,16 +1705,7 @@ namespace System
     public ref struct Int32 {}
     public struct Nullable<T> where T : struct { public Nullable(T value) {} }
     public struct Int64 {}
-    public struct Boolean { }
-    public class Attribute { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets t) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-    public struct Enum { }
-    public enum AttributeTargets { }
+    public class Attribute {}
 }
 ";
 
@@ -1758,16 +1749,7 @@ namespace System
     public struct Int32 {}
     public struct Nullable<T> where T : struct { public T Value { get => throw null; } }
     public ref struct Int64 {}
-    public struct Boolean { }
-    public class Attribute { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets t) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-    public struct Enum { }
-    public enum AttributeTargets { }
+    public class Attribute {}
 }
 ";
 
@@ -1815,16 +1797,7 @@ namespace System
     public ref struct Int32 {}
     public struct Nullable<T> where T : struct { public Nullable(T value) {} }
     public struct Int64 {}
-    public struct Boolean { }
-    public class Attribute { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets t) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-    public struct Enum { }
-    public enum AttributeTargets { }
+    public class Attribute {}
 }
 ";
 

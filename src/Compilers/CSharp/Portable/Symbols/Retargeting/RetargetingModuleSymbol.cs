@@ -312,7 +312,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
-        internal override bool UseUpdatedEscapeRules => _underlyingModule.UseUpdatedEscapeRules;
     }
 }
