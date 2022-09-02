@@ -315,21 +315,21 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mon
 fi
 
 if [[ "$test_core_clr" == true ]]; then
-  testAssembliesFilePath = "${artifacts_dir}/testassemblies.txt"
+  testAssembliesFilePath="${artifacts_dir}/testassemblies.txt"
   dotnet exec "${artifacts_dir}/bin/TestAssemblyFinder/${configuration}/net6.0/TestAssemblyFinder.dll" --artifactsDirectory $artifacts_dir --configuration $configuration --targetFrameworks net6.0 --outputFilePath $testAssembliesFilePath
 
-  testRunnerExecutableArgs = ""
+  testRunnerExecutableArgs=""
   if [[ "$helix" == true ]]; then
-    testRunnerExecutableArgs = "${artifacts_dir}/bin/HelixTestRunner/${configuration}/net6.0/HelixTestRunner.dll --artifactsDirectory $artifacts_dir --architecture \"x64\" --logDirectory $log_dir --dotnetExecutablePath ${_InitializeDotNetCli}/dotnet --testAssembliesPath $testAssembliesFilePath"
+    testRunnerExecutableArgs="${artifacts_dir}/bin/HelixTestRunner/${configuration}/net6.0/HelixTestRunner.dll --artifactsDirectory $artifacts_dir --architecture \"x64\" --logDirectory $log_dir --dotnetExecutablePath ${_InitializeDotNetCli}/dotnet --testAssembliesPath $testAssembliesFilePath"
     if [[ -n "$helix_queue_name" ]]; then
       testRunnerExecutableArgs="$testRunnerExecutableArgs --helixQueueName $helix_queue_name"
     fi
   else
-    testRunnerExecutableArgs = "test"
+    testRunnerExecutableArgs="test"
     while read line; do
-      testRunnerExecutableArgs = "$testRunnerExecutableArgs $line"
+      testRunnerExecutableArgs="$testRunnerExecutableArgs $line"
     done < "$testAssembliesFilePath"
-    testRunnerExecutableArgs = "$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${logFile}/TestResults.xml\""
+    testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${logFile}/TestResults.xml\""
 
     if [[ "$ci" != true ]]; then
       testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${logFile}/TestResults.html\""
