@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask<ImmutableArray<TodoCommentData>> GetTodoCommentsAsync(
+        public ValueTask<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
             Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var service = document.GetRequiredLanguageService<ITodoCommentService>();
-                return await service.GetTodoCommentsAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+                var service = document.GetRequiredLanguageService<ITodoCommentDataService>();
+                return await service.GetTodoCommentDataAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

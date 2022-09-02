@@ -5,29 +5,19 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
-    <ExportLanguageServiceFactory(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicTodoCommentServiceFactory
-        Implements ILanguageServiceFactory
+    <ExportLanguageService(GetType(ITodoCommentDataService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicTodoCommentService
+        Inherits AbstractTodoCommentService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicTodoCommentService()
-        End Function
-
-    End Class
-
-    Friend Class VisualBasicTodoCommentService
-        Inherits AbstractTodoCommentService
 
         Protected Overrides Sub AppendTodoComments(
                 commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),

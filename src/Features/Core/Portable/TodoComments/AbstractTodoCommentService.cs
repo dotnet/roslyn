@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal abstract class AbstractTodoCommentService : ITodoCommentService
+    internal abstract class AbstractTodoCommentService : ITodoCommentDataService
     {
         protected abstract bool PreprocessorHasComment(SyntaxTrivia trivia);
         protected abstract bool IsSingleLineComment(SyntaxTrivia trivia);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         protected abstract int GetCommentStartingIndex(string message);
         protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoComment> todoList);
 
-        public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentsAsync(
+        public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
             Document document,
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             {
                 var result = await client.TryInvokeAsync<IRemoteTodoCommentsDiscoveryService, ImmutableArray<TodoCommentData>>(
                     document.Project,
-                    (service, checksum, cancellationToken) => service.GetTodoCommentsAsync(checksum, document.Id, commentDescriptors, cancellationToken),
+                    (service, checksum, cancellationToken) => service.GetTodoCommentDataAsync(checksum, document.Id, commentDescriptors, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 return result.Value;
             }
 
-            return await GetTodoCommentsInProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+            return await GetTodoCommentDataInProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<TodoCommentData>> GetTodoCommentsInProcessAsync(
+        private async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataInProcessAsync(
             Document document,
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             CancellationToken cancellationToken)

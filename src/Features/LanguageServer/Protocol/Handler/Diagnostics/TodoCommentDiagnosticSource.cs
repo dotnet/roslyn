@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                 IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             {
-                var service = Document.GetLanguageService<ITodoCommentService>();
+                var service = Document.GetLanguageService<ITodoCommentDataService>();
                 if (service == null)
                     return ImmutableArray<DiagnosticData>.Empty;
 
                 var tokenList = Document.Project.Solution.Options.GetOption(TodoCommentOptionsStorage.TokenList);
                 var descriptors = GetAndCacheDescriptors(tokenList);
 
-                var comments = await service.GetTodoCommentsAsync(Document, descriptors, cancellationToken).ConfigureAwait(false);
+                var comments = await service.GetTodoCommentDataAsync(Document, descriptors, cancellationToken).ConfigureAwait(false);
                 return comments.SelectAsArray(comment => new DiagnosticData(
                     id: "TODO",
                     category: "TODO",
