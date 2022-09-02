@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                foreach (var docId in _projectToOpenDocumentsMap.Values.SelectMany(x => x).ToArray())
+                foreach (var docId in _projectToOpenDocumentsMap.Values.SelectMany(x => x).ToList())
                     this.ClearOpenDocument_NoLock(docId);
             }
         }
