@@ -3336,9 +3336,11 @@ namespace N
 {
     public record C(int P, bool B)
     {
-        public {|CS0111:C|}(int p, bool b) : {|CS0121:this|}(p, b)
+        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             Console.WriteLine(""Constructing C..."");
+            P = p;
+            B = b;
         }
     }
 }
@@ -3374,8 +3376,10 @@ namespace N
 {
     public record C(int P, bool B)
     {
-        public {|CS0111:C|}(int p, bool b) : {|CS0121:this|}(p + 1, b)
+        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
+            P = p + 1;
+            B = b;
         }
     }
 }
@@ -3410,8 +3414,9 @@ namespace N
 {
     public record C(int P, bool B)
     {
-        public {|CS0111:C|}(int p, bool b) : {|CS0121:this|}(default, b)
+        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
+            B = b;
         }
     }
 }

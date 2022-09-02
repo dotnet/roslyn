@@ -191,7 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             documentEditor.RemoveNode(constructor);
                         }
                     }
-                    else
+                    // ignore any constructor that has the same signature as the primary constructor.
+                    // If it wasn't already processed as the primary, it's too complex, and will
+                    // already produce an error as the signatures conflict. Better to leave as is and show errors.
+                    else if (!constructorSymbol.Parameters.Select(parameter => parameter.Type)
+                        .SequenceEqual(propertiesToAssign.Select(property => property.Type)))
                     {
                         // non-primary, non-copy constructor, add ": this(...)" initializers to each
                         // and try to use assignments in the body to determine the values, otherwise default or null
