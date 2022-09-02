@@ -9799,7 +9799,7 @@ class C2 : I
         [WorkItem(63490, "https://github.com/dotnet/roslyn/issues/63490")]
         public void MultipleBasesWithObliviousDifferencesAndInterfaces()
         {
-            var source = @"
+            var source1 = @"
 #nullable enable
 interface ITest
 {
@@ -9809,14 +9809,17 @@ interface ITest
 class Generic<T> { }
 class Argument { }
 partial class Partial : Generic<Argument> { }
+";
 
+            var source2 = @"
 #nullable disable
 partial class Partial : Generic<Argument>, ITest
 {
     void ITest.Test() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source1 + source2).VerifyDiagnostics();
+            CreateCompilation(source2 + source1).VerifyDiagnostics();
         }
     }
 }
