@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return ValueTaskFactory.FromResult(GetRequestedDocument(context));
+            return ValueTaskFactory.FromResult(GetDiagnosticSources(context));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport> progress)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetValues();
         }
 
-        internal static ImmutableArray<IDiagnosticSource> GetRequestedDocument(RequestContext context)
+        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(RequestContext context)
         {
             // For the single document case, that is the only doc we want to process.
             //
