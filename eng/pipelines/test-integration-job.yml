@@ -39,6 +39,15 @@ steps:
     condition: always()
 
   - task: PublishBuildArtifacts@1
+    displayName: Publish Test Results Directory
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}'
+      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      publishLocation: Container
+    continueOnError: true
+    condition: not(succeeded())
+  
+  - task: PublishBuildArtifacts@1
     displayName: Publish Logs
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'

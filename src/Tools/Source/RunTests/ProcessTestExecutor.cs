@@ -54,7 +54,10 @@ namespace RunTests
             // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
             // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
             var timeout = options.UseHelix ? "15minutes" : "25minutes";
-            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
+            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=1minutes;DumpType=full");
+
+            // Specifies the results directory - this is where dumps from the blame options will get published.
+            fileContentsBuilder.AppendLine($"/ResultsDirectory:{options.TestResultsDirectory}");
 
             // Build the filter string
             var filterStringBuilder = new StringBuilder();
