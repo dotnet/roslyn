@@ -37,23 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var optionProvider = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
             var optionValue = UseExpressionBodyForLambdaHelpers.GetCodeStyleOption(optionProvider);
 
-            var severity = UseExpressionBodyForLambdaHelpers.GetOptionSeverity(optionValue);
-            switch (severity)
+            switch (optionValue.Notification.Severity)
             {
                 case ReportDiagnostic.Suppress:
-                case ReportDiagnostic.Hidden:
-                    // if the severity is Hidden that's equivalent to 'refactoring only', so we want
-                    // to try to compute the refactoring here.
-                    //
                     // If the severity is 'suppress', that means the user doesn't want the actual
                     // analyzer to run here.  However, we can still check to see if we could offer
                     // the feature here as a refactoring.
                     await ComputeRefactoringsAsync(context, optionValue.Value, analyzerActive: false).ConfigureAwait(false);
                     return;
 
-                case ReportDiagnostic.Error:
-                case ReportDiagnostic.Warn:
-                case ReportDiagnostic.Info:
+                default:
                     // User has this option set at a level where we want it checked by the
                     // DiagnosticAnalyser and not the CodeRefactoringProvider.  However, we still
                     // want to check if we want to offer the *reverse* refactoring here in this

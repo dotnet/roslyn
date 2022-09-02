@@ -90,19 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         internal static CodeStyleOption2<ExpressionBodyPreference> GetCodeStyleOption(AnalyzerOptionsProvider provider)
             => ((CSharpAnalyzerOptionsProvider)provider).PreferExpressionBodiedLambdas;
 
-        /// <summary>
-        /// Helper to get the true ReportDiagnostic severity for a given option.  Importantly, this
-        /// handle ReportDiagnostic.Default and will map that back to the appropriate value in that
-        /// case.
-        /// </summary>
-        internal static ReportDiagnostic GetOptionSeverity(CodeStyleOption2<ExpressionBodyPreference> optionValue)
-        {
-            var severity = optionValue.Notification.Severity;
-            return severity == ReportDiagnostic.Default
-                ? severity.WithDefaultSeverity(DiagnosticSeverity.Hidden)
-                : severity;
-        }
-
         internal static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
             LanguageVersion languageVersion,

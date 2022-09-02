@@ -2,35 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeActionTest
+    using VerifyCS = CSharpCodeRefactoringVerifier<UseExpressionBodyForLambdaCodeRefactoringProvider>;
+
+    public class UseExpressionBodyForLambdasRefactoringTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new UseExpressionBodyForLambdaCodeRefactoringProvider();
+        private static readonly CodeStyleOption2<ExpressionBodyPreference> s_useExpressionBody = new(ExpressionBodyPreference.WhenPossible, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<ExpressionBodyPreference> s_useExpressionBodyDisabledDiagnostic = new(ExpressionBodyPreference.WhenPossible, NotificationOption2.None);
+        private static readonly CodeStyleOption2<ExpressionBodyPreference> s_useBlockBody = new(ExpressionBodyPreference.Never, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<ExpressionBodyPreference> s_useBlockBodyDisabledDiagnostic = new(ExpressionBodyPreference.Never, NotificationOption2.None);
 
-        private OptionsCollection UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
+        private static async Task TestMissingAsync(string code, CodeStyleOption2<ExpressionBodyPreference> option)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, option } },
+            }.RunAsync();
+        }
 
-        private OptionsCollection UseExpressionBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
-
-        private OptionsCollection UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
-
-        private OptionsCollection UseBlockBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        private static async Task TestInRegularAndScript1Async(string code, string fixedCode, CodeStyleOption2<ExpressionBodyPreference> option)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, option } },
+            }.RunAsync();
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
@@ -45,9 +54,9 @@ class C
         Func<int, string> f = x [|=>|]
         {
             return x.ToString();
-        }
+        };
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
+}", s_useExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -74,7 +83,7 @@ class C
     {
         Func<int, string> f = x => x.ToString();
     }
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
+}", s_useExpressionBodyDisabledDiagnostic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -101,7 +110,7 @@ class C
     {
         Func<int, string> f = x => x.ToString();
     }
-}", parameters: new TestParameters(options: UseBlockBody));
+}", s_useBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -114,7 +123,7 @@ class C
     {
         return 1;
     }
-}", parameters: new TestParameters(options: UseBlockBody));
+}", s_useBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -129,7 +138,7 @@ class C
     {
         Func<int, string> f = x [||]=> x.ToString();
     }
-}", parameters: new TestParameters(options: UseBlockBody));
+}", s_useBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -156,7 +165,7 @@ class C
             return x.ToString();
         };
     }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
+}", s_useBlockBodyDisabledDiagnostic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -183,7 +192,7 @@ class C
             return x.ToString();
         };
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
+}", s_useExpressionBody);
         }
     }
 }
