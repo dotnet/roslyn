@@ -872,6 +872,51 @@ public class Base {
                 Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(3, 19));
         }
 
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter4()
+        {
+            CreateCompilation(@"
+public class Base {
+    void M()
+    {
+        var v = (readonly int i) => { };
+    }
+}").VerifyDiagnostics(
+                // (5,18): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                //         var v = (readonly int i) => { };
+                Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter5()
+        {
+            CreateCompilation(@"
+public class Base {
+    void M()
+    {
+        var v = (ref readonly int i) => { };
+    }
+}").VerifyDiagnostics(
+                // (5,22): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                //         var v = (ref readonly int i) => { };
+                Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter6()
+        {
+            CreateCompilation(@"
+public class Base {
+    void M()
+    {
+        var v = (readonly ref int i) => { };
+    }
+}").VerifyDiagnostics(
+                // (5,18): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                //         var v = (readonly ref int i) => { };
+                Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(5, 18));
+        }
+
         private static IEnumerable<IdentifierNameSyntax> GetNameAttributeValues(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
