@@ -4680,7 +4680,7 @@ tryAgain:
 
 #nullable disable
 
-        private static bool IsParameterModifier(SyntaxToken token, bool isFunctionPointerParameter = false)
+        private static bool IsParameterModifier(SyntaxToken token)
         {
             switch (token.Kind)
             {
@@ -4689,7 +4689,8 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
-                case SyntaxKind.ReadOnlyKeyword when isFunctionPointerParameter:
+                // For error tolerance
+                case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.IdentifierToken when token.ContextualKind == SyntaxKind.ScopedKeyword:
                     return true;
             }
@@ -4699,7 +4700,7 @@ tryAgain:
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter = false)
         {
-            while (IsParameterModifier(this.CurrentToken, isFunctionPointerParameter))
+            while (IsParameterModifier(this.CurrentToken))
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
@@ -4711,43 +4712,7 @@ tryAgain:
                     continue;
                 }
 
-                var modifier = this.EatToken();
-
-                switch (modifier.Kind)
-                {
-                    case SyntaxKind.ThisKeyword:
-                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
-                        if (this.CurrentToken.Kind == SyntaxKind.RefKeyword ||
-                            this.CurrentToken.Kind == SyntaxKind.InKeyword)
-                        {
-                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                        }
-                        break;
-
-                    case SyntaxKind.RefKeyword:
-                        {
-                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                            }
-
-                            break;
-                        }
-
-                    case SyntaxKind.InKeyword:
-                        {
-                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
-
-                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                            }
-
-                            break;
-                        }
-                }
-
-                modifiers.Add(modifier);
+                modifiers.Add(this.EatToken());
             }
 
             bool shouldTreatAsModifier()
@@ -4757,7 +4722,7 @@ tryAgain:
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
                 this.EatToken();
 
-                bool validAsModifier = IsParameterModifier(this.CurrentToken, isFunctionPointerParameter) ||
+                bool validAsModifier = IsParameterModifier(this.CurrentToken) ||
                     (ScanType() != ScanTypeFlags.NotType &&
                         isFunctionPointerParameter ?
                             this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken :

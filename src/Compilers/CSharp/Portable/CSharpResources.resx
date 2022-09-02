@@ -7214,4 +7214,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnscopedScoped" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
   </data>
+  <data name="ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in" xml:space="preserve">
+    <value>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</value>
+  </data>
 </root>

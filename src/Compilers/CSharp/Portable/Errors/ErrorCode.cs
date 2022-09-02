@@ -2117,6 +2117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedScoped = 9066,
         WRN_DuplicateAnalyzerReference = 9067,
 
+        ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in = 9068,
+
         #endregion
 
         // Note: you will need to do the following after adding any code:
