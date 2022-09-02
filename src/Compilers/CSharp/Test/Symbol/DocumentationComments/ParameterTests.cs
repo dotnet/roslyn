@@ -833,6 +833,45 @@ class C<T>
             Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[11]).Symbol);
         }
 
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter1()
+        {
+            CreateCompilation(@"
+public class Base {
+    public void M(ref readonly int X) {
+    }
+}").VerifyDiagnostics(
+                // (3,23): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                //     public void M(ref readonly int X) {
+                Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(3, 23));
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter2()
+        {
+            CreateCompilation(@"
+public class Base {
+    public void M(readonly ref int X) {
+    }
+}").VerifyDiagnostics(
+            // (3,19): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+            //     public void M(readonly ref int X) {
+            Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(3, 19));
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter3()
+        {
+            CreateCompilation(@"
+public class Base {
+    public void M(readonly int X) {
+    }
+}").VerifyDiagnostics(
+                // (3,19): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                //     public void M(readonly int X) {
+                Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(3, 19));
+        }
+
         private static IEnumerable<IdentifierNameSyntax> GetNameAttributeValues(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
