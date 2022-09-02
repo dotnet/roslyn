@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 return;
             }
 
-            var action = await ConvertToRecordCommon
+            var action = await ConvertToRecordEngine
                 .GetCodeActionAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
             if (action != null)
             {

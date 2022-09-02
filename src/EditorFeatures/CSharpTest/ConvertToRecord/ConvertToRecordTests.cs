@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord
     public class ConvertToRecordTests
     {
         [Fact]
-        public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey()
+        public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey_Positional()
         {
             var initialMarkupCodeFix = @"
 namespace N
@@ -66,18 +66,102 @@ namespace N
     public record C(int P) : B;
 }
 ";
+            // Both positional and propertied are available
+            // but propertied goes first so we select the second one
             CodeAction? codeAction = null;
             var refactoringTest = new RefactoringTest
             {
                 TestCode = initialMarkupRefactoring,
                 FixedCode = changedMarkup,
                 CodeActionVerifier = Verify,
+                CodeActionIndex = 1,
             };
             var codeFixTest = new CodeFixTest
             {
                 TestCode = initialMarkupCodeFix,
                 FixedCode = changedMarkup,
                 CodeActionVerifier = Verify,
+                CodeActionIndex = 1,
+            };
+            await refactoringTest.RunAsync();
+            await codeFixTest.RunAsync();
+            Assert.NotNull(codeAction);
+
+            void Verify(CodeAction action, IVerifier _)
+            {
+                if (codeAction == null)
+                {
+                    codeAction = action;
+                }
+                else
+                {
+                    // verify that the same code actions don't show up twice
+                    Assert.Equal(codeAction.EquivalenceKey, action.EquivalenceKey);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey_NonPositional()
+        {
+            var initialMarkupCodeFix = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class C : [|B|]
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var initialMarkupRefactoring = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class [|C : {|CS8865:B|}|]
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public record C : B
+    {
+        public int P { get; init; }
+    }
+}
+";
+            // Both positional and propertied are available
+            // but propertied goes first so we select the first one
+            CodeAction? codeAction = null;
+            var refactoringTest = new RefactoringTest
+            {
+                TestCode = initialMarkupRefactoring,
+                FixedCode = changedMarkup,
+                CodeActionVerifier = Verify,
+                CodeActionIndex = 0,
+            };
+            var codeFixTest = new CodeFixTest
+            {
+                TestCode = initialMarkupCodeFix,
+                FixedCode = changedMarkup,
+                CodeActionVerifier = Verify,
+                CodeActionIndex = 0,
             };
             await refactoringTest.RunAsync();
             await codeFixTest.RunAsync();
@@ -3497,6 +3581,48 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesWithMultiplePotentialPrimaryConstructors()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b)
+        {
+            B = b;
+        }
+
+        public C(bool b, int p)
+        {
+            B = b;
+            P = p;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(bool B, int P)
+    {
+        public C(int p, bool b) : this(b, default)
+        {
+        }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesWithSimpleDocComments()
         {
             var initialMarkup = @"
@@ -4095,6 +4221,244 @@ namespace N
         public static C GetC()
         {
             return new C(0, false);
+        }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerWithNullableReferenceTypes()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public C? Node { get; init; }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, C? Node);
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, null);
+        }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerWithNullableValueTypes()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool? B { get; init; }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool? B);
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, null);
+        }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass1()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = false
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public static C GetC()
+        {
+            return new C(0, false);
+        }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass2()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public C? Node { get; init; }
+
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                Node = new C
+                {
+                    P = 1,
+                    Node = null,
+                }
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, C? Node)
+    {
+        public static C GetC()
+        {
+            return new C(0, new C(1, null));
+        }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSameClass3()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public static C Default = new C
+        {
+            P = 0,
+            B = true,
+        };
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public static C Default = new C(0, true);
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerWithNestedInitializers()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record Foo
+    {
+        public int Bar { get; init; }
+    }
+
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public Foo? B { get; init; }
+
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = new Foo { Bar = 0 }
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record Foo
+    {
+        public int Bar { get; init; }
+    }
+
+    public record C(int P, Foo? B)
+    {
+        public static C GetC()
+        {
+            return new C(0, new Foo { Bar = 0 });
         }
     }
 }
