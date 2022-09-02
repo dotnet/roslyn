@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
@@ -98,10 +101,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.Document));
+            return ImmutableArray.Create<IDiagnosticSource>(
+                new DocumentDiagnosticSource(context.Document),
+                new TodoCommentDiagnosticSource(context.Document));
         }
 
-        private record struct DocumentDiagnosticSource(Document Document) : IDiagnosticSource
+        private sealed record class DocumentDiagnosticSource(Document Document) : IDiagnosticSource
         {
             public ProjectOrDocumentId GetId() => new(Document.Id);
 
@@ -115,6 +120,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas GetDiagnosticsForSpanAsync will only run analyzers against the request document.
                 var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return allSpanDiagnostics;
+            }
+        }
+
+        private sealed record class TodoCommentDiagnosticSource(Document Document) : IDiagnosticSource
+        {
+            private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
+                Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TodoCommentDescriptor>.Empty);
+
+            public ProjectOrDocumentId GetId() => new(Document.Id);
+
+            public Project GetProject() => Document.Project;
+
+            public Uri GetUri() => Document.GetURI();
+
+            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+                IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+            {
+                var service = Document.GetLanguageService<ITodoCommentService>();
+                if (service == null)
+                    return ImmutableArray<DiagnosticData>.Empty;
+
+                var tokenList = Document.Project.Solution.Options.GetOption(TodoCommentOptionsStorage.TokenList);
+                var descriptors = GetAndCacheDescriptors(tokenList);
+
+                var comments = await service.GetTodoCommentsAsync(Document, descriptors, cancellationToken).ConfigureAwait(false);
+            }
+
+            private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
+            {
+                var lastRequested = s_lastRequestedTokens;
+                if (!lastRequested.Item1.SequenceEqual(tokenList))
+                {
+                    var descriptors = TodoCommentDescriptor.Parse(tokenList);
+                    lastRequested = Tuple.Create(tokenList, descriptors);
+                    s_lastRequestedTokens = lastRequested;
+                }
+
+                return lastRequested.Item2;
             }
         }
     }

@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        protected const string TaskItemCustomTag = nameof(TaskItemCustomTag);
+
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
         /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
@@ -417,6 +419,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 result.Add(VSDiagnosticTags.VisibleInErrorList);
             }
+
+            if (diagnosticData.CustomTags.Contains(TaskItemCustomTag))
+                result.Add(VSDiagnosticTags.TaskItem);
 
             if (potentialDuplicate)
                 result.Add(VSDiagnosticTags.PotentialDuplicate);
