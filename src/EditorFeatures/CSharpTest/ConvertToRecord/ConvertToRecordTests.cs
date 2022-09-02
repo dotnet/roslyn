@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,6 +24,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRecord)]
     public class ConvertToRecordTests
     {
+        [Fact]
+        public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey()
+        {
+            var initialMarkupCodeFix = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class C : [|B|]
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var initialMarkupRefactoring = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class [|C : {|CS8865:B|}|]
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public record C(int P) : B;
+}
+";
+            CodeAction? codeAction = null;
+            var refactoringTest = new RefactoringTest
+            {
+                TestCode = initialMarkupRefactoring,
+                FixedCode = changedMarkup,
+                CodeActionVerifier = Verify,
+            };
+            var codeFixTest = new CodeFixTest
+            {
+                TestCode = initialMarkupCodeFix,
+                FixedCode = changedMarkup,
+                CodeActionVerifier = Verify,
+            };
+            await refactoringTest.RunAsync();
+            await codeFixTest.RunAsync();
+            Assert.NotNull(codeAction);
+
+            void Verify(CodeAction action, IVerifier _)
+            {
+                if (codeAction == null)
+                {
+                    codeAction = action;
+                }
+                else
+                {
+                    // verify that the same code actions don't show up twice
+                    Assert.Equal(codeAction.EquivalenceKey, action.EquivalenceKey);
+                }
+            }
+        }
+
         [Fact]
         public async Task TestNoProperties_NoAction()
         {
