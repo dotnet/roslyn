@@ -54,7 +54,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     properties: ImmutableDictionary<string, string?>.Empty,
                     projectId: Document.Project.Id,
                     language: Document.Project.Language,
-                    location: new DiagnosticDataLocation(Document.Id, new TextSpan(comment.Position, 0))));
+                    location: new DiagnosticDataLocation(
+                        Document.Id,
+                        originalFilePath: comment.OriginalFilePath,
+                        mappedFilePath: comment.MappedFilePath,
+                        originalStartLine: comment.OriginalLine,
+                        originalStartColumn: comment.OriginalColumn,
+                        originalEndLine: comment.OriginalLine,
+                        originalEndColumn: comment.OriginalColumn,
+                        mappedStartLine: comment.MappedLine,
+                        mappedStartColumn: comment.MappedColumn,
+                        mappedEndLine: comment.MappedLine,
+                        mappedEndColumn: comment.MappedColumn)));
             }
 
             private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)

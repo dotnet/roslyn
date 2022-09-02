@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
@@ -24,13 +25,35 @@ namespace Microsoft.CodeAnalysis.TodoComments
         protected abstract int GetCommentStartingIndex(string message);
         protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoComment> todoList);
 
-        public async Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(
+        public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentsAsync(
+            Document document,
+            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
+            CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteTodoCommentsDiscoveryService, ImmutableArray<TodoCommentData>>(
+                    document.Project,
+                    (service, checksum, cancellationToken) => service.GetTodoCommentsAsync(checksum, document.Id, commentDescriptors, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
+                    return ImmutableArray<TodoCommentData>.Empty;
+
+                return result.Value;
+            }
+
+            return await GetTodoCommentsInProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<TodoCommentData>> GetTodoCommentsInProcessAsync(
             Document document,
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             CancellationToken cancellationToken)
         {
             if (commentDescriptors.IsEmpty)
-                return ImmutableArray<TodoComment>.Empty;
+                return ImmutableArray<TodoCommentData>.Empty;
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -38,7 +61,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var syntaxDoc = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             // reuse list
-            using var _ = ArrayBuilder<TodoComment>.GetInstance(out var todoList);
+            using var _1 = ArrayBuilder<TodoComment>.GetInstance(out var todoList);
 
             foreach (var trivia in syntaxDoc.Root.DescendantTrivia())
             {
@@ -50,7 +73,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 AppendTodoComments(commentDescriptors, syntaxDoc, trivia, todoList);
             }
 
-            return todoList.ToImmutable();
+            using var _2 = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+            await TodoComment.ConvertAsync(document, todoList.ToImmutable(), converted, cancellationToken).ConfigureAwait(false);
+
+            return converted.ToImmutable();
         }
 
         private bool ContainsComments(SyntaxTrivia trivia)

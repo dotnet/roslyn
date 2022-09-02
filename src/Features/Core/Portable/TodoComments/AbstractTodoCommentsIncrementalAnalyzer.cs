@@ -73,13 +73,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var todoComments = await todoCommentService.GetTodoCommentsAsync(
                 document, descriptors, cancellationToken).ConfigureAwait(false);
 
-            // Convert the roslyn-level results to the more VS oriented line/col data.
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-            await TodoComment.ConvertAsync(
-                document, todoComments, converted, cancellationToken).ConfigureAwait(false);
-
-            var data = converted.ToImmutable();
-            if (data.IsEmpty)
+            if (todoComments.IsEmpty)
             {
                 // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
                 // had todo comments in it, then fall through and notify the host so it can clear them out.
@@ -94,7 +88,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
 
             // Now inform VS about this new information
-            await ReportTodoCommentDataAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
+            await ReportTodoCommentDataAsync(document.Id, todoComments, cancellationToken).ConfigureAwait(false);
         }
     }
 }

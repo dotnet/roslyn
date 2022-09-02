@@ -59,9 +59,13 @@ $@"<Workspace>
         {
         }
 
-        public Task<ImmutableArray<CodeAnalysis.TodoComments.TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray.Create(new CodeAnalysis.TodoComments.TodoComment(commentDescriptors.First(), "Message", 3)));
-        }
+        public Task<ImmutableArray<TodoCommentData>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            => Task.FromResult(ImmutableArray.Create(new TodoCommentData(
+                commentDescriptors.First().Priority,
+                "Message",
+                document.Id,
+                null, null,
+                mappedLine: 0, mappedColumn: 3,
+                originalLine: 0, originalColumn: 3)));
     }
 }

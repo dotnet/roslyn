@@ -36,17 +36,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
             var service = document.GetLanguageService<ITodoCommentService>();
             var todoComments = await service.GetTodoCommentsAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
 
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-            await TodoComment.ConvertAsync(document, todoComments, converted, CancellationToken.None);
-
             var expectedLists = hostDocument.SelectedSpans;
-            Assert.Equal(converted.Count, expectedLists.Count);
+            Assert.Equal(todoComments.Length, expectedLists.Count);
 
             var sourceText = await document.GetTextAsync();
             var tree = await document.GetSyntaxTreeAsync();
-            for (var i = 0; i < converted.Count; i++)
+            for (var i = 0; i < todoComments.Length; i++)
             {
-                var todo = converted[i];
+                var todo = todoComments[i];
                 var span = expectedLists[i];
 
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
