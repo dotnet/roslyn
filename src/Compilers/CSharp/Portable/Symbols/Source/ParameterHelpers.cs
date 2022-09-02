@@ -446,7 +446,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod, diagnostics);
 
                         if (seenRef || seenIn)
-                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                            {
+                                Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                            }
 
                         if (parsingLambdaParams)
                         {
