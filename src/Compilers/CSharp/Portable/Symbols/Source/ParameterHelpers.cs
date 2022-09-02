@@ -471,6 +471,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.RefKeyword:
+                        if (seenThis)
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+
                         if (seenRef)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
@@ -553,6 +556,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.InKeyword:
                         Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences, diagnostics);
+
+                        if (seenThis)
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
 
                         if (seenIn)
                         {
