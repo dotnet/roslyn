@@ -5738,67 +5738,6 @@ class TestClass { }";
             N(SyntaxKind.EndOfFileToken);
         }
 
-        [Fact]
-        public void RefExtensionMethodsNotSupportedBefore7_2_InSyntax()
-        {
-            var code = @"
-public static class Extensions
-{
-    public static void Print(in this int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}
-public static class Program
-{
-    public static void Main()
-    {
-        int p = 5;
-        p.Print();
-    }
-}";
-
-            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
-               // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
-               //     public static void Print(in this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
-               // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-               //     public static void Print(in this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
-            );
-
-            CompileAndVerify(code, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void RefExtensionMethodsNotSupportedBefore7_2_RefSyntax()
-        {
-            var code = @"
-public static class Extensions
-{
-    public static void Print(ref this int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}
-public static class Program
-{
-    public static void Main()
-    {
-        int p = 5;
-        p.Print();
-    }
-}";
-
-            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
-               // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-               //     public static void Print(ref this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
-            );
-
-            CompileAndVerify(code, expectedOutput: "5");
-        }
-
         #endregion
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"

@@ -917,6 +917,71 @@ public class Base {
                 Diagnostic(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, "readonly").WithLocation(5, 18));
         }
 
+        [Fact]
+        public void RefExtensionMethodsNotSupportedBefore7_2_InSyntax()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void Print(in this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
+                // (4,33): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("ref extension methods", "7.2").WithLocation(4, 33),
+                // (14,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9));
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void RefExtensionMethodsNotSupportedBefore7_2_RefSyntax()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void Print(ref this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (4,34): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(ref this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("ref extension methods", "7.2").WithLocation(4, 34),
+                // (14,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9));
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
         private static IEnumerable<IdentifierNameSyntax> GetNameAttributeValues(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
