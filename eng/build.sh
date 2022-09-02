@@ -318,24 +318,24 @@ if [[ "$test_core_clr" == true ]]; then
   testAssembliesFilePath="${artifacts_dir}/testassemblies.txt"
   dotnet exec "${artifacts_dir}/bin/TestAssemblyFinder/${configuration}/net6.0/TestAssemblyFinder.dll" --artifactsDirectory $artifacts_dir --configuration $configuration --targetFrameworks net6.0 --outputFilePath $testAssembliesFilePath
 
-  testRunnerExecutableArgs=""
   if [[ "$helix" == true ]]; then
-    testRunnerExecutableArgs="exec ${artifacts_dir}/bin/HelixTestRunner/${configuration}/net6.0/HelixTestRunner.dll --artifactsDirectory $artifacts_dir --architecture \"x64\" --logDirectory $log_dir --dotnetExecutablePath ${_InitializeDotNetCli}/dotnet --testAssembliesPath $testAssembliesFilePath"
+    helixQueueNameArgs=""
     if [[ -n "$helix_queue_name" ]]; then
-      testRunnerExecutableArgs="$testRunnerExecutableArgs --helixQueueName $helix_queue_name"
+      helixQueueNameArgs="--helixQueueName $helix_queue_name"
     fi
+    dotnet exec ${artifacts_dir}/bin/HelixTestRunner/${configuration}/net6.0/HelixTestRunner.dll --artifactsDirectory $artifacts_dir --architecture "x64" --logDirectory $log_dir --dotnetExecutablePath ${_InitializeDotNetCli}/dotnet --testAssembliesPath $testAssembliesFilePath $helixQueueNameArgs
   else
-    testRunnerExecutableArgs="test"
+    assemblyArgs=""
     while read line; do
-      testRunnerExecutableArgs="$testRunnerExecutableArgs $line"
+      assemblyArgs="$assemblyArgs $line"
     done < "$testAssembliesFilePath"
-    testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${log_dir}/TestResults.xml\""
+    logArgs="--logger xunit;LogFilePath=${log_dir}/TestResults.xml"
 
     if [[ "$ci" != true ]]; then
-      testRunnerExecutableArgs="$testRunnerExecutableArgs --logger \"xunit;LogFilePath=${log_dir}/TestResults.html\""
+      logArgs="$logArgs --logger html;LogFilePath=${log_dir}/TestResults.html"
     fi
-  fi
 
-  dotnet $testRunnerExecutableArgs
+    dotnet test $assemblyArgs $logArgs
+  fi
 fi
 ExitWithExitCode 0
