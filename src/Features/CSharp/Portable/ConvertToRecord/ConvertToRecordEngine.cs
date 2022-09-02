@@ -89,8 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             // make sure a primary constructor wouldn't break style rules the user may have about constructor param
             // length. 8 or under is fine, and if the user already has constructors that go over it's also fine.
             if (positionalParameterInfos.Length <= 8 ||
-                typeDeclaration.Members
-                .OfType<ConstructorDeclarationSyntax>()
+                constructors
                 .Any(constructor => constructor.ParameterList.Parameters.Count >= positionalParameterInfos.Length))
             {
                 offeredActions = offeredActions.Add(positional);
@@ -344,8 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
             foreach (var info in positionalParameterInfos.Where(info => !info.KeepAsOverride && !info.IsInherited))
             {
-                // shouldn't have any inherited props because it would cause us to only offer
-                // positional param option
                 // the keepAsOverride flag as false corresponds to moving the members into a positional parameter
                 // and deleting the original declaration. So we want these non-positional parameters to have
                 // the default definition that a positional parameter would have (get; set; for struct records,

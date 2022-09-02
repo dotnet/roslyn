@@ -4942,6 +4942,49 @@ namespace N
 ";
             await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
+
+        [Fact]
+        public async Task TestInheritanceFromPositionalRecordWithAdditionalConstructor_Default()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B(int Foo);
+
+    public class [|C|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public {|CS1729:C|}(int p, bool b)
+        {
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record B(int Foo);
+
+    public record C : B
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b) : base(default)
+        {
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region selection
