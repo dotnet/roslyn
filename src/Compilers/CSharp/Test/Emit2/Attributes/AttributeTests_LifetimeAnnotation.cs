@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
             var expected =
-@" void Program.F(ref System.Int32 i)
+@"void Program.F(ref System.Int32 i)
     [ScopedRef] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
@@ -110,8 +110,17 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,18): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // delegate void D([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(2, 18),
+                // (5,30): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                //     public static void Main([ScopedRef] string[] args)
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(5, 30),
+                // (7,17): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                //         D d = ([ScopedRef] ref int i) => { };
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(7, 17)
+                );
         }
 
         [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
@@ -128,7 +137,7 @@ using System.Runtime.CompilerServices;
     [ScopedRef] event EventHandler E;
     [ScopedRef] object P { get; }
     [ScopedRef] static object M1() => throw null;
-    [ScopedRef] static object M2() => throw null;
+    [return: ScopedRef] static object M2() => throw null;
     static void M3<[ScopedRef] T>() { }
 }
 namespace System.Runtime.CompilerServices
@@ -140,7 +149,6 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
             comp.VerifyDiagnostics(
                 // (6,24): warning CS0169: The field 'Program.F' is never used
                 //     [ScopedRef] object F;
@@ -150,11 +158,47 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36));
         }
 
+        [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
+        [Fact]
+        public void ExplicitAttribute_ReferencedInSource_03()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+record struct R1([ScopedRef] ref int i);
+record struct R2([ScopedRef] R i);
+ref struct R { }
+";
+            var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
+            comp.VerifyDiagnostics(
+                // (3,19): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // record struct R1([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(3, 19),
+                // (3,30): error CS0631: ref and out are not valid in this context
+                // record struct R1([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 30),
+                // (4,19): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // record struct R2([ScopedRef] R i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(4, 19),
+                // (4,30): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                // record struct R2([ScopedRef] R i);
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(4, 30)
+                );
+        }
+
         [Fact]
         public void ExplicitAttribute_UnexpectedParameterTargets()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
@@ -191,7 +235,7 @@ namespace System.Runtime.CompilerServices
   }
 }
 ";
-            var ref0 = CompileIL(source0);
+            var ref0 = CompileIL(source0, prependDefaultHeader: false);
 
             var source1 =
 @"class Program
@@ -229,7 +273,7 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
         }
@@ -300,9 +344,6 @@ struct S
     [ScopedRef] ref System.Int32 i
 void S.F(R r)
     [ScopedRef] R r
-S S.op_Addition(S a, in R b)
-    S a
-    [ScopedRef] in R b
 System.Object S.this[in System.Int32 i].get
     [ScopedRef] in System.Int32 i
 ";
@@ -353,6 +394,33 @@ class Program
                 Assert.Null(GetScopedRefType(module));
                 AssertScopedRefAttributes(module, "");
             });
+        }
+
+        [Fact]
+        public void EmitAttribute_RefToRefStructParameters()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F0(R r) { }
+    public static void F1(ref R r) { }
+    public static void F2(in R r) { }
+    public static void F3(out R r) { r = default; }
+    public static void F4(scoped ref R r) { }
+    public static void F5(scoped in R r) { }
+    public static void F6(scoped out R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(GetScopedRefType(module));
+                AssertScopedRefAttributes(module, expected);
+            });
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]

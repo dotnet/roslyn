@@ -3121,7 +3121,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3165,7 +3167,9 @@ class C
   IL_000b:  ret
 }
 ");
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3548,8 +3552,8 @@ class C
         [Fact]
         public void PassAround_02()
         {
-            var source = @"
-using System;
+            var source = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class C
 {
     static ref readonly ReadOnlySpan<byte> Test2()
@@ -3557,10 +3561,10 @@ class C
         return ref Test3(""cat""u8);
     }
 
-    static ref readonly ReadOnlySpan<byte> Test3(in ReadOnlySpan<byte> x) => ref x;
+    static ref readonly ReadOnlySpan<byte> Test3([UnscopedRef] in ReadOnlySpan<byte> x) => ref x;
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(new[] { source + HelpersSource, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
                 // (7,20): error CS8347: Cannot use a result of 'C.Test3(in ReadOnlySpan<byte>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope

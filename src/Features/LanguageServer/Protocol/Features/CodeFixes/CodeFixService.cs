@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,6 +19,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (_lazyWorkspaceFixersMap == null)
             {
-                var workspaceFixersMap = GetFixerPerLanguageMap(document.Project.Solution.Workspace);
+                var workspaceFixersMap = GetFixerPerLanguageMap(document.Project.Solution.Services);
                 Interlocked.CompareExchange(ref _lazyWorkspaceFixersMap, workspaceFixersMap, null);
             }
 
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (_lazyFixerPriorityMap == null)
             {
-                var fixersPriorityByLanguageMap = GetFixerPriorityPerLanguageMap(document.Project.Solution.Workspace);
+                var fixersPriorityByLanguageMap = GetFixerPriorityPerLanguageMap(document.Project.Solution.Services);
                 Interlocked.CompareExchange(ref _lazyFixerPriorityMap, fixersPriorityByLanguageMap, null);
             }
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private bool TryGetWorkspaceFixer(
             Lazy<CodeFixProvider, CodeChangeProviderMetadata> lazyFixer,
-            Workspace workspace,
+            SolutionServices services,
             bool logExceptionWithInfoBar,
             [NotNullWhen(returnValue: true)] out CodeFixProvider? fixer)
         {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Log exception and show info bar, if needed.
                 if (logExceptionWithInfoBar)
                 {
-                    var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
+                    var errorReportingService = services.GetRequiredService<IErrorReportingService>();
                     var message = lazyFixer.Metadata.Name != null
                         ? string.Format(FeaturesResources.Error_creating_instance_of_CodeFixProvider_0, lazyFixer.Metadata.Name)
                         : FeaturesResources.Error_creating_instance_of_CodeFixProvider;
@@ -787,10 +787,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> GetFixerPerLanguageMap(
-            Workspace workspace)
+            SolutionServices services)
         {
             var fixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>();
-            var extensionManager = workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = services.GetService<IExtensionManager>();
             foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
             {
                 var lazyMap = new Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>(() =>
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var lazyFixer in lazyFixers)
                     {
-                        if (!TryGetWorkspaceFixer(lazyFixer, workspace, logExceptionWithInfoBar: true, out var fixer))
+                        if (!TryGetWorkspaceFixer(lazyFixer, services, logExceptionWithInfoBar: true, out var fixer))
                         {
                             continue;
                         }
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(Workspace workspace)
+        private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(SolutionServices services)
         {
             var languageMap = ImmutableDictionary.CreateBuilder<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>();
             foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
@@ -863,10 +863,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var fixers = ExtensionOrderer.Order(lazyFixers);
                     for (var i = 0; i < fixers.Count; i++)
                     {
-                        if (!TryGetWorkspaceFixer(lazyFixers[i], workspace, logExceptionWithInfoBar: false, out var fixer))
-                        {
+                        if (!TryGetWorkspaceFixer(fixers[i], services, logExceptionWithInfoBar: false, out var fixer))
                             continue;
-                        }
 
                         priorityMap.Add(fixer, i);
                     }
@@ -939,6 +937,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Otherwise, keep things in the same order that they were in the list (i.e. keep things stable).
                 return _fixerToIndex[x] - _fixerToIndex[y];
             }
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor
+        {
+            private readonly CodeFixService _codeFixService;
+
+            public TestAccessor(CodeFixService codeFixService)
+            {
+                _codeFixService = codeFixService;
+            }
+
+            public ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(SolutionServices services)
+                => _codeFixService.GetFixerPriorityPerLanguageMap(services);
         }
     }
 }

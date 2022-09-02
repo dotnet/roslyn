@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
         System_Runtime_CompilerServices_ScopedRefAttribute,
+        System_Runtime_CompilerServices_RefSafetyRulesAttribute,
 
         System_ArgumentNullException,
 
@@ -326,6 +327,7 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
 
         System_MissingMethodException,
+        System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -635,6 +637,7 @@ namespace Microsoft.CodeAnalysis
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.Runtime.CompilerServices.ScopedRefAttribute",
+            "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",
@@ -643,6 +646,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
+            "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

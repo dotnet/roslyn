@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // only push solution snapshot from primary (VS) workspace:
             _checksumUpdater = new SolutionChecksumUpdater(workspace, _listenerProvider, _disposalCancellationSource.Token);
 
-            _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(workspace.Services, _disposalCancellationSource.Token);
+            _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(workspace.Services.SolutionServices, _disposalCancellationSource.Token);
 
             // start launching remote process, so that the first service that needs it doesn't need to wait for it:
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();

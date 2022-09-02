@@ -112,12 +112,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            // We need to substract as a UI for arbitrary strings for:
-            //
+
+            // We need to substract for string options that are not yet supported.
             // CodeStyleOptions2.OperatorPlacementWhenWrapping
             // CodeStyleOptions2.FileHeaderTemplate
+            // CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions
+            //
+            // We also subtract for this not-yet supported option, tracked by https://github.com/dotnet/roslyn/issues/62937
             // CodeStyleOptions2.ForEachExplicitCastInSource
-            var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 3;
+            var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 4;
             Assert.Equal(optionsCount, dataSnapShot.Length);
         }
 

@@ -8,6 +8,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -25,12 +27,24 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
-    using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>, DocumentDiagnosticPartialResult>;
+    using DocumentDiagnosticPartialReport = SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport, DocumentDiagnosticPartialResult>;
 
     public abstract class AbstractPullDiagnosticTestsBase : AbstractLanguageServerProtocolTests
     {
-        private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
-            .Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer())));
+        private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+        {
+            get
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+                builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                    DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                    new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
+                    new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
+                builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
+                builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
+                return new(builder.ToImmutableDictionary());
+            }
+        }
 
         protected override TestComposition Composition => base.Composition.AddParts(typeof(MockTypescriptDiagnosticAnalyzer));
 
@@ -110,13 +124,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         private protected static VSInternalDocumentDiagnosticsParams CreateDocumentDiagnosticParams(
-            Uri uri,
+            VSTextDocumentIdentifier vsTextDocumentIdentifier,
             string? previousResultId = null,
             IProgress<VSInternalDiagnosticReport[]>? progress = null)
         {
             return new VSInternalDocumentDiagnosticsParams
             {
-                TextDocument = new LSP.TextDocumentIdentifier { Uri = uri },
+                TextDocument = vsTextDocumentIdentifier,
                 PreviousResultId = previousResultId,
                 PartialResultToken = progress,
             };
@@ -147,9 +161,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         private protected static Task OpenDocumentAsync(TestLspServer testLspServer, Document document) => testLspServer.OpenDocumentAsync(document.GetURI());
 
-        private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
+        private protected static Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
             TestLspServer testLspServer,
             Uri uri,
+            bool useVSDiagnostics,
+            string? previousResultId = null,
+            bool useProgress = false)
+        {
+            return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { Uri = uri }, useVSDiagnostics, previousResultId, useProgress);
+        }
+
+        private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
+            TestLspServer testLspServer,
+            VSTextDocumentIdentifier vsTextDocumentIdentifier,
             bool useVSDiagnostics,
             string? previousResultId = null,
             bool useProgress = false)
@@ -161,7 +185,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 BufferedProgress<VSInternalDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                     VSInternalMethods.DocumentPullDiagnosticName,
-                    CreateDocumentDiagnosticParams(uri, previousResultId, progress),
+                    CreateDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress),
                     CancellationToken.None).ConfigureAwait(false);
 
                 if (useProgress)
@@ -171,14 +195,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 }
 
                 AssertEx.NotNull(diagnostics);
-                return diagnostics.Select(d => new TestDiagnosticResult(uri, d.ResultId!, d.Diagnostics)).ToImmutableArray();
+                return diagnostics.Select(d => new TestDiagnosticResult(vsTextDocumentIdentifier.Uri, d.ResultId!, d.Diagnostics)).ToImmutableArray();
             }
             else
             {
                 BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                     ExperimentalMethods.TextDocumentDiagnostic,
-                    CreateProposedDocumentDiagnosticParams(uri, previousResultId, progress),
+                    CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress),
                     CancellationToken.None).ConfigureAwait(false);
                 if (useProgress)
                 {
@@ -194,20 +218,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 else if (diagnostics.Value.Value is UnchangedDocumentDiagnosticReport)
                 {
                     // The public LSP spec returns different types when unchanged in contrast to VS which just returns null diagnostic array.
-                    return ImmutableArray.Create(new TestDiagnosticResult(uri, diagnostics.Value.Second.ResultId!, null));
+                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier.Uri, diagnostics.Value.Second.ResultId!, null));
                 }
                 else
                 {
-                    return ImmutableArray.Create(new TestDiagnosticResult(uri, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items));
+                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier.Uri, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items));
                 }
             }
 
             static DocumentDiagnosticParams CreateProposedDocumentDiagnosticParams(
-                Uri uri,
+                VSTextDocumentIdentifier vsTextDocumentIdentifier,
                 string? previousResultId = null,
                 IProgress<DocumentDiagnosticPartialReport[]>? progress = null)
             {
-                return new DocumentDiagnosticParams(new TextDocumentIdentifier { Uri = uri }, null, previousResultId, progress, null);
+                return new DocumentDiagnosticParams(vsTextDocumentIdentifier, null, previousResultId, progress, null);
             }
         }
 

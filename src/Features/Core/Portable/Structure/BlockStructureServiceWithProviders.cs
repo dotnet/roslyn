@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal abstract class BlockStructureServiceWithProviders : BlockStructureService
     {
-        private readonly HostSolutionServices _services;
+        private readonly SolutionServices _services;
         private readonly ImmutableArray<BlockStructureProvider> _providers;
 
-        protected BlockStructureServiceWithProviders(HostSolutionServices services)
+        protected BlockStructureServiceWithProviders(SolutionServices services)
         {
             _services = services;
             _providers = GetBuiltInProviders().Concat(GetImportedProviders());

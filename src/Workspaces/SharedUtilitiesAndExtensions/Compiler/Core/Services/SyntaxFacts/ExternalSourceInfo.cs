@@ -4,9 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
-    internal struct ExternalSourceInfo
+    internal readonly struct ExternalSourceInfo
     {
         public readonly int? StartLine;
         public readonly bool Ends;

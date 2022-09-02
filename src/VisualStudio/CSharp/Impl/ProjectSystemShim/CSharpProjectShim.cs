@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
             this.ProjectCodeModel = componentModel.GetService<IProjectCodeModelFactory>().CreateProjectCodeModel(VisualStudioProject.Id, this);
-            this.VisualStudioProjectOptionsProcessor = new OptionsProcessor(this.VisualStudioProject, Workspace.Services);
+            this.VisualStudioProjectOptionsProcessor = new OptionsProcessor(this.VisualStudioProject, Workspace.Services.SolutionServices);
 
             // Ensure the default options are set up
             ResetAllOptions();

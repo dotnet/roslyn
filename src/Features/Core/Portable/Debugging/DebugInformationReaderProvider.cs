@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -46,6 +47,18 @@ namespace Microsoft.CodeAnalysis.Debugging
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
                 => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
 
+            public override ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
+            {
+                var reader = _pdbReaderProvider.GetMetadataReader();
+                unsafe
+                {
+                    using var metadataStream = new UnmanagedMemoryStream(reader.MetadataPointer, reader.MetadataLength);
+                    metadataStream.CopyTo(stream);
+                }
+
+                return ValueTaskFactory.CompletedTask;
+            }
+
             public override void Dispose()
                 => _pdbReaderProvider.Dispose();
         }
@@ -66,6 +79,20 @@ namespace Microsoft.CodeAnalysis.Debugging
             public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
                 => EditAndContinueMethodDebugInfoReader.Create(_symReader, _version);
 
+            public override async ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
+            {
+                var position = _stream.Position;
+                try
+                {
+                    _stream.Position = 0;
+                    await _stream.CopyToAsync(stream, bufferSize: 4 * 1024, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _stream.Position = position;
+                }
+            }
+
             public override void Dispose()
             {
                 _stream.Dispose();
@@ -84,6 +111,8 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// Creates EnC debug information reader.
         /// </summary>
         public abstract EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader();
+
+        public abstract ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates <see cref="DebugInformationReaderProvider"/> from a stream of Portable or Windows PDB.

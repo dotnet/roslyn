@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
         System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
         System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
+        System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
 
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
@@ -532,6 +533,7 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_MissingMethodException__ctor,
+        System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
         Count
 

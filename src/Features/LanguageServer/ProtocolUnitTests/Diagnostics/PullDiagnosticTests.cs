@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Test;
@@ -359,6 +361,50 @@ class B {";
             }
         }
 
+        [Fact]
+        public async Task TestDocumentDiagnosticsHasSameIdentifierForLinkedFile()
+        {
+            var documentText =
+@"class A { err }";
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""C:\C.cs"">{documentText}</Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1"">{documentText}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: false);
+
+            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            // Open either of the documents via LSP, we're tracking the URI and text.
+            await OpenDocumentAsync(testLspServer, csproj1Document);
+
+            var csproj1Results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, GetVsTextDocumentIdentifier(csproj1Document), useVSDiagnostics: true);
+            var csproj1Diagnostic = (VSDiagnostic)csproj1Results.Single().Diagnostics.Single();
+            var csproj2Results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, GetVsTextDocumentIdentifier(csproj2Document), useVSDiagnostics: true);
+            var csproj2Diagnostic = (VSDiagnostic)csproj2Results.Single().Diagnostics.Single();
+            Assert.Equal(csproj1Diagnostic.Identifier, csproj2Diagnostic.Identifier);
+
+            static VSTextDocumentIdentifier GetVsTextDocumentIdentifier(Document document)
+            {
+                var projectContext = new VSProjectContext
+                {
+                    Id = ProtocolConversions.ProjectIdToProjectContextId(document.Project.Id),
+                    Label = document.Project.Name
+                };
+                return new VSTextDocumentIdentifier
+                {
+                    ProjectContext = projectContext,
+                    Uri = document.GetURI(),
+                };
+            }
+        }
+
         [Theory, CombinatorialData]
         public async Task TestDocumentDiagnosticsWithChangeInReferencedProject(bool useVSDiagnostics)
         {
@@ -527,6 +573,97 @@ class B {";
 
             var diagnostic = Assert.Single(results.Single().Diagnostics);
             Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsWithFadingOptionOn(bool useVSDiagnostics)
+        {
+            var markup =
+@"
+{|first:using System.Linq;
+using System.Threading;|}
+class A
+{
+}";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            var firstLocation = testLspServer.GetLocations("first").Single().Range;
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp), true);
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            // We should have an unnecessary diagnostic marking all the usings.
+            Assert.True(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
+            Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
+
+            // We should have a regular diagnostic marking all the usings that doesn't fade.
+            Assert.False(results.Single().Diagnostics![1].Tags!.Contains(DiagnosticTag.Unnecessary));
+            Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsWithFadingOptionOff(bool useVSDiagnostics)
+        {
+            var markup =
+@"
+{|first:using System.Linq;
+using System.Threading;|}
+class A
+{
+}";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            var firstLocation = testLspServer.GetLocations("first").Single().Range;
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp), false);
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            Assert.All(results.Single().Diagnostics, d => Assert.False(d.Tags!.Contains(DiagnosticTag.Unnecessary)));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsWithNotConfigurableFading(bool useVSDiagnostics)
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        _ = {|line:{|open:(|}1 + 2 +|}
+            3 + 4{|close:)|};
+    }
+}";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            var openLocation = testLspServer.GetLocations("open").Single().Range;
+            var closeLocation = testLspServer.GetLocations("close").Single().Range;
+            var lineLocation = testLspServer.GetLocations("line").Single().Range;
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            // The first line should have a diagnostic on it that is not marked as unnecessary.
+            Assert.False(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
+            Assert.Equal(lineLocation, results.Single().Diagnostics![0].Range);
+
+            // The open paren should have an unnecessary diagnostic.
+            Assert.True(results.Single().Diagnostics![1].Tags!.Contains(DiagnosticTag.Unnecessary));
+            Assert.Equal(openLocation, results.Single().Diagnostics![1].Range);
+
+            // The close paren should have an unnecessary diagnostic.
+            Assert.True(results.Single().Diagnostics![2].Tags!.Contains(DiagnosticTag.Unnecessary));
+            Assert.Equal(closeLocation, results.Single().Diagnostics![2].Range);
         }
 
         #endregion

@@ -6539,7 +6539,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Module initializer method '{0}' must be accessible at the module level</value>
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
-    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+    <value>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</value>
   </data>
   <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
     <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
@@ -6781,63 +6781,54 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
     <value>A ref field can only be declared in a ref struct.</value>
   </data>
-
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
     <value>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UseDefViolationPropertySupportedVersion_Title" xml:space="preserve">
     <value>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UseDefViolationFieldSupportedVersion" xml:space="preserve">
     <value>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UseDefViolationFieldSupportedVersion_Title" xml:space="preserve">
     <value>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UseDefViolationThisSupportedVersion" xml:space="preserve">
     <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
   </data>
   <data name="WRN_UseDefViolationThisSupportedVersion_Title" xml:space="preserve">
     <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
   </data>
-
   <data name="WRN_UnassignedThisAutoPropertySupportedVersion" xml:space="preserve">
     <value>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UnassignedThisAutoPropertySupportedVersion_Title" xml:space="preserve">
     <value>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UnassignedThisSupportedVersion" xml:space="preserve">
     <value>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UnassignedThisSupportedVersion_Title" xml:space="preserve">
     <value>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="ERR_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="ERR_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
-
   <data name="WRN_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="WRN_UseDefViolationFieldUnsupportedVersion_Title" xml:space="preserve">
     <value>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</value>
   </data>
-
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion_Title" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</value>
   </data>
-
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
     <value>Slice patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -7206,9 +7197,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</value>
+    <value>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>
+  </data>
+  <data name="ERR_ExplicitScopedRef" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
+  </data>
+  <data name="ERR_UnscopedScoped" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
   </data>
 </root>
