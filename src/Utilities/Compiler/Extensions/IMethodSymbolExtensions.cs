@@ -220,11 +220,18 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks the name of the method of an implicit interface implementation (so, as is) or an explicit interface implementation (which also contains the interface as a prefix). 
+        /// </summary>
+        private static bool IsImplicitOrExplicitInterfaceImplementationName(this IMethodSymbol method, string name, string interfacePrefix)
+            => (method.Name == name && method.MethodKind is MethodKind.Ordinary) ||
+            (method.Name == $"{interfacePrefix}.{name}" && method.MethodKind is MethodKind.ExplicitInterfaceImplementation);
+
+        /// <summary>
         /// Checks if the given method has the signature "void Dispose()".
         /// </summary>
         private static bool HasDisposeMethodSignature(this IMethodSymbol method)
         {
-            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+            return method.IsImplicitOrExplicitInterfaceImplementationName("Dispose", "System.IDisposable") &&
                 method.ReturnsVoid && method.Parameters.IsEmpty;
         }
 
@@ -243,7 +250,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
         {
-            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+            if (method.IsImplicitOrExplicitInterfaceImplementationName("Dispose", "System.IDisposable") &&
                 method.ReturnsVoid && method.Parameters.Length == 1)
             {
                 IParameterSymbol parameter = method.Parameters[0];
@@ -260,7 +267,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
         {
-            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
+            return method.Name == "Close" &&
+                method.MethodKind is MethodKind.Ordinary &&
                 method.ReturnsVoid && method.Parameters.IsEmpty;
         }
 
@@ -278,8 +286,7 @@ namespace Analyzer.Utilities.Extensions
             INamedTypeSymbol? task,
             INamedTypeSymbol? valueTask)
         {
-            return method.Name == "DisposeAsync" &&
-                method.MethodKind == MethodKind.Ordinary &&
+            return method.IsImplicitOrExplicitInterfaceImplementationName("DisposeAsync", "System.IAsyncDisposable") &&
                 method.Parameters.IsEmpty &&
                 (SymbolEqualityComparer.Default.Equals(method.ReturnType, task) ||
                  SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask));
@@ -291,7 +298,7 @@ namespace Analyzer.Utilities.Extensions
         private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
         {
             return method.Name == "DisposeCoreAsync" &&
-                method.MethodKind == MethodKind.Ordinary &&
+                method.MethodKind is MethodKind.Ordinary &&
                 method.IsOverride &&
                 SymbolEqualityComparer.Default.Equals(method.ReturnType, task) &&
                 method.Parameters.Length == 1 &&
