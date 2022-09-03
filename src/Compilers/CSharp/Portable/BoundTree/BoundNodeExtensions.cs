@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (receiverOpt.Kind == BoundKind.ThisReference || receiverOpt.Kind == BoundKind.BaseReference);
         }
 
+        internal static MethodSymbol? GetConstructorInitializerThisOrBaseSymbol(this BoundStatement? initializer)
+        {
+            return initializer is BoundExpressionStatement { Expression: BoundCall { Method: { MethodKind: MethodKind.Constructor } initializerMethod } }
+                ? initializerMethod
+                : null;
+        }
+
         public static T MakeCompilerGenerated<T>(this T node) where T : BoundNode
         {
             node.WasCompilerGenerated = true;

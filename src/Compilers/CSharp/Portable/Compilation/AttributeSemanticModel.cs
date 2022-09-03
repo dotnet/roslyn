@@ -105,17 +105,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundNode RewriteNullableBoundNodesWithSnapshots(
             BoundNode boundRoot,
             Binder binder,
+            MethodSymbol? baseOrThisInitializer,
             DiagnosticBag diagnostics,
             bool createSnapshots,
             out NullableWalker.SnapshotManager? snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, initialState: null, baseOrThisInitializer, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, MethodSymbol? baseOrThisInitializer, DiagnosticBag diagnostics, bool createSnapshots)
         {
-            NullableWalker.AnalyzeWithoutRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots);
+            NullableWalker.AnalyzeWithoutRewrite(Compilation, symbol: null, boundRoot, binder, baseOrThisInitializer, diagnostics, createSnapshots);
         }
 
         protected override bool IsNullableAnalysisEnabled()

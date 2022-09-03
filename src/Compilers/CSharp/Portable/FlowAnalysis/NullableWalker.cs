@@ -922,18 +922,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool includeBaseRequiredMembers = true;
                     bool hasThisConstructorInitializer = false;
 
-                    if (method is SourceMemberMethodSymbol { SyntaxNode: ConstructorDeclarationSyntax { Initializer: { RawKind: var initializerKind } } })
+                    if (GetBaseOrThisInitializer() is { } baseOrThisInitializer)
                     {
-                        var baseOrThisInitializer = GetBaseOrThisInitializer();
-                        // If there's an error in the base or this initializer, presume that we should set all required members to default.
-                        includeBaseRequiredMembers = baseOrThisInitializer?.ShouldCheckRequiredMembers() ?? true;
-                        if (initializerKind == (int)SyntaxKind.ThisConstructorInitializer)
+                        includeBaseRequiredMembers = baseOrThisInitializer.ShouldCheckRequiredMembers();
+                        if (baseOrThisInitializer.ContainingType.Equals(_symbol.ContainingType, TypeCompareKind.AllIgnoreOptions))
                         {
                             hasThisConstructorInitializer = true;
                             // If we chained to a `this` constructor, a SetsRequiredMembers attribute applies to both the current type's required members and the base type's required members.
                             includeCurrentTypeRequiredMembers = includeBaseRequiredMembers;
                         }
-                        else if (initializerKind == (int)SyntaxKind.BaseConstructorInitializer)
+                        else
                         {
                             // If we chained to a `base` constructor, a SetsRequiredMembers attribute applies to the base type's required members only, and the current type's required members
                             // are not assumed to be initialized.
@@ -1060,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetBaseOrThisInitializer()
         {
-            return (_baseOrThisInitializer ?? GetConstructorThisOrBaseSymbol(this.methodMainNode));
+            return _baseOrThisInitializer ?? (this.methodMainNode is BoundConstructorMethodBody { Initializer: BoundStatement initializer } ? initializer.GetConstructorInitializerThisOrBaseSymbol() : null);
         }
 
         private void EnforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
@@ -1349,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ownsDiagnostics = false;
             }
 
-            MethodSymbol? baseOrThisInitializer = GetConstructorThisOrBaseSymbol(constructorBody);
+            MethodSymbol? baseOrThisInitializer = constructorBody is BoundConstructorMethodBody { Initializer: BoundStatement initializer } ? initializer.GetConstructorInitializerThisOrBaseSymbol() : null;
 
             NullableWalker.AnalyzeIfNeeded(
                 compilation,
@@ -1372,8 +1370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static MethodSymbol? GetConstructorThisOrBaseSymbol(BoundNode? constructorBody)
         {
-            return constructorBody is BoundConstructorMethodBody { Initializer: BoundExpressionStatement { Expression: BoundCall { Method: { MethodKind: MethodKind.Constructor } initializerMethod } } }
-                ? initializerMethod
+            return constructorBody is BoundConstructorMethodBody { Initializer: { } initializer }
+                ? initializer.GetConstructorInitializerThisOrBaseSymbol()
                 : null;
         }
 
@@ -1387,10 +1385,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? symbol,
             BoundNode node,
             Binder binder,
+            MethodSymbol? baseOrThisInitializer,
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol, node), diagnostics, createSnapshots, requiresAnalysis: false);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol, node), baseOrThisInitializer, diagnostics, createSnapshots, requiresAnalysis: false);
         }
 
         /// <summary>
@@ -1403,13 +1402,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             VariableState? initialState,
+            MethodSymbol? baseOrThisInitializer,
             DiagnosticBag diagnostics,
             bool createSnapshots,
             out SnapshotManager? snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)> analyzedNullabilitiesMap;
-            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots, requiresAnalysis: true);
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, baseOrThisInitializer, diagnostics, createSnapshots, requiresAnalysis: true);
             return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
         }
 
@@ -1419,6 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             VariableState? initialState,
+            MethodSymbol? baseOrThisInitializer,
             DiagnosticBag diagnostics,
             bool createSnapshots,
             bool requiresAnalysis)
@@ -1441,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState,
-                baseOrThisInitializer: null,
+                baseOrThisInitializer,
                 analyzedNullabilities,
                 snapshotBuilder,
                 returnTypesOpt: null,

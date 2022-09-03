@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundNode RewriteNullableBoundNodesWithSnapshots(
             BoundNode boundRoot,
             Binder binder,
+            MethodSymbol baseOrThisInitializer,
             DiagnosticBag diagnostics,
             bool createSnapshots,
             out NullableWalker.SnapshotManager snapshotManager,
@@ -268,12 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // https://github.com/dotnet/roslyn/issues/46424
             // Bind and analyze preceding field initializers in order to give an accurate initial nullable state.
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, baseOrThisInitializer, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, MethodSymbol baseOrThisInitializer, DiagnosticBag diagnostics, bool createSnapshots)
         {
-            NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
+            NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, baseOrThisInitializer, diagnostics, createSnapshots);
         }
 
 #nullable enable

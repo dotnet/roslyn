@@ -1742,6 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock? body;
             NullableWalker.VariableState? nullableInitialState = null;
+            BoundStatement? constructorInitializer = null;
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
@@ -1780,6 +1781,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NullableWalker.SnapshotManager? snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
+                    constructorInitializer = methodBody is BoundConstructorMethodBody { Initializer: { } initializer }
+                        ? initializer
+                        : BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
+
+                    MethodSymbol? baseOrThisInitializer = constructorInitializer.GetConstructorInitializerThisOrBaseSymbol();
 
                     nullableInitialState = getInitializerState(methodBody);
 
@@ -1796,6 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 methodBody,
                                 bodyBinder,
                                 nullableInitialState,
+                                baseOrThisInitializer,
                                 // if language version is insufficient, we do not want to surface nullability diagnostics,
                                 // but we should still provide nullability information through the semantic model.
                                 isSufficientLangVersion ? diagnostics.DiagnosticBag : new DiagnosticBag(),
@@ -1813,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 useConstructorExitWarnings: true,
                                 nullableInitialState,
                                 getFinalNullableState: false,
-                                baseOrThisInitializer: null,
+                                baseOrThisInitializer: baseOrThisInitializer,
                                 finalNullableState: out _);
                         }
                     }
@@ -1845,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
+                                Debug.Assert(constructorInitializer is not null);
                                 Debug.Assert(constructor.Initializer is null);
                                 Debug.Assert(constructor.Locals.IsEmpty);
                             }
@@ -1912,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MethodBodySynthesizer.ConstructDestructorBody(method, body);
             }
 
-            var constructorInitializer = BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
+            constructorInitializer ??= BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
             ImmutableArray<BoundStatement> statements;
 
             if (constructorInitializer == null)

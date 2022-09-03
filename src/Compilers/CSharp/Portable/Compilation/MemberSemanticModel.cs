@@ -1725,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
                 if (!IsNullableAnalysisEnabled() && Compilation.IsNullableAnalysisEnabledAlways)
                 {
-                    AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
+                    AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, baseOrThisInitializer: null, diagnostics: new DiagnosticBag(), createSnapshots: false);
                 }
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1980,15 +1980,36 @@ done:
                 if (!isNullableAnalysisEnabled)
                 {
                     Debug.Assert(Compilation.IsNullableAnalysisEnabledAlways);
-                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnostics, createSnapshots: true);
+                    AnalyzeBoundNodeNullability(boundRoot, binder, getConstructorInitializer(boundRoot), diagnostics, createSnapshots: true);
                     diagnostics.Free();
                     return;
                 }
 #endif
 
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, getConstructorInitializer(boundRoot), diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 diagnostics.Free();
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+
+#nullable enable
+                MethodSymbol? getConstructorInitializer(BoundNode boundRoot)
+                {
+                    if (this.MemberSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor } constructor)
+                    {
+                        return null;
+                    }
+
+                    if (boundRoot is BoundConstructorMethodBody { Initializer: { } initializerNode })
+                    {
+                        return initializerNode.GetConstructorInitializerThisOrBaseSymbol();
+                    }
+                    else
+                    {
+                        return MethodCompiler.BindImplicitConstructorInitializer(constructor, BindingDiagnosticBag.Discarded, Compilation) is BoundCall { Method: { MethodKind: MethodKind.Constructor } initializerMethod }
+                            ? initializerMethod
+                            : null;
+                    }
+                }
+#nullable disable
             }
         }
 
@@ -2024,6 +2045,7 @@ done:
         protected abstract BoundNode RewriteNullableBoundNodesWithSnapshots(
             BoundNode boundRoot,
             Binder binder,
+            MethodSymbol? baseOrThisInitializer,
             DiagnosticBag diagnostics,
             bool createSnapshots,
             out NullableWalker.SnapshotManager? snapshotManager,
@@ -2035,7 +2057,7 @@ done:
         /// It is only used in contexts where nullable analysis is disabled in the compilation but requested
         /// through "run-nullable-analysis=always" or when the compiler is running in DEBUG.
         /// </summary>
-        protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
+        protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, MethodSymbol? baseOrThisInitializer, DiagnosticBag diagnostics, bool createSnapshots);
 
         protected abstract bool IsNullableAnalysisEnabled();
 #nullable disable
