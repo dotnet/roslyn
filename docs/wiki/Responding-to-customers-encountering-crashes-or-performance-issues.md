@@ -16,7 +16,7 @@ Thank you for letting us know you are experiencing a similar situation. Due to t
 
 Thank you for providing feedback, and we're sorry to hear it's not behaving as you expect. Based on your description so far, it sounds like you are experiencing a problem which is historically hard to diagnose and resolve using the normal "steps to reproduce". We created a set of instructions for providing additional information which will help us track down the true source of the problems.
 
-Based on the information provided so far, the most likely scenario to follow is for "Crashes". To provide the feedback most relevant for the problems you would like to see fixed, see [Crashes](/visualstudio/ide/how-to-increase-chances-of-performance-issue-being-fixed?view=vs-2019#crashes).
+Based on the information provided so far, the most likely scenario to follow is for "Crashes". To provide the feedback most relevant for the problems you would like to see fixed, see [Crashes](https://docs.microsoft.com/visualstudio/ide/how-to-increase-chances-of-performance-issue-being-fixed?view=vs-2019#crashes).
 
 ### Slowness and High CPU Issues
 
