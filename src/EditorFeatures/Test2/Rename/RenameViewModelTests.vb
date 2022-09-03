@@ -664,21 +664,15 @@ class D : B
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFlyoutRemembersCollapsedState(host As RenameTestHost)
             Dim test = <Workspace>
-                           <Project Language="C#">
+                           <Project Language="C#" CommonReferences="true">
                                <Document>
-                            public class $$A
-                            {
-                            }
-                        </Document>
-                               <Document CanApplyChange="false">
-                            class B
-                            {
-                                void M()
+                                class Program
                                 {
-                                    A a;
+                                    public void $$goo()
+                                    {
+                                    }
                                 }
-                            }
-                        </Document>
+                            </Document>
                            </Project>
                        </Workspace>
 
