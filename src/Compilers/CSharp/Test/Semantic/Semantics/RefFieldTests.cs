@@ -16609,5 +16609,157 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
             Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
         }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_01()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    var a = ([UnscopedRef] ref RefStruct s) => { };
+    var b = ([UnscopedRef] out RegularStruct s) => { };
+    var c = ([UnscopedRef] out RefStruct s) => { };
+
+    D1 x = ([UnscopedRef] ref RefStruct s) => { };
+    D2 y = ([UnscopedRef] out RegularStruct s) => { };
+    D3 z = ([UnscopedRef] out RefStruct s) => { };
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    void localA([UnscopedRef] ref RefStruct s) { };
+    void localB([UnscopedRef] out RegularStruct s) { };
+    void localC([UnscopedRef] out RefStruct s) { };
+
+    var a = localA;
+    var b = localB;
+    var c = localC;
+
+    D1 x = localA;
+    D2 y = localB;
+    D3 z = localC;
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_03()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C1
+{
+  public void M()
+  {
+    var a = A;
+    var b = B;
+    var c = C;
+
+    D1 x = A;
+    D2 y = B;
+    D3 z = C;
+  }
+
+  void A([UnscopedRef] ref RefStruct s) { }
+  void B([UnscopedRef] out RegularStruct s) { }
+  void C([UnscopedRef] out RefStruct s) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
     }
 }
