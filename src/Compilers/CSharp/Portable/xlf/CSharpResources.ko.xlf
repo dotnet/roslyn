@@ -1262,6 +1262,11 @@
         <target state="translated">'{0}': 속성 또는 인덱서에 get 접근자와 set 접근자가 둘 다 있는 경우에만 접근자에 'readonly'를 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
+        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">기본 생성자가 합성된 복사 생성자와 충돌합니다.</target>
@@ -1630,11 +1635,6 @@
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">일반 작업과 같은 반환 유형이 예상되었지만 'AsyncMethodBuilder' 특성에 있는 '{0}' 유형이 적합하지 않습니다. 이는 인자 수가 1인 바인딩되지 않은 제네릭 유형이어야 하고, 포함하는 유형(있는 경우)은 제네릭이 아니어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in">
-        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">

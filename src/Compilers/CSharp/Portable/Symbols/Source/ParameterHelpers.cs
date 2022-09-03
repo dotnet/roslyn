@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword when !parsingFunctionPointerParams:
-                        diagnostics.Add(ErrorCode.ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in, modifier.GetLocation());
+                        diagnostics.Add(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, modifier.GetLocation());
                         break;
 
                     case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:

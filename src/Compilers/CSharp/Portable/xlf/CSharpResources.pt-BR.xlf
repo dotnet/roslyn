@@ -1262,6 +1262,11 @@
         <target state="translated">'{0}': 'readonly' somente pode ser usado em acessadores quando a propriedade ou o indexador tem um acessador get e um set</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
+        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">O construtor primário entra em conflito com o construtor de cópia sintetizado.</target>
@@ -1630,11 +1635,6 @@
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Um tipo de retorno semelhante à tarefa genérica era esperado, mas o tipo '{0}' encontrado no atributo 'AsyncMethodBuilder' não era adequado. Ele deve ser um tipo genérico não associado de arity um e seu tipo recipiente (se houver) deve ser não genérico.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in">
-        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">

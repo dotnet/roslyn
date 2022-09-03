@@ -1262,6 +1262,11 @@
         <target state="translated">'{0}': 只有在屬性或索引子同時具有 get 和 set 存取子時，才能在存取子上使用 'readonly'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
+        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">主要建構函式與合成的複製建構函式相衝突。</target>
@@ -1630,11 +1635,6 @@
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">應存在類似泛型工作的傳回型別，但在 'AsyncMethodBuilder' 屬性中找到的類型 '{0}' 不適用。它必須是 arity one 的未綁定泛型型別，並且其包含類型 (如果有) 必須是非泛型。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_readonly_is_not_supported_as_a_parameter_modifier_Did_you_mean_in">
-        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
