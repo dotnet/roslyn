@@ -9013,85 +9013,31 @@ public class Derived : Base {
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter2()
         {
-            UsingTree(@"
-public class Base {
-    void M()
-    {
-        var v = (readonly int i) => { };
-    }
-}");
+            UsingExpression(@"
+(readonly int i) => { }");
 
-            N(SyntaxKind.CompilationUnit);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "Base");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "M");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "var");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "v");
-                                        N(SyntaxKind.EqualsValueClause);
-                                        {
-                                            N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.ReadOnlyKeyword);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken, "i");
-                                                    }
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "i");
                     }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
@@ -9099,86 +9045,32 @@ public class Base {
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter3()
         {
-            UsingTree(@"
-public class Base {
-    void M()
-    {
-        var v = (ref readonly int i) => { };
-    }
-}");
+            UsingExpression(@"
+(ref readonly int i) => { }");
 
-            N(SyntaxKind.CompilationUnit);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "Base");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "M");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "var");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "v");
-                                        N(SyntaxKind.EqualsValueClause);
-                                        {
-                                            N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.RefKeyword);
-                                                        N(SyntaxKind.ReadOnlyKeyword);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken, "i");
-                                                    }
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "i");
                     }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
@@ -9186,86 +9078,32 @@ public class Base {
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
         public void ReadonlyParameter4()
         {
-            UsingTree(@"
-public class Base {
-    void M()
-    {
-        var v = (readonly ref int i) => { };
-    }
-}");
+            UsingExpression(@"
+(readonly ref int i) => { }");
 
-            N(SyntaxKind.CompilationUnit);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "Base");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "M");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "var");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "v");
-                                        N(SyntaxKind.EqualsValueClause);
-                                        {
-                                            N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-                                                    {
-                                                        N(SyntaxKind.ReadOnlyKeyword);
-                                                        N(SyntaxKind.RefKeyword);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken, "i");
-                                                    }
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "i");
                     }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
