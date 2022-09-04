@@ -225,10 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 // if the original had a newline, then we only want to trim the newlines as long as there is still one
                 // left at the end.
 
-                if (originalHadTrailingNewLine && trailingTrivia is not [
-                    ..,
-                    SyntaxTrivia(SyntaxKind.EndOfLineTrivia or SyntaxKind.EndIfDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia),
-                    SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
+                if (originalHadTrailingNewLine && trailingTrivia is not
+                    [
+                        ..,
+                        SyntaxTrivia(SyntaxKind.EndOfLineTrivia or SyntaxKind.EndIfDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia),
+                        SyntaxTrivia(SyntaxKind.EndOfLineTrivia)
+                    ])
                 {
                     break;
                 }
