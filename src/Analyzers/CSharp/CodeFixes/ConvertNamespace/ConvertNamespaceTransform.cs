@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 .WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia)
                 .WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
 
-            var originalHadTrailingNewLine = namespaceDeclaration.GetTrailingTrivia() is [.., { RawKind: (int)SyntaxKind.EndOfLineTrivia }];
+            var originalHadTrailingNewLine = namespaceDeclaration.GetTrailingTrivia() is [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)];
 
             // now, intelligently trim excess newlines to try to match what the original namespace looked like.
             while (fileScopedNamespace.HasTrailingTrivia)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 var trailingTrivia = fileScopedNamespace.GetTrailingTrivia();
 
                 // if the new namespace doesn't end with a newline, nothing for us to do.
-                if (trailingTrivia is not [.., { RawKind: (int)SyntaxKind.EndOfLineTrivia }])
+                if (trailingTrivia is not [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
                     break;
 
                 // if the original had a newline, then we only want to trim the newlines as long as there is still one
