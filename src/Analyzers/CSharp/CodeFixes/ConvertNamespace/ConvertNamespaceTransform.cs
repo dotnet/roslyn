@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 if (originalHadTrailingNewLine && trailingTrivia is not [
                     ..,
                     { RawKind: (int)SyntaxKind.EndOfLineTrivia or (int)SyntaxKind.EndIfDirectiveTrivia or (int)SyntaxKind.EndRegionDirectiveTrivia },
-                    { RawKind: (int)SyntaxKind.EndOfLineTrivia } ])
+                    { RawKind: (int)SyntaxKind.EndOfLineTrivia }])
                 {
                     break;
                 }
