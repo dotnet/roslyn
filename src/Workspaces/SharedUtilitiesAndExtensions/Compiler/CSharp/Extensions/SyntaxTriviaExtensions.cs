@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxTriviaExtensions
     {
+        public static void Deconstruct(this SyntaxTrivia trivia, out SyntaxKind kind)
+            => kind = trivia.Kind();
+
         public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind)
             => trivia.Kind() == kind;
 
