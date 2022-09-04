@@ -349,7 +349,6 @@ class C
 ",
                 FixedCode = @"
 namespace $$N;
-
 // comment
 class C
 {
@@ -787,8 +786,8 @@ class C
 [|namespace N|] { class C { } }
 ",
                 FixedCode = @"
-namespace $$N; 
-class C { } ",
+namespace $$N; class C { } 
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -808,8 +807,8 @@ class C { } ",
 ",
                 FixedCode = @"
 namespace $$N;
-
-class C { } ",
+class C { } 
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
