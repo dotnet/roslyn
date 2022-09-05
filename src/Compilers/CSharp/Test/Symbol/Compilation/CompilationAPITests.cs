@@ -2791,23 +2791,23 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).GetPublicSymbol().Construct(intType);
 
             // vb binary operator name
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.LikeOperatorName, intType, intType, intType));
 
             // unary operator name
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType));
 
             // nullable type 1
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>(null, () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, nullableIntType, intType, intType));
 
             // nullable type 2
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>(null, () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, nullableIntType, intType));
 
             // nullable type 3
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>(null, () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, nullableIntType));
         }
 
@@ -2816,11 +2816,11 @@ public class C { public static FrameworkName Goo() { return null; }}";
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
-            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+            Assert.Throws<ArgumentNullException>("returnType", () => compilation.CreateBuiltinOperator(
                 WellKnownMemberNames.AdditionOperatorName, null, intType, intType));
-            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+            Assert.Throws<ArgumentNullException>("leftType", () => compilation.CreateBuiltinOperator(
                 WellKnownMemberNames.AdditionOperatorName, intType, null, intType));
-            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+            Assert.Throws<ArgumentNullException>("rightType", () => compilation.CreateBuiltinOperator(
                 WellKnownMemberNames.AdditionOperatorName, intType, intType, null));
         }
 
@@ -2959,7 +2959,7 @@ class C
         {
             var compilation = CreateCompilation("");
             var fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
-            Assert.Throws<ArgumentException>(() => compilation.CreateBuiltinOperator(
+            Assert.Throws<ArgumentException>(null, () => compilation.CreateBuiltinOperator(
                 WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType));
         }
 
@@ -2981,31 +2981,31 @@ class C
             var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).GetPublicSymbol().Construct(intType);
 
             // Binary operator name
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType));
 
             // Nullable type 1
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>(null, () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, nullableIntType, intType));
 
             // Nullable type 2
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>(null, () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, nullableIntType));
 
             // op_Implicit
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.ImplicitConversionName, intType, intType));
 
             // op_Explicit
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.ExplicitConversionName, intType, intType));
 
             // op_True
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType));
 
             // op_False
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentException>("name", () =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType));
         }
 
@@ -3014,9 +3014,9 @@ class C
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
-            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+            Assert.Throws<ArgumentNullException>("returnType", () => compilation.CreateBuiltinOperator(
                 WellKnownMemberNames.UnaryPlusOperatorName, null, intType));
-            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+            Assert.Throws<ArgumentNullException>("operandType", () => compilation.CreateBuiltinOperator(
                 WellKnownMemberNames.UnaryPlusOperatorName, intType, null));
         }
 

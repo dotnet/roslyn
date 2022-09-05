@@ -1801,7 +1801,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         Public Sub CreateBuiltinBinaryOperator_BogusErrorType()
             Dim compilation = CreateCompilation("")
             Dim fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, fakeIntType, fakeIntType, fakeIntType))
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, fakeIntType, fakeIntType, fakeIntType))
         End Sub
 
         <Fact>
@@ -1820,28 +1820,28 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Dim nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(intType)
 
             ' c# binary operator name
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.IncrementOperatorName, intType, intType, intType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.IncrementOperatorName, intType, intType, intType))
 
             ' unary operator name
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType))
 
             ' nullable type 1
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, nullableIntType, intType, intType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, nullableIntType, intType, intType))
 
             ' nullable type 2
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, nullableIntType, intType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, nullableIntType, intType))
 
             ' nullable type 3
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, nullableIntType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, nullableIntType))
         End Sub
 
         <Fact>
         Public Sub CreateBuiltinBinaryOperator_NullChecks()
             Dim compilation = CreateCompilation("")
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
-            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, Nothing, intType, intType))
-            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, Nothing, intType))
-            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, Nothing))
+            Assert.Throws(Of ArgumentNullException)("returnType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, Nothing, intType, intType))
+            Assert.Throws(Of ArgumentNullException)("leftType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, Nothing, intType))
+            Assert.Throws(Of ArgumentNullException)("rightType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, Nothing))
         End Sub
 
         <Theory>
@@ -1863,32 +1863,32 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Dim nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(intType)
 
             ' Binary operator name
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType))
 
             ' Nullable type 1
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, nullableIntType, intType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, nullableIntType, intType))
 
             ' Nullable type 2
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, nullableIntType))
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, nullableIntType))
 
             ' op_Implicit
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ImplicitConversionName, intType, intType))
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ImplicitConversionName, intType, intType))
 
             ' op_Explicit
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ExplicitConversionName, intType, intType))
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ExplicitConversionName, intType, intType))
 
             ' op_False
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType))
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType))
 
             ' op_True
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType))
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType))
         End Sub
 
         <Fact>
         Public Sub CreateBuiltinUnaryOperator_BogusErrorType()
             Dim compilation = CreateCompilation("")
             Dim fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
-            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType))
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType))
         End Sub
 
         <Fact>
@@ -1904,8 +1904,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         Public Sub CreateBuiltinUnaryOperator_NullChecks()
             Dim compilation = CreateCompilation("")
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
-            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, Nothing, intType))
-            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, Nothing))
+            Assert.Throws(Of ArgumentNullException)("returnType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, Nothing, intType))
+            Assert.Throws(Of ArgumentNullException)("operandType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, Nothing))
         End Sub
 
         <Fact>
