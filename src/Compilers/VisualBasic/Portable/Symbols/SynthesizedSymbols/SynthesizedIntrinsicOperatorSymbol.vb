@@ -31,12 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsCheckedBuiltin As Boolean
             Get
-                Select Case Name
+                Select Case Me.Name
                     Case WellKnownMemberNames.CheckedUnaryNegationOperatorName,
-                     WellKnownMemberNames.CheckedAdditionOperatorName,
-                     WellKnownMemberNames.CheckedDivisionOperatorName,
-                     WellKnownMemberNames.CheckedMultiplyOperatorName,
-                     WellKnownMemberNames.CheckedSubtractionOperatorName
+                         WellKnownMemberNames.CheckedAdditionOperatorName,
+                         WellKnownMemberNames.CheckedDivisionOperatorName,
+                         WellKnownMemberNames.CheckedMultiplyOperatorName,
+                         WellKnownMemberNames.CheckedSubtractionOperatorName
                         Return True
 
                     Case Else
