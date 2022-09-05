@@ -287,8 +287,7 @@ static class Ext
             comp.VerifyDiagnostics();
         }
 
-        // Too slow to run with IOperationValidation on.
-        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(IsRelease))]
         [WorkItem(40495, "https://github.com/dotnet/roslyn/issues/40495")]
         public void NestedLambdas_01()
         {
