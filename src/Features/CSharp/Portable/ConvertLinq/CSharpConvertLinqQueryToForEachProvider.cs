@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 // Do not try refactoring queries with comments or conditional compilation in them.
                 // We can consider supporting queries with comments in the future.
-                if (_source.DescendantTrivia().Any(trivia => trivia.MatchesKind(
-                        SyntaxKind.SingleLineCommentTrivia,
-                        SyntaxKind.MultiLineCommentTrivia,
+                if (_source.DescendantTrivia().Any(trivia => trivia is SyntaxTrivia(
+                        SyntaxKind.SingleLineCommentTrivia or
+                        SyntaxKind.MultiLineCommentTrivia or
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
                     _source.ContainsDirectives))
                 {
