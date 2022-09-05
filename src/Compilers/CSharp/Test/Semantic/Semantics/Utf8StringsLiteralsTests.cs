@@ -3121,7 +3121,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3165,7 +3167,9 @@ class C
   IL_000b:  ret
 }
 ");
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'

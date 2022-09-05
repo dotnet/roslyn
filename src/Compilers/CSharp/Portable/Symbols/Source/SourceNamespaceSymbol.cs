@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private struct NameToSymbolMapBuilder
+        private readonly struct NameToSymbolMapBuilder
         {
             private readonly Dictionary<string, object> _dictionary;
 

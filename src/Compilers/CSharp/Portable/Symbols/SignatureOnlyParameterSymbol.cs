@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
         internal override DeclarationScope EffectiveScope => DeclaredScope;
 
+        internal override bool UseUpdatedEscapeRules => false;
+
         #region Not used by MethodSignatureComparer
 
         internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }

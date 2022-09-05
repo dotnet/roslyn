@@ -1142,6 +1142,11 @@
         <target state="translated">優先使用範圍運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="new">Prefer read-only struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">優先使用唯讀欄位</target>
