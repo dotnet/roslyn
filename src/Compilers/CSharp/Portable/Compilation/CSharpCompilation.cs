@@ -3927,6 +3927,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (csharpLeftType.IsEnumType() || csharpRightType.IsEnumType())
                 {
                     // bool operator ==(SomeEnum, SomeEnum) is legal.
+                    // bool operator !=(SomeEnum, SomeEnum) is legal.
+                    // bool operator >(SomeEnum, SomeEnum) is legal.
+                    // bool operator <(SomeEnum, SomeEnum) is legal.
+                    // bool operator >=(SomeEnum, SomeEnum) is legal.
+                    // bool operator <=(SomeEnum, SomeEnum) is legal.
                     if (binaryKind is BinaryOperatorKind.Equal or
                                       BinaryOperatorKind.NotEqual or
                                       BinaryOperatorKind.GreaterThan or
@@ -3940,6 +3945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // SomeEnum operator &(SomeEnum, SomeEnum) is legal.
+                    // SomeEnum operator |(SomeEnum, SomeEnum) is legal.
+                    // SomeEnum operator ^(SomeEnum, SomeEnum) is legal.
                     if (binaryKind is BinaryOperatorKind.And or
                                       BinaryOperatorKind.Or or
                                       BinaryOperatorKind.Xor &&
