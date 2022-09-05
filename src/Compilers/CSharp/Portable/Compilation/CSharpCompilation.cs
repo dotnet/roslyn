@@ -3895,8 +3895,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
                     csharpReturnType.SpecialType is SpecialType.System_Boolean)
                 {
-                    if ((csharpLeftType.SpecialType is SpecialType.System_Object && csharpRightType.SpecialType is SpecialType.System_Object) ||
-                        (csharpLeftType.SpecialType is SpecialType.System_Delegate && csharpRightType.SpecialType is SpecialType.System_Delegate))
+                    if ((csharpLeftType.SpecialType, csharpRightType.SpecialType) is
+                            (SpecialType.System_Object, SpecialType.System_Object) or
+                            (SpecialType.System_Delegate, SpecialType.System_Delegate))
                     {
                         return;
                     }
@@ -3985,7 +3986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   BinaryOperatorKind.LessThan or
                                   BinaryOperatorKind.GreaterThanOrEqual or
                                   BinaryOperatorKind.LessThanOrEqual &&
-                    csharpReturnType.SpecialType == SpecialType.System_Boolean &&
+                    csharpReturnType.SpecialType is SpecialType.System_Boolean &&
                     csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
                     csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
                 {
