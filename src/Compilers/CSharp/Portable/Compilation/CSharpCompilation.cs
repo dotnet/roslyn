@@ -3846,11 +3846,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntaxKind = SyntaxFacts.GetOperatorKind(name);
             if (syntaxKind == SyntaxKind.None)
-                throw new ArgumentException(string.Format(CodeAnalysisResources.Illegal_built_in_operator_name_0, name), nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps1, name), nameof(name));
 
             var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (binaryOperatorName != name)
-                throw new ArgumentException(string.Format(CodeAnalysisResources._0_was_not_a_valid_built_in_operator_name, name), nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps3, name), nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
             validateSignature();
@@ -4037,7 +4037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                throw new ArgumentException(string.Format(CodeAnalysisResources.Unsupported_built_in_operator_0, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})"));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps2, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})"));
             }
 
             bool isAllowedPointerArithmeticIntegralType(TypeSymbol type)
@@ -4064,11 +4064,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Currently compiler does not generate built-ins for `operator true/false`.  If that changes, this check
             // can be relaxed.
             if (syntaxKind == SyntaxKind.None || name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
-                throw new ArgumentException(string.Format(CodeAnalysisResources.Illegal_built_in_operator_name_0, name), nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps1, name), nameof(name));
 
             var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
             if (unaryOperatorName != name)
-                throw new ArgumentException(string.Format(CodeAnalysisResources._0_was_not_a_valid_built_in_operator_name, name), nameof(name));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps3, name), nameof(name));
 
             // Lang specific checks to ensure this is an acceptable operator.
             validateSignature();
@@ -4119,7 +4119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                throw new ArgumentException(string.Format(CodeAnalysisResources.Unsupported_built_in_operator_0, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})"));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps2, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})"));
             }
         }
 

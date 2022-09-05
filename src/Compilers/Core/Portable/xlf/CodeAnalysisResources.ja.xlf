@@ -17,6 +17,21 @@
         <target state="translated">型 '{0}' を含むアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="new">Illegal built-in operator name '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="new">Unsupported built-in operator: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="new">'{0}' was not a valid built-in operator name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">変更は SourceText の範囲内でなければなりません</target>
@@ -68,11 +83,6 @@
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">追加されたソース ファイルの hintName '{0}' は、ジェネレーター内で一意である必要があります。</target>
         <note>{0}: the provided hintname</note>
-      </trans-unit>
-      <trans-unit id="Illegal_built_in_operator_name_0">
-        <source>Illegal built-in operator name '{0}'</source>
-        <target state="new">Illegal built-in operator name '{0}'</target>
-        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -322,11 +332,6 @@
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
         <target state="translated">ID '{0}' の報告済みの抑制はサプレッサーによってサポートされていません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_built_in_operator_0">
-        <source>Unsupported built-in operator: {0}</source>
-        <target state="new">Unsupported built-in operator: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -1026,11 +1031,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_was_not_a_valid_built_in_operator_name">
-        <source>'{0}' was not a valid built-in operator name</source>
-        <target state="new">'{0}' was not a valid built-in operator name</target>
         <note />
       </trans-unit>
     </body>

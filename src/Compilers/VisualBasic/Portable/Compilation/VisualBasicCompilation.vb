@@ -2934,7 +2934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
             If Not opInfo.IsBinary Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.Illegal_built_in_operator_name_0, name), NameOf(name))
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps1, name), NameOf(name))
             End If
 
             CheckBinaryBuiltInOperator(name, vbReturnType, vbLeftType, vbRightType, opInfo)
@@ -2991,7 +2991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Throw New ArgumentException(String.Format(CodeAnalysisResources.Unsupported_built_in_operator_0, $"{returnType.ToDisplayString()} operator {name}({leftType.ToDisplayString()}, {rightType.ToDisplayString()})"))
+            Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps3, $"{returnType.ToDisplayString()} operator {name}({leftType.ToDisplayString()}, {rightType.ToDisplayString()})"))
         End Sub
 
         Protected Overrides Function CommonCreateBuiltinOperator(
@@ -3006,7 +3006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
             If Not opInfo.IsUnary Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.Illegal_built_in_operator_name_0, name), NameOf(name))
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps1, name), NameOf(name))
             End If
 
             CheckUnaryBuiltInOperator(name, vbReturnType, vbOperandType, opInfo)
@@ -3043,7 +3043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Throw New ArgumentException(String.Format(CodeAnalysisResources.Unsupported_built_in_operator_0, $"{returnType.ToDisplayString()} operator {name}({operandType.ToDisplayString()})"))
+            Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps3, $"{returnType.ToDisplayString()} operator {name}({operandType.ToDisplayString()})"))
         End Sub
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
