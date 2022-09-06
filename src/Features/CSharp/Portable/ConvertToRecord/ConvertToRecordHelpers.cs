@@ -175,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         /// with no duplicate assignment or any other type of statement
         /// </summary>
         /// <param name="operation">Constructor body</param>
-        /// <param name="properties">Properties expected to be assigned (would be replaced with positional constructor)</param>
+        /// <param name="properties">Properties expected to be assigned (would be replaced with positional constructor).
+        /// Will re-order this list to match parameter order if successful.</param>
         /// <param name="parameters">Constructor parameters</param>
         /// <returns>Whether the constructor body matches the pattern described</returns>
         public static bool IsSimplePrimaryConstructor(
@@ -183,16 +184,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             ref ImmutableArray<IPropertySymbol> properties,
             ImmutableArray<IParameterSymbol> parameters)
         {
+            if (GetBlockOfMethodBody(operation) is not { Operations.Length: int opLength } ||
+                opLength != properties.Length)
+            {
+                return false;
+            }
+
             var assignmentValues = GetAssignmentValuesForConstructor(operation,
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
-            var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
-            var assignedParameters = assignmentValues.SelectAsArray(value => value.right);
-
-            if (assignmentValues.All(value => value != default && value.left is IPropertySymbol) &&
-                assignmentValues.Length == assignedProperties.Length &&
-                assignedProperties.SetEquals(properties) &&
-                assignedParameters.SetEquals(parameters))
+            // we must assign to all the properties (keys) and use all the parameters (values)
+            if (assignmentValues.Keys.SetEquals(properties) &&
+                assignmentValues.Values.SetEquals(parameters))
             {
                 // order properties in order of the parameters that they were assigned to
                 // e.g if we originally have Properties: [int Y, int X]
@@ -203,8 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 //     Y = y;
                 // }
                 // then we would re-order the properties to: [int X, int Y]
-                properties = parameters.SelectAsArray(param =>
-                    (IPropertySymbol)assignmentValues.First(value => value.right.Equals(param)).left);
+                properties = properties
+                    .OrderBy(property => parameters.IndexOf(assignmentValues[property]))
+                    .AsImmutable();
                 return true;
             }
 
@@ -222,6 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             ImmutableArray<IFieldSymbol> fields,
             IParameterSymbol parameter)
         {
+            if (GetBlockOfMethodBody(operation) is not { Operations.Length: int opLength } ||
+                opLength != fields.Length)
+            {
+                return false;
+            }
+
             var assignmentValues = GetAssignmentValuesForConstructor(operation,
                 assignment => assignment switch
                 {
@@ -240,80 +250,57 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     _ => null
                 });
 
-            var assignedValues = assignmentValues.SelectAsArray(result => UnwrapPropertyToField(result.left));
+            // left hand side of each assignment
+            var assignedUnderlyingFields = assignmentValues.Keys.SelectAsArray(UnwrapPropertyToField);
 
-            // each right hand assignment should assign the same property
-            // and all assigned properties should be equal (in potentially a different order)
+            // Each right hand assignment should assign the same property.
+            // All assigned properties should be equal (in potentially a different order)
             // to all the properties we would be moving
-            return assignmentValues.All(result => result != default &&
-                    result.right.Equals(UnwrapPropertyToField(result.left))) &&
-                !assignedValues.HasDuplicates(SymbolEqualityComparer.Default) &&
-                assignedValues.SetEquals(fields);
+            return assignedUnderlyingFields.SequenceEqual(assignmentValues.Values) &&
+                assignedUnderlyingFields.SetEquals(fields);
         }
 
-        public static (ImmutableArray<ArgumentSyntax> initializerArguments, ImmutableArray<SyntaxNode> assignmentsToRemove)
-        GetInitializerValuesForNonPrimaryConstructor(
+        /// <summary>
+        /// Given a non-primary, non-copy constructor, get expressions that are assigned to
+        /// primary constructor properties via simple assignment.
+        /// </summary>
+        /// <param name="operation">The constructor body operation</param>
+        /// <param name="positionalParams">the primary constructor parameters</param>
+        /// <returns>
+        /// Expressions that were assigned to a primary constructor property in the constructor,
+        /// or default/null if there wasn't an assignment found. Returned in order of primary parameters.
+        /// </returns>
+        /// <remarks>
+        /// Example (assume we decided on positional parameters int Foo, bool Bar, int Baz):
+        /// <code>
+        /// public C(int foo, bool bar)
+        /// {
+        ///     Bar = bar;
+        ///     Foo = foo;
+        ///     Mumble = 0;
+        /// }
+        /// </code>
+        /// we would return: [foo, bar, default]
+        /// where foo and bar are the nodes in the assignment, and default is factory constructed.
+        /// </remarks>
+        public static ImmutableArray<ExpressionSyntax> GetAssignmentValuesForNonPrimaryConstructor(
             IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> positionalParams)
         {
-            var _1 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var initializerBuilder);
-            var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
-
             // make sure the assignment wouldn't reference local variables we may have declared
             var assignmentValues = GetAssignmentValuesForConstructor(operation,
                 assignment => IsSafeAssignment(assignment)
                     ? assignment.Syntax as ExpressionSyntax
                     : null);
 
-            foreach (var property in positionalParams)
-            {
-                var assignmentValue = assignmentValues.FirstOrDefault(value => property.Equals(value.left));
-                if (assignmentValue == default)
-                {
-                    // no assignment found, use "default" (or "null" for nullable types)
-                    initializerBuilder.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                        property.Type.NullableAnnotation == NullableAnnotation.Annotated
-                            ? SyntaxKind.NullLiteralExpression
-                            : SyntaxKind.DefaultLiteralExpression)));
-                }
-                else
-                {
-                    // found a valid assignment to the parameter, add the expression it was assigned to
-                    // to the initializer list, and add the eniter statement to be deleted
-                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValue.right));
-                    // don't need to remove argument syntaxes as the base initializer will already get removed
-                    if (assignmentValue.right.Parent is not ArgumentSyntax)
-                    {
-                        removalBuilder.Add(assignmentValue.right.GetAncestor<ExpressionStatementSyntax>()!);
-                    }
-                }
-            }
-
-            return (initializerBuilder.AsImmutable(), removalBuilder.AsImmutable());
-        }
-
-        private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
-            IConstructorBodyOperation constructorOperation,
-            Func<IOperation, T?> captureAssignedSymbol)
-        {
-            var body = GetBlockOfMethodBody(constructorOperation);
-            var _ = ArrayBuilder<(ISymbol left, T right)>.GetInstance(out var builder);
-
-            // We expect the constructor to have exactly one statement per property,
-            // where the statement is a simple assignment from the parameter's property to the property
-            if (body == null)
-            {
-                return builder.ToImmutable();
-            }
-
-            if (constructorOperation.Initializer is
+            if (operation.Initializer is
                 IInvocationOperation { Arguments: ImmutableArray<IArgumentOperation> args })
             {
+                var additionalValuesBuilder = assignmentValues.ToBuilder();
                 // in a "base" or "this" initializer
                 foreach (var arg in args)
                 {
-                    if (arg is { Parameter: IParameterSymbol param, Value: IOperation value } &&
-                        captureAssignedSymbol(value) is T captured)
+                    if (arg is { Parameter: IParameterSymbol param, Value.Syntax: ExpressionSyntax captured })
                     {
                         // We're looking to see if this initializer is a primary constructor,
                         // i.e. the parameters are declared as auto-implemented properties in the record definition.
@@ -327,11 +314,118 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                     param.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());
                         if (positionalParam is IPropertySymbol property)
                         {
-                            builder.Add((property, captured));
+                            if (additionalValuesBuilder.ContainsKey(property))
+                            {
+                                // don't allow assignment to the same property more than once
+                                return ImmutableArray<ExpressionSyntax>.Empty;
+                            }
+
+                            additionalValuesBuilder.Add(property, captured);
                         }
                     }
                 }
-                builder.Add(default);
+
+                assignmentValues = additionalValuesBuilder.ToImmutable();
+            }
+
+            var expressions = GetAssignmentExpressionsFromValuesMap(positionalParams, assignmentValues);
+
+            return expressions;
+        }
+
+        /// <summary>
+        /// Given an object creation with a block initializer and a parameterless constructor declaration,
+        /// finds values that were assigned to the primary constructor parameters
+        /// </summary>
+        /// <param name="operation">Object creation expression operation</param>
+        /// <param name="positionalParams">primary constructor parameters</param>
+        /// <returns>
+        /// values that were assigned to primary constructor parameters, in order of the passed in primary constructor
+        /// </returns>
+        /// <remarks>
+        ///  Example (assume we decided on positional parameters int Foo, bool Bar, int Baz):
+        /// <code>
+        /// var c = new C
+        /// {
+        ///     Bar = true;
+        ///     Foo = 10;
+        ///     Mumble = 0;
+        /// };
+        /// </code>
+        /// We would return [10, true, default]
+        /// where 10 and true are the actual nodes and default was a constructed node
+        /// </remarks>
+        public static ImmutableArray<ExpressionSyntax> GetAssignmentValuesFromObjectCreation(
+            IObjectCreationOperation operation,
+            ImmutableArray<IPropertySymbol> positionalParams)
+        {
+            // we want to be very careful about when we refactor because if the user has a constructor
+            // and initializer it could be what they intend. Since we gave initializers to all non-primary
+            // constructors they already have, any calls to an explicit constructor with additional block initialization
+            // still work absolutely fine. Further, we can't necessarily associate their constructor args to
+            // primary constructor args or any other constructor args. Therefore,
+            // the only time we want to actually make a change is if they use the default no-param constructor,
+            // and a block initializer.
+            if (operation is IObjectCreationOperation
+                {
+                    Arguments: ImmutableArray<IArgumentOperation> { IsEmpty: true },
+                    Initializer: IObjectOrCollectionInitializerOperation initializer,
+                    Constructor: IMethodSymbol { IsImplicitlyDeclared: true }
+                })
+            {
+                var dictionaryBuilder = ImmutableDictionary<ISymbol, ExpressionSyntax>.Empty.ToBuilder();
+
+                foreach (var assignment in initializer.Initializers)
+                {
+                    if (assignment is ISimpleAssignmentOperation
+                        {
+                            Target: IPropertyReferenceOperation { Property: IPropertySymbol property },
+                            Value: IOperation { Syntax: ExpressionSyntax syntax }
+                        })
+                    {
+                        dictionaryBuilder.Add(property, syntax);
+                    }
+                }
+
+                var expressions = GetAssignmentExpressionsFromValuesMap(positionalParams, dictionaryBuilder.ToImmutable());
+
+                return expressions;
+            }
+
+            // no initializer or uses explicit constructor, no need to make a change
+            return ImmutableArray<ExpressionSyntax>.Empty;
+        }
+
+        private static ImmutableArray<ExpressionSyntax> GetAssignmentExpressionsFromValuesMap(
+            ImmutableArray<IPropertySymbol> positionalParams,
+            ImmutableDictionary<ISymbol, ExpressionSyntax> assignmentValues)
+        => positionalParams.SelectAsArray(property =>
+        {
+            if (assignmentValues.ContainsKey(property))
+            {
+                return assignmentValues[property];
+            }
+            else
+            {
+                return SyntaxFactory.LiteralExpression(
+                    property.Type.NullableAnnotation == NullableAnnotation.Annotated
+                        ? SyntaxKind.NullLiteralExpression
+                        : SyntaxKind.DefaultLiteralExpression);
+            }
+        });
+
+        private static ImmutableDictionary<ISymbol, T> GetAssignmentValuesForConstructor<T>(
+            IConstructorBodyOperation constructorOperation,
+            Func<IOperation, T?> captureAssignedSymbol)
+        {
+            var body = GetBlockOfMethodBody(constructorOperation);
+            var dictionaryBuilder = ImmutableDictionary<ISymbol, T>.Empty.ToBuilder();
+
+            // We expect the constructor to have exactly one statement per property,
+            // where the statement is a simple assignment from the parameter's property to the property
+            if (body == null)
+            {
+                return ImmutableDictionary<ISymbol, T>.Empty;
             }
 
             foreach (var operation in body.Operations)
@@ -346,24 +440,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     } &&
                     captureAssignedSymbol(assignment) is T captured)
                 {
-                    builder.Add(assignee switch
+                    ISymbol? symbol = assignee switch
                     {
                         IFieldReferenceOperation
                         { Instance: IInstanceReferenceOperation, Field: IFieldSymbol field }
-                            => (field, captured),
+                            => field,
                         IPropertyReferenceOperation
                         { Instance: IInstanceReferenceOperation, Property: IPropertySymbol property }
-                            => (property, captured),
-                        _ => default,
-                    });
-                }
-                else
-                {
-                    builder.Add(default);
+                            => property,
+                        _ => null,
+                    };
+
+                    if (symbol != null)
+                    {
+                        if (dictionaryBuilder.ContainsKey(symbol))
+                        {
+                            // don't allow assignment to the same property more than once
+                            return ImmutableDictionary<ISymbol, T>.Empty;
+                        }
+
+                        dictionaryBuilder.Add(symbol, captured);
+                    }
                 }
             }
 
-            return builder.ToImmutable();
+            return dictionaryBuilder.ToImmutable();
         }
 
         /// <summary>
@@ -400,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
             var bodyOps = body.Operations;
             var parameter = methodSymbol.Parameters.First();
-            var _1 = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
+            using var _1 = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
             ISymbol? otherC = null;
             IEnumerable<IOperation>? statementsToCheck = null;
 
