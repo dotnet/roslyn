@@ -281,8 +281,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
             }
 
+            public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+            {
+                base.VisitRecursivePattern(operation);
+                if (operation.DeclaredSymbol != null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitListPattern(IListPatternOperation operation)
+            {
+                base.VisitListPattern(operation);
+                if (operation.DeclaredSymbol != null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
+                base.VisitDeclarationPattern(operation);
                 if (operation.DeclaredSymbol != null)
                 {
                     OnReferenceFound(operation.DeclaredSymbol, operation);

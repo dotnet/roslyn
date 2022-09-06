@@ -8905,5 +8905,142 @@ namespace ConsoleApp
     }
 }", options: PreferDiscard);
         }
+
+        [Fact]
+        [WorkItem(59525, "https://github.com/dotnet/roslyn/issues/59525")]
+        public async Task TestRecursivePatternUnread()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object x)
+    {
+        if (x is A { B: C {|IDE0059:c|} } {|IDE0059:a|}) { }
+    }
+}
+", @"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object x)
+    {
+        if (x is A { B: C _ } _) { }
+    }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(59525, "https://github.com/dotnet/roslyn/issues/59525")]
+        public async Task TestRecursivePatternRead()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object x)
+    {
+        if (x is A { B: C {|IDE0059:c|} } a)
+            _ = a;
+    }
+}
+", @"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object x)
+    {
+        if (x is A { B: C _ } a)
+            _ = a;
+    }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(59525, "https://github.com/dotnet/roslyn/issues/59525")]
+        public async Task TestListPatternUnread()
+        {
+            var code = @"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object[] x)
+    {
+        if (x is [ ] {|IDE0059:a|}) { }
+    }
+}
+";
+            var fixedCode = @"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object[] x)
+    {
+        if (x is [ ] _) { }
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(59525, "https://github.com/dotnet/roslyn/issues/59525")]
+        public async Task TestListPatternRead()
+        {
+            var code = @"
+public class A
+{
+    public C B { get; }
+}
+
+public class C
+{
+    public void M(object[] x)
+    {
+        if (x is [ ] a)
+            _ = a;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
     }
 }
