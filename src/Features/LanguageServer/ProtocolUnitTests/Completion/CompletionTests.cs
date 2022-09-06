@@ -242,6 +242,78 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         }
 
         [Fact]
+        public async Task TextXmlDocComments_Snippets()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// <se{|caret:|}
+    /// </summary>
+    public void M()
+    {
+    }
+}";
+
+            var capabilities = new LSP.VSInternalClientCapabilities
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new LSP.TextDocumentClientCapabilities
+                {
+                    Completion = new LSP.VSInternalCompletionSetting
+                    {
+                        CompletionItem = new LSP.CompletionItemSetting
+                        {
+                            SnippetSupport = true,
+                        },
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                        }
+                    }
+                }
+            };
+            using var testLspServer = await CreateTestLspServerAsync(markup, capabilities);
+
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams);
+            Assert.Equal("<see cref=\"$0\"/>", results.Items[0].InsertText);
+            Assert.Equal(LSP.InsertTextFormat.Snippet, results.Items[0].InsertTextFormat);
+        }
+
+        [Fact]
+        public async Task TextXmlDocComments_NoSnippets()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// <se{|caret:|}
+    /// </summary>
+    public void M()
+    {
+    }
+}";
+
+            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams);
+            Assert.Equal("<see cref=\"\"/>", results.Items[0].InsertText);
+            Assert.Equal(LSP.InsertTextFormat.Plaintext, results.Items[0].InsertTextFormat);
+        }
+
+        [Fact]
         public async Task TestGetCompletionsWithPreselectAsync()
         {
             var markup =

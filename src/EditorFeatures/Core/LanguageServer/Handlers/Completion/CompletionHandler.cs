@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 else
                 {
                     await AddTextEdit(
-                        document, item, completionItem, completionService, documentText, defaultSpan, itemDefaultsSupported, cancellationToken).ConfigureAwait(false);
+                        document, item, completionItem, completionService, documentText, defaultSpan, itemDefaultsSupported, snippetsSupported, cancellationToken).ConfigureAwait(false);
                 }
 
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
@@ -245,6 +246,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SourceText documentText,
                     TextSpan defaultSpan,
                     bool itemDefaultsSupported,
+                    bool snippetsSupported,
                     CancellationToken cancellationToken)
                 {
                     var completionChange = await completionService.GetChangeAsync(
@@ -257,6 +259,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // The span is the same as the default, we just need to store the new text as
                         // the insert text so the client can create the text edit from it and the default range.
                         lspItem.InsertText = newText;
+
+                        if (snippetsSupported && completionChange.NewPosition is not null)
+                        {
+                            // If the completion item wants to set a cursor position, then we put "$0" in that position, but only if the client supports snippets.
+                            lspItem.InsertText = lspItem.InsertText.Insert(completionChange.NewPosition.Value - completionChangeSpan.Start, "$0");
+                            lspItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
+                        }
                     }
                     else
                     {
