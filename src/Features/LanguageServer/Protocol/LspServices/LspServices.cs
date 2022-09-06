@@ -36,19 +36,13 @@ internal class LspServices : ILspServices
 
         var services = mefLspServices.Concat(servicesFromFactories);
 
-#if DEBUG
-        var duplicateServices = services.GroupBy(s => s.Metadata.Type).Where(s => s.Count() > 1);
-        if (duplicateServices.Any())
-        {
-            throw new InvalidOperationException($"Duplicate export of type {duplicateServices.First().First().Metadata.Type.Name}");
-        }
-#endif
         // Make sure that we only include services exported for the specified server kind (or NotSpecified).
         services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
         // Include the base level services that were passed in.
         services = services.Concat(baseServices);
 
+        // This will throw if the same service is registered twice
         _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
 
         // Bit cheaky, but lets make an this ILspService available on the serviceCollection to make constructors that take an ILspServices instance possible.

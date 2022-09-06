@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
     {
