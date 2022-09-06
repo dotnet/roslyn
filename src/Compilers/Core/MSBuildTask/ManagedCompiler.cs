@@ -382,6 +382,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(TargetType)]; }
         }
 
+        public string? TouchedFilesOutputPath
+        {
+            set { _store[nameof(TouchedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(TouchedFilesOutputPath)]; }
+        }
+
         public bool TreatWarningsAsErrors
         {
             set { _store[nameof(TreatWarningsAsErrors)] = value; }
@@ -918,6 +924,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
             commandLine.AppendSwitchIfNotNull("/resource:", Resources, new string[] { "LogicalName", "Access" });
             commandLine.AppendSwitchIfNotNull("/target:", TargetType);
+            commandLine.AppendSwitchIfNotNull("/touchedfiles:", TouchedFilesOutputPath);
             commandLine.AppendPlusOrMinusSwitch("/warnaserror", _store, nameof(TreatWarningsAsErrors));
             commandLine.AppendWhenTrue("/utf8output", _store, nameof(Utf8Output));
             commandLine.AppendSwitchIfNotNull("/win32icon:", Win32Icon);

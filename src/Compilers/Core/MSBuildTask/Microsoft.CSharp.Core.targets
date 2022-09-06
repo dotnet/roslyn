@@ -143,6 +143,7 @@
          TargetType="$(OutputType)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
+         TouchedFilesOutputPath="$(TouchedFilesOutputPath)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
          UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
          UseSharedCompilation="$(UseSharedCompilation)"
