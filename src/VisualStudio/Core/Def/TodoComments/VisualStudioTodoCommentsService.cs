@@ -116,6 +116,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
 
+        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document document, ImmutableArray<TodoCommentData> todoComments, CancellationToken cancellationToken)
+            => await _listener.ReportTodoCommentDataAsync(document.Id, todoComments, cancellationToken).ConfigureAwait(false);
+
         public ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => _listener.GetTodoItems(documentId);
     }

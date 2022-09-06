@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -64,8 +65,7 @@ $@"<Workspace>
                 commentDescriptors.First().Priority,
                 "Message",
                 document.Id,
-                null, null,
-                mappedLine: 0, mappedColumn: 3,
-                originalLine: 0, originalColumn: 3)));
+                span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
+                mappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
     }
 }
