@@ -62,14 +62,14 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         private static ITodoCommentDataService? GetTodoService(Document document)
         {
-            var todoDataService = document.GetLanguageService<ITodoCommentDataService>();
-            if (todoDataService != null)
-                return todoDataService;
-
             // Legacy compat until TypeScript moves to EA pattern.
             var todoService = document.GetLanguageService<ITodoCommentService>();
             if (todoService != null)
                 return new TodoCommentServiceWrapper(todoService);
+
+            var todoDataService = document.GetLanguageService<ITodoCommentDataService>();
+            if (todoDataService != null)
+                return todoDataService;
 
             return null;
         }

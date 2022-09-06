@@ -103,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
+        [Obsolete("For TS back compat until they move off of this.")]
         async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
             Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
         {
