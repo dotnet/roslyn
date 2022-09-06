@@ -9,8 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\CodeRefactoringExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\CodeFixContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
