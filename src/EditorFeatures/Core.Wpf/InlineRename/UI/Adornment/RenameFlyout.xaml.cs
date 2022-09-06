@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
-        private readonly ITextView _textView;
+        private readonly IWpfTextView _textView;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, ITextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 // Don't hook up our close events until we're done loading and have focused within the textbox
                 _textView.LostAggregateFocus += TextView_LostFocus;
-                LostFocus += RenameFlyout_LostFocus;
+                IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
             };
 
             InitializeComponent();
@@ -52,8 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
-        private void RenameFlyout_LostFocus(object sender, RoutedEventArgs e)
-            => _viewModel.Cancel();
+        private void RenameFlyout_IsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!IsKeyboardFocusWithin)
+            {
+                _viewModel.Cancel();
+            }
+        }
 
         private void TextView_LostFocus(object sender, EventArgs e)
             => _viewModel.Cancel();
@@ -81,6 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
             _textView.LostAggregateFocus -= TextView_LostFocus;
+
+            // Restore focus back to the textview
+            _textView.VisualElement.Focus();
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)

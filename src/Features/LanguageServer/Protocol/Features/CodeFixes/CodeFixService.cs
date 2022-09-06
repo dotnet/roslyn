@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -864,10 +863,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var fixers = ExtensionOrderer.Order(lazyFixers);
                     for (var i = 0; i < fixers.Count; i++)
                     {
-                        if (!TryGetWorkspaceFixer(lazyFixers[i], services, logExceptionWithInfoBar: false, out var fixer))
-                        {
+                        if (!TryGetWorkspaceFixer(fixers[i], services, logExceptionWithInfoBar: false, out var fixer))
                             continue;
-                        }
 
                         priorityMap.Add(fixer, i);
                     }
@@ -940,6 +937,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Otherwise, keep things in the same order that they were in the list (i.e. keep things stable).
                 return _fixerToIndex[x] - _fixerToIndex[y];
             }
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor
+        {
+            private readonly CodeFixService _codeFixService;
+
+            public TestAccessor(CodeFixService codeFixService)
+            {
+                _codeFixService = codeFixService;
+            }
+
+            public ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(SolutionServices services)
+                => _codeFixService.GetFixerPriorityPerLanguageMap(services);
         }
     }
 }

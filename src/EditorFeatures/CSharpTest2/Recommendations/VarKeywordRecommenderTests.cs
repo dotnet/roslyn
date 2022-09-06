@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
@@ -15,11 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class VarKeywordRecommenderTests : RecommenderTests
     {
-        private readonly VarKeywordRecommender _recommender = new VarKeywordRecommender();
+        protected override string KeywordText => "var";
+
+        private readonly VarKeywordRecommender _recommender = new();
 
         public VarKeywordRecommenderTests()
         {
-            this.keywordText = "var";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 

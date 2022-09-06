@@ -2115,6 +2115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RuntimeDoesNotSupportRefFields = 9064,
         ERR_ExplicitScopedRef = 9065,
         ERR_UnscopedScoped = 9066,
+        WRN_DuplicateAnalyzerReference = 9067,
 
         #endregion
 
