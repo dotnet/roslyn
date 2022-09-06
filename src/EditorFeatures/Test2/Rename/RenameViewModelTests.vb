@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
@@ -678,7 +679,7 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.CollapseUI), False)
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameUIOptions.CollapseUI), False)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
