@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public int Position { get; }
         public CancellationToken CancellationToken { get; }
 
-        public TextSpan Span { get; }
+        public TextSpan Span { get; set; }
 
         public void AddItem(string key, VSTypeScriptDefinitionItem item)
         {
