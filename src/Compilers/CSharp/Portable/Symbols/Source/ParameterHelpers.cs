@@ -320,11 +320,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            return IsRefScopedByDefault(parameter.RefKind, parameter.TypeWithAnnotations);
+            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind, parameter.TypeWithAnnotations);
         }
 
-        internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
+        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind, TypeWithAnnotations parameterType)
         {
+            if (!useUpdatedEscapeRules)
+            {
+                return false;
+            }
+
             switch (refKind)
             {
                 case RefKind.Out:

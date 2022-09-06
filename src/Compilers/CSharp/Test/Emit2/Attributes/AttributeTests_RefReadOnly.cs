@@ -1208,7 +1208,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Fails, symbolValidator: module =>
+            CompileAndVerify(text, references: new[] { RefSafetyRulesAttributeLib }, verify: Verification.Fails, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });
