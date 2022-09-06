@@ -1263,8 +1263,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
-        <source>'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier.  Did you mean 'in'?</target>
+        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
+        <target state="new">'readonly' is not supported as a parameter modifier. Did you mean 'in'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">

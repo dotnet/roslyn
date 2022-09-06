@@ -413,7 +413,7 @@ class Test
     {
     }
 }").VerifyDiagnostics(
-                // (4,12): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                // (4,12): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
                 //     void M(readonly ref int p)
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 12));
         }
@@ -461,7 +461,7 @@ class Test
 {
     void M(ref readonly int p) => throw null;
 }").VerifyDiagnostics(
-                // (4,16): error CS9068: 'readonly' is not supported as a parameter modifier.  Did you mean 'in'?
+                // (4,16): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
                 //     void M(ref readonly int p) => throw null;
                 Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(4, 16));
         }
