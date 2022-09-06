@@ -127,11 +127,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static string? GetFilePath(string? original, string? mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
-            {
                 return original;
-            }
 
-            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), PathUtilities.GetFileName(mapped));
+            var directoryName = PathUtilities.GetDirectoryName(original);
+            if (string.IsNullOrEmpty(directoryName))
+                return mapped;
+
+            var combined = PathUtilities.CombinePaths(directoryName, mapped);
             try
             {
                 return Path.GetFullPath(combined);
