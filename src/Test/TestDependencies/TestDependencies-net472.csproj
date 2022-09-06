@@ -43,6 +43,22 @@
     <ProjectReference Include="..\..\VisualStudio\LiveShare\Test\Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Workspaces\CoreTest\Microsoft.CodeAnalysis.Workspaces.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Workspaces\CSharpTest\Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Tests\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\CommandLine\Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\Emit\Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\IOperation\Roslyn.Compilers.VisualBasic.IOperation.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\Semantic\Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\Symbol\Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\Syntax\Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\EditorFeatures\Test2\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\EditorFeatures\VisualBasicTest\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\ExpressionEvaluator\VisualBasic\Test\ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\ExpressionEvaluator\VisualBasic\Test\ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ResultProvider.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Features\Lsif\GeneratorTest\Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Scripting\VisualBasicTest\Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Scripting\VisualBasicTest.Desktop\Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\VisualStudio\Core\Test\Microsoft.VisualStudio.LanguageServices.UnitTests.vbproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasicTest\Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.vbproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
