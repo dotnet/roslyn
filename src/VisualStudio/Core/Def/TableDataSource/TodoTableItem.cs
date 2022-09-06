@@ -70,10 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public static readonly GroupingComparer Instance = new();
 
             public bool Equals(TodoCommentData left, TodoCommentData right)
-            {
-                // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
-                return left.Span == right.Span;
-            }
+                => left.Span == right.Span;
 
             public int GetHashCode(TodoCommentData data)
                 => data.Span.GetHashCode();
