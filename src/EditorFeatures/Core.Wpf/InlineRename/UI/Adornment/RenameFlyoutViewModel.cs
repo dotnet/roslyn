@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
@@ -117,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool IsCollapsed
         {
-            get => _globalOptionService.GetOption(InlineRenameSessionOptionsStorage.CollapseUI);
+            get => _globalOptionService.GetOption(InlineRenameUIOptions.CollapseUI);
             set
             {
                 if (value != IsCollapsed)
                 {
-                    _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.CollapseUI), value);
+                    _globalOptionService.SetGlobalOption(new OptionKey(InlineRenameUIOptions.CollapseUI), value);
                     NotifyPropertyChanged(nameof(IsCollapsed));
                     NotifyPropertyChanged(nameof(IsExpanded));
                 }
