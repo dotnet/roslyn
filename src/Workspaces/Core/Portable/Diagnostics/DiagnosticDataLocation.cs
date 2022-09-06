@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return original;
             }
 
-            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), mapped);
+            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), PathUtilities.GetFileName(mapped));
             try
             {
                 return Path.GetFullPath(combined);
