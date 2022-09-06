@@ -1743,6 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock? body;
             NullableWalker.VariableState? nullableInitialState = null;
             BoundStatement? constructorInitializer = null;
+            bool attemptedInitializerBinding = false;
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
@@ -1784,6 +1785,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructorInitializer = methodBody is BoundConstructorMethodBody { Initializer: { } initializer }
                         ? initializer
                         : BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
+
+                    attemptedInitializerBinding = true;
 
                     MethodSymbol? baseOrThisInitializer = constructorInitializer.GetConstructorInitializerThisOrBaseSymbol();
 
@@ -1852,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                Debug.Assert(constructorInitializer is not null);
+                                Debug.Assert(constructorInitializer is not null || method.ContainingType.BaseTypeNoUseSiteDiagnostics.IsErrorType());
                                 Debug.Assert(constructor.Initializer is null);
                                 Debug.Assert(constructor.Locals.IsEmpty);
                             }
@@ -1920,7 +1923,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MethodBodySynthesizer.ConstructDestructorBody(method, body);
             }
 
-            constructorInitializer ??= BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
+            if (!attemptedInitializerBinding)
+            {
+                constructorInitializer ??= BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
+            }
+
             ImmutableArray<BoundStatement> statements;
 
             if (constructorInitializer == null)

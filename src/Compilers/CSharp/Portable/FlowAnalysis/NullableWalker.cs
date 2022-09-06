@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ownsDiagnostics = false;
             }
 
-            MethodSymbol? baseOrThisInitializer = constructorBody is BoundConstructorMethodBody { Initializer: BoundStatement initializer } ? initializer.GetConstructorInitializerThisOrBaseSymbol() : null;
+            MethodSymbol? baseOrThisInitializer = GetConstructorThisOrBaseSymbol(constructorBody);
 
             NullableWalker.AnalyzeIfNeeded(
                 compilation,
