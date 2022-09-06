@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
 
         protected override void AppendTodoComments(
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
-            SyntacticDocument document, SyntaxTrivia trivia,
-            ArrayBuilder<TodoComment> todoList)
+            SyntacticDocument document,
+            SyntaxTrivia trivia,
+            ArrayBuilder<TodoCommentData> todoList)
         {
             if (PreprocessorHasComment(trivia))
             {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
                 var index = message.IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal);
                 var start = trivia.FullSpan.Start + index;
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message.Substring(index), start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message.Substring(index), start, todoList);
                 return;
             }
 

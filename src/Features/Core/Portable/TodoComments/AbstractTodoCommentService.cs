@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoComment> todoList);
+        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoCommentData> todoList);
 
         public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
             Document document,
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var syntaxDoc = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             // reuse list
-            using var _1 = ArrayBuilder<TodoComment>.GetInstance(out var todoList);
+            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var todoList);
 
             foreach (var trivia in syntaxDoc.Root.DescendantTrivia())
             {
@@ -73,10 +71,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 AppendTodoComments(commentDescriptors, syntaxDoc, trivia, todoList);
             }
 
-            using var _2 = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-            await TodoComment.ConvertAsync(document, todoList.ToImmutable(), converted, cancellationToken).ConfigureAwait(false);
-
-            return converted.ToImmutable();
+            return todoList.ToImmutable();
         }
 
         private bool ContainsComments(SyntaxTrivia trivia)
@@ -84,8 +79,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected void AppendTodoCommentInfoFromSingleLine(
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
+            SyntacticDocument document,
             string message, int start,
-            ArrayBuilder<TodoComment> todoList)
+            ArrayBuilder<TodoCommentData> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -113,7 +109,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
                     continue;
                 }
 
-                todoList.Add(new TodoComment(commentDescriptor, message[index..], start + index));
+                var trimmedMessage = message[index..];
+                var position = start + index;
+                var location = document.SyntaxTree.GetLocation(new TextSpan(position, 0));
+
+                todoList.Add(new TodoCommentData(
+                    commentDescriptor.Priority, trimmedMessage, document.Document.Id, location.GetLineSpan(), location.GetMappedLineSpan()));
             }
         }
 
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             SyntacticDocument document,
             SyntaxTrivia trivia, int postfixLength,
-            ArrayBuilder<TodoComment> todoList)
+            ArrayBuilder<TodoCommentData> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;
@@ -136,20 +137,20 @@ namespace Microsoft.CodeAnalysis.TodoComments
             if (startLine.LineNumber == endLine.LineNumber)
             {
                 var message = postfixLength == 0 ? fullString : fullString.Substring(0, fullSpan.Length - postfixLength);
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message, fullSpan.Start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message, fullSpan.Start, todoList);
                 return;
             }
 
             // multiline 
             var startMessage = text.ToString(TextSpan.FromBounds(fullSpan.Start, startLine.End));
-            AppendTodoCommentInfoFromSingleLine(commentDescriptors, startMessage, fullSpan.Start, todoList);
+            AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, startMessage, fullSpan.Start, todoList);
 
             for (var lineNumber = startLine.LineNumber + 1; lineNumber < endLine.LineNumber; lineNumber++)
             {
                 var line = text.Lines[lineNumber];
                 var message = line.ToString();
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message, line.Start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message, line.Start, todoList);
             }
 
             var length = fullSpan.End - endLine.Start;
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
 
             var endMessage = text.ToString(new TextSpan(endLine.Start, length));
-            AppendTodoCommentInfoFromSingleLine(commentDescriptors, endMessage, endLine.Start, todoList);
+            AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, endMessage, endLine.Start, todoList);
         }
     }
 }

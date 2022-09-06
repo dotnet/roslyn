@@ -118,11 +118,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
             {
                 var comments = await _todoService.GetTodoCommentsAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
-
-                using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var result);
-                await TodoComment.ConvertAsync(document, comments, result, cancellationToken).ConfigureAwait(false);
-
-                return result.ToImmutable();
+                return await TodoComment.ConvertAsync(document, comments, cancellationToken).ConfigureAwait(false);
             }
         }
     }
