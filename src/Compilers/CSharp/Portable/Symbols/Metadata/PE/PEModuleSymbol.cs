@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
+        private ThreeState _lazyUseUpdatedEscapeRules;
+
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 #nullable disable
@@ -447,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token"></param>
         /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
         /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
+        private ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
         {
             var result = GetCustomAttributesForToken(
                 token,
@@ -792,5 +794,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool HasUnsupportedMetadata
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal override bool UseUpdatedEscapeRules
+        {
+            get
+            {
+                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
+                {
+                    bool value = CalculateUseUpdatedRules();
+                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
+                }
+                return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        private bool CalculateUseUpdatedRules()
+        {
+            // [RefSafetyRules(version)], regardless of version.
+            if (_module.HasRefSafetyRulesAttribute(Token, out _))
+            {
+                return true;
+            }
+
+            // System.Runtime { ver: 7.0 }
+            if (IsOrReferencesSystemRuntimeCorLibrary(_module, out var corlibVersion) && corlibVersion is { Major: 7, Minor: 0 })
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsOrReferencesSystemRuntimeCorLibrary(PEModule module, out Version? version)
+        {
+            const string corlibName = "System.Runtime";
+
+            AssemblyIdentity? identity;
+            try
+            {
+                identity = module.ReadAssemblyIdentityOrThrow();
+            }
+            catch (BadImageFormatException)
+            {
+                identity = null;
+            }
+            if (identity?.Name == corlibName)
+            {
+                version = identity.Version;
+                return true;
+            }
+
+            var assemblyHandle = module.GetAssemblyRef(corlibName);
+            if (!assemblyHandle.IsNil)
+            {
+                version = module.GetAssemblyRef(assemblyHandle).Version;
+                return true;
+            }
+
+            version = null;
+            return false;
+        }
     }
 }

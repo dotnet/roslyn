@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -348,6 +349,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (diagnosticData.DataLocation != null)
                 {
                     diagnostic.Range = GetRange(diagnosticData.DataLocation);
+                }
+
+                // Defines an identifier used by the client for merging diagnostics across projects.
+                // We want diagnostics to be merged from separate projects if they have the same code, filepath, range, and message.
+                var filePath = diagnosticData.DataLocation?.GetFilePath();
+                if (filePath != null)
+                {
+                    diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
                 }
 
                 if (capabilities.HasVisualStudioLspCapability())
