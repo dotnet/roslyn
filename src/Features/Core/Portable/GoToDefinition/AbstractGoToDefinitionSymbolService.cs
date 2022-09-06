@@ -55,18 +55,20 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             return (FindRelatedExplicitlyDeclaredSymbol(symbol, compilation), project, semanticInfo.Span);
         }
 
-        public async Task<(int? targetPosition, TextSpan tokenSpan)> GetTargetIfControlFlowAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<int?> GetTargetIfControlFlowAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
             if (token == default)
-                return default;
+            {
+                return null;
+            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            return (GetTargetPositionIfControlFlow(semanticModel, token), token.Span);
+            return GetTargetPositionIfControlFlow(semanticModel, token);
         }
 
         private static ISymbol? GetSymbol(TokenSemanticInfo semanticInfo, bool includeType)
