@@ -101,9 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create<IDiagnosticSource>(
-                new DocumentDiagnosticSource(context.Document),
-                new TodoCommentDiagnosticSource(context.Document));
+            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.Document));
         }
 
         private sealed record class DocumentDiagnosticSource(Document Document) : IDiagnosticSource
