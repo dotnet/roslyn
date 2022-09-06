@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
                 var trimmedMessage = message[index..];
                 var position = start + index;
+
+                // Go through SyntaxTree so that any `#line` remapping is picked up
                 var location = document.SyntaxTree.GetLocation(new TextSpan(position, 0));
 
                 todoList.Add(new TodoCommentData(
