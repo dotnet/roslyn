@@ -4,12 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 

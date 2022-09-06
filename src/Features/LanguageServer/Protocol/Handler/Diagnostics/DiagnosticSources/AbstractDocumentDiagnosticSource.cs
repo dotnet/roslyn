@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract record class AbstractDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
+internal abstract record class AbstractDocumentDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
     where TDocument : TextDocument
 {
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);

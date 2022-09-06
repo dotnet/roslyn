@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
+    internal partial class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         public DocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService analyzerService,
@@ -93,18 +93,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
 
             return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.Document));
-        }
-
-        private sealed record class DocumentDiagnosticSource(Document Document) : AbstractDiagnosticSource<Document>(Document)
-        {
-            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
-                IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            {
-                // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf characteristics.
-                // GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas GetDiagnosticsForSpanAsync will only run analyzers against the request document.
-                var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return allSpanDiagnostics;
-            }
         }
     }
 }
