@@ -60,9 +60,23 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
+        private static ITodoCommentDataService? GetTodoService(Document document)
+        {
+            var todoDataService = document.GetLanguageService<ITodoCommentDataService>();
+            if (todoDataService != null)
+                return todoDataService;
+
+            // Legacy compat until TypeScript moves to EA pattern.
+            var todoService = document.GetLanguageService<ITodoCommentService>();
+            if (todoService != null)
+                return new TodoCommentServiceWrapper(todoService);
+
+            return null;
+        }
+
         public override async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            var todoCommentService = document.GetLanguageService<ITodoCommentService>();
+            var todoCommentService = GetTodoService(document);
             if (todoCommentService == null)
                 return;
 
@@ -70,16 +84,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var descriptors = GetTodoCommentDescriptors(options.TokenList);
 
             // We're out of date.  Recompute this info.
-            var todoComments = await todoCommentService.GetTodoCommentsAsync(
+            var todoComments = await todoCommentService.GetTodoCommentDataAsync(
                 document, descriptors, cancellationToken).ConfigureAwait(false);
 
-            // Convert the roslyn-level results to the more VS oriented line/col data.
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-            await TodoComment.ConvertAsync(
-                document, todoComments, converted, cancellationToken).ConfigureAwait(false);
-
-            var data = converted.ToImmutable();
-            if (data.IsEmpty)
+            if (todoComments.IsEmpty)
             {
                 // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
                 // had todo comments in it, then fall through and notify the host so it can clear them out.
@@ -94,7 +102,28 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
 
             // Now inform VS about this new information
-            await ReportTodoCommentDataAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
+            await ReportTodoCommentDataAsync(document.Id, todoComments, cancellationToken).ConfigureAwait(false);
+        }
+
+        private sealed class TodoCommentServiceWrapper : ITodoCommentDataService
+        {
+            private readonly ITodoCommentService _todoService;
+
+            public TodoCommentServiceWrapper(ITodoCommentService todoService)
+            {
+                _todoService = todoService;
+            }
+
+            public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
+                Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            {
+                var comments = await _todoService.GetTodoCommentsAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+
+                using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var result);
+                await TodoComment.ConvertAsync(document, comments, result, cancellationToken).ConfigureAwait(false);
+
+                return result.ToImmutable();
+            }
         }
     }
 }

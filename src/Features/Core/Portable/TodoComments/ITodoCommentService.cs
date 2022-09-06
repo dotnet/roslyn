@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
@@ -38,19 +37,13 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var location = tree == null
                 ? Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan))
                 : tree.GetLocation(textSpan);
-            var originalLineInfo = location.GetLineSpan();
-            var mappedLineInfo = location.GetMappedLineSpan();
 
-            return new(
-                priority: Descriptor.Priority,
-                message: Message,
-                documentId: document.Id,
-                originalLine: originalLineInfo.StartLinePosition.Line,
-                originalColumn: originalLineInfo.StartLinePosition.Character,
-                originalFilePath: document.FilePath,
-                mappedLine: mappedLineInfo.StartLinePosition.Line,
-                mappedColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist());
+            return new TodoCommentData(
+                Descriptor.Priority,
+                Message,
+                document.Id,
+                location.GetLineSpan(),
+                location.GetMappedLineSpan());
         }
 
         public static async Task ConvertAsync(
@@ -59,6 +52,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
             ArrayBuilder<TodoCommentData> converted,
             CancellationToken cancellationToken)
         {
+            if (todoComments.Length == 0)
+                return;
+
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
