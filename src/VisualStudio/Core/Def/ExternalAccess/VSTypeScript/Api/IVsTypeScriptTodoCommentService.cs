@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         [Obsolete("Use overload that takes TodoCommentData instead.")]
         Task ReportTodoCommentsAsync(Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken);
 
-        
         Task ReportTodoCommentsAsync(Document document, ImmutableArray<TodoCommentData> todoComments, CancellationToken cancellationToken);
     }
 }
