@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
+    /// <summary>
+    /// Determines locations of 'todo' comments within a particular file.  The specific 'todo' comment forms (e.g.
+    /// '<c>TODO</c>', '<c>UNDONE</c>', etc.) are provided through <see cref="TodoCommentDescriptor"/>.
+    /// </summary>
     internal interface ITodoCommentDataService : ILanguageService
     {
         Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
