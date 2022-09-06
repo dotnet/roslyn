@@ -17,5 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullablePublicOnlyAttribute = 0x20,
         NativeIntegerAttribute = 0x40,
         ScopedRefAttribute = 0x80,
+        RefSafetyRulesAttribute = 0x100,
     }
 }

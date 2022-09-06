@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override DeclarationScope DeclaredScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
         internal override DeclarationScope EffectiveScope => DeclaredScope;
+        internal override bool UseUpdatedEscapeRules => _containingSymbol.UseUpdatedEscapeRules;
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

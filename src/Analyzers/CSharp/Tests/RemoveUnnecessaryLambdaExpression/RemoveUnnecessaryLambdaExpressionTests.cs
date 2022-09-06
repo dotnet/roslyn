@@ -1490,5 +1490,63 @@ class C
     string Quux(int i) => default;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        public async Task TestNotWithPartialDefinition()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+public partial class C
+{
+    internal void M1()
+    {
+        M2(x => M3(x));
+    }
+    
+    partial void M3(string s);
+
+    private static void M2(Action<string> a) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        public async Task TestWithPartialDefinitionAndImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+public partial class C
+{
+    internal void M1()
+    {
+        M2([|x => |]M3(x));
+    }
+    
+    partial void M3(string s);
+    partial void M3(string s) { }
+
+    private static void M2(Action<string> a) { }
+}",
+@"using System;
+using System.Diagnostics;
+
+public partial class C
+{
+    internal void M1()
+    {
+        M2(M3);
+    }
+    
+    partial void M3(string s);
+    partial void M3(string s) { }
+
+    private static void M2(Action<string> a) { }
+}");
+        }
     }
 }

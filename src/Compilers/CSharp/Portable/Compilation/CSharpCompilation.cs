@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -1014,7 +1013,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override int GetSyntaxTreeOrdinal(SyntaxTree tree)
         {
             Debug.Assert(this.ContainsSyntaxTree(tree));
-            return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
+            try
+            {
+                return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
+            }
+            catch (KeyNotFoundException)
+            {
+                // Explicitly catching and re-throwing exception so we don't send the syntax
+                // tree (potentially containing private user information) to telemetry.
+                throw new KeyNotFoundException($"Syntax tree not found with file path: {tree.FilePath}");
+            }
         }
 
         #endregion
@@ -2503,7 +2511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
         }
 
-        private struct ImportInfo : IEquatable<ImportInfo>
+        private readonly struct ImportInfo : IEquatable<ImportInfo>
         {
             public readonly SyntaxTree Tree;
             public readonly SyntaxKind Kind;

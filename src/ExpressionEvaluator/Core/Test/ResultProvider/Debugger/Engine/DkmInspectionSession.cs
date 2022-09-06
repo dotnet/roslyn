@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 
         private sealed class Dispatcher<TInterface>
         {
-            private struct InstanceAndMethod
+            private readonly struct InstanceAndMethod
             {
                 internal InstanceAndMethod(object instance, MethodId method)
                 {

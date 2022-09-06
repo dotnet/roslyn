@@ -22,11 +22,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
+
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -56,13 +58,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);

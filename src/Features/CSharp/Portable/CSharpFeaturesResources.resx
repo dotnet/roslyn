@@ -632,4 +632,7 @@
     <value>Convert to positional record</value>
     <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Apply_readonly_struct_preferences" xml:space="preserve">
+    <value>Apply 'readonly struct' preferences</value>
+  </data>
 </root>

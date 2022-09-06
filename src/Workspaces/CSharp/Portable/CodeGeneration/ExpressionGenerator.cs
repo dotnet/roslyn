@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 float val => GenerateSingleLiteralExpression(type, val, canUseFieldReference),
                 double val => GenerateDoubleLiteralExpression(type, val, canUseFieldReference),
                 decimal val => GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, integerMinValueString: null),
-                _ => type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
+                _ => type == null || type.IsReferenceType || type is IPointerTypeSymbol || type.IsNullable()
                     ? GenerateNullLiteral()
                     : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type),
             };

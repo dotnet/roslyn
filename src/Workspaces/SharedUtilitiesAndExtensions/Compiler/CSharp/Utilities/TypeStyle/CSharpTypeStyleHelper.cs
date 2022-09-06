@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
-    internal struct TypeStyleResult
+    internal readonly struct TypeStyleResult
     {
         private readonly CSharpTypeStyleHelper _helper;
         private readonly TypeSyntax _typeName;
