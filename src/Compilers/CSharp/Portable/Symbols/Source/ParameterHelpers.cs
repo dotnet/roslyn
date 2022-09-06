@@ -615,12 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case SyntaxKind.ReadOnlyKeyword when !parsingFunctionPointerParams:
+                    case SyntaxKind.ReadOnlyKeyword:
                         diagnostics.Add(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, modifier.GetLocation());
                         break;
 
                     case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
-                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
                     case SyntaxKind.ScopedKeyword when parsingFunctionPointerParams:
                         diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
                         break;
