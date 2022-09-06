@@ -3,27 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -192,15 +184,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private record struct WorkspaceDocumentDiagnosticSource(TextDocument Document) : IDiagnosticSource
+        private sealed record class WorkspaceDocumentDiagnosticSource(TextDocument Document) : AbstractDiagnosticSource<TextDocument>(Document)
         {
-            public ProjectOrDocumentId GetId() => new(Document.Id);
-
-            public Project GetProject() => Document.Project;
-
-            public Uri GetUri() => Document.GetURI();
-
-            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 RequestContext context,
                 DiagnosticMode diagnosticMode,

@@ -2,23 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -104,15 +95,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.Document));
         }
 
-        private sealed record class DocumentDiagnosticSource(Document Document) : IDiagnosticSource
+        private sealed record class DocumentDiagnosticSource(Document Document) : AbstractDiagnosticSource<Document>(Document)
         {
-            public ProjectOrDocumentId GetId() => new(Document.Id);
-
-            public Project GetProject() => Document.Project;
-
-            public Uri GetUri() => Document.GetURI();
-
-            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+                IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             {
                 // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf characteristics.
                 // GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas GetDiagnosticsForSpanAsync will only run analyzers against the request document.

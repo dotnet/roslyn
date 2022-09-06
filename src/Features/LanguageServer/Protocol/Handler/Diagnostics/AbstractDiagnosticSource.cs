@@ -13,24 +13,36 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract record class AbstractDiagnosticSource : IDiagnosticSource
+internal abstract record class AbstractDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
+    where TDocument : TextDocument
 {
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
 
     private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
         Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TodoCommentDescriptor>.Empty);
 
-    protected AbstractDiagnosticSource()
+    public ProjectOrDocumentId GetId() => new(Document.Id);
+
+    public Project GetProject() => Document.Project;
+
+    public Uri GetUri() => Document.GetURI();
+
+    protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
+        var todoComments = await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+        var diagnostics = await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false);
+        return todoComments.AddRange(diagnostics);
     }
 
-    public abstract Project GetProject();
-    public abstract ProjectOrDocumentId GetId();
-    public abstract Uri GetUri();
-    public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
-
-    protected async Task<ImmutableArray<DiagnosticData>> GetTodoCommentDiagnostics(Document document, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetTodoCommentDiagnosticsAsync(CancellationToken cancellationToken)
     {
+        if (this.Document is not Document document)
+            return ImmutableArray<DiagnosticData>.Empty;
+
         var service = document.GetLanguageService<ITodoCommentDataService>();
         if (service == null)
             return ImmutableArray<DiagnosticData>.Empty;
