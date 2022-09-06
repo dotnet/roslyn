@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 BufferedProgress<VSInternalWorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
-                    VSInternalMethods.WorkspacePullDiagnosticName,
-                    CreateWorkspaceDiagnosticParams(previousResults, progress),
-                    CancellationToken.None).ConfigureAwait(false);
+                VSInternalMethods.WorkspacePullDiagnosticName,
+                CreateWorkspaceDiagnosticParams(previousResults, progress),
+                CancellationToken.None).ConfigureAwait(false);
 
                 if (useProgress)
                 {

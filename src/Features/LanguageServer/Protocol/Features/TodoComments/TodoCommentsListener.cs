@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -74,11 +73,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
             // Should only be started once.
             Contract.ThrowIfTrue(_lazyConnection != null);
-
-            // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
-            var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (diagnosticMode == DiagnosticMode.Pull)
-                return;
 
             var cancellationToken = _disposalToken;
 
