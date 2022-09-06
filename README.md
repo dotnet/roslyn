@@ -12,7 +12,7 @@
 
 * Follow the best and simplest patterns of build, pack and test with dotnet CLI.
 * Init script that installs prerequisites and auth helpers, supporting both non-elevation and elevation modes.
-* Static analyzers: [FxCop](https://docs.microsoft.com/en-us/visualstudio/code-quality/fxcop-analyzers?view=vs-2019) and [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
+* Static analyzers: default [Code Analysis](https://docs.microsoft.com/dotnet/fundamentals/code-analysis/overview) and [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
 * Read-only source tree (builds to top-level bin/obj folders)
 * Auto-versioning (via [Nerdbank.GitVersioning](https://github.com/dotnet/nerdbank.gitversioning))
 * Builds with a "pinned" .NET Core SDK to ensure reproducible builds across machines and across time.
