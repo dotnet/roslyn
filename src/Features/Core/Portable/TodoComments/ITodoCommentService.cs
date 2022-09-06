@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
     }
 
+    [Obsolete($"Use {nameof(ITodoCommentDataService)} instead", error: false)]
     internal interface ITodoCommentService : ILanguageService
     {
         Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
