@@ -13,6 +13,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
 using Microsoft.CodeAnalysis.Text;
@@ -26,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     [UseExportProvider]
     public class NoCompilationTodoCommentTests : AbstractTodoCommentTests
     {
-        protected override TestWorkspace CreateWorkspace(string codeWithMarker)
+        protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         {
             var workspace = TestWorkspace.CreateWorkspace(XElement.Parse(
 $@"<Workspace>
     <Project Language=""NoCompilation"">
         <Document>{codeWithMarker}</Document>
     </Project>
-</Workspace>"), composition: EditorTestCompositions.EditorFeatures.AddParts(
+</Workspace>"), composition: composition.AddParts(
                 typeof(NoCompilationContentTypeDefinitions),
                 typeof(NoCompilationContentTypeLanguageService),
                 typeof(NoCompilationTodoCommentService)));
@@ -41,12 +42,12 @@ $@"<Workspace>
             return workspace;
         }
 
-        [Fact, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-        public async Task TodoCommentInNoCompilationProject()
+        [Theory, CombinatorialData, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
+        public async Task TodoCommentInNoCompilationProject(TestHost host)
         {
             var code = @"(* [|Message|] *)";
 
-            await TestAsync(code);
+            await TestAsync(code, host);
         }
     }
 
