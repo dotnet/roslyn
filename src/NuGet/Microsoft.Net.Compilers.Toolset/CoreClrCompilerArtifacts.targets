@@ -3,10 +3,10 @@
 <Project>
   <Target Name="InitializeCoreClrCompilerArtifacts">
     <ItemGroup>
-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net7.0\publish\*.targets" />
-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net7.0\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net7.0\publish\Microsoft.Build.Tasks.CodeAnalysis.deps.json" />
-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net7.0\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
+      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(CoreClrArtifactsDir)\publish\*.targets" />
+      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(CoreClrArtifactsDir)\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(CoreClrArtifactsDir)\publish\Microsoft.Build.Tasks.CodeAnalysis.deps.json" />
+      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(CoreClrArtifactsDir)\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.resources.dll" />
@@ -17,23 +17,23 @@
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.VisualBasic.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net7.0\publish\csc.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net7.0\publish\csc.deps.json" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net7.0\publish\csc.runtimeconfig.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(CoreClrArtifactsDir)\publish\csc.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(CoreClrArtifactsDir)\publish\csc.deps.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(CoreClrArtifactsDir)\publish\csc.runtimeconfig.json" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net7.0\publish\vbc.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net7.0\publish\vbc.deps.json" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\net7.0\publish\vbc.runtimeconfig.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(CoreClrArtifactsDir)\publish\vbc.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(CoreClrArtifactsDir)\publish\vbc.deps.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(CoreClrArtifactsDir)\publish\vbc.runtimeconfig.json" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\net7.0\publish\VBCSCompiler.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\net7.0\publish\VBCSCompiler.deps.json" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\net7.0\publish\VBCSCompiler.runtimeconfig.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(CoreClrArtifactsDir)\publish\VBCSCompiler.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(CoreClrArtifactsDir)\publish\VBCSCompiler.deps.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(CoreClrArtifactsDir)\publish\VBCSCompiler.runtimeconfig.json" />
 
       <!-- References that are either not in the target framework or are a higher version -->
       <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
          https://github.com/NuGet/Home/issues/3584 -->
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net7.0\publish\System.*.dll"/>
-      <CoreClrCompilerBinRuntimesArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net7.0\publish\runtimes\**" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(CoreClrArtifactsDir)\publish\System.*.dll"/>
+      <CoreClrCompilerBinRuntimesArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(CoreClrArtifactsDir)\publish\runtimes\**" />
     </ItemGroup>
   </Target>
 </Project>
