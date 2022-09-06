@@ -5092,8 +5092,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Parametr params musi być ostatnim parametrem na liście parametrów formalnych</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Parametr params musi być ostatnim parametrem na liście parametrów formalnych</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5207,8 +5207,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Parametr __arglist musi być ostatnim parametrem formalnej listy parametrów</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Parametr __arglist musi być ostatnim parametrem formalnej listy parametrów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9920,8 +9920,8 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Nie podano argumentu odpowiadającego wymaganemu parametrowi formalnemu „{0}” elementu „{1}”</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">Nie podano argumentu odpowiadającego wymaganemu parametrowi formalnemu „{0}” elementu „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

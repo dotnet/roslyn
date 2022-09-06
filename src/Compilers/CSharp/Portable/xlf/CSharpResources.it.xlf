@@ -5092,8 +5092,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Il parametro params deve essere l'ultimo in un elenco parametri formale</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Il parametro params deve essere l'ultimo in un elenco parametri formale</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5207,8 +5207,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Il parametro __arglist deve essere l'ultimo nell'elenco di parametri formali</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Il parametro __arglist deve essere l'ultimo nell'elenco di parametri formali</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9920,8 +9920,8 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Non sono stati specificati argomenti corrispondenti al parametro formale obbligatorio '{0}' di '{1}'</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">Non sono stati specificati argomenti corrispondenti al parametro formale obbligatorio '{0}' di '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

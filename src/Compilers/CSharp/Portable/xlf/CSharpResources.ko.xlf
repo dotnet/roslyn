@@ -5091,8 +5091,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">params 매개 변수는 정식 매개 변수 목록에서 마지막에 있어야 합니다.</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">params 매개 변수는 정식 매개 변수 목록에서 마지막에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5206,8 +5206,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">__arglist 매개 변수는 정식 매개 변수 목록의 마지막에 있어야 합니다.</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">__arglist 매개 변수는 정식 매개 변수 목록의 마지막에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9919,8 +9919,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">'{1}'에서 필요한 정식 매개 변수 '{0}'에 해당하는 제공된 인수가 없습니다.</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">'{1}'에서 필요한 정식 매개 변수 '{0}'에 해당하는 제공된 인수가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

@@ -5092,8 +5092,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Параметр params должен быть указан последним в списке формальных параметров.</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Параметр params должен быть указан последним в списке формальных параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5207,8 +5207,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Параметр __arglist должен быть указан последним в списке формальных параметров.</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Параметр __arglist должен быть указан последним в списке формальных параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9920,8 +9920,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Отсутствует аргумент, соответствующий требуемому формальному параметру "{0}" из "{1}".</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">Отсутствует аргумент, соответствующий требуемому формальному параметру "{0}" из "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
