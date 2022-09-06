@@ -24,6 +24,9 @@
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompilerTests\VBCSCompiler.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Scripting\CoreTest\Microsoft.CodeAnalysis.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Scripting\CSharpTest\Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\Emit\Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.vbproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\IOperation\Roslyn.Compilers.VisualBasic.IOperation.UnitTests.vbproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Test\Semantic\Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.vbproj" />
   </ItemGroup>
   
 </Project>
