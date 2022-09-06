@@ -229,9 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
                         spans.Add(multilineCommentRegion);
                     }
-                    else if (!trivia.MatchesKind(SyntaxKind.WhitespaceTrivia,
-                                                 SyntaxKind.EndOfLineTrivia,
-                                                 SyntaxKind.EndOfFileToken))
+                    else if (trivia is not SyntaxTrivia(
+                        SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia or SyntaxKind.EndOfFileToken))
                     {
                         completeSingleLineCommentGroup(ref spans);
                     }

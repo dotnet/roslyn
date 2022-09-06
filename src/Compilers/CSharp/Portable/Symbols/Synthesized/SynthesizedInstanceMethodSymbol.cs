@@ -80,5 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsNullableAnalysisEnabled() => false;
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
     }
 }
