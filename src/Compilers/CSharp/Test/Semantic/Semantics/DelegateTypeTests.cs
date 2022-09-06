@@ -12097,7 +12097,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefault_WithParameterError_EmptyBody()
+        public void LambdaWithDefault_NonConstantNonLiteral()
         {
             var source = """
 class Program
@@ -12115,6 +12115,50 @@ class Program
                 // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
                 //         var lam = (int x = f(1000)) => { };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        int n = 42;
+        // lambda has optional parameter x
+        var lam = (string s = $"n: {n}") => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,19): warning CS0219: The variable 'n' is assigned but its value is never used
+                //         const int n = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n").WithArguments("n").WithLocation(7, 19),
+                // (9,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         var lam = (int x = $"n: {n}") => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("x").WithLocation(9, 28));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_U8String()
+        {
+            var source = """
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (6,43): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""u8 string""u8").WithArguments("s").WithLocation(6, 43));
         }
 
         [Fact]
@@ -13119,6 +13163,86 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput: "3").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("nint")]
+
+        [InlineData("nuint")]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        [InlineData("E", "E.FIELD", "FIELD")]
+        [InlineData("bool", "true", "True")]
+        [InlineData("char", "'a'", "a")]
+        [InlineData("string", @"""a string""", "a string")]
+        [InlineData("C", "null", "")]
+        public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
+        {
+            var source = $@"
+using System;
+public class Program
+{{
+    public enum E 
+    {{
+        FIELD
+    }}
+    
+    class C {{}}
+
+    public static void Main()
+    {{
+        var lam = ({parameterType} p = {defaultValue}) => p;
+        Console.WriteLine(lam());
+    }}
+}}
+";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_InterpolatedStringHandler()
+        {
+            var source = """
+using System.Runtime.CompilerServices;
+using System;
+using System.Text;
+
+[InterpolatedStringHandler]
+public ref struct CustomInterpolatedStringHandler
+{
+    StringBuilder builder;
+
+    public CustomInterpolatedStringHandler(int literalLength, int formattedCount) { builder = new StringBuilder(literalLength); }
+    public void AppendLiteral(string s) { builder.Append(s + "<<CustomInterpolatedStringHandler>>"); }
+    public void AppendFormatted<T>(T t) { builder.Append(t?.ToString()); }
+    internal string GetFormattedText() => builder.ToString();
+}
+
+public class Program
+{
+     public static void Main()
+     {
+        int i = 0;
+        var lam = (CustomInterpolatedStringHandler lh) =>
+        {
+            Console.WriteLine(lh.GetFormattedText());
+        };
+
+        lam($"This is using an interpolated string handler: {i}");
+     }
+}
+
+""";
+            CompileAndVerify(source, expectedOutput: "", targetFramework: TargetFramework.Net60);
         }
     }
 }
