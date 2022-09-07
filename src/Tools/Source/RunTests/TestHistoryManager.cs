@@ -24,19 +24,17 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10_000;
 
     /// <summary>
-    /// The Azure devops project that the build pipeline is located in.
-    /// </summary>
-    private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng-public");
-
-    /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
     /// </summary>
     public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
-
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
 
+        // ADO project that the build pipeline is located in.
+        var projectUri = options.ProjectUri ?? GetEnvironmentVariable("SYSTEM_COLLECTIONURI");
+
+        // Id of the pipeline to get test history from.
         var pipelineDefinitionIdStr = options.PipelineDefinitionId ?? GetEnvironmentVariable("SYSTEM_DEFINITIONID");
 
         // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
@@ -46,15 +44,15 @@ internal class TestHistoryManager
 
         // We use the target branch of the current build to lookup the last successful build for the same branch.
         var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
-        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
-            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
+            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
         var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
 
-        var connection = new VssConnection(s_projectUri, credentials);
+        var connection = new VssConnection(new Uri(projectUri), credentials);
 
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
@@ -64,7 +62,7 @@ internal class TestHistoryManager
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} and branch {targetBranch}");
+            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
