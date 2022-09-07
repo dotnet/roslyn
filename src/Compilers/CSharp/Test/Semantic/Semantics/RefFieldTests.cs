@@ -16639,7 +16639,7 @@ public class C
   }
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -16691,7 +16691,7 @@ public class C
   }
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -16743,7 +16743,7 @@ public class C1
   void C([UnscopedRef] out RefStruct s) { }
 }
 ";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
