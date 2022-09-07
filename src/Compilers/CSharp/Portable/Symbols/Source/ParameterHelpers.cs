@@ -425,7 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
-        internal static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams, bool parsingLambdaParams)
+        internal static void CheckParameterModifiers(
+            BaseParameterSyntax parameter,
+            BindingDiagnosticBag diagnostics,
+            bool parsingFunctionPointerParams,
+            bool parsingLambdaParams)
         {
             var seenThis = false;
             var seenRef = false;
@@ -439,6 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.ThisKeyword:
+                        Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod, diagnostics);
+
+                        if (seenRef || seenIn)
+                        {
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                        }
+
                         if (parsingLambdaParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_ThisInBadContext, modifier.GetLocation());
@@ -462,6 +473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.RefKeyword:
+                        if (seenThis)
+                        {
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                        }
+
                         if (seenRef)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
@@ -543,6 +559,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.InKeyword:
+                        Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences, diagnostics);
+
+                        if (seenThis)
+                        {
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                        }
+
                         if (seenIn)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
@@ -592,8 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
+                    case SyntaxKind.ReadOnlyKeyword:
+                        diagnostics.Add(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, modifier.GetLocation());
+                        break;
+
                     case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
-                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
                     case SyntaxKind.ScopedKeyword when parsingFunctionPointerParams:
                         diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
                         break;
