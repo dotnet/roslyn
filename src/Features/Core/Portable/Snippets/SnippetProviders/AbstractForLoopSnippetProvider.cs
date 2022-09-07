@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
         public override string SnippetIdentifier => "for";
-        public override string SnippetDisplayName => FeaturesResources.Insert_a_for_loop;
+        public override string SnippetDescription => FeaturesResources.for_loop;
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetStatementNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var snippetStatementNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
             if (snippetStatementNode is null)
             {
                 return root;
@@ -51,29 +52,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetStatementNode, reformatSnippetNode);
         }
 
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-
-            if (closestNode is null)
-            {
-                return null;
-            }
-
-            if (!syntaxFacts.IsForStatement(closestNode))
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the for statement.
-            if (closestNode.SpanStart != position)
-            {
-                return null;
-            }
-
-            return closestNode;
+            return syntaxFacts.IsForStatement;
         }
     }
 }

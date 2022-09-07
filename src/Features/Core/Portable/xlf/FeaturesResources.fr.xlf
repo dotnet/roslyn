@@ -3423,6 +3423,11 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
         <target state="translated">externe</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="new">for loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
         <target state="new">foreach loop</target>

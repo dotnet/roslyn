@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CSharpForSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected override string ItemToCommit => FeaturesResources.Insert_a_for_loop;
+        protected override string ItemToCommit => "for";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertForSnippetInMethodTest()
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public void Method()
     {
         for (int i = 0; i < length; i++)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         var i = 0;
         for (int j = 0; j < length; j++)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -93,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         var i, j, k, a, b, c = 0;
         for (int i1 = 0; i1 < length; i1++)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -109,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var expectedCodeAfterCommit =
 @"for (int i = 0; i < length; i++)
-{$$
+{
+        $$
 }
 ";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -135,7 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         var x = 5;
         for (int i = 0; i < length; i++)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -167,7 +172,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         void LocalMethod()
         {
             for (global::System.Int32 i = 0; (i) < (length); i++)
-            {$$
+            {
+                $$
             }
         }
     }
@@ -196,7 +202,8 @@ static void Main(string[] args)
 {
     Print print = delegate(int val) {
         for (global::System.Int32 i = 0; (i) < (length); i++)
-        {$$
+        {
+            $$
         }
     };
 
@@ -218,7 +225,8 @@ static void Main(string[] args)
 @"Func<int, int, bool> testForEquality = (x, y) =>
 {
     for (global::System.Int32 i = 0; (i) < (length); i++)
-    {$$
+    {
+        $$
     }
 
     return x == y;
@@ -229,7 +237,7 @@ static void Main(string[] args)
 
     public class CSharpForSnippetPreferVarCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected override string ItemToCommit => FeaturesResources.Insert_a_for_loop;
+        protected override string ItemToCommit => "for";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertForSnippetInMethodTest()
@@ -262,7 +270,8 @@ class Program
     public void Method()
     {{
         for (var i = 0; i < length; i++)
-        {{$$
+        {{
+            $$
         }}
     }}
 }}";
