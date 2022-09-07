@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 {
                     // if type is an interface we don't want to refactor
                     TypeKind: TypeKind.Class or TypeKind.Struct,
-                    // no need to convert if it's already a record
-                    IsRecord: false,
                     // records can't be static and so if the class is static we probably shouldn't convert it
                     IsStatic: false,
                 } type)

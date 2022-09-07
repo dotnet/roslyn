@@ -4985,6 +4985,178 @@ namespace N
             await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
+        [Fact]
+        public async Task TestConvertFromPositional()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record [|C|](int P, bool B);
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record C
+    {
+        public int P { get; set; }
+        public bool B { get; set; }
+
+        public C(int P, bool B)
+        {
+            this.P = P;
+            this.B = B;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestConvertFromPositionalWithAdditionalConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public [|C|](int p) : this(p, false)
+        {
+        }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record C
+    {
+        public int P { get; set; }
+        public bool B { get; set; }
+
+        public C(int P, bool B)
+        {
+            this.P = P;
+            this.B = B;
+        }
+
+        public C(int p) : this(p, false)
+        {
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestConvertFromPositionalWithRecordInheritance()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record Base(int Foo);
+    public record [|C|](int Foo, int P, bool B) : Base(Foo);
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record Base(int Foo);
+
+    public record C : Base
+    {
+        public int P { get; set; }
+        public bool B { get; set; }
+
+        public C(int Foo, int P, bool B) : base(Foo)
+        {
+            this.P = P;
+            this.B = B;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestConvertFromPositionalAndKeepComments()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    /// <summary>
+    /// some summary
+    /// </summary>
+    /// <param name=""P"">comment for P</param>
+    /// <param name=""B"">comment for B</param>
+    public record [|C|](int P, bool B);
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    /// <summary>
+    /// some summary
+    /// </summary>
+    public record C
+    {
+        /// <summary>
+        /// comment for P
+        /// </summary>
+        public int P { get; set; }
+
+        /// <summary>
+        /// comment for B
+        /// </summary>
+        public bool B { get; set; }
+
+        public C(int P, bool B)
+        {
+            this.P = P;
+            this.B = B;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestConvertFromPositionalAndMoveAttributes()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public record [|C|]([property: Obsolete] int P, [property: Obsolete] bool B);
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record C
+    {
+        [Obsolete]
+        public int P { get; set; }
+
+        [Obsolete]
+        public bool B { get; set; }
+
+        public C(int P, bool B)
+        {
+            this.P = P;
+            this.B = B;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region selection
