@@ -45,6 +45,12 @@ namespace Metalama.Compiler.UnitTests
         private const string MetalamaUltimateOpenSourceRedistribution
             = "8-ZQZQQQQQXEAEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7YQ2GYCXBSF629W7YDRH29BN7JFYCJX3MFVVAHZXJ9RS29KYTHFS8KQ7TFRS6ZTBVWZLKJVF3HZZHWA4ZKSX3DXZYBKR4MWCZF4AW43L2DLEPB5T8HFVMFKBYLUG2X78SQQBTWB2P7QNG4B27RXP3";
 
+        private const string InvalidLicenseOverallErrorCode = "LAMA0608";
+
+        private const string InvalidLicenseForTransformedCodeErrorCode = "LAMA0609";
+
+        private const string InvalidLicenseForSdkErrorCode = "LAMA0615";
+
         private TempFile? _src;
 
         private MockCSharpCompiler CreateCompiler(ISourceTransformer? transformer = null, bool debugTransformedCode = false, string license = "")
@@ -104,48 +110,48 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         }
 
         [Theory]
-        [InlineData(None, false)]
-        [InlineData(PostSharpEssentials, true)]
-        [InlineData(PostSharpFramework, true)]
-        [InlineData(PostSharpUltimate, true)]
-        [InlineData(MetalamaFreePersonal, true)]
-        [InlineData(MetalamaStarterBusiness, true)]
-        [InlineData(MetalamaProfessionalBusiness, true)]
-        [InlineData(MetalamaUltimateBusiness, true)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
-        public void TransformersByPostSharpRequireLicense(string license, bool shouldCompile)
+        [InlineData(None, InvalidLicenseOverallErrorCode)]
+        [InlineData(PostSharpEssentials, InvalidLicenseOverallErrorCode)]
+        [InlineData(PostSharpFramework, null)]
+        [InlineData(PostSharpUltimate, null)]
+        [InlineData(MetalamaFreePersonal, null)]
+        [InlineData(MetalamaStarterBusiness, null)]
+        [InlineData(MetalamaProfessionalBusiness, null)]
+        [InlineData(MetalamaUltimateBusiness, null)]
+        [InlineData(MetalamaUltimateOpenSourceRedistribution, null)]
+        public void TransformersByPostSharpRequireLicense(string license, string? expectedErrorCode)
         {
-            Test(new DummyTransformer(), license: license, expectedErrorCode: shouldCompile ? null : "LAMA0608");
+            Test(new DummyTransformer(), false, license, expectedErrorCode);
         }
 
         [Theory]
-        [InlineData(None, false)]
-        [InlineData(PostSharpEssentials, false)]
-        [InlineData(PostSharpFramework, true)]
-        [InlineData(PostSharpUltimate, true)]
-        [InlineData(MetalamaFreePersonal, false)]
-        [InlineData(MetalamaStarterBusiness, false)]
-        [InlineData(MetalamaProfessionalBusiness, true)]
-        [InlineData(MetalamaUltimateBusiness, true)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
-        public void ThirdPartyTransformersRequireLicense(string license, bool shouldCompile)
+        [InlineData(None, InvalidLicenseOverallErrorCode)]
+        [InlineData(PostSharpEssentials, InvalidLicenseOverallErrorCode)]
+        [InlineData(PostSharpFramework, null)]
+        [InlineData(PostSharpUltimate, null)]
+        [InlineData(MetalamaFreePersonal, InvalidLicenseForSdkErrorCode)]
+        [InlineData(MetalamaStarterBusiness, InvalidLicenseForSdkErrorCode)]
+        [InlineData(MetalamaProfessionalBusiness, null)]
+        [InlineData(MetalamaUltimateBusiness, null)]
+        [InlineData(MetalamaUltimateOpenSourceRedistribution, null)]
+        public void ThirdPartyTransformersRequireLicense(string license, string? expectedErrorCode)
         {
-            Test(new ThirdPartyDummyTransformer(), true, license, license == None ? "LAMA0608" : shouldCompile ? null : "LAMA0615");
+            Test(new ThirdPartyDummyTransformer(), false, license, expectedErrorCode);
         }
 
         [Theory]
-        [InlineData(None, false)]
-        [InlineData(PostSharpEssentials, false)]
-        [InlineData(PostSharpFramework, true)]
-        [InlineData(PostSharpUltimate, true)]
-        [InlineData(MetalamaFreePersonal, false)]
-        [InlineData(MetalamaStarterBusiness, true)]
-        [InlineData(MetalamaProfessionalBusiness, true)]
-        [InlineData(MetalamaUltimateBusiness, true)]
-        [InlineData(MetalamaUltimateOpenSourceRedistribution, true)]
-        public void DebuggingTransformedCodeRequiresLicense(string license, bool shouldCompile)
+        [InlineData(None, InvalidLicenseOverallErrorCode)]
+        [InlineData(PostSharpEssentials, InvalidLicenseOverallErrorCode)]
+        [InlineData(PostSharpFramework, null)]
+        [InlineData(PostSharpUltimate, null)]
+        [InlineData(MetalamaFreePersonal, InvalidLicenseForTransformedCodeErrorCode)]
+        [InlineData(MetalamaStarterBusiness, null)]
+        [InlineData(MetalamaProfessionalBusiness, null)]
+        [InlineData(MetalamaUltimateBusiness, null)]
+        [InlineData(MetalamaUltimateOpenSourceRedistribution, null)]
+        public void DebuggingTransformedCodeRequiresLicense(string license, string? expectedErrorCode)
         {
-            Test(new DummyTransformer(), true, license, license == None ? "LAMA0608" : shouldCompile ? null : "LAMA0609");
+            Test(new DummyTransformer(), true, license, expectedErrorCode);
         }
 
         public override void Dispose()
