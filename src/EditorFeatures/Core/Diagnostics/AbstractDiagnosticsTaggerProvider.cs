@@ -149,13 +149,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (!this.IsEnabled)
                 return;
 
-<<<<<<< HEAD
-=======
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDiagnosticMode(diagnosticMode))
-                return;
-
->>>>>>> upstream/main
             var document = spanToTag.Document;
             if (document == null)
                 return;
