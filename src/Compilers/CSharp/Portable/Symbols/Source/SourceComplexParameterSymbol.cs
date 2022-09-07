@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
-        protected BoundParameterEqualsValue? _lazyBoundEqualsValueSyntax = null;
+        protected BoundParameterEqualsValue _lazyBoundEqualsValueSyntax = null;
 
         protected SourceComplexParameterSymbolBase(
             Symbol owner,
@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             parameterSyntax?.Default?.Value;
 
         private ConstantValue DefaultSyntaxValue => DefaultSyntax.Item1;
+
         public override BoundParameterEqualsValue? BoundEqualsValue => DefaultSyntax.Item2;
 
         private (ConstantValue, BoundParameterEqualsValue?) DefaultSyntax
