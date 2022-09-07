@@ -165,11 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             End If
 
                         Case GeneratedNameKind.HoistedSynthesizedLocalField,
-                             GeneratedNameKind.StateMachineHoistedUserVariableField
+                             GeneratedNameKind.HoistedWithLocalPrefix,
+                             GeneratedNameKind.StateMachineHoistedUserVariableOrDisplayClassField
 
-                            Dim _name As String = Nothing
+                            Dim variableName As String = Nothing
                             If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
-                               GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
+                               GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedWithLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(name, variableName, slotIndex) Then
                                 Dim field = DirectCast(member, FieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata

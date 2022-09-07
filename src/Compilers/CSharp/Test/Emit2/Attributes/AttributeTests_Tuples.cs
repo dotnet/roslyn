@@ -298,7 +298,7 @@ class C
             return $"{symbol.Name}: {symbolString}";
         }
 
-        private struct TupleAttributeValidator
+        private readonly struct TupleAttributeValidator
         {
             private readonly NamedTypeSymbol
                 _base0Class,

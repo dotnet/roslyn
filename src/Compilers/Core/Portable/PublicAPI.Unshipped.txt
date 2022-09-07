@@ -1,5 +1,7 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 *REMOVED*static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.IDisposable! owner, bool disposeOwner) -> Microsoft.CodeAnalysis.ModuleMetadata!
+Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! leftType, Microsoft.CodeAnalysis.ITypeSymbol! rightType) -> Microsoft.CodeAnalysis.IMethodSymbol!
+Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
