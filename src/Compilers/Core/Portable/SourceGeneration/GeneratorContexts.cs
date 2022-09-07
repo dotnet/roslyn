@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(GeneratorInitializationContext)"/> is called
     /// </summary>
-    public struct GeneratorInitializationContext
+    public readonly struct GeneratorInitializationContext
     {
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {

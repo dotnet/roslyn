@@ -188,12 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
-                if (scope == DeclarationScope.Unscoped &&
-                    IsRefScopedByDefault(refKind, parameterType))
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
-
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
@@ -326,11 +320,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            return IsRefScopedByDefault(parameter.RefKind, parameter.TypeWithAnnotations);
+            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind, parameter.TypeWithAnnotations);
         }
 
-        internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
+        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind, TypeWithAnnotations parameterType)
         {
+            if (!useUpdatedEscapeRules)
+            {
+                return false;
+            }
+
             switch (refKind)
             {
                 case RefKind.Out:
@@ -341,6 +340,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     return false;
             }
+        }
+
+        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
+        {
+            var declaredScope = parameter.DeclaredScope;
+            return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
+                DeclarationScope.RefScoped :
+                declaredScope;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)

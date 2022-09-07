@@ -5167,7 +5167,7 @@ namespace N
 
         private static async Task TestPropertiedRefactoringAsync(string initialMarkup, string changedMarkup)
             => await TestRefactoringAsync(initialMarkup, changedMarkup,
-                equivalenceKey: nameof(CSharpFeaturesResources.Convert_to_property_record)).ConfigureAwait(false);
+                equivalenceKey: nameof(CSharpFeaturesResources.Convert_to_record)).ConfigureAwait(false);
 
         private static async Task TestRefactoringAsync(
             string initialMarkup,

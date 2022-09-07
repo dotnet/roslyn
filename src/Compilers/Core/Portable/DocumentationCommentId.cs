@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct ParameterInfo
+            private readonly struct ParameterInfo
             {
                 internal readonly ITypeSymbol Type;
                 internal readonly bool IsRefOrOut;

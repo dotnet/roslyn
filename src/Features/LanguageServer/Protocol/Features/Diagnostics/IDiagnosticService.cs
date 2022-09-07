@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IDiagnosticService
     {
-        IGlobalOptionService GlobalOptions { get; }
-
         /// <summary>
         /// Event to get notified as new diagnostics are discovered by IDiagnosticUpdateSource
         /// 
@@ -24,24 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// However, individual event notifications may occur on any thread.
         /// </summary>
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
-
-        /// <summary>
-        /// This call is equivalent to <see cref="GetPushDiagnosticsAsync"/> passing in <see cref="InternalDiagnosticsOptions.NormalDiagnosticMode"/>.
-        /// </summary>
-        [Obsolete("Legacy overload for TypeScript.  Use GetPullDiagnostics or GetPushDiagnostics instead.", error: false)]
-        ImmutableArray<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get current diagnostics stored in IDiagnosticUpdateSource.
-        /// </summary>
-        /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
-        /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
-        /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
-        /// will return the requested diagnostics.</param>
-        ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
@@ -55,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetPullDiagnosticsAsync(IDiagnosticService, DiagnosticBucket, bool, DiagnosticMode, CancellationToken)"/>.
+        /// Get current buckets storing our grouped diagnostics.
         /// </summary>
         /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
@@ -67,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetPushDiagnosticsAsync(IDiagnosticService, DiagnosticBucket, bool, DiagnosticMode, CancellationToken)"/>.
+        /// Get current buckets storing our grouped diagnostics.
         /// </summary>
         /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The <see
         /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If

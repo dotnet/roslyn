@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
 
-            // We only track performance from primary branch. All forked branch we don't care such as preview.
-            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Services.GetService<IPerformanceTrackerService>() : null;
+            _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
         public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
@@ -116,7 +115,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, _project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
-            // Record performance if tracker is available
             if (logPerformanceInfo && _performanceTracker != null)
             {
                 // +1 to include project itself

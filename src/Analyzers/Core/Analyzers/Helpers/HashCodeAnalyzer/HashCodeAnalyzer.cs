@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// Helper code to support analysis of HashCode methods
     /// </summary>
-    internal partial struct HashCodeAnalyzer
+    internal readonly partial struct HashCodeAnalyzer
     {
         private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;

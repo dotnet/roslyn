@@ -2502,7 +2502,7 @@ class D : CodeModule
     public string get_ProcOfLine(int line, out Microsoft.Vbe.Interop.vbext_ProcKind procKind) { throw null; }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
                 // class C : CodeModule

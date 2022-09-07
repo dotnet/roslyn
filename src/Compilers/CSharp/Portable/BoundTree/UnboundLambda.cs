@@ -617,13 +617,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var refKind = RefKind(i);
                 var scope = Scope(i);
-                if (scope == DeclarationScope.Unscoped && refKind == Microsoft.CodeAnalysis.RefKind.Out)
+                var type = ParameterTypeWithAnnotations(i);
+                if (scope == DeclarationScope.Unscoped &&
+                    ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind, type))
                 {
                     scope = DeclarationScope.RefScoped;
                 }
                 parameterRefKindsBuilder.Add(refKind);
                 parameterScopesBuilder.Add(scope);
-                parameterTypesBuilder.Add(ParameterTypeWithAnnotations(i));
+                parameterTypesBuilder.Add(type);
             }
             var parameterRefKinds = parameterRefKindsBuilder.ToImmutableAndFree();
             var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();

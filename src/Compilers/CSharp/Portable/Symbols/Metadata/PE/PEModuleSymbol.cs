@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
+        private ThreeState _lazyUseUpdatedEscapeRules;
+
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 #nullable disable
@@ -294,11 +296,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out CustomAttributeHandle filteredOutAttribute1,
             AttributeDescription filterOut1)
         {
-            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default, out _, default);
+            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default, out _, default, out _, default);
+        }
+
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
+            out CustomAttributeHandle filteredOutAttribute1,
+            AttributeDescription filterOut1,
+            out CustomAttributeHandle filteredOutAttribute2,
+            AttributeDescription filterOut2)
+        {
+            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out filteredOutAttribute2, filterOut2, out _, default, out _, default, out _, default, out _, default);
         }
 
         /// <summary>
-        /// Returns attributes with up-to four filters applied. For each filter, the last application of the
+        /// Returns attributes with up-to 6 filters applied. For each filter, the last application of the
         /// attribute will be tracked and returned.
         /// </summary>
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
@@ -311,13 +322,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out CustomAttributeHandle filteredOutAttribute4,
             AttributeDescription filterOut4,
             out CustomAttributeHandle filteredOutAttribute5,
-            AttributeDescription filterOut5)
+            AttributeDescription filterOut5,
+            out CustomAttributeHandle filteredOutAttribute6,
+            AttributeDescription filterOut6)
         {
             filteredOutAttribute1 = default;
             filteredOutAttribute2 = default;
             filteredOutAttribute3 = default;
             filteredOutAttribute4 = default;
             filteredOutAttribute5 = default;
+            filteredOutAttribute6 = default;
             ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
 
             try
@@ -354,6 +368,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (matchesFilter(customAttributeHandle, filterOut5))
                     {
                         filteredOutAttribute5 = customAttributeHandle;
+                        continue;
+                    }
+
+                    if (matchesFilter(customAttributeHandle, filterOut6))
+                    {
+                        filteredOutAttribute6 = customAttributeHandle;
                         continue;
                     }
 
@@ -429,17 +449,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token"></param>
         /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
         /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
+        private ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
         {
             var result = GetCustomAttributesForToken(
                 token,
                 filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
                 filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
                 filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
-                filterOut2: AttributeDescription.IsReadOnlyAttribute,
-                filteredOutAttribute3: out _, filterOut3: default,
-                filteredOutAttribute4: out _, filterOut4: default,
-                filteredOutAttribute5: out _, filterOut5: default);
+                filterOut2: AttributeDescription.IsReadOnlyAttribute);
 
             foundExtension = !extensionAttribute.IsNil;
             foundReadOnly = !isReadOnlyAttribute.IsNil;
@@ -777,5 +794,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool HasUnsupportedMetadata
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal override bool UseUpdatedEscapeRules
+        {
+            get
+            {
+                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
+                {
+                    bool value = CalculateUseUpdatedRules();
+                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
+                }
+                return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        private bool CalculateUseUpdatedRules()
+        {
+            // [RefSafetyRules(version)], regardless of version.
+            if (_module.HasRefSafetyRulesAttribute(Token, out _))
+            {
+                return true;
+            }
+
+            // System.Runtime { ver: 7.0 }
+            if (IsOrReferencesSystemRuntimeCorLibrary(_module, out var corlibVersion) && corlibVersion is { Major: 7, Minor: 0 })
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsOrReferencesSystemRuntimeCorLibrary(PEModule module, out Version? version)
+        {
+            const string corlibName = "System.Runtime";
+
+            AssemblyIdentity? identity;
+            try
+            {
+                identity = module.ReadAssemblyIdentityOrThrow();
+            }
+            catch (BadImageFormatException)
+            {
+                identity = null;
+            }
+            if (identity?.Name == corlibName)
+            {
+                version = identity.Version;
+                return true;
+            }
+
+            var assemblyHandle = module.GetAssemblyRef(corlibName);
+            if (!assemblyHandle.IsNil)
+            {
+                version = module.GetAssemblyRef(assemblyHandle).Version;
+                return true;
+            }
+
+            version = null;
+            return false;
+        }
     }
 }

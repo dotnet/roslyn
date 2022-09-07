@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             }
 
             var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
-            var nonPositionalTitle = CSharpFeaturesResources.Convert_to_property_record;
+            var nonPositionalTitle = CSharpFeaturesResources.Convert_to_record;
 
             var positional = CodeAction.Create(
                 positionalTitle,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 nonPositionalTitle,
                 cancellationToken => ConvertToNonPositionalRecordAsync(
                     document, type, positionalParameterInfos, typeDeclaration, cancellationToken),
-                nameof(CSharpFeaturesResources.Convert_to_property_record));
+                nameof(CSharpFeaturesResources.Convert_to_record));
 
             var offeredActions = ImmutableArray<CodeAction>.Empty;
             var constructors = typeDeclaration.Members.OfType<ConstructorDeclarationSyntax>();
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     {
                         documentEditor.RemoveNode(constructor);
                     }
-                    else if (type.BaseType.IsRecord)
+                    else if (type.BaseType != null && type.BaseType.IsRecord)
                     {
                         // need to call copy constructor of base as initializer
                         // regardless of what user currently has. Just use the parameter name passed in
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                         .WhereNotNull();
 
                     var modifiedConstructor = (ConstructorDeclarationSyntax)constructor
-                        .RemoveNodes(removalNodes, RemovalOptions);
+                        .RemoveNodes(removalNodes, RemovalOptions)!;
                     modifiedConstructor = modifiedConstructor.WithInitializer(SyntaxFactory.ConstructorInitializer(
                         SyntaxKind.BaseConstructorInitializer,
                         SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             INamedTypeSymbol type,
             TypeDeclarationSyntax typeDeclaration,
             SyntaxTriviaList? modifiedClassTrivia,
-            IEnumerable<ParameterSyntax> propertiesToAddAsParams,
+            IEnumerable<ParameterSyntax>? propertiesToAddAsParams,
             SyntaxToken recordKeyword,
             SyntaxTriviaList? constructorTrivia,
             BaseListSyntax? baseList)
@@ -729,9 +729,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             newInitializer = null;
                         }
 
-                        var updatedExpressions = expressions.Select((expression, idx) =>
+                        // note: index here is the position in the initializer assignment list of the expression
+                        // if it was found at all. The expressions are actually in order of how they should be
+                        // supplied as arguments for the primary constructor. 
+                        var updatedExpressions = expressions.Zip(expressionIndices, (expression, index) =>
                         {
-                            if (expression.Parent == null)
+                            if (index == -1)
                             {
                                 // default/null constructed expression
                                 return expression;
@@ -740,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             {
                                 // corresponds to a real node, need to get the updated one
                                 var assignmentExpression = (AssignmentExpressionSyntax)
-                                    updatedObjectCreation.Initializer!.Expressions[expressionIndices[idx]];
+                                    updatedObjectCreation.Initializer!.Expressions[index];
                                 return assignmentExpression.Right;
                             }
                         });

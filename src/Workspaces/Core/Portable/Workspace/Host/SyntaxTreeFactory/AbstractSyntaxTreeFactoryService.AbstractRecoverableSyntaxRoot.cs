@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService
     {
-        internal struct SyntaxTreeInfo
+        internal readonly struct SyntaxTreeInfo
         {
             public readonly string FilePath;
             public readonly ParseOptions Options;

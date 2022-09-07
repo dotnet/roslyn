@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _dashboardColorUpdater?.UpdateColors();
 
-                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
+                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment);
                 if (useInlineAdornment)
                 {
                     if (!_textView.HasAggregateFocus)
