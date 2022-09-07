@@ -65,6 +65,60 @@ static class Utils
             "System.Linq.Expressions.Expression1`1";
         private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
 
+        private void TestDiagnosticsInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            if (usings is null)
+            {
+                usings = Array.Empty<string>();
+            }
+
+            var source = "";
+            foreach (var use in usings)
+            {
+                source += $"using {use};";
+            }
+
+            source += $@"
+class Program
+{{
+    public static void Main()
+    {{
+        {mainBody}
+    }}
+
+}}
+";
+            CreateCompilation(source, targetFramework: targetFramework).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        public void TestInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, string? expectedOutput = null, params DiagnosticDescription[] diagnosticDescriptions)
+        {
+            if (usings is null)
+            {
+                usings = Array.Empty<string>();
+            }
+
+            var source = "";
+            foreach (var use in usings)
+            {
+                source += $"using {use};";
+            }
+
+            source += $@"
+class Program
+{{
+    public static void Main()
+    {{
+        {mainBody}
+    }}
+
+}}
+";
+            // create compilation with main body
+            CompileAndVerify(source, targetFramework: targetFramework, expectedOutput: expectedOutput)
+                .VerifyDiagnostics(diagnosticDescriptions);
+        }
+
         [Fact]
         public void LanguageVersion()
         {
@@ -12096,70 +12150,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(9, 24));
         }
 
-        [Fact]
-        public void LambdaWithDefault_NonConstantNonLiteral()
-        {
-            var source = """
-class Program
-{
-    // Named delegate has required parameter x
-    public static int f(int x) => 2 * x;
-    public static void Main()
-    {
-        // lambda has optional parameter x
-        var lam = (int x = f(1000)) => { };
-    }
-}
-""";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //         var lam = (int x = f(1000)) => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
-        }
-
-        [Fact]
-        public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
-        {
-            var source = """
-class Program
-{
-    // Named delegate has required parameter x
-    public static int f(int x) => 2 * x;
-    public static void Main()
-    {
-        int n = 42;
-        // lambda has optional parameter x
-        var lam = (string s = $"n: {n}") => { };
-    }
-}
-""";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,19): warning CS0219: The variable 'n' is assigned but its value is never used
-                //         const int n = 42;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n").WithArguments("n").WithLocation(7, 19),
-                // (9,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //         var lam = (int x = $"n: {n}") => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("x").WithLocation(9, 28));
-        }
-
-        [Fact]
-        public void LambdaWithDefault_NonConstantLiteral_U8String()
-        {
-            var source = """
-using System;
-class Program
-{
-    public static void Main()
-    {
-        var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
-    }
-}
-""";
-            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
-                // (6,43): error CS1736: Default parameter value for 's' must be a compile-time constant
-                //         var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""u8 string""u8").WithArguments("s").WithLocation(6, 43));
-        }
 
         [Fact]
         public void LambdaOptionalBeforeRequiredBadConversion()
@@ -13209,6 +13199,40 @@ public class Program
         }
 
         [Fact]
+        public void LambdaDefaultParameter_TargetTypedValidLiteralConversion()
+        {
+            TestDiagnosticsInMain(
+"""
+var lam = (short s = 1) => { };
+""");
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypeInvalidLiteralConversion()
+        {
+            TestDiagnosticsInMain(
+"""
+var lam = (short s = 32768) => { };
+""", expectedDiagnostics:
+                 // (6,26): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'short'
+                 //         var lam = (short s = 32768) => { };
+                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(6, 26));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
+        {
+            TestDiagnosticsInMain(
+"""
+const float floatConst = 1f;
+var lam = (double d = floatConst) => { };
+""", expectedDiagnostics:
+            // (6,21): warning CS0219: The variable 'floatConst' is assigned but its value is never used
+            //         const float floatConst = 1f;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "floatConst").WithArguments("floatConst").WithLocation(6, 21));
+        }
+
+        [Fact]
         public void LambdaDefaultParameter_InterpolatedStringHandler()
         {
             var source = """
@@ -13232,17 +13256,87 @@ public class Program
      public static void Main()
      {
         int i = 0;
-        var lam = (CustomInterpolatedStringHandler lh) =>
+        var lam = (CustomInterpolatedStringHandler h = $"i: {i}") =>
         {
-            Console.WriteLine(lh.GetFormattedText());
+            Console.WriteLine(h.GetFormattedText());
         };
-
-        lam($"This is using an interpolated string handler: {i}");
+        lam();
      }
 }
-
 """;
-            CompileAndVerify(source, expectedOutput: "", targetFramework: TargetFramework.Net60);
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
+                // (20,13): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int i = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(20, 13),
+                // (21,56): error CS1736: Default parameter value for 'h' must be a compile-time constant
+                //         var lam = (CustomInterpolatedStringHandler h = $"i: {i}") =>
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""i: {i}""").WithArguments("h").WithLocation(21, 56));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_InvalidConstantConversion()
+        {
+            TestDiagnosticsInMain(
+@"var lam = (string s = 1) => { };");
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantNonLiteral()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam = (int x = f(1000)) => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         var lam = (int x = f(1000)) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        int n = 42;
+        // lambda has optional parameter x
+        var lam = (string s = $"n: {n}") => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,19): warning CS0219: The variable 'n' is assigned but its value is never used
+                //         const int n = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n").WithArguments("n").WithLocation(7, 19),
+                // (9,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //         var lam = (int x = $"n: {n}") => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("x").WithLocation(9, 28));
+        }
+
+        [Fact]
+        public void LambdaWithDefault_NonConstantLiteral_U8String()
+        {
+            TestDiagnosticsInMain(
+"""
+var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+""", usings: new[] { "System" }, targetFramework: TargetFramework.Net60,
+                // (6,43): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""u8 string""u8").WithArguments("s").WithLocation(6, 43));
+
         }
     }
 }

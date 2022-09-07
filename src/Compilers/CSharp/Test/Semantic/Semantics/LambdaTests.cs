@@ -7541,6 +7541,49 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void LambdaDefaultLocalConstantSameScope_PreDefinition()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        const string s = "abcdef";
+        var _ = (string str = s) => s;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultLocalConstantSameScope_PostDefinition()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        var lam = (string str = s) => { };
+        const string s = "abcdef";
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,27): error CS1750: A value of type 'var' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         var lam = (string str = s) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "str").WithArguments("var", "string").WithLocation(5, 27),
+                // (5,33): error CS0841: Cannot use local variable 's' before it is declared
+                //         var lam = (string str = s) => { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 33),
+                // (6,22): warning CS0219: The variable 's' is assigned but its value is never used
+                //         const string s = "abcdef";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(6, 22));
+        }
+
         [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
         public void LambdaDefaultSelfReference()
         {
@@ -7559,6 +7602,42 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        public void LambdaDefaultSelfReference_ParameterBefore()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var lam = (int x, Delegate d = lam) => { };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+       [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        public void LambdaDefaultSelfReference_ParameterAfter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var lam = (Delegate d = lam, int x) => { };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void Lambda_BadDefault_ExplicitReturnType()
         {
@@ -7567,6 +7646,7 @@ class Program
 {
     static int f(int x) => 2 * x;
     public static void Main(string[] args)
+
     {
         var lam = int (int p = f(3)) => p;
     }
@@ -7603,5 +7683,25 @@ class Program
                 //         Del del = (string s = "0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899") => { };
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "s").WithArguments("1", @"""0123456...""", @"""abc""").WithLocation(7, 27));
         }
+
+        [Fact]
+        public void LambdaDefault_InvalidConstantConversion()
+        {
+            var source = @"
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string s = 1) => s;
     }
 }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         var lam = (string s = 1) => s;
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(6, 27));
+        }
+
+    }
+}
+
