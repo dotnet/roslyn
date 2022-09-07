@@ -2118,6 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DuplicateAnalyzerReference = 9067,
         ERR_FileTypeNonUniquePath = 9068,
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
+        ERR_FileLocalDuplicateNameInNS = 9070,
 
         #endregion
 

@@ -592,6 +592,11 @@
         <target state="translated">Alan benzeri '{0}' olayı 'readonly' olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileLocalDuplicateNameInNS">
+        <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
+        <target state="new">The namespace '{1}' already contains a definition for '{0}' in this file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
         <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
         <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
