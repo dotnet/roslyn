@@ -99,19 +99,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            await AddDocumentsAndProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
+            await AddDocumentsAndProject(activeDocument?.Project, context.SupportedLanguages, cancellationToken).ConfigureAwait(false);
             foreach (var doc in visibleDocuments)
-                await AddDocumentsAndProject(doc.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
+                await AddDocumentsAndProject(doc.Project, context.SupportedLanguages, cancellationToken).ConfigureAwait(false);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                await AddDocumentsAndProject(project, context.SupportedLanguages, isOpen: false, cancellationToken).ConfigureAwait(false);
+                await AddDocumentsAndProject(project, context.SupportedLanguages, cancellationToken).ConfigureAwait(false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            async Task AddDocumentsAndProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen, CancellationToken cancellationToken)
+            async Task AddDocumentsAndProject(Project? project, ImmutableArray<string> supportedLanguages, CancellationToken cancellationToken)
             {
                 if (project == null)
                     return;
@@ -123,17 +123,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return;
                 }
 
-                var isFSAOn = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var documents = ImmutableArray<TextDocument>.Empty;
-                // If FSA is on, then add all the documents in the project.  Other analysis scopes are handled by the document pull handler.
-                if (isFSAOn)
-                {
-                    documents = documents.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
-                }
+                // Only process closed files if FSA is on.
+                if (!globalOptions.IsFullSolutionAnalysisEnabled(project.Language))
+                    return;
 
-                // If all features are enabled for source generated documents, make sure they are included when FSA is on or a file in the project is open.
-                // This is done because for either scenario we've already run generators, so there shouldn't be much cost in getting the diagnostics.
-                if ((isFSAOn || isOpen) && solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
+
+                // If all features are enabled for source generated documents, make sure they are included when computing diagnostics.
+                if (solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                     documents = documents.AddRange(sourceGeneratedDocuments);
@@ -152,18 +149,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
                     // for any razor file they are interested in.
                     if (document.IsRazorDocument())
-                    {
                         continue;
-                    }
 
                     result.Add(new WorkspaceDocumentDiagnosticSource(document));
                 }
 
-                // Finally, if FSA is on we also want to check for diagnostics associated with the project itself.
-                if (isFSAOn)
-                {
-                    result.Add(new ProjectDiagnosticSource(project));
-                }
+                // Finally, we also want to check for diagnostics associated with the project itself.
+                result.Add(new ProjectDiagnosticSource(project));
             }
         }
 
