@@ -2,22 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
+    [DataContract]
     internal readonly struct TodoCommentDescriptor
     {
+        [DataMember(Order = 0)]
         public string Text { get; }
+        [DataMember(Order = 1)]
         public int Priority { get; }
 
         public TodoCommentDescriptor(string text, int priority)
