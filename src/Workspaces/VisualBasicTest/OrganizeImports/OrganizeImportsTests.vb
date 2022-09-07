@@ -674,9 +674,54 @@ Imports cc
 Imports cC
 Imports CC
 
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
+// In .Net Core あ always comes before ア.  In .NetFramework if Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
 // If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
 
+#If NETCOREAPP Then
+            Dim final =
+<content>Imports a
+Imports A
+Imports aa
+Imports aA
+Imports Aa
+Imports AA
+Imports b
+Imports B
+Imports bb
+Imports bB
+Imports Bb
+Imports BB
+Imports bbb
+Imports bbB
+Imports bBb
+Imports bBB
+Imports Bbb
+Imports BbB
+Imports BBb
+Imports BBB
+Imports c
+Imports C
+Imports cc
+Imports cC
+Imports cC
+Imports Cc
+Imports CC
+Imports あ
+Imports ｱ
+Imports ああ
+Imports あｱ
+Imports ｱあ
+Imports ｱｱ
+Imports あア
+Imports ｱア
+Imports ア
+Imports アあ
+Imports アｱ
+Imports アア
+
+// In .Net Core あ always comes before ア.  In .NetFramework if Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
+// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
+#Else
             Dim final =
 <content>Imports a
 Imports A
@@ -718,8 +763,9 @@ Imports あア
 Imports あｱ
 Imports ああ
 
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
+// In .Net Core あ always comes before ア.  In .NetFramework if Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
 // If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
+#End If
             Await CheckAsync(initial, final)
         End Function
 
@@ -739,6 +785,22 @@ Imports ｱあ
 Imports ｱア
 Imports ｱｱ</content>
 
+#If NETCOREAPP Then
+            Dim final =
+<content>Imports あ
+Imports ｱ
+Imports ああ
+Imports あｱ
+Imports ｱあ
+Imports ｱｱ
+Imports あア
+Imports ｱア
+Imports ア
+Imports アあ
+Imports アｱ
+Imports アア
+</content>
+#Else
             Dim final =
 <content>Imports ア
 Imports ｱ
@@ -753,6 +815,7 @@ Imports あア
 Imports あｱ
 Imports ああ
 </content>
+#End If
 
             Await CheckAsync(initial, final)
         End Function
