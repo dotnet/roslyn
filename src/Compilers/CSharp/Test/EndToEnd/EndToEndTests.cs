@@ -228,7 +228,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly), typeof(NoIOperationValidation))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
