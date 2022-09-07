@@ -567,7 +567,7 @@ public class MyClass {
 ";
 
             CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
-                // (3,24): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (3,24): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public void MyMeth(params int[] values, int i) {}
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(3, 24));
         }
@@ -585,7 +585,7 @@ class Goo
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                // (4,19): error CS0257: An __arglist parameter must be the last parameter in a parameter list
                 //   public void Bar(__arglist,  int b)
                 Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
@@ -977,7 +977,7 @@ namespace x
                 // (12,24): error CS0514: 'cly': static constructor cannot have an explicit 'this' or 'base' constructor call
                 //         static cly() : base(0){} // sc0514
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly").WithLocation(12, 24),
-                // (8,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'clx.clx(int)'
+                // (8,18): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'clx.clx(int)'
                 //     public class @cly : clx
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "@cly").WithArguments("i", "x.clx.clx(int)").WithLocation(8, 18));
         }
