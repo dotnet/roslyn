@@ -2359,6 +2359,16 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue()
+        {
+            await TestInMethodAsync(
+@"(int param = 42) => {
+    return para$$m + 1;
+}",
+    MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Parameter_Params()
         {
             await TestInClassAsync(
