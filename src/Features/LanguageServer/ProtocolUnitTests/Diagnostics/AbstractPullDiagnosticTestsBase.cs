@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -52,8 +53,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             TestLspServer testLspServer,
             bool useVSDiagnostics,
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
-            bool useProgress = false)
+            bool useProgress = false,
+            bool includeTodoComments = false)
         {
+            var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            optionService.SetGlobalOption(TodoCommentOptionsStorage.ComputeTodoCommentsForClosedFiles, includeTodoComments);
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
