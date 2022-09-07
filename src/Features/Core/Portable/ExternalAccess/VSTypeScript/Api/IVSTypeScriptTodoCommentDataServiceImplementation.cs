@@ -11,36 +11,36 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal readonly struct VSTypeScriptTodoCommentData
     {
-        public VSTypeScriptTodoCommentData(VSTypeScriptTodoCommentDescriptor descriptor, string message, int position)
+        public VSTypeScriptTodoCommentData(VSTypeScriptTodoCommentDescriptorWrapper descriptor, string message, int position)
         {
             Descriptor = descriptor;
             Message = message;
             Position = position;
         }
 
-        public VSTypeScriptTodoCommentDescriptor Descriptor { get; }
+        public VSTypeScriptTodoCommentDescriptorWrapper Descriptor { get; }
         public string Message { get; }
         public int Position { get; }
     }
 
-    internal readonly struct VSTypeScriptTodoCommentDescriptor
+    internal readonly struct VSTypeScriptTodoCommentDescriptorWrapper
     {
         internal readonly TodoCommentDescriptor Descriptor;
 
         public string Text => Descriptor.Text;
 
-        internal VSTypeScriptTodoCommentDescriptor(TodoCommentDescriptor descriptor)
+        internal VSTypeScriptTodoCommentDescriptorWrapper(TodoCommentDescriptor descriptor)
         {
             Descriptor = descriptor;
         }
 
-        public static ImmutableArray<VSTypeScriptTodoCommentDescriptor> Parse(ImmutableArray<string> items)
-            => TodoCommentDescriptor.Parse(items).SelectAsArray(d => new VSTypeScriptTodoCommentDescriptor(d));
+        public static ImmutableArray<VSTypeScriptTodoCommentDescriptorWrapper> Parse(ImmutableArray<string> items)
+            => TodoCommentDescriptor.Parse(items).SelectAsArray(d => new VSTypeScriptTodoCommentDescriptorWrapper(d));
     }
 
     internal interface IVSTypeScriptTodoCommentDataServiceImplementation
     {
         Task<ImmutableArray<VSTypeScriptTodoCommentData>> GetTodoCommentDataAsync(
-            Document document, ImmutableArray<VSTypeScriptTodoCommentDescriptor> value, CancellationToken cancellationToken);
+            Document document, ImmutableArray<VSTypeScriptTodoCommentDescriptorWrapper> value, CancellationToken cancellationToken);
     }
 }

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             var result = await _impl.GetTodoCommentDataAsync(
                 document,
-                commentDescriptors.SelectAsArray(d => new VSTypeScriptTodoCommentDescriptor(d)),
+                commentDescriptors.SelectAsArray(d => new VSTypeScriptTodoCommentDescriptorWrapper(d)),
                 cancellationToken).ConfigureAwait(false);
             if (result.Length == 0)
                 return ImmutableArray<TodoCommentData>.Empty;
