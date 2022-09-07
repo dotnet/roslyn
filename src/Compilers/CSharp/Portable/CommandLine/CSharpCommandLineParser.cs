@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                touchedFilesPath = unquoted;
+                                touchedFilesPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory); ;
                             }
 
                             continue;

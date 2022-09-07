@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineSourceFile> SourceFiles { get; internal set; }
 
         /// <summary>
-        /// Full path of a log of file paths accessed by the compiler, or null if file logging should be suppressed.
+        /// Path of a log of file paths accessed by the compiler, or null if file logging should be suppressed.
         /// </summary>
         /// <remarks>
         /// Two log files will be created: 
