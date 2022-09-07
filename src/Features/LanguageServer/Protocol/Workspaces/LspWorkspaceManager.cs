@@ -217,37 +217,46 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         using var _ = ArrayBuilder<(Solution, bool)>.GetInstance(out var solutions);
         foreach (var workspace in registeredWorkspaces)
         {
-            // Retrieve the workspace's current view of the world at the time the request comes in.
-            // If this is changing underneath, it is either the job of the LSP client to poll us (diagnostics) or we send refresh notifications (semantic tokens) to the client
-            // letting them know that our workspace has changed and they need to re-query us.
-            var workspaceCurrentSolution = workspace.CurrentSolution;
-            var lspSolution = await GetLspSolutionForWorkspaceAsync(workspaceCurrentSolution, cancellationToken).ConfigureAwait(false);
+            // Retrieve the workspace's current view of the world at the time the request comes in. If this is changing
+            // underneath, it is either the job of the LSP client to poll us (diagnostics) or we send refresh
+            // notifications (semantic tokens) to the client letting them know that our workspace has changed and they
+            // need to re-query us.
+            var lspSolution = await GetLspSolutionForWorkspaceAsync(workspace, cancellationToken).ConfigureAwait(false);
             solutions.Add(lspSolution);
         }
 
         return solutions.ToImmutable();
 
-        async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(Solution workspaceCurrentSolution, CancellationToken cancellationToken)
+        async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(Workspace workspace, CancellationToken cancellationToken)
         {
+            var workspaceCurrentSolution = workspace.CurrentSolution;
+
             // At a high level these are the steps we take to compute what the desired LSP solution should be.
             //
-            //   1.  First we want to check if our workspace current solution is the same as the last workspace current solution that we verified matches the LSP text.
-            //       If so, we can skip comparing the LSP text against the workspace text and just return the cached one since absolutely nothing has changed.
-            //       Importantly, we do not return a cached forked solution - we do not want to re-use a forked solution if the LSP text has changed and now matches the workspace.
+            //   1.  First we want to check if our workspace current solution is the same as the last workspace current
+            //       solution that we verified matches the LSP text. If so, we can skip comparing the LSP text against
+            //       the workspace text and just return the cached one since absolutely nothing has changed.
+            //       Importantly, we do not return a cached forked solution - we do not want to re-use a forked solution
+            //       if the LSP text has changed and now matches the workspace.
             //
-            //   2.  If the cached solution isn't a match, we compare the LSP text to the workspace's text and return the workspace text if all LSP text matches.
-            //       This check is performant as checksums will be computed for these documents in order to make requests OOP.  So these are already computed or will be later in this request.
+            //   2.  If the cached solution isn't a match, we compare the LSP text to the workspace's text and return
+            //       the workspace text if all LSP text matches. This check is performant as checksums will be computed
+            //       for these documents in order to make requests OOP.  So these are already computed or will be later
+            //       in this request.
             //
-            //   3.  Third, we check to see if we have cached a forked LSP solution for the current set of LSP texts against the current workspace version.
-            //       If so, we can just reuse that instead of re-forking and blowing away the trees / source generated docs / etc. that we created for the fork.
+            //   3.  Third, we check to see if we have cached a forked LSP solution for the current set of LSP texts
+            //       against the current workspace version. If so, we can just reuse that instead of re-forking and
+            //       blowing away the trees / source generated docs / etc. that we created for the fork.
             //       
-            //   4.  We have nothing cached for this combination of LSP texts and workspace version.  We have exhausted our options and must create an LSP fork
-            //       from the current workspace solution with the current LSP text.
+            //   4.  We have nothing cached for this combination of LSP texts and workspace version.  We have exhausted
+            //       our options and must create an LSP fork from the current workspace solution with the current LSP
+            //       text.
             //
-            //   We propogate the IsForked value back up so that we only report telemetry on forking if the forked solution is actually requested.
+            // We propagate the IsForked value back up so that we only report telemetry on forking if the forked
+            // solution is actually requested.
 
             // Step 1: Check if nothing has changed and we already verified that the workspace text matches our LSP text.
-            if (_cachedLspSolutions.TryGetValue(workspaceCurrentSolution.Workspace, out var cachedSolution) && cachedSolution.solution == workspaceCurrentSolution)
+            if (_cachedLspSolutions.TryGetValue(workspace, out var cachedSolution) && cachedSolution.solution == workspaceCurrentSolution)
             {
                 return (workspaceCurrentSolution, IsForked: false);
             }
@@ -257,7 +266,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
-                _cachedLspSolutions[workspaceCurrentSolution.Workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
+                _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
                 return (workspaceCurrentSolution, IsForked: false);
             }
 
@@ -275,7 +284,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
 
             // Remember this forked solution and the workspace version it was forked from.
-            _cachedLspSolutions[workspaceCurrentSolution.Workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
+            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
             return (lspSolution, IsForked: true);
         }
     }
