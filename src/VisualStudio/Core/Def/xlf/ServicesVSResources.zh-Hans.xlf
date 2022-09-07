@@ -1142,6 +1142,11 @@
         <target state="translated">首选范围运算符</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="new">Prefer read-only struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">首选只读字段</target>

@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -25,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     [UseExportProvider]
     public class NoCompilationTodoCommentTests : AbstractTodoCommentTests
     {
-        protected override TestWorkspace CreateWorkspace(string codeWithMarker)
+        protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         {
             var workspace = TestWorkspace.CreateWorkspace(XElement.Parse(
 $@"<Workspace>
     <Project Language=""NoCompilation"">
         <Document>{codeWithMarker}</Document>
     </Project>
-</Workspace>"), composition: EditorTestCompositions.EditorFeatures.AddParts(
+</Workspace>"), composition: composition.AddParts(
                 typeof(NoCompilationContentTypeDefinitions),
                 typeof(NoCompilationContentTypeLanguageService),
                 typeof(NoCompilationTodoCommentService)));
@@ -40,12 +39,12 @@ $@"<Workspace>
             return workspace;
         }
 
-        [Fact, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-        public async Task TodoCommentInNoCompilationProject()
+        [Theory, CombinatorialData, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
+        public async Task TodoCommentInNoCompilationProject(TestHost host)
         {
             var code = @"(* [|Message|] *)";
 
-            await TestAsync(code);
+            await TestAsync(code, host);
         }
     }
 
@@ -64,8 +63,7 @@ $@"<Workspace>
                 commentDescriptors.First().Priority,
                 "Message",
                 document.Id,
-                null, null,
-                mappedLine: 0, mappedColumn: 3,
-                originalLine: 0, originalColumn: 3)));
+                span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
+                mappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
     }
 }

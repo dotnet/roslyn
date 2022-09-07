@@ -755,11 +755,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaOrMethod,
                 diagnostics,
                 static (diagnostics, _, _, parameter, _, typeAndLocation) =>
-                    diagnostics.Add(
-                        ErrorCode.ERR_ScopedMismatchInParameterOfTarget,
-                        typeAndLocation.Location,
-                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                        typeAndLocation.Type),
+                {
+                    // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+                    // delegate conversions until variance is supported.
+                    //diagnostics.Add(
+                    //    ErrorCode.ERR_ScopedMismatchInParameterOfTarget,
+                    //    typeAndLocation.Location,
+                    //    new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                    //    typeAndLocation.Type);
+                },
                 (Type: targetType, Location: syntax.Location),
                 invokedAsExtensionMethod);
         }

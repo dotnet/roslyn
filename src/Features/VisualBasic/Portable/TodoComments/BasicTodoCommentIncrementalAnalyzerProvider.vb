@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
                 commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
                 document As SyntacticDocument,
                 trivia As SyntaxTrivia,
-                todoList As ArrayBuilder(Of TodoComment))
+                todoList As ArrayBuilder(Of TodoCommentData))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
                 Return
             End If
 
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             ' 3 for REM
             Dim index = GetFirstCharacterIndex(message)
             If index >= message.Length OrElse
-                       index > message.Length - 3 Then
+                       index > message.Length - "REM".Length Then
                 Return index
             End If
 

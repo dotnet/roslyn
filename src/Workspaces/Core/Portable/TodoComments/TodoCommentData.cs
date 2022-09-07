@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
@@ -25,34 +24,23 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public readonly DocumentId DocumentId;
 
         [DataMember(Order = 3)]
-        public readonly string? MappedFilePath;
+        public readonly FileLinePositionSpan Span;
 
         [DataMember(Order = 4)]
-        public readonly string? OriginalFilePath;
+        public readonly FileLinePositionSpan MappedSpan;
 
-        [DataMember(Order = 5)]
-        public readonly int MappedLine;
-
-        [DataMember(Order = 6)]
-        public readonly int MappedColumn;
-
-        [DataMember(Order = 7)]
-        public readonly int OriginalLine;
-
-        [DataMember(Order = 8)]
-        public readonly int OriginalColumn;
-
-        public TodoCommentData(int priority, string message, DocumentId documentId, string? mappedFilePath, string? originalFilePath, int mappedLine, int mappedColumn, int originalLine, int originalColumn)
+        public TodoCommentData(
+            int priority,
+            string message,
+            DocumentId documentId,
+            FileLinePositionSpan span,
+            FileLinePositionSpan mappedSpan)
         {
             Priority = priority;
             Message = message;
             DocumentId = documentId;
-            MappedFilePath = mappedFilePath;
-            OriginalFilePath = originalFilePath;
-            MappedLine = mappedLine;
-            MappedColumn = mappedColumn;
-            OriginalLine = originalLine;
-            OriginalColumn = originalColumn;
+            Span = span;
+            MappedSpan = mappedSpan;
         }
 
         public override bool Equals(object? obj)
@@ -62,20 +50,20 @@ namespace Microsoft.CodeAnalysis.TodoComments
             => GetHashCode(this);
 
         public override string ToString()
-            => $"{Priority} {Message} {MappedFilePath ?? ""} ({MappedLine}, {MappedColumn}) [original: {OriginalFilePath ?? ""} ({OriginalLine}, {OriginalColumn})";
+            => $"{Priority} {Message} {MappedSpan.Path ?? ""} ({MappedSpan.StartLinePosition.Line}, {MappedSpan.StartLinePosition.Character}) [original: {Span.Path ?? ""} ({Span.StartLinePosition.Line}, {Span.StartLinePosition.Character})";
 
-        public bool Equals(TodoCommentData right)
-            => DocumentId == right.DocumentId &&
-               Priority == right.Priority &&
-               Message == right.Message &&
-               OriginalLine == right.OriginalLine &&
-               OriginalColumn == right.OriginalColumn;
+        public bool Equals(TodoCommentData obj)
+            => DocumentId == obj.DocumentId &&
+               Priority == obj.Priority &&
+               Message == obj.Message &&
+               Span == obj.Span &&
+               MappedSpan == obj.MappedSpan;
 
         public static int GetHashCode(TodoCommentData item)
             => Hash.Combine(item.DocumentId,
                Hash.Combine(item.Priority,
                Hash.Combine(item.Message,
-               Hash.Combine(item.OriginalLine,
-               Hash.Combine(item.OriginalColumn, 0)))));
+               Hash.Combine(item.Span.GetHashCode(),
+               Hash.Combine(item.MappedSpan.GetHashCode(), 0)))));
     }
 }

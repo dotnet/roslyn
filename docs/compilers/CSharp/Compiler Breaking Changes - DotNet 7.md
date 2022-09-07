@@ -1,6 +1,6 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
-## Type tests for `ref` structs ar not supported.
+## Type tests for `ref` structs are not supported.
 
 ***Introduced in Visual Studio 2022 version 17.4***
 

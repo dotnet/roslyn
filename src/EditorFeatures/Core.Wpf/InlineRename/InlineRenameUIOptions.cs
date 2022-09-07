@@ -8,10 +8,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename
 {
     internal sealed class InlineRenameUIOptions
     {
+        private const string FeatureName = "InlineRename";
+
         public static readonly Option2<bool> UseInlineAdornment = new(
-            feature: "InlineRename",
+            FeatureName,
             name: "UseInlineAdornment",
             defaultValue: true,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.Rename_UseInlineAdornment"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.RenameUseInlineAdornment"));
+
+        public static readonly Option2<bool> CollapseUI = new(
+            FeatureName,
+            name: "CollapseRenameUI",
+            defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.CollapseRenameUI"));
     }
 }

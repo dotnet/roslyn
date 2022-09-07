@@ -328,13 +328,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var leadingTrivia = localDeclaration
                 .GetLeadingTrivia()
                 .Reverse()
-                .SkipWhile(t => t.MatchesKind(SyntaxKind.WhitespaceTrivia))
+                .SkipWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
                 .Reverse()
                 .ToSyntaxTriviaList();
 
             var trailingTrivia = localDeclaration
                 .GetTrailingTrivia()
-                .SkipWhile(t => t.MatchesKind(SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia))
+                .SkipWhile(t => t is SyntaxTrivia(SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia))
                 .ToSyntaxTriviaList();
 
             var newLeadingTrivia = leadingTrivia.Concat(trailingTrivia);

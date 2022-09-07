@@ -829,7 +829,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
+        internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
+
+        internal sealed override FileIdentifier? AssociatedFileIdentifier
+        {
+            get
+            {
+                if (!IsFileLocal)
+                {
+                    return null;
+                }
+
+                return FileIdentifier.Create(AssociatedSyntaxTree);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -1745,9 +1758,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsFileLocal && (object?)ContainingType != null)
+            if (AssociatedFileIdentifier is { } fileIdentifier)
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+                Debug.Assert(IsFileLocal);
+
+                // A well-behaved file-local type only has declarations in one syntax tree.
+                // There may be multiple syntax trees across declarations in error scenarios,
+                // but we're not interested in handling that for the purposes of producing this error.
+                var tree = declaration.Declarations[0].SyntaxReference.SyntaxTree;
+                if (fileIdentifier.EncoderFallbackErrorMessage is { } errorMessage)
+                {
+                    Debug.Assert(fileIdentifier.FilePathChecksumOpt.IsDefault);
+                    diagnostics.Add(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, location, this, errorMessage);
+                }
+
+                if ((object?)ContainingType != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+                }
             }
 
             return;

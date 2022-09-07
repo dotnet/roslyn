@@ -65,16 +65,16 @@ internal abstract record class AbstractDocumentDiagnosticSource<TDocument>(TDocu
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
                 document.Id,
-                originalFilePath: comment.OriginalFilePath,
-                mappedFilePath: comment.MappedFilePath,
-                originalStartLine: comment.OriginalLine,
-                originalStartColumn: comment.OriginalColumn,
-                originalEndLine: comment.OriginalLine,
-                originalEndColumn: comment.OriginalColumn,
-                mappedStartLine: comment.MappedLine,
-                mappedStartColumn: comment.MappedColumn,
-                mappedEndLine: comment.MappedLine,
-                mappedEndColumn: comment.MappedColumn)));
+                originalFilePath: comment.Span.Path,
+                mappedFilePath: comment.MappedSpan.Path,
+                originalStartLine: comment.Span.StartLinePosition.Line,
+                originalStartColumn: comment.Span.StartLinePosition.Character,
+                originalEndLine: comment.Span.EndLinePosition.Line,
+                originalEndColumn: comment.Span.EndLinePosition.Character,
+                mappedStartLine: comment.MappedSpan.StartLinePosition.Line,
+                mappedStartColumn: comment.MappedSpan.StartLinePosition.Character,
+                mappedEndLine: comment.MappedSpan.EndLinePosition.Line,
+                mappedEndColumn: comment.MappedSpan.EndLinePosition.Character)));
     }
 
     private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
