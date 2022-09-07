@@ -157,7 +157,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Ensure we have the latest lsp solutions
         var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var (hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
+        var (_, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
         return hostWorkspaceSolution;
@@ -168,7 +168,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+    public async Task<(Workspace?, Document?)> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.Uri;
 
@@ -176,7 +176,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
-        foreach (var (lspSolution, isForked) in lspSolutions)
+        foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
             var documents = lspSolution.GetDocuments(uri);
             if (documents.Any())
@@ -189,7 +189,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
-                return document;
+                return (workspace, document);
             }
         }
 
@@ -199,14 +199,19 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace if its open.
-        var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
-        return miscDocument;
+        if (_trackedDocuments.ContainsKey(uri))
+        {
+            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger);
+            return (_lspMiscellaneousFilesWorkspace, miscDocument);
+        }
+
+        return default;
     }
 
     /// <summary>
     /// Gets the LSP view of all the registered workspaces' current solutions.
     /// </summary>
-    private async Task<ImmutableArray<(Solution Solution, bool IsForked)>> GetLspSolutionsAsync(CancellationToken cancellationToken)
+    private async Task<ImmutableArray<(Workspace workspace, Solution Solution, bool IsForked)>> GetLspSolutionsAsync(CancellationToken cancellationToken)
     {
         // Ensure that the loose files workspace is searched last.
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
@@ -214,15 +219,15 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             .Where(workspace => workspace is not LspMiscellaneousFilesWorkspace)
             .Concat(registeredWorkspaces.Where(workspace => workspace is LspMiscellaneousFilesWorkspace)).ToImmutableArray();
 
-        using var _ = ArrayBuilder<(Solution, bool)>.GetInstance(out var solutions);
+        using var _ = ArrayBuilder<(Workspace, Solution, bool)>.GetInstance(out var solutions);
         foreach (var workspace in registeredWorkspaces)
         {
             // Retrieve the workspace's current view of the world at the time the request comes in. If this is changing
             // underneath, it is either the job of the LSP client to poll us (diagnostics) or we send refresh
             // notifications (semantic tokens) to the client letting them know that our workspace has changed and they
             // need to re-query us.
-            var lspSolution = await GetLspSolutionForWorkspaceAsync(workspace, cancellationToken).ConfigureAwait(false);
-            solutions.Add(lspSolution);
+            var (lspSolution, isForked) = await GetLspSolutionForWorkspaceAsync(workspace, cancellationToken).ConfigureAwait(false);
+            solutions.Add((workspace, lspSolution, isForked));
         }
 
         return solutions.ToImmutable();
