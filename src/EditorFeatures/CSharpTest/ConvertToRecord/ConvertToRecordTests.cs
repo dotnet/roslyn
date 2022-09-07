@@ -4974,7 +4974,7 @@ namespace N
         public int P { get; init; }
         public bool B { get; init; }
 
-        public C(int p, bool b) : base(default)
+        public C(int p, bool b) : base(default(int))
         {
             P = p;
             B = b;
