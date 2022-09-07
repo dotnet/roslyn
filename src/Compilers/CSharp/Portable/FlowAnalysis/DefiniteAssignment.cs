@@ -1674,7 +1674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterParameter(ParameterSymbol parameter)
         {
-
             int slot = GetOrCreateSlot(parameter);
             if (parameter.RefKind == RefKind.Out && !(this.CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync)) // out parameters not allowed in async
             {

@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -219,11 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
-        private ConstantValue DefaultSyntaxValue => DefaultSyntax.Item1;
+        private ConstantValue DefaultSyntaxValue => DefaultSyntax.ConstValue;
 
-        public override BoundParameterEqualsValue? BoundEqualsValue => DefaultSyntax.Item2;
+        public override BoundParameterEqualsValue? BoundEqualsValue => DefaultSyntax.BoundEqualsValue;
 
-        private (ConstantValue, BoundParameterEqualsValue?) DefaultSyntax
+        private (ConstantValue ConstValue, BoundParameterEqualsValue? BoundEqualsValue) DefaultSyntax
         {
             get
             {
