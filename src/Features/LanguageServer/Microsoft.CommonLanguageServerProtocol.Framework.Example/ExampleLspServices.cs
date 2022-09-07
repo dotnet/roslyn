@@ -35,9 +35,9 @@ internal class ExampleLspServices : ILspServices
         return obj;
     }
 
-    public IEnumerable<ServiceType> GetServices<ServiceType>()
+    public IEnumerable<TService> GetServices<TService>()
     {
-        return _serviceProvider.GetServices<ServiceType>();
+        return _serviceProvider.GetServices<TService>();
     }
 
     public void Dispose()

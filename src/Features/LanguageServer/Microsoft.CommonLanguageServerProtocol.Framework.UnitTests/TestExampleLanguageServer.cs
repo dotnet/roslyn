@@ -28,9 +28,9 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         _clientRpc.Disconnected += _clientRpc_Disconnected;
     }
 
-    public async Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken)
+    public async Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(string methodName, TRequest request, CancellationToken cancellationToken)
     {
-        var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, request, cancellationToken);
+        var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponse>(methodName, request, cancellationToken);
 
         return result;
     }

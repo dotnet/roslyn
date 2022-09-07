@@ -4,23 +4,23 @@
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-public interface IInitializeManager<RequestType, ResponseType>
+public interface IInitializeManager<TRequest, TResponse>
 {
     /// <summary>
     /// Gets a response to be used for "initialize", completing the negoticaitons between client and server.
     /// </summary>
     /// <returns>An InitializeResult.</returns>
-    ResponseType GetInitializeResult();
+    TResponse GetInitializeResult();
 
     /// <summary>
     /// Store the InitializeParams for later retrieval.
     /// </summary>
     /// <param name="request">The InitializeParams to be stored.</param>
-    void SetInitializeParams(RequestType request);
+    void SetInitializeParams(TRequest request);
 
     /// <summary>
     /// Gets the InitializeParams to, for example, examine the ClientCapabilities.
     /// </summary>
     /// <returns>The InitializeParams object sent with "initialize".</returns>
-    RequestType GetInitializeParams();
+    TRequest GetInitializeParams();
 }

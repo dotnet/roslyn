@@ -11,7 +11,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("shutdown")]
-public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestContextType>
+public class ShutdownHandler<TRequestContext> : INotificationHandler<TRequestContext>
 {
     private readonly ILifeCycleManager _lifeCycleManager;
 
@@ -24,7 +24,7 @@ public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestC
 
     public bool RequiresLSPSolution => true;
 
-    public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(TRequestContext requestContext, CancellationToken cancellationToken)
     {
         await _lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
     }

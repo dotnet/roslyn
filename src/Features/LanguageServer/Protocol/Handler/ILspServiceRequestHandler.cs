@@ -7,16 +7,16 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal interface ILspServiceRequestHandler<RequestType, ResponseType> :
+internal interface ILspServiceRequestHandler<TRequest, TResponse> :
     ILspService,
-    IRequestHandler<RequestType, ResponseType, RequestContext>,
+    IRequestHandler<TRequest, TResponse, RequestContext>,
     ISolutionRequiredHandler
 {
 }
 
-internal interface ILspServiceDocumentRequestHandler<RequestType, ResponseType> :
-    ILspServiceRequestHandler<RequestType, ResponseType>,
-    ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifier>,
+internal interface ILspServiceDocumentRequestHandler<TRequest, TResponse> :
+    ILspServiceRequestHandler<TRequest, TResponse>,
+    ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>,
     ISolutionRequiredHandler
 {
 }

@@ -15,10 +15,10 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleManager, IAsyncDisposable
+public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManager, IAsyncDisposable
 {
     private readonly JsonRpc _jsonRpc;
-    private IRequestExecutionQueue<RequestContextType>? _queue;
+    private IRequestExecutionQueue<TRequestContext>? _queue;
     protected readonly ILspLogger _logger;
     private ILspServices? _lspServices;
 
@@ -124,10 +124,10 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
         IsInitialized = true;
     }
 
-    protected virtual IRequestExecutionQueue<RequestContextType> ConstructRequestExecutionQueue()
+    protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = GetHandlerProvider();
-        var queue = new RequestExecutionQueue<RequestContextType>(_logger, handlerProvider);
+        var queue = new RequestExecutionQueue<TRequestContext>(_logger, handlerProvider);
         queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
         queue.Start();
@@ -135,7 +135,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
         return queue;
     }
 
-    protected IRequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
+    protected IRequestExecutionQueue<TRequestContext> GetRequestExecutionQueue()
     {
         if (_queue is null)
             _queue = ConstructRequestExecutionQueue();
@@ -150,21 +150,21 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
     private class DelegatingEntryPoint
     {
         private readonly string _method;
-        private readonly AbstractLanguageServer<RequestContextType> _target;
+        private readonly AbstractLanguageServer<TRequestContext> _target;
 
-        public DelegatingEntryPoint(string method, AbstractLanguageServer<RequestContextType> target)
+        public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target)
         {
             _method = method;
             _target = target;
         }
 
-        public async Task NotificationEntryPointAsync<TRequestType>(TRequestType request, CancellationToken cancellationToken) where TRequestType : class
+        public async Task NotificationEntryPointAsync<TRequest>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
             CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
-            _ = await queue.ExecuteAsync<TRequestType, VoidReturn>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
+            _ = await queue.ExecuteAsync<TRequest, VoidReturn>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
@@ -176,13 +176,13 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
             _ = await queue.ExecuteAsync<VoidReturn, VoidReturn>(VoidReturn.Instance, _method, lspServices, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType request, CancellationToken cancellationToken) where TRequestType : class
+        public async Task<TResponse?> EntryPointAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest : class
         {
             CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();
 
-            var result = await queue.ExecuteAsync<TRequestType, TResponseType>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
+            var result = await queue.ExecuteAsync<TRequest, TResponse>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
 
             return result;
         }
@@ -287,18 +287,18 @@ public abstract class AbstractLanguageServer<RequestContextType> : ILifeCycleMan
 
     internal readonly struct TestAccessor
     {
-        private readonly AbstractLanguageServer<RequestContextType> _server;
+        private readonly AbstractLanguageServer<TRequestContext> _server;
 
-        internal TestAccessor(AbstractLanguageServer<RequestContextType> server)
+        internal TestAccessor(AbstractLanguageServer<TRequestContext> server)
         {
             _server = server;
         }
 
         public T GetRequiredLspService<T>() where T : class => _server.GetLspServices().GetRequiredService<T>();
 
-        internal RequestExecutionQueue<RequestContextType>.TestAccessor? GetQueueAccessor()
+        internal RequestExecutionQueue<TRequestContext>.TestAccessor? GetQueueAccessor()
         {
-            if (_server._queue is RequestExecutionQueue<RequestContextType> requestExecution)
+            if (_server._queue is RequestExecutionQueue<TRequestContext> requestExecution)
                 return requestExecution.GetTestAccessor();
 
             return null;

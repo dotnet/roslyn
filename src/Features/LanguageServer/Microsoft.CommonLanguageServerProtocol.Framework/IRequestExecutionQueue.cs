@@ -11,14 +11,14 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Queue's requests to be Executed in the proper order.
 /// </summary>
-/// <typeparam name="RequestContextType">The type of the RequestContext to be used by the handler.</typeparam>
-public interface IRequestExecutionQueue<RequestContextType> : IAsyncDisposable
+/// <typeparam name="TRequestContext">The type of the RequestContext to be used by the handler.</typeparam>
+public interface IRequestExecutionQueue<TRequestContext> : IAsyncDisposable
 {
     /// <summary>
     /// Queue a request.
     /// </summary>
     /// <returns>A task that completes when the handler execution is done.</returns>
-    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    Task<TResponse> ExecuteAsync<TRequest, TResponse>(TRequest request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
     /// <summary>
     /// Start the queue accepting requests once any event handlers have been attached.

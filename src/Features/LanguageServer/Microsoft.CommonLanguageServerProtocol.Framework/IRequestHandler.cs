@@ -9,7 +9,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-public interface IRequestHandler<TRequestType, TResponseType, TRequestContextType> : IMethodHandler
+public interface IRequestHandler<TRequest, TResponse, TRequestContext> : IMethodHandler
 {
     /// <summary>
     /// Handles an LSP request in the context of the supplied document and/or solutuion.
@@ -18,5 +18,5 @@ public interface IRequestHandler<TRequestType, TResponseType, TRequestContextTyp
     /// <param name="context">The LSP request context, which should have been filled in with document information from <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/> if applicable.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
     /// <returns>The LSP response.</returns>
-    Task<TResponseType> HandleRequestAsync(TRequestType request, TRequestContextType context, CancellationToken cancellationToken);
+    Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken);
 }

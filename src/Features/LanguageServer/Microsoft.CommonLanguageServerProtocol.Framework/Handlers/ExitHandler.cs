@@ -9,7 +9,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("exit")]
-public class ExitHandler<RequestContextType> : INotificationHandler<RequestContextType>
+public class ExitHandler<TRequestContext> : INotificationHandler<TRequestContext>
 {
     private readonly ILifeCycleManager _lifeCycleManager;
 
@@ -20,7 +20,7 @@ public class ExitHandler<RequestContextType> : INotificationHandler<RequestConte
 
     public bool MutatesSolutionState => true;
 
-    public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(TRequestContext requestContext, CancellationToken cancellationToken)
     {
         await _lifeCycleManager.ExitAsync().ConfigureAwait(false);
     }

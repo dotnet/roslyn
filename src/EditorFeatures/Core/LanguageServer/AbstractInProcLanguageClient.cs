@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<AbstractLanguageServer<RequestContext>> CreateAsync<RequestContextType>(
+        internal static async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,

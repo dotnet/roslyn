@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialize")]
-public class InitializeHandler<RequestType, ResponseType, RequestContextType>
-    : IRequestHandler<RequestType, ResponseType, RequestContextType>
+public class InitializeHandler<TRequest, TResponse, TRequestContext>
+    : IRequestHandler<TRequest, TResponse, TRequestContext>
 {
-    private readonly IInitializeManager<RequestType, ResponseType> _capabilitiesManager;
+    private readonly IInitializeManager<TRequest, TResponse> _capabilitiesManager;
 
-    public InitializeHandler(IInitializeManager<RequestType, ResponseType> capabilitiesManager)
+    public InitializeHandler(IInitializeManager<TRequest, TResponse> capabilitiesManager)
     {
         _capabilitiesManager = capabilitiesManager;
     }
@@ -22,7 +22,7 @@ public class InitializeHandler<RequestType, ResponseType, RequestContextType>
 
     public bool RequiresLSPSolution => false;
 
-    public Task<ResponseType> HandleRequestAsync(RequestType request, RequestContextType context, CancellationToken cancellationToken)
+    public Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken)
     {
         _capabilitiesManager.SetInitializeParams(request);
 

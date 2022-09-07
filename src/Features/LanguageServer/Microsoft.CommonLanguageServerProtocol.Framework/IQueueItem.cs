@@ -11,8 +11,8 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// An item to be queued for execution.
 /// </summary>
-/// <typeparam name="RequestContextType">The type of the request context to be passed along to the handler.</typeparam>
-public interface IQueueItem<RequestContextType>
+/// <typeparam name="TRequestContext">The type of the request context to be passed along to the handler.</typeparam>
+public interface IQueueItem<TRequestContext>
 {
     /// <summary>
     /// Begins executing the work specified by this queue item.

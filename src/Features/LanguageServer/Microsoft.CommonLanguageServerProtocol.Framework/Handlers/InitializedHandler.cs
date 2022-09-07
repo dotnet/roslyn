@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialized")]
-public class InitializedHandler<RequestType, RequestContextType> : INotificationHandler<RequestType, RequestContextType>
+public class InitializedHandler<TRequest, TRequestContext> : INotificationHandler<TRequest, TRequestContext>
 {
     private bool HasBeenInitialized = false;
 
@@ -17,7 +17,7 @@ public class InitializedHandler<RequestType, RequestContextType> : INotification
 
     public bool RequiresLSPSolution => true;
 
-    public Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(TRequest request, TRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (HasBeenInitialized)
         {

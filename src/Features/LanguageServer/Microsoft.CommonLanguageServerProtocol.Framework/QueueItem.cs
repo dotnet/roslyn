@@ -18,11 +18,11 @@ internal record VoidReturn
     public static VoidReturn Instance = new();
 }
 
-internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
+internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
 
-    private readonly TRequestType _request;
+    private readonly TRequest _request;
     private readonly IMethodHandler _handler;
     private readonly ILspServices _lspServices;
 
@@ -30,7 +30,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
     /// A task completion source representing the result of this queue item's work.
     /// This is the task that the client is waiting on.
     /// </summary>
-    private readonly TaskCompletionSource<TResponseType> _completionSource = new();
+    private readonly TaskCompletionSource<TResponse> _completionSource = new();
 
     public bool MutatesServerState { get; }
 
@@ -42,7 +42,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         bool mutatesSolutionState,
         string methodName,
         IMethodHandler methodHandler,
-        TRequestType request,
+        TRequest request,
         IMethodHandler handler,
         ILspServices lspServices,
         ILspLogger logger,
@@ -61,17 +61,17 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         MethodName = methodName;
     }
 
-    public static (IQueueItem<RequestContextType>, Task<TResponseType>) Create(
+    public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
         bool mutatesSolutionState,
         string methodName,
         IMethodHandler methodHandler,
-        TRequestType request,
+        TRequest request,
         IMethodHandler handler,
         ILspServices lspServices,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
-        var queueItem = new QueueItem<TRequestType, TResponseType, RequestContextType>(
+        var queueItem = new QueueItem<TRequest, TResponse, TRequestContext>(
             mutatesSolutionState,
             methodName,
             methodHandler,
@@ -98,7 +98,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var requestContextFactory = _lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
+            var requestContextFactory = _lspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
             var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
 
             if (context is null)
@@ -115,25 +115,25 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
             }
             else
             {
-                if (_handler is IRequestHandler<TRequestType, TResponseType, RequestContextType> requestHandler)
+                if (_handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
                 {
                     var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
 
                     _completionSource.TrySetResult(result);
                 }
-                else if (_handler is INotificationHandler<TRequestType, RequestContextType> notificationHandler)
+                else if (_handler is INotificationHandler<TRequest, TRequestContext> notificationHandler)
                 {
                     await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
 
                     // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
-                    _completionSource.TrySetResult((TResponseType)(object)VoidReturn.Instance);
+                    _completionSource.TrySetResult((TResponse)(object)VoidReturn.Instance);
                 }
-                else if (_handler is INotificationHandler<RequestContextType> parameterlessNotificationHandler)
+                else if (_handler is INotificationHandler<TRequestContext> parameterlessNotificationHandler)
                 {
                     await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
 
                     // We know that the return type of <see cref="INotificationHandler{TRequestType, RequestContextType}"/> will always be <see cref="VoidReturn" /> even if the compiler doesn't.
-                    _completionSource.TrySetResult((TResponseType)(object)VoidReturn.Instance);
+                    _completionSource.TrySetResult((TResponse)(object)VoidReturn.Instance);
                 }
                 else
                 {

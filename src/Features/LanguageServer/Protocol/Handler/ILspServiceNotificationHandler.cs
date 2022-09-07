@@ -13,9 +13,9 @@ internal interface ILspServiceNotificationHandler :
 {
 }
 
-internal interface ILspServiceNotificationHandler<RequestType> :
+internal interface ILspServiceNotificationHandler<TRequest> :
     ILspService,
-    INotificationHandler<RequestType, RequestContext>,
+    INotificationHandler<TRequest, RequestContext>,
     ISolutionRequiredHandler
 {
 }

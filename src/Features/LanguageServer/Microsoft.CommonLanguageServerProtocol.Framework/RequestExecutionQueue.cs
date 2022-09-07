@@ -45,7 +45,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
+public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     protected readonly ILspLogger _logger;
     private readonly IHandlerProvider _handlerProvider;
@@ -54,7 +54,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     /// The queue containing the ordered LSP requests along with a combined cancellation token
     /// representing the queue's cancellation token and the individual request cancellation token.
     /// </summary>
-    protected readonly AsyncQueue<(IQueueItem<RequestContextType> queueItem, CancellationToken cancellationToken)> _queue = new();
+    protected readonly AsyncQueue<(IQueueItem<TRequestContext> queueItem, CancellationToken cancellationToken)> _queue = new();
     private readonly CancellationTokenSource _cancelSource = new();
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
-    /// <inheritdoc cref="IRequestExecutionQueue{RequestContextType}.RequestServerShutdown"/>
+    /// <inheritdoc cref="IRequestExecutionQueue{TRequestContext}.RequestServerShutdown"/>
     public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
     public RequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
@@ -80,9 +80,9 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         _queueProcessingTask = ProcessQueueAsync();
     }
 
-    protected ITextDocumentIdentifierHandler? GetTextDocumentIdentifierHandler<TRequestType, TResponseType>(string methodName)
+    protected ITextDocumentIdentifierHandler? GetTextDocumentIdentifierHandler<TRequest, TResponse>(string methodName)
     {
-        var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
+        var handler = GetMethodHandler<TRequest, TResponse>(methodName);
 
         ITextDocumentIdentifierHandler? textDocument = null;
         if (handler is ITextDocumentIdentifierHandler textDocumentIdentifierHandler)
@@ -91,10 +91,10 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         return textDocument;
     }
 
-    private IMethodHandler GetMethodHandler<TRequestType, TResponseType>(string methodName)
+    private IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
     {
-        var requestType = typeof(TRequestType) == typeof(VoidReturn) ? null : typeof(TRequestType);
-        var responseType = typeof(TResponseType) == typeof(VoidReturn) ? null : typeof(TResponseType);
+        var requestType = typeof(TRequest) == typeof(VoidReturn) ? null : typeof(TRequest);
+        var responseType = typeof(TResponse) == typeof(VoidReturn) ? null : typeof(TResponse);
 
         var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
 
@@ -110,20 +110,20 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
     /// The request could also be cancelled by the queue shutting down.</param>
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-    public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
-        TRequestType request,
+    public Task<TResponse> ExecuteAsync<TRequest, TResponse>(
+        TRequest request,
         string methodName,
         ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
-        var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
+        var handler = GetMethodHandler<TRequest, TResponse>(methodName);
         // Create a combined cancellation token so either the client cancelling it's token or the queue
         // shutting down cancels the request.
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
         var combinedCancellationToken = combinedTokenSource.Token;
-        var (item, resultTask) = CreateQueueItem<TRequestType, TResponseType>(
+        var (item, resultTask) = CreateQueueItem<TRequest, TResponse>(
             handler.MutatesSolutionState,
             methodName,
             handler,
@@ -142,19 +142,19 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
         // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
         if (!didEnqueue)
-            return Task.FromException<TResponseType>(new InvalidOperationException("Server was requested to shut down."));
+            return Task.FromException<TResponse>(new InvalidOperationException("Server was requested to shut down."));
 
         return resultTask;
     }
 
-    internal (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
+    internal (IQueueItem<TRequestContext>, Task<TResponse>) CreateQueueItem<TRequest, TResponse>(
         bool mutatesSolutionState,
         string methodName,
         IMethodHandler methodHandler,
-        TRequestType request,
+        TRequest request,
         IMethodHandler handler,
         ILspServices lspServices,
-        CancellationToken cancellationToken) => QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
+        CancellationToken cancellationToken) => QueueItem<TRequest, TResponse, TRequestContext>.Create(mutatesSolutionState,
             methodName,
             methodHandler,
             request,
@@ -171,7 +171,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
             {
                 // First attempt to de-queue the work item in its own try-catch.
                 // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
-                (IQueueItem<RequestContextType> work, CancellationToken cancellationToken) queueItem;
+                (IQueueItem<TRequestContext> work, CancellationToken cancellationToken) queueItem;
                 try
                 {
                     queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
@@ -253,9 +253,9 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
     internal readonly struct TestAccessor
     {
-        private readonly RequestExecutionQueue<RequestContextType> _queue;
+        private readonly RequestExecutionQueue<TRequestContext> _queue;
 
-        public TestAccessor(RequestExecutionQueue<RequestContextType> queue)
+        public TestAccessor(RequestExecutionQueue<TRequestContext> queue)
             => _queue = queue;
 
         public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
