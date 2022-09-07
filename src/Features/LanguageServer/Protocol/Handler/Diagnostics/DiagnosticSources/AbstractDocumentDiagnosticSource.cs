@@ -13,9 +13,16 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract record class AbstractDocumentDiagnosticSource<TDocument>(TDocument Document) : IDiagnosticSource
+internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosticSource
     where TDocument : TextDocument
 {
+    protected readonly TDocument Document;
+
+    protected AbstractDocumentDiagnosticSource(TDocument document)
+    {
+        this.Document = document;
+    }
+
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
 
     private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
@@ -27,14 +34,17 @@ internal abstract record class AbstractDocumentDiagnosticSource<TDocument>(TDocu
 
     public Uri GetUri() => Document.GetURI();
 
+    protected abstract bool IncludeTodoComments { get; }
+    protected abstract bool IncludeStandardDiagnostics { get; }
+
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
-        var todoComments = await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-        var diagnostics = await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false);
+        var todoComments = IncludeTodoComments ? await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         return todoComments.AddRange(diagnostics);
     }
 

@@ -9,8 +9,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record class DocumentDiagnosticSource(Document Document) : AbstractDocumentDiagnosticSource<Document>(Document)
+internal sealed class DocumentDiagnosticSource : AbstractDocumentDiagnosticSource<Document>
 {
+    public DocumentDiagnosticSource(Document document) : base(document)
+    {
+    }
+
+    // The normal diagnostic source includes both todo comments and diagnostics for this open file.
+
+    protected override bool IncludeTodoComments => true;
+    protected override bool IncludeStandardDiagnostics => true;
+
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
