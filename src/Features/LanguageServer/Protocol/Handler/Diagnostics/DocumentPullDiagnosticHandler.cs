@@ -20,7 +20,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
+    internal partial class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         public DocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService analyzerService,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return ValueTaskFactory.FromResult(GetRequestedDocument(context));
+            return ValueTaskFactory.FromResult(GetDiagnosticSources(context));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport> progress)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetValues();
         }
 
-        internal static ImmutableArray<IDiagnosticSource> GetRequestedDocument(RequestContext context)
+        internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(RequestContext context)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -99,23 +99,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
 
             return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.Document));
-        }
-
-        private record struct DocumentDiagnosticSource(Document Document) : IDiagnosticSource
-        {
-            public ProjectOrDocumentId GetId() => new(Document.Id);
-
-            public Project GetProject() => Document.Project;
-
-            public Uri GetUri() => Document.GetURI();
-
-            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            {
-                // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf characteristics.
-                // GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas GetDiagnosticsForSpanAsync will only run analyzers against the request document.
-                var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return allSpanDiagnostics;
-            }
         }
     }
 }
