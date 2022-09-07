@@ -60,41 +60,25 @@ namespace Microsoft.CodeAnalysis
         /// TextWriter in upper case. After calling this method the
         /// logger is in an undefined state.
         /// </summary>
-        public void WriteReadPaths(TextWriter s)
-        {
-            var temp = new string[_readFiles.Count];
-            int i = 0;
-            var readFiles = Interlocked.Exchange(
-                ref _readFiles,
-                null!);
-            foreach (var path in readFiles)
-            {
-                temp[i] = path.ToUpperInvariant();
-                i++;
-            }
-            Array.Sort<string>(temp);
-
-            foreach (var path in temp)
-            {
-                s.WriteLine(path);
-            }
-        }
+        public void WriteReadPaths(TextWriter s) => WritePathSet(s, ref _readFiles);
 
         /// <summary>
         /// Writes all of the paths the TouchedFileLogger to the given 
         /// TextWriter in upper case. After calling this method the
         /// logger is in an undefined state.
         /// </summary>
-        public void WriteWrittenPaths(TextWriter s)
+        public void WriteWrittenPaths(TextWriter s) => WritePathSet(s, ref _writtenFiles);
+
+        private void WritePathSet(TextWriter s, ref ConcurrentSet<string> pathSet)
         {
-            var temp = new string[_writtenFiles.Count];
+            var temp = new string[pathSet.Count];
             int i = 0;
-            var writtenFiles = Interlocked.Exchange(
-                ref _writtenFiles,
+            var paths = Interlocked.Exchange(
+                ref pathSet,
                 null!);
-            foreach (var path in writtenFiles)
+            foreach (var path in paths)
             {
-                temp[i] = path.ToUpperInvariant();
+                temp[i] = path;
                 i++;
             }
             Array.Sort<string>(temp);

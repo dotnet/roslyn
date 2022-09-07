@@ -232,11 +232,11 @@ public class C { }").Path;
             var touchedReadPath = touchedFilesBase + ".read";
             var touchedWritesPath = touchedFilesBase + ".write";
 
-            var expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
+            var expected = expectedReads.OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedReadPath).Trim());
 
-            expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
+            expected = expectedWrites.OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
         }

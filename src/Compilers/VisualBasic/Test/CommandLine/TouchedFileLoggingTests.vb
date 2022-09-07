@@ -189,11 +189,11 @@ End Class
             Dim touchedReadPath = touchedFilesBase + ".read"
             Dim touchedWritesPath = touchedFilesBase + ".write"
 
-            Dim expected = expectedReads.Select(Function(s) s.ToUpperInvariant()).OrderBy(Function(s) s)
+            Dim expected = expectedReads.OrderBy(Function(s) s)
             Assert.Equal(String.Join(vbCrLf, expected),
                          File.ReadAllText(touchedReadPath).Trim())
 
-            expected = expectedWrites.Select(Function(s) s.ToUpperInvariant()).OrderBy(Function(s) s)
+            expected = expectedWrites.OrderBy(Function(s) s)
             Assert.Equal(String.Join(vbCrLf, expected),
                          File.ReadAllText(touchedWritesPath).Trim())
         End Sub
