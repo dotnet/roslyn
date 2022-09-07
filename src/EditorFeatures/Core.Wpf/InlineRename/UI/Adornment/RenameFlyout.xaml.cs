@@ -67,7 +67,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => PositionAdornment();
 
         private void TextView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
-            => PositionAdornment();
+        {
+            // Since the textview will update for the buffer being updated, we only want to reposition
+            // in cases where there was an actual view translation instead of EVERY time it updates. Otherwise
+            // the user will see the flyout jumping as they type
+            if (e.VerticalTranslation || e.HorizontalTranslation)
+            {
+                PositionAdornment();
+            }
+        }
 
         private void PositionAdornment()
         {

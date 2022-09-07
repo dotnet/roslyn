@@ -735,6 +735,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
+
+            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
+            // potentially creating synthesized intrinsic operators.
+            CheckBuiltInOperators(operation.SemanticModel, operation.Syntax);
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -768,6 +772,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
+
+            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
+            // potentially creating synthesized intrinsic operators.
+            CheckBuiltInOperators(operation.SemanticModel, operation.Syntax);
+        }
+
+        private static void CheckBuiltInOperators(SemanticModel semanticModel, SyntaxNode syntax)
+        {
+            var symbolInfo = semanticModel?.GetSymbolInfo(syntax) ?? default;
+            foreach (var symbol in symbolInfo.GetAllSymbols())
+            {
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator } method)
+                {
+                    switch (method.Parameters.Length)
+                    {
+                        case 1:
+                            semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type);
+                            break;
+                        case 2:
+                            semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                            break;
+                        default:
+                            AssertEx.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
+                            break;
+                    }
+                }
+            }
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
