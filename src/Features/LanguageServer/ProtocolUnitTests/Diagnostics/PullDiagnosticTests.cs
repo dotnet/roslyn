@@ -71,6 +71,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Theory, CombinatorialData]
+        public async Task TestDocumentTodoCommentsDiagnosticsForOpenFile(bool useVSDiagnostics)
+        {
+            var markup =
+@"
+// todo: goo
+class A {
+}";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            Assert.Equal("TODO", results.Single().Diagnostics.Single().Code);
+            Assert.Equal("todo: goo", results.Single().Diagnostics.Single().Message);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestNoDocumentDiagnosticsForOpenFilesWithFSAOffIfInPushMode(bool useVSDiagnostics)
         {
             var markup =
