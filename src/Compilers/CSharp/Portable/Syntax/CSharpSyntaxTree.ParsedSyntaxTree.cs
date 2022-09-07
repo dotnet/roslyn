@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax.InternalSyntax.DirectiveStack directives,
                 ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
                 bool cloneRoot)
+                : base(directives)
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
@@ -51,8 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
                 _hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
                 _diagnosticOptions = diagnosticOptions ?? EmptyDiagnosticOptions;
-
-                this.SetDirectiveStack(directives);
             }
 
             public override string FilePath

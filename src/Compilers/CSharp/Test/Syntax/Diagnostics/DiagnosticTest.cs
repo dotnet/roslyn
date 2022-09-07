@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDiagnostic()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
             CultureInfo englishCulture = CultureHelpers.EnglishCulture;
 
             DiagnosticInfo di1 = new DiagnosticInfo(provider, 1);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCustomErrorInfo()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
 
             DiagnosticInfo di3 = new CustomErrorInfo(provider, "OtherSymbol", new SourceLocation(syntaxTree, new TextSpan(14, 8)));
             var d3 = new CSDiagnostic(di3, new SourceLocation(syntaxTree, new TextSpan(1, 1)));

@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct DirectiveStack
     {
-        public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty);
-        public static readonly DirectiveStack Null = new DirectiveStack(null);
+        public static readonly DirectiveStack Empty = new(ConsList<Directive>.Empty);
 
         private readonly ConsList<Directive>? _directives;
 
