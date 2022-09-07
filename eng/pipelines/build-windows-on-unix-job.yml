@@ -45,7 +45,7 @@ jobs:
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }} ${{ parameters.buildArguments }}
       displayName: Build
 
-    - script: ./eng/prepare-tests.sh -configuration ${{ parameters.configuration }}
+    - script: ./eng/prepare-tests.sh --configuration ${{ parameters.configuration }}
       displayName: Prepare Test Payload
       condition: and(ne(variables['artifactName'], ''), succeeded())
       

@@ -12,8 +12,8 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
-    <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" SetTargetFramework="TargetFramework=net6.0" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" SetTargetFramework="TargetFramework=net6.0" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\MSBuildTaskTests\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj" ReferenceOutputAssembly="false" />
