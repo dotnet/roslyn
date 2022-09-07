@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SymbolInfo(ISymbol? symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
+        private SymbolInfo(ISymbol? symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
         {
             this.Symbol = symbol;
             _candidateSymbols = candidateSymbols;
