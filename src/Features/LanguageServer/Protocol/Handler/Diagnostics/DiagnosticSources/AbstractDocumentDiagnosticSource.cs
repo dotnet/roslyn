@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosticSource
     where TDocument : TextDocument
 {
+    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
+
+    private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
+        Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TodoCommentDescriptor>.Empty);
+
     protected readonly TDocument Document;
 
     protected AbstractDocumentDiagnosticSource(TDocument document)
@@ -23,15 +28,8 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
         this.Document = document;
     }
 
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
-
-    private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
-        Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TodoCommentDescriptor>.Empty);
-
     public ProjectOrDocumentId GetId() => new(Document.Id);
-
     public Project GetProject() => Document.Project;
-
     public Uri GetUri() => Document.GetURI();
 
     protected abstract bool IncludeTodoComments { get; }
