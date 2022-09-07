@@ -63,7 +63,7 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     }
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-        => WorkspacePullDiagnosticHandler.GetWorkspaceDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
+        => WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {

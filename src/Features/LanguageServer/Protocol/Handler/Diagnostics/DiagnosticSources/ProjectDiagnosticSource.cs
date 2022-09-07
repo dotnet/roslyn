@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed record class ProjectDiagnosticSource(Project Project) : IDiagnosticSource
 {
     public ProjectOrDocumentId GetId() => new(Project.Id);
-
     public Project GetProject() => Project;
 
     public Uri GetUri()

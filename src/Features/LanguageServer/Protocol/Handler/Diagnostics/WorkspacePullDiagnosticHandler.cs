@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-            => GetWorkspaceDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
+            => GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)
         {
             return progress.GetValues();
         }
 
-        internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetWorkspaceDiagnosticSourcesAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
