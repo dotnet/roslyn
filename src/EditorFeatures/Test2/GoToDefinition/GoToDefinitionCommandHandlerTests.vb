@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Utilities
@@ -59,6 +60,7 @@ class C
                     workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of IUIThreadOperationExecutor),
+                    New TestBackgroundWorkIndicatorService(),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())

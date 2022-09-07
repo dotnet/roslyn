@@ -156,6 +156,7 @@ End Class
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ITextBufferUndoManagerProvider),
                     workspace.GlobalOptions,
+                    New MockBackgroundWorkIndicatorService(),
                     workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))

@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
@@ -22,6 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<RenameCommandArgs>
     {
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
+
+        internal AbstractRenameCommandHandler(IBackgroundWorkIndicatorService backgroundWorkIndicatorService)
+        {
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
+        }
+
         public CommandState GetCommandState(RenameCommandArgs args)
         {
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
@@ -66,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var context = backgroundWorkIndicatorFactory.Create(
+            using var context = _backgroundWorkIndicatorService.Create(
                     args.TextView,
                     args.TextView.GetTextElementSpan(caretPoint.Value),
                     EditorFeaturesResources.Finding_token_to_rename);
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var cancellationToken = context.UserCancellationToken;
+            var cancellationToken = context.CancellationToken;
 
             var document = await args
                 .SubjectBuffer

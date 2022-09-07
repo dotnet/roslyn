@@ -25,16 +25,19 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public NavigableSymbolService(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IThreadingContext threadingContext,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _threadingContext = threadingContext;
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
             _listener = listenerProvider.GetListener(FeatureAttribute.NavigableSymbols);
         }
 

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Language.Intellisense
@@ -117,7 +118,7 @@ End Class"
         Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, listenerProvider)
+            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, New TestBackgroundWorkIndicatorService(), listenerProvider)
             Dim view = workspace.Documents.First().GetTextView()
             Dim buffer = workspace.Documents.First().GetTextBuffer()
             Dim triggerSpan = New SnapshotSpan(buffer.CurrentSnapshot, New Span(position, 0))

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,6 +20,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -39,15 +39,18 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
         private readonly IAsynchronousOperationListener _listener;
 
         public AbstractAddImportsPasteCommandHandler(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _globalOptions = globalOptions;
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
             _listener = listenerProvider.GetListener(FeatureAttribute.AddImportsOnPaste);
         }
 
@@ -139,15 +142,17 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var backgroundWorkContext = indicatorFactory.Create(
+            using var backgroundWorkContext = _backgroundWorkIndicatorService.Create(
                 textView,
                 snapshotSpan,
                 DialogText,
-                cancelOnEdit: true,
-                cancelOnFocusLost: true);
+                new()
+                {
+                    CancelOnEdit = true,
+                    CancelOnFocusLost = true
+                });
 
-            var cancellationToken = backgroundWorkContext.UserCancellationToken;
+            var cancellationToken = backgroundWorkContext.CancellationToken;
 
             // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
             // intended to tell us how long we're blocking the user from typing with this action. 

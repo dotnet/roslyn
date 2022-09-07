@@ -14,7 +14,6 @@ using System.Xml.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -47,6 +46,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IInlineRenameService _renameService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             ITextBufferUndoManagerProvider undoManager,
             IInlineRenameService renameService,
             IGlobalOptionService globalOptions,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             IAsynchronousOperationListenerProvider asyncListenerProvider)
         {
             Contract.ThrowIfNull(threadingContext);
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             _undoManager = undoManager;
             _renameService = renameService;
             _globalOptions = globalOptions;
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
             _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.ExtractMethod);
         }
 
@@ -124,9 +126,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SnapshotSpan span)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var indicatorContext = indicatorFactory.Create(
-                view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring, cancelOnEdit: true, cancelOnFocusLost: true);
+            using var indicatorContext = _backgroundWorkIndicatorService.Create(
+                view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring,
+                new()
+                {
+                    CancelOnEdit = true,
+                    CancelOnFocusLost = true
+                });
 
             using var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ExecuteCommand));
             await ExecuteWorkerAsync(view, textBuffer, span.Span.ToTextSpan(), indicatorContext).ConfigureAwait(false);
@@ -136,13 +142,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             ITextView view,
             ITextBuffer textBuffer,
             TextSpan span,
-            IBackgroundWorkIndicatorContext waitContext)
+            IBackgroundWorkIndicator workIndicator)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var cancellationToken = waitContext.UserCancellationToken;
+            var cancellationToken = workIndicator.CancellationToken;
 
-            var document = await textBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(waitContext).ConfigureAwait(false);
+            var document = await textBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(workIndicator).ConfigureAwait(false);
             if (document is null)
                 return;
 
@@ -196,7 +202,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            ApplyChange_OnUIThread(textBuffer, changes, waitContext);
+            ApplyChange_OnUIThread(textBuffer, changes, workIndicator);
 
             // start inline rename to allow the user to change the name if they want.
             var textSnapshot = textBuffer.CurrentSnapshot;
@@ -210,15 +216,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         private void ApplyChange_OnUIThread(
-            ITextBuffer textBuffer, IEnumerable<TextChange> changes, IBackgroundWorkIndicatorContext waitContext)
+            ITextBuffer textBuffer, IEnumerable<TextChange> changes, IBackgroundWorkIndicator workIndicator)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-            using var _ = waitContext.SuppressAutoCancel();
-            formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+            using var _ = workIndicator.SuppressAutoCancel();
+            textBuffer.ApplyChanges(changes);
 
             // apply changes
             undoTransaction.Complete();

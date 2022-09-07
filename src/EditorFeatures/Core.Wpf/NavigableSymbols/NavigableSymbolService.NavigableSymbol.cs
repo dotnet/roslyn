@@ -4,12 +4,12 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
@@ -21,14 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             private readonly NavigableSymbolService _service;
             private readonly ITextView _textView;
             private readonly INavigableLocation _location;
-            private readonly IBackgroundWorkIndicatorFactory _indicatorFactory;
 
             public NavigableSymbol(
                 NavigableSymbolService service,
                 ITextView textView,
                 INavigableLocation location,
-                SnapshotSpan symbolSpan,
-                IBackgroundWorkIndicatorFactory indicatorFactory)
+                SnapshotSpan symbolSpan)
             {
                 Contract.ThrowIfNull(location);
 
@@ -36,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 _textView = textView;
                 _location = location;
                 SymbolSpan = symbolSpan;
-                _indicatorFactory = indicatorFactory;
             }
 
             public SnapshotSpan SymbolSpan { get; }
@@ -55,13 +52,16 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             {
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
                 // causing ourselves to self-cancel.
-                using var backgroundIndicator = _indicatorFactory.Create(
+                using var backgroundIndicator = _service._backgroundWorkIndicatorService.Create(
                     _textView, SymbolSpan,
                     EditorFeaturesResources.Navigating_to_definition,
-                    cancelOnFocusLost: false);
+                    new()
+                    {
+                        CancelOnFocusLost = false
+                    });
 
                 await _location.TryNavigateToAsync(
-                    _service._threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
+                    _service._threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), backgroundIndicator.CancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AddImports
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listnerProvider)
-            : base(threadingContext, globalOptions, listnerProvider)
+        public CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions, IBackgroundWorkIndicatorService backgroundWorkIndicatorService, IAsynchronousOperationListenerProvider listnerProvider)
+            : base(threadingContext, globalOptions, backgroundWorkIndicatorService, listnerProvider)
         {
         }
 

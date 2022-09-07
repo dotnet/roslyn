@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -34,6 +33,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _executor;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
@@ -42,11 +42,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             IGlobalOptionService globalOptionService,
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor executor,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _globalOptionService = globalOptionService;
             _threadingContext = threadingContext;
             _executor = executor;
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
             _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
         }
 
@@ -161,27 +163,18 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         {
             bool succeeded;
 
-            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-
-            // TODO: prior logic was to get a tracking span of length 1 here.  Preserving that, though it's unclear if
-            // that is necessary for the BWI to work properly.
-            Contract.ThrowIfTrue(position.Snapshot.Length == 0);
-            var applicableToSpan = position < position.Snapshot.Length
-                ? new SnapshotSpan(position, position + 1)
-                : new SnapshotSpan(position - 1, position);
-
-            using (var backgroundIndicator = indicatorFactory.Create(
-                args.TextView, applicableToSpan,
+            using (var backgroundIndicator = _backgroundWorkIndicatorService.Create(
+                args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
                 EditorFeaturesResources.Navigating_to_definition))
             {
-                var cancellationToken = backgroundIndicator.UserCancellationToken;
+                var cancellationToken = backgroundIndicator.CancellationToken;
 
                 // determine the location first.
                 var (location, _) = await service.FindDefinitionLocationAsync(
                     document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
                 // make sure that if our background indicator got canceled, that we do not still perform the navigation.
-                if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
+                if (backgroundIndicator.CancellationToken.IsCancellationRequested)
                     return;
 
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up

@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IGlobalOptionService globalOptions,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, undoManager, globalOptions, listenerProvider)
+            : base(threadingContext, undoManager, globalOptions, backgroundWorkIndicatorService, listenerProvider)
         {
         }
     }

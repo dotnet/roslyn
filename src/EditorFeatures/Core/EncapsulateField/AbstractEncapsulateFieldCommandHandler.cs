@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -28,6 +27,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
         private readonly IAsynchronousOperationListener _listener;
 
         public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
@@ -36,11 +36,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IGlobalOptionService globalOptions,
+            IBackgroundWorkIndicatorService backgroundWorkIndicatorService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _undoManager = undoManager;
             _globalOptions = globalOptions;
+            _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
             _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
         }
 
@@ -77,12 +79,15 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var subjectBuffer = args.SubjectBuffer;
             var workspace = initialDocument.Project.Solution.Workspace;
 
-            var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var context = indicatorFactory.Create(
+            using var context = _backgroundWorkIndicatorService.Create(
                 args.TextView, span, EditorFeaturesResources.Computing_Encapsulate_Field_information,
-                cancelOnEdit: true, cancelOnFocusLost: true);
+                new()
+                {
+                    CancelOnEdit = true,
+                    CancelOnFocusLost = true
+                });
 
-            var cancellationToken = context.UserCancellationToken;
+            var cancellationToken = context.CancellationToken;
             var document = await subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context).ConfigureAwait(false);
             Contract.ThrowIfNull(document);
 
@@ -94,11 +99,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             if (result == null)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                context.TakeOwnership();
 
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);

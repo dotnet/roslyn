@@ -91,6 +91,40 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// 
+        /// for synchronous code path, make sure to use synchronous version 
+        /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
+        /// otherwise, one can get into a deadlock
+        /// </summary>
+        public static async Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+            this ITextSnapshot snapshot, IBackgroundWorkIndicator backgroundWorkIndicator)
+        {
+            // just get a document from whatever we have
+            var document = snapshot.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            if (document == null)
+            {
+                // we don't know about this buffer yet
+                return null;
+            }
+
+            using (backgroundWorkIndicator.AddScope(EditorFeaturesResources.Waiting_for_background_work_to_finish))
+            {
+                var service = document.Project.Solution.Services.GetService<IWorkspaceStatusService>();
+                if (service != null)
+                {
+                    // TODO: decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded
+                    // later we might need to go and change all these with more specific info such as document/project/solution
+                    await service.WaitUntilFullyLoadedAsync(backgroundWorkIndicator.CancellationToken).ConfigureAwait(false);
+                }
+
+                // get proper document
+                return snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            }
+        }
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
         /// </summary>
         public static Document? GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext, IThreadingContext threadingContext)
