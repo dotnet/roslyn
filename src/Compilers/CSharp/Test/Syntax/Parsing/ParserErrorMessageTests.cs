@@ -3331,23 +3331,6 @@ public static class Extensions
                 );
         }
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void InParametersWouldErrorOutInEarlierCSharpVersions()
-        {
-            var code = @"
-public class Test
-{
-    public void DoSomething(in int x) { }
-}";
-
-            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
-                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.2 or greater.
-                // public void DoSomething(in int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.2").WithLocation(4, 29)
-            );
-        }
-
         [WorkItem(906072, "DevDiv/Personal")]
         [Fact]
         public void CS1102ERR_BadOutWithThis()
@@ -5655,23 +5638,6 @@ class C
         }
 
         [Fact]
-        public void ExtensionMethodsAreNotAvailableInEarlierCSharpVersions()
-        {
-            var code = @"
- public static class Test
- {
-     public static void DoSomething(this int x) { }
- }";
-
-            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp2),
-                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2. Please use language version 3 or greater.
-                //      public static void DoSomething(this int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
-
-            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.Latest));
-        }
-
-        [Fact]
         public void ExceptionFilterBeforeVersionSix()
         {
             var text = @"
@@ -5736,67 +5702,6 @@ class TestClass { }";
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
-        }
-
-        [Fact]
-        public void RefExtensionMethodsNotSupportedBefore7_2_InSyntax()
-        {
-            var code = @"
-public static class Extensions
-{
-    public static void Print(in this int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}
-public static class Program
-{
-    public static void Main()
-    {
-        int p = 5;
-        p.Print();
-    }
-}";
-
-            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
-               // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
-               //     public static void Print(in this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
-               // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-               //     public static void Print(in this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
-            );
-
-            CompileAndVerify(code, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void RefExtensionMethodsNotSupportedBefore7_2_RefSyntax()
-        {
-            var code = @"
-public static class Extensions
-{
-    public static void Print(ref this int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}
-public static class Program
-{
-    public static void Main()
-    {
-        int p = 5;
-        p.Print();
-    }
-}";
-
-            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
-               // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-               //     public static void Print(ref this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
-            );
-
-            CompileAndVerify(code, expectedOutput: "5");
         }
 
         #endregion

@@ -103,18 +103,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
+        [Obsolete("For TS back compat until they move off of this.")]
         async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
             Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
+            var converted = await TodoComment.ConvertAsync(document, todoComments, cancellationToken).ConfigureAwait(false);
 
             await _listener.ReportTodoCommentDataAsync(
-                document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
+                document.Id, converted, cancellationToken).ConfigureAwait(false);
         }
+
+        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document document, ImmutableArray<TodoCommentData> todoComments, CancellationToken cancellationToken)
+            => await _listener.ReportTodoCommentDataAsync(document.Id, todoComments, cancellationToken).ConfigureAwait(false);
 
         public ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => _listener.GetTodoItems(documentId);
