@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SymbolInfo other)
             => this.CandidateReason == other.CandidateReason &&
-               Equals(this.Symbol, other.Symbol) &&
+               object.Equals(this.Symbol, other.Symbol) &&
                CandidateSymbols.SequenceEqual(other.CandidateSymbols);
 
         public override int GetHashCode()
