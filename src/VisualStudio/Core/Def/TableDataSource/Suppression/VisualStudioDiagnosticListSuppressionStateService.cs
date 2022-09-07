@@ -197,15 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// <summary>
         /// Returns true if an entry's suppression state can be modified.
         /// </summary>
-        /// <returns></returns>
         private static bool IsEntryWithConfigurableSuppressionState([NotNullWhen(true)] DiagnosticData? entry)
-        {
-            // Compiler diagnostics with severity 'Error' are not configurable.
-            // Additionally, diagnostics coming from build are from a snapshot (as opposed to live diagnostics) and cannot be configured.
-            return entry != null &&
-                !SuppressionHelpers.IsNotConfigurableDiagnostic(entry) &&
-                !entry.IsBuildDiagnostic();
-        }
+            => entry != null && !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
 
         private static AbstractTableEntriesSnapshot<DiagnosticTableItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {

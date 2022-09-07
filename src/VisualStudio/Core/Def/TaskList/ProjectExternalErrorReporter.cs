@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -97,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 projectErrors.Add(GetDiagnosticData(
                     documentId: null,
                     _projectId,
+                    _workspace,
                     GetErrorId(error),
                     error.bstrText,
                     GetDiagnosticSeverity(error),
@@ -180,6 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return GetDiagnosticData(
                 documentId,
                 _projectId,
+                _workspace,
                 GetErrorId(error),
                 message: error.bstrText,
                 GetDiagnosticSeverity(error),
@@ -241,6 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var diagnostic = GetDiagnosticData(
                 documentId,
                 _projectId,
+                _workspace,
                 bstrErrorId,
                 bstrErrorMessage,
                 severity,
@@ -269,6 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private static DiagnosticData GetDiagnosticData(
             DocumentId documentId,
             ProjectId projectId,
+            Workspace workspace,
             string errorId,
             string message,
             DiagnosticSeverity severity,
@@ -284,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             int originalEndLine,
             int originalEndColumn)
         {
-            return new DiagnosticData(
+            var diagnostic = new DiagnosticData(
                 id: errorId,
                 category: WellKnownDiagnosticTags.Build,
                 message: message,
@@ -310,6 +315,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     mappedEndLine: mappedEndLine,
                     mappedEndColumn: mappedEndColumn),
                 language: language);
+
+            if (workspace.CurrentSolution.GetDocument(documentId) is Document document &&
+                document.SupportsSyntaxTree)
+            {
+                var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
+                var text = tree.GetText();
+                return diagnostic.WithSpan(text, tree);
+            }
+
+            return diagnostic;
         }
 
         private static bool IsCompilerDiagnostic(string errorId)
