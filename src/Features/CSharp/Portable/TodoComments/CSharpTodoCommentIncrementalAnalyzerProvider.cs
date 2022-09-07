@@ -16,28 +16,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TodoComments
 {
-    [ExportLanguageServiceFactory(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
-    internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpTodoCommentServiceFactory()
-        {
-        }
-
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTodoCommentService();
-    }
-
+    [ExportLanguageService(typeof(ITodoCommentDataService), LanguageNames.CSharp), Shared]
     internal class CSharpTodoCommentService : AbstractTodoCommentService
     {
         private static readonly int s_multilineCommentPostfixLength = "*/".Length;
         private const string SingleLineCommentPrefix = "//";
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpTodoCommentService()
+        {
+        }
+
         protected override void AppendTodoComments(
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
-            SyntacticDocument document, SyntaxTrivia trivia,
-            ArrayBuilder<TodoComment> todoList)
+            SyntacticDocument document,
+            SyntaxTrivia trivia,
+            ArrayBuilder<TodoCommentData> todoList)
         {
             if (PreprocessorHasComment(trivia))
             {
@@ -46,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
                 var index = message.IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal);
                 var start = trivia.FullSpan.Start + index;
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message.Substring(index), start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message.Substring(index), start, todoList);
                 return;
             }
 
