@@ -1215,23 +1215,20 @@ public class FileModifierTests : CSharpTestBase
     [Fact]
     public void Duplication_06()
     {
+        // note: we avoid `using System;` here because we don't want to attempt to bind to `System.Number`
         var source1 = """
-            using System;
-
             namespace NS;
 
             partial class C
             {
                 public static void M()
                 {
-                    Console.Write(Number);
+                    System.Console.Write(Number);
                 }
             }
             """;
 
         var source2 = """
-            using System;
-
             namespace NS;
 
             partial class C
@@ -1243,16 +1240,16 @@ public class FileModifierTests : CSharpTestBase
             {
                 public static void M()
                 {
-                    Console.Write(2);
+                    System.Console.Write(2);
                 }
             }
             """;
 
         var comp = CreateCompilation(new[] { (source1, "file1.cs"), (source2, "file2.cs") });
         comp.VerifyDiagnostics(
-            // file2.cs(10,12): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // file2.cs(8,12): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
             // file class C
-            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(10, 12)
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(8, 12)
             );
 
         var cs = comp.GetMembers("NS.C");
@@ -1272,15 +1269,15 @@ public class FileModifierTests : CSharpTestBase
 
         comp = CreateCompilation(new[] { (source2, "file2.cs"), (source1, "file1.cs") });
         comp.VerifyDiagnostics(
-            // file1.cs(7,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+            // file1.cs(5,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
             //     public static void M()
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "NS.C").WithLocation(7, 24),
-            // file1.cs(9,23): error CS0103: The name 'Number' does not exist in the current context
-            //         Console.Write(Number);
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Number").WithArguments("Number").WithLocation(9, 23),
-            // file2.cs(10,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "NS.C").WithLocation(5, 24),
+            // file1.cs(7,30): error CS0103: The name 'Number' does not exist in the current context
+            //         System.Console.Write(Number);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Number").WithArguments("Number").WithLocation(7, 30),
+            // file2.cs(8,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
             // file class C
-            Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(10, 12)
+            Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(8, 12)
             );
 
         var c = comp.GetMember("NS.C");
