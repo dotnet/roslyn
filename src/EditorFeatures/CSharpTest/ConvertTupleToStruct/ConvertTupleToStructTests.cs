@@ -2317,7 +2317,7 @@ internal struct NewStruct
                 {
                     ExpectedDiagnostics =
                     {
-    // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'NewStruct.NewStruct(int, int)'
+    // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'NewStruct.NewStruct(int, int)'
     DiagnosticResult.CompilerError("CS7036").WithSpan(6, 22, 6, 31).WithArguments("a", "NewStruct.NewStruct(int, int)"),
     // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
     DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),
