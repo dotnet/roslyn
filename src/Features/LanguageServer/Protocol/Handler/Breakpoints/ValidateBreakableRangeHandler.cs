@@ -4,14 +4,14 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Linq;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -82,16 +82,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var breakpointRange = ProtocolConversions.TextSpanToRange(breakpointSpan, text);
 
-            // if the breakpoint we get back covers fewer lines than what was requested, then we might be in a situation where
+            // if the breakpoint we get is smaller than what was requested, then we might be in a situation where
             // the breakpoint was expanded due to the user typing some code above the placement. For example:
             //
             //     $$
             // BP: Console.WriteLine(1);
             //
-            // if the user types "int a =" we'll expand the breakpoint, as syntactically its an assigment expression, but then
+            // If the user types "int a =" we'll expand the breakpoint, as syntactically its an assigment expression, but then
             // when they continue to type "1;" we'll get a request for a breakpoint that spans two lines, and then the above
             // resolve call will shrink it to one. In that case, we prefer to stick to the end of the requested range.
-            if (!result.IsLineBreakpoint && CoversFewerLines(breakpointRange, request.Range))
+            //
+            // Similar exists for a single line, for example give:
+            //
+            // BP: int a = $$ GetData();
+            //
+            // If the user types "1;" we'd shrink the breakpoint, so stick to the end of the range.
+            if (!result.IsLineBreakpoint && BreakpointRangeIsSmaller(breakpointRange, request.Range))
             {
                 var secondResult = await breakpointService.ResolveBreakpointAsync(document, new TextSpan(span.End, length: 0), cancellationToken).ConfigureAwait(false);
                 if (secondResult is not null)
@@ -104,7 +110,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return breakpointRange;
         }
 
-        private static bool CoversFewerLines(LSP.Range range1, LSP.Range range2)
-            => range1.End.Line - range1.Start.Line < range2.End.Line - range2.Start.Line;
+        private static bool BreakpointRangeIsSmaller(LSP.Range breakpointRange, LSP.Range existingRange)
+        {
+            var breakpointLineDelta = breakpointRange.End.Line - breakpointRange.Start.Line;
+            var existingLineDelta = existingRange.End.Line - existingRange.Start.Line;
+            return breakpointLineDelta < existingLineDelta ||
+                (breakpointLineDelta == existingLineDelta &&
+                breakpointRange.End.Character - breakpointRange.Start.Character < existingRange.End.Character - existingRange.Start.Character);
+        }
     }
 }

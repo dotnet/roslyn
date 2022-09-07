@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
 {
     void M()
     {
-        {|breakpoint:{|expected:int a = 1;|} Console.WriteLine(""hello"");|}
+        {|breakpoint:int a = 1; {|expected:Console.WriteLine(""hello"");|}|}
     }
 }";
             using var testLspServer = await CreateTestLspServerAsync(markup);
