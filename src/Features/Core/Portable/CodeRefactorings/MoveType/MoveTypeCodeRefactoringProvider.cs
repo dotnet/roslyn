@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             if (document.IsGeneratedCode(cancellationToken))
                 return;
 
-            var service = document.GetLanguageService<IMoveTypeService>();
+            var service = document.GetRequiredLanguageService<IMoveTypeService>();
             var actions = await service.GetRefactoringAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
