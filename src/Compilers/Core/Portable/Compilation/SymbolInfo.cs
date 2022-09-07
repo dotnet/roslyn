@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis
     {
         internal static readonly SymbolInfo None = default;
 
+        /// <summary>
+        /// Array of potential candidate symbols if <see cref="Symbol"/> did not bind successfully.  Note: all code in
+        /// this type should prefer referencing <see cref="CandidateSymbols"/> instead of this so that they uniformly
+        /// only see an non-<see langword="default"/> array.
+        /// </summary>
         private readonly ImmutableArray<ISymbol> _candidateSymbols;
 
         /// <summary>
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                CandidateSymbols.SequenceEqual(other.CandidateSymbols);
 
         public override int GetHashCode()
-            => Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(_candidateSymbols, 4), (int)this.CandidateReason));
+            => Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(this.CandidateSymbols, 4), (int)this.CandidateReason));
 
         internal bool IsEmpty => this.Symbol == null && this.CandidateSymbols.Length == 0;
     }
