@@ -25,10 +25,14 @@ namespace Metalama.Compiler
         }
 
         public string? Company => this._metadataReader.Company;
+
         public string Name => _transformer.GetType().FullName!;
-        public string Version => this._metadataReader.PackageVersion;
-        public bool IsPrerelease => this.Version.Contains("-");
-        public DateTime BuildDate => this._metadataReader.BuildDate;
+
+        public string? Version => this._metadataReader.PackageVersion;
+
+        public bool? IsPrerelease => this.Version?.Contains("-");
+
+        public DateTime? BuildDate => this._metadataReader.BuildDate;
     }
 
     /// <summary>
@@ -47,7 +51,7 @@ namespace Metalama.Compiler
             _ignoreUnattendedProcess = ignoreUnattendedProcess;
             this.IsLongRunningProcess = isLongRunningProcess;
 
-            this.Components = components.Select(x=>new ComponentInfo(x)).ToImmutableArray<IComponentInfo>();
+            this.Components = components.Select(x => new ComponentInfo(x)).ToImmutableArray<IComponentInfo>();
         }
 
         /// <inheritdoc />

@@ -422,12 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // <Metalama>
 
-     
-
-   
-
         private protected override TransformersResult RunTransformers(
-            Compilation inputCompilation, IServiceProvider serviceProvider,  ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotate.
@@ -435,18 +431,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
-            
+
             // Enforce licensing.
             var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
             if (licenseManager != null)
             {
-
-                string? consumerNamespace = inputCompilation.AssemblyName ?? "";
-
-                if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Essentials, consumerNamespace))
+                if (!licenseManager.CanConsume(LicenseRequirement.Free))
                 {
                     diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                         (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                    return TransformersResult.Failure(inputCompilation);
+                }
+
+                var application = serviceProvider.GetRequiredService<IApplicationInfoProvider>().CurrentApplication;
+                var sdkLicenseMissing = false;
+
+                foreach (var component in application.Components)
+                {
+                    // Metalama SDK is required for 3rd-party transformers.
+                    if (component.Company != "PostSharp Technologies" && !licenseManager.CanConsume(LicenseRequirement.Professional))
+                    {
+                        diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
+                            (int)MetalamaErrorCode.ERR_InvalidLicenseForSdk, component.Name));
+                        sdkLicenseMissing = true;
+                    }
+                }
+
+                if (sdkLicenseMissing)
+                {
                     return TransformersResult.Failure(inputCompilation);
                 }
 
@@ -454,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (shouldDebugTransformedCode)
                 {
-                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Metalama, consumerNamespace))
+                    if (!licenseManager.CanConsume(LicenseRequirement.Starter))
                     {
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                             (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
@@ -464,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Run transformers.
-             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
+            ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
             var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
                 analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);

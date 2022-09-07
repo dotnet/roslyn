@@ -819,19 +819,15 @@ namespace Microsoft.CodeAnalysis
         protected virtual bool RequiresMetalamaLicensingServices => true;
 
         protected virtual bool IsLongRunningProcess => false;
-        
-        private static (string[] AdditionalLicenses, bool SkipImplicitLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+
+        private static (string? AdditionalLicense, bool SkipImplicitLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             // Load license keys from build options.
-            string[] additionalLicenses;
+            string? additionalLicense = null;
+
             if (analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaLicense", out var licenseProperty))
             {
-                additionalLicenses = licenseProperty.Trim()
-                    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
-            }
-            else
-            {
-                additionalLicenses = Array.Empty<string>();
+                additionalLicense = licenseProperty.Trim();
             }
 
             if (!(analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaIgnoreUserLicenses",
@@ -840,7 +836,7 @@ namespace Microsoft.CodeAnalysis
                 ignoreUserLicenses = false;
             }
 
-            return (additionalLicenses, ignoreUserLicenses);
+            return (additionalLicense, ignoreUserLicenses);
         }
 
         protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<ISourceTransformer> transformers)
@@ -864,7 +860,7 @@ namespace Microsoft.CodeAnalysis
                     inputCompilation.AssemblyName,
                     !licenseOptions.SkipImplicitLicenses,
                     licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.AdditionalLicenses,
+                    licenseOptions.AdditionalLicense,
                     dotNetSdkDirectory,
                     this.RequiresMetalamaSupportServices,
                     addSupportServices: this.RequiresMetalamaSupportServices);
