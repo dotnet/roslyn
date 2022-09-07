@@ -32,7 +32,7 @@ stages:
 - stage: Windows_Debug_Build_net472
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-on-unix-job
+  - template: eng/pipelines/build-windows-on-unix-job.yml
     parameters:
       jobName: Windows_Debug_Build_net472
       testArtifactName: Transport_Artifacts_Windows_Debug_net472
@@ -44,7 +44,7 @@ stages:
 - stage: Windows_Release_Build_net472
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-on-unix-job
+  - template: eng/pipelines/build-windows-on-unix-job.yml
     parameters:
       jobName: Windows_Release_Build_net472
       testArtifactName: Transport_Artifacts_Windows_Release_net472
@@ -56,7 +56,7 @@ stages:
 - stage: Windows_Debug_Build_net60_windows
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-on-unix-job
+  - template: eng/pipelines/build-windows-on-unix-job.yml
     parameters:
       jobName: Windows_Debug_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
@@ -68,7 +68,7 @@ stages:
 - stage: Windows_Release_Build_net60_windows
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-on-unix-job
+  - template: eng/pipelines/build-windows-on-unix-job.yml
     parameters:
       jobName: Windows_Release_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Release_net60_windows
