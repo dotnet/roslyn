@@ -10,6 +10,28 @@ set -e
 
 source="${BASH_SOURCE[0]}"
 
+configuration="Debug"
+is_unix=false
+
+while [[ $# > 0 ]]; do
+  opt="$(echo "$1" | awk '{print tolower($0)}')"
+  case "$opt" in
+    --configuration|-c)
+      configuration=$2
+      shift
+      ;;
+    --unix)
+      is_unix=true
+      ;;
+    *)
+      echo "Invalid argument: $1"
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 # resolve $source until the file is no longer a symlink
 while [[ -h "$source" ]]; do
   scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
@@ -28,4 +50,10 @@ InitializeDotNetCli true
 # permissions issues make this a pain to do in PrepareTests itself.
 rm -rf "$repo_root/artifacts/testPayload"
 
-dotnet "$repo_root/artifacts/bin/PrepareTests/Debug/net6.0/PrepareTests.dll" --source "$repo_root" --destination "$repo_root/artifacts/testPayload" --unix --dotnetPath ${_InitializeDotNetCli}/dotnet
+if [[ "$is_unix" == true ]]; then
+  dotnet "$repo_root/artifacts/bin/PrepareTests/$configuration/net6.0/PrepareTests.dll" --source "$repo_root" --destination "$repo_root/artifacts/testPayload" --unix --dotnetPath ${_InitializeDotNetCli}/dotnet
+fi
+
+if [[ "$is_unix" == false ]]; then
+  dotnet "$repo_root/artifacts/bin/PrepareTests/$configuration/net6.0/PrepareTests.dll" --source "$repo_root" --destination "$repo_root/artifacts/testPayload" --dotnetPath ${_InitializeDotNetCli}/dotnet
+fi

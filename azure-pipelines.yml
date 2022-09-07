@@ -32,50 +32,50 @@ stages:
 - stage: Windows_Debug_Build_net472
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
+  - template: eng/pipelines/build-windows-on-unix-job
     parameters:
       jobName: Windows_Debug_Build_net472
       testArtifactName: Transport_Artifacts_Windows_Debug_net472
       configuration: Debug
-      queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: Build.Ubuntu.1804.Amd64.Open
+      restoreArguments: --solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: --solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build_net472
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
+  - template: eng/pipelines/build-windows-on-unix-job
     parameters:
       jobName: Windows_Release_Build_net472
       testArtifactName: Transport_Artifacts_Windows_Release_net472
       configuration: Release
-      queueName: windows.vs2022preview.amd64.open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: Build.Ubuntu.1804.Amd64.Open
+      restoreArguments: --solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: --solution src\Test\TestDependencies\TestDependencies-net472.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Debug_Build_net60_windows
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
+  - template: eng/pipelines/build-windows-on-unix-job
     parameters:
       jobName: Windows_Debug_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Debug_net60_windows
       configuration: Debug
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: Build.Ubuntu.1804.Amd64.Open
+      restoreArguments: --solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: --solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
     
 - stage: Windows_Release_Build_net60_windows
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
+  - template: eng/pipelines/build-windows-on-unix-job
     parameters:
       jobName: Windows_Release_Build_net60_windows
       testArtifactName: Transport_Artifacts_Windows_Release_net60_windows
       configuration: Release
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet -solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: Build.Ubuntu.1804.Amd64.Open
+      restoreArguments: --solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: --solution src\Test\TestDependencies\TestDependencies-net6.csproj /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
       
 - stage: Unix_Build
   dependsOn: []

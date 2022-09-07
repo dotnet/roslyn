@@ -43,15 +43,17 @@ jobs:
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }} ${{ parameters.buildArguments }}
       displayName: Build
 
-    - script: ./eng/prepare-tests.sh --unix
+    - script: ./eng/prepare-tests.sh -configuration ${{ parameters.configuration }}
       displayName: Prepare Test Payload
-
+      condition: and(ne(variables['artifactName'], ''), succeeded())
+      
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
         artifactName: ${{ parameters.testArtifactName }}
-
+      condition: and(ne(variables['artifactName'], ''), succeeded())
+      
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
