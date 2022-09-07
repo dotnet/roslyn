@@ -206,6 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                    // Warning level 8 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
+                    return 8;
                 case ErrorCode.WRN_LowerCaseTypeName:
                     // Warning level 7 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
@@ -2214,13 +2218,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
                 case ErrorCode.ERR_MisplacedScoped:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
+                case ErrorCode.ERR_ImplicitlyTypedDefaultParameter:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
+                case ErrorCode.ERR_OptionalParamValueMismatch:
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -2122,9 +2122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Note: you will need to do the following after adding any code:
-        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
-        // Additionally, after adding a new warning you will need to do the following:
+        #region diagnostics introduced for C# 12.0
+        // PROTOTYPE: These enum values have temporarily been moved further out
+        // to prevent conflicts. Before merging to main, change them so that the
+        // numbering is consecutive with respect to the previous fields
+        ERR_ImplicitlyTypedDefaultParameter = 9500,
+        ERR_OptionalParamValueMismatch = 9501,
+        WRN_OptionalParamValueMismatch = 9502,
+        #endregion
+
+        // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
     }
 }

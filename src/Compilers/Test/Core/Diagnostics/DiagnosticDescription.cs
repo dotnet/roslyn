@@ -16,6 +16,7 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _ignoreArgumentsWhenComparing;
         private readonly DiagnosticSeverity? _defaultSeverityOpt;
         private readonly DiagnosticSeverity? _effectiveSeverityOpt;
+        private readonly ImmutableArray<string> _originalFormatSpecifiers = ImmutableArray<string>.Empty;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -51,14 +53,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 // We'll use IFormattable here, because it is more explicit than just calling .ToString()
                 // (and is closer to what the compiler actually does when displaying error messages)
-                _argumentsAsStrings = _arguments.Select(o =>
+                _argumentsAsStrings = _arguments.Select((o, i) =>
                 {
                     if (o is DiagnosticInfo embedded)
                     {
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
 
-                    return string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
+                    return i < _originalFormatSpecifiers.Length ?
+                        string.Format(EnsureEnglishUICulture.PreferredOrNull, _originalFormatSpecifiers[i], o) :
+                        string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
                 });
             }
             return _argumentsAsStrings;
@@ -123,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _location = d.Location;
             _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
+            _originalFormatSpecifiers = GetFormatSpecifiers(d.Descriptor.MessageFormat.ToString());
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0 || d.Descriptor.ImmutableCustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
@@ -356,6 +361,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return hashCode;
         }
 
+        private static void AppendArgumentString(StringBuilder sb, string argumentString)
+        {
+            var beginQuote = "\"";
+            var endQuote = "\"";
+            if (argumentString.Contains("\""))
+            {
+                argumentString = argumentString.Replace("\"", "\"\"");
+                beginQuote = "@\"";
+            }
+            sb.Append(beginQuote);
+            sb.Append(argumentString);
+            sb.Append(endQuote);
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -401,9 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var argumentStrings = GetArgumentsAsStrings().GetEnumerator();
                 for (int i = 0; argumentStrings.MoveNext(); i++)
                 {
-                    sb.Append("\"");
-                    sb.Append(argumentStrings.Current);
-                    sb.Append("\"");
+                    AppendArgumentString(sb, argumentStrings.Current);
                     if (i < _arguments.Length - 1)
                     {
                         sb.Append(", ");
@@ -442,6 +459,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return sb.ToString();
+        }
+
+        private static ImmutableArray<string> GetFormatSpecifiers(string messageFormat)
+        {
+            var specifiers = ImmutableArray<string>.Empty;
+            if (Regex.Matches(messageFormat, @"\{\d+(:\d+)?\}") is { Count: > 0 } matches)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (Match match in matches)
+                {
+                    // We use 0 as the position specifier, regardless of what it was in the original format string,
+                    // because we format diagnostic arguments one at a time so we cannot have a position specifier greater than 0
+                    const string posSpecifier = "0";
+                    var fmtSpecifier = match.Groups.Count > 1 && match.Groups[1].Success ? match.Groups[1].Value : "";
+
+                    builder.Add(
+                            $@"{{{posSpecifier}{fmtSpecifier}}}");
+                }
+                specifiers = builder.ToImmutableArray();
+            }
+
+            return specifiers;
         }
 
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unamtchedExpected, IEnumerable<Diagnostic> unmatchedActual)

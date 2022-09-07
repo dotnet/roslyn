@@ -24,16 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public readonly DeclarationScope Scope;
 
+        public readonly ConstantValue? DefaultValue;
+
         /// <summary>Anonymous type field type</summary>
         public TypeSymbol Type => TypeWithAnnotations.Type;
 
-        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations, RefKind refKind, DeclarationScope scope)
+        // PROTOTYPE: Sync with IDE about the addition of DefaultValue to AnonymousTypeField to see how it will affect their usage of anonymous type symbols
+        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations, RefKind refKind, DeclarationScope scope, ConstantValue? defaultValue = null)
         {
             this.Name = name;
             this.Location = location;
             this.TypeWithAnnotations = typeWithAnnotations;
             this.RefKind = refKind;
             this.Scope = scope;
+            this.DefaultValue = defaultValue;
         }
 
         [Conditional("DEBUG")]

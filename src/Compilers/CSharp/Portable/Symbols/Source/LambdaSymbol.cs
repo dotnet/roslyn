@@ -336,11 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations type;
                 RefKind refKind;
                 DeclarationScope scope;
+                ParameterSyntax? paramSyntax = null;
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
                     scope = unboundLambda.Scope(p);
+                    paramSyntax = unboundLambda.ParameterSyntax(p);
                 }
                 else if (p < numDelegateParameters)
                 {
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
 
-                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, paramSyntax?.GetReference(), attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), locations);
                 builder.Add(parameter);
             }
 
