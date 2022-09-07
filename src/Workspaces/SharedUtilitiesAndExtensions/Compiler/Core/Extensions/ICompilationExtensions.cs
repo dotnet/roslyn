@@ -228,6 +228,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
 
+        public static INamedTypeSymbol? AsyncMethodBuilderAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AsyncMethodBuilderAttribute");
+
         public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
     }

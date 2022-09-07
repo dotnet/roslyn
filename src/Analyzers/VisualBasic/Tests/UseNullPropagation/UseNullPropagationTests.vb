@@ -1065,5 +1065,72 @@ Public Class Class1
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
+        Public Async Function TestNotWithColorColorStaticCase() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+class D
+    public shared sub StaticMethod()
+    end sub
+    public sub InstanceMethod()
+    end sub
+end class
+
+public class C
+    public property D as D
+
+    public sub Test()
+        [||]if D IsNot Nothing
+            D.StaticMethod()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
+        Public Async Function TestWithColorColorInstanceCase() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class D
+    public shared sub StaticMethod()
+    end sub
+    public sub InstanceMethod()
+    end sub
+end class
+
+public class C
+    public property D as D
+
+    public sub Test()
+        [|if|] D IsNot Nothing
+            D.InstanceMethod()
+        end if
+    end sub
+end class",
+"
+Imports System
+
+class D
+    public shared sub StaticMethod()
+    end sub
+    public sub InstanceMethod()
+    end sub
+end class
+
+public class C
+    public property D as D
+
+    public sub Test()
+        D?.InstanceMethod()
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

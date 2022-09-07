@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 {
                     var typeInfo = semanticModel.GetTypeInfo(beforeArrowExpression, cancellationToken);
 
-                    if (typeInfo.Type.IsPointerType())
+                    if (typeInfo.Type is IPointerTypeSymbol pointerType)
                     {
-                        typeToGenerateIn = ((IPointerTypeSymbol)typeInfo.Type).PointedAtType as INamedTypeSymbol;
+                        typeToGenerateIn = pointerType.PointedAtType as INamedTypeSymbol;
                         isStatic = false;
                     }
                 }

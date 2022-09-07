@@ -61,7 +61,7 @@ class C
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task ErrorLevelWarning()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -84,7 +84,7 @@ class C
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task ErrorsDuringMethodBodyEditing()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -133,7 +133,7 @@ class Program2
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public virtual async Task ErrorsAfterClosingFile()
         {
             await TestServices.Editor.SetTextAsync(@"

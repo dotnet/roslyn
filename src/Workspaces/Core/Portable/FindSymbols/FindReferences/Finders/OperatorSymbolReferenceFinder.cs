@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol.MethodKind == MethodKind.UserDefinedOperator;
+            => symbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
 
         protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,

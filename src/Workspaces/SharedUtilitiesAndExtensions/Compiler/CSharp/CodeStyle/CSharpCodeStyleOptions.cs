@@ -231,6 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_prefer_static_local_function",
             "TextEditor.CSharp.Specific.PreferStaticLocalFunction");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStruct = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferReadOnlyStruct),
+            CSharpIdeCodeStyleOptions.Default.PreferReadOnlyStruct,
+            "csharp_style_prefer_readonly_struct",
+            "TextEditor.CSharp.Specific.PreferReadOnlyStruct");
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleUsingStatement = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimpleUsingStatement),
             CSharpIdeCodeStyleOptions.Default.PreferSimpleUsingStatement,

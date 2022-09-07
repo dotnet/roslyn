@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(HostWorkspaceServices services)
+        internal AbstractTypeImportCompletionService(SolutionServices services)
         {
             CacheService = services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
         }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry = CreateCacheWorker(
                     GetPEReferenceCacheKey(peReference)!,
                     assemblySymbol,
-                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken),
+                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution.Services, peReference, cancellationToken),
                     CacheService.PEItemsCache,
                     editorBrowsableInfo,
                     cancellationToken);

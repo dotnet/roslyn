@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.SyntaxReference,
                     newIsParams,
                     this.IsExtensionMethodThis,
-                    this.Scope);
+                    this.DeclaredScope);
             }
 
             // Local functions should never have custom modifiers
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SyntaxReference,
                 newIsParams,
                 this.IsExtensionMethodThis,
-                this.Scope);
+                this.DeclaredScope);
         }
 
         internal sealed override bool RequiresCompletion
@@ -222,7 +222,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override DeclarationScope Scope => _scope;
+        internal sealed override DeclarationScope DeclaredScope => _scope;
+
+        internal abstract override DeclarationScope EffectiveScope { get; }
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         public sealed override string Name
         {

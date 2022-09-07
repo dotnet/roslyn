@@ -60,8 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 parameterFactory: ParameterFunction,
                 cancellationToken: cancellationToken).ConfigureAwait(false))?.Response;
 
-            Contract.ThrowIfNull(requestSnapshot);
-            return response is null ? null : (response, requestSnapshot);
+            // The request snapshot or response can be null if there is no LSP server implementation for
+            // the document symbol request for that language.
+            return requestSnapshot is null || response is null ? null : (response, requestSnapshot);
         }
 
         /// <summary>
@@ -179,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 SortOption.Location => FunctionId.DocumentOutline_SortByOrder,
                 SortOption.Type => FunctionId.DocumentOutline_SortByType,
                 _ => throw new NotImplementedException(),
-            });
+            }, logLevel: LogLevel.Information);
 
             return SortDocumentSymbols(documentSymbolData, sortOption, cancellationToken);
 

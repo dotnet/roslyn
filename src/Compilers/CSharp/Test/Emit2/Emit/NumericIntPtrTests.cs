@@ -217,6 +217,15 @@ class Program
             return false;
         }
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -875,18 +884,19 @@ class A4 : IA
     void IA.F1(System.IntPtr x, nuint y) { }
 }";
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -937,18 +947,19 @@ class B4 : A
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(nint)").WithLocation(14, 21)
             };
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -995,18 +1006,19 @@ public class B4 : A<System.UIntPtr> { }
     }
 }";
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -1399,7 +1411,8 @@ public class A
     public static {{nuintType}}? F4;
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var sourceB =
@@ -1420,7 +1433,7 @@ public class A
         F4 = w;
     }
 }";
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference), MscorlibRefWithoutSharingCachedSymbols }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference), mscorlibRefWithoutSharing }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -1512,7 +1525,8 @@ public class A
     public static {{nuintType}}? F4;
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -1531,7 +1545,7 @@ public class A
         F4 = F4 / F2;
     }
 }";
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { refA, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -1621,7 +1635,7 @@ public class A
   IL_00f6:  ret
 }");
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { refA, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         F1 = -F1;
@@ -2564,7 +2578,8 @@ class Program
     public const nint C1 = -42;
     public const nuint C2 = 42;
 }";
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             var ref0 = comp.EmitToImageReference();
             var source1 =
 @"using System;
@@ -2576,7 +2591,7 @@ class B
         Console.WriteLine(A.C2);
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source1, references: new[] { ref0, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"-42
 42");
@@ -2593,7 +2608,8 @@ class B
     public static System.UIntPtr F3(System.UIntPtr u = 42) => u;
     public static nuint F4(nuint u = 42) => u;
 }";
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
 
             var ref0 = comp.EmitToImageReference();
             var source1 =
@@ -2608,7 +2624,7 @@ class B
         Console.WriteLine(A.F4());
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source1, references: new[] { ref0, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput:
 @"-42
@@ -2805,23 +2821,24 @@ null
 -3
 4";
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -8766,7 +8783,8 @@ $@"public class Library
     {declarations}
     public const {opType} F = {expr};
 }}";
-                var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+                var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+                var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
@@ -8785,7 +8803,7 @@ $@"public class Library
     }
 }";
                 var refA = comp.EmitToImageReference();
-                comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { refA, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 CompileAndVerify(comp, expectedOutput: expectedResult);
                 Assert.NotNull(expectedResult);
@@ -11473,6 +11491,75 @@ static class C
   IL_000f:  ret
 }
 ");
+        }
+
+        [WorkItem(63348, "https://github.com/dotnet/roslyn/issues/63348")]
+        [Fact]
+        public void ConditionalStackalloc()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int F(int n)
+    {
+        Span<char> s = n < 10 ? stackalloc char[n] : new char[n];
+        return s[n - 1];
+    }
+    static void Main()
+    {
+        Console.Write(F(1));
+        Console.Write(F(11));
+    }
+}";
+
+            var comp = CreateCompilation(new[] { SpanSource, source }, options: TestOptions.UnsafeReleaseExe);
+            verify(comp);
+
+            comp = CreateNumericIntPtrCompilation(new[] { SpanSource, source }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                comp.VerifyEmitDiagnostics();
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "00");
+                verifier.VerifyIL("Program.F", """
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (System.Span<char> V_0, //s
+                System.Span<char> V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  bge.s      IL_0016
+  IL_0005:  ldarg.0
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.2
+  IL_000a:  mul.ovf.un
+  IL_000b:  localloc
+  IL_000d:  ldloc.2
+  IL_000e:  newobj     "System.Span<char>..ctor(void*, int)"
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0022
+  IL_0016:  ldarg.0
+  IL_0017:  newarr     "char"
+  IL_001c:  call       "System.Span<char> System.Span<char>.op_Implicit(char[])"
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  stloc.0
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  call       "ref char System.Span<char>.this[int].get"
+  IL_002e:  ldind.u2
+  IL_002f:  ret
+}
+""");
+            }
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

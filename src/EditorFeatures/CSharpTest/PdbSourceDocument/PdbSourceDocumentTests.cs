@@ -5,9 +5,11 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -843,6 +845,41 @@ public class C
                 AssertEx.NotNull(actualText.Encoding);
                 AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
                 AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
+        }
+
+        [Fact]
+        public async Task OptionTurnedOff_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                var sourceText = SourceText.From(source, Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"));
+
+                using var workspace = (TestWorkspace)project.Solution.Workspace;
+
+                var service = workspace.GetService<IMetadataAsSourceFileService>();
+                try
+                {
+                    var options = MetadataAsSourceOptions.GetDefault(project.Services) with
+                    {
+                        NavigateToSourceLinkAndEmbeddedSources = false
+                    };
+                    var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, options, CancellationToken.None).ConfigureAwait(false);
+
+                    Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
+                }
+                finally
+                {
+                    service.CleanupGeneratedFiles();
+                    service.TryGetWorkspace()?.Dispose();
+                }
             });
         }
     }

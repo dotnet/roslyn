@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private struct AddConstructorParameterResult
+        private readonly struct AddConstructorParameterResult
         {
             internal readonly ImmutableArray<AddConstructorParametersCodeAction> RequiredParameterActions;
             internal readonly ImmutableArray<AddConstructorParametersCodeAction> OptionalParameterActions;

@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
 
-                var workspace = document.Project.Solution.Workspace;
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
                 var nameColonItems = await GetNameColonItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
                 var nameEqualsItems = await GetNameEqualsItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);

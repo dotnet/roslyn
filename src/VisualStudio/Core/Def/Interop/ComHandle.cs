@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
     /// </summary>
     /// <typeparam name="THandle">The COM interface type to keep a reference to</typeparam>
     /// <typeparam name="TObject">The managed object type to keep a reference to</typeparam>
-    internal struct ComHandle<THandle, TObject>
+    internal readonly struct ComHandle<THandle, TObject>
         where THandle : class
         where TObject : class, THandle
     {

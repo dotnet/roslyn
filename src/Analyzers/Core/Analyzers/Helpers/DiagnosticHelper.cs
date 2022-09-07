@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
 
             // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
-            if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId ||
+            if (id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.DiagnosticFixableId ||
                 id == "IDE0005_gen")
             {
                 return null;
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using var argumentsBuilderDisposer = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
+                    using var _ = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
                     for (var i = 0; i < length; i++)
                     {
                         argumentsBuilder.Add(reader.ReadString());

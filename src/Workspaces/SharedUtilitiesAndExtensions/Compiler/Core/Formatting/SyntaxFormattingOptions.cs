@@ -39,7 +39,7 @@ internal abstract class SyntaxFormattingOptions
     public AccessibilityModifiersRequired AccessibilityModifiersRequired => Common.AccessibilityModifiersRequired;
 
 #if !CODE_STYLE
-    public static SyntaxFormattingOptions GetDefault(HostLanguageServices languageServices)
+    public static SyntaxFormattingOptions GetDefault(LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
 #endif
 }
@@ -67,7 +67,7 @@ internal static partial class SyntaxFormattingOptionsProviders
     }
 
 #if !CODE_STYLE
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions, HostProjectServices languageServices)
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options, fallbackOptions);
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
@@ -77,6 +77,6 @@ internal static partial class SyntaxFormattingOptionsProviders
     }
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetSyntaxFormattingOptionsAsync(document, await ((OptionsProvider<SyntaxFormattingOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetSyntaxFormattingOptionsAsync(document, await ((OptionsProvider<SyntaxFormattingOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }
