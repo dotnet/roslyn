@@ -33,6 +33,8 @@ jobs:
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
+  variables:
+    artifactName: ${{ parameters.testArtifactName }}
 
   steps:
     - template: checkout-unix-task.yml
