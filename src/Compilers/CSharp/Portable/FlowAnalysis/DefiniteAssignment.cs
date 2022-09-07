@@ -1674,6 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterParameter(ParameterSymbol parameter)
         {
+
             int slot = GetOrCreateSlot(parameter);
             if (parameter.RefKind == RefKind.Out && !(this.CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync)) // out parameters not allowed in async
             {
@@ -1684,6 +1685,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
+            }
+
+            if (parameter.BoundEqualsValue is { } boundValue)
+            {
+                VisitRvalue(boundValue.Value);
             }
         }
 

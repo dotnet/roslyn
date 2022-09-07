@@ -233,6 +233,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns the bound default value syntax from a parameter, if it exists.
+        /// Note that this field will only be non-null if a default parameter value was 
+        /// supplied in syntax and not in metadata. Thus, there are cases
+        /// where ExplicitDefaultValue will be non-null, but this field will be.
+        /// </summary>
+        public virtual BoundParameterEqualsValue? BoundEqualsValue { get { return null; } }
+
+        /// <summary>
         /// Returns the default value constant of the parameter, 
         /// or null if the parameter doesn't have a default value or 
         /// the parameter type is a struct and the default value of the parameter

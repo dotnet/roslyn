@@ -5558,5 +5558,71 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)
                 );
         }
+
+        [Fact]
+        public void LocalConstantUsedInLocalFunctionDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int c = 10;
+            static void Local(int arg = c) => Console.WriteLine(arg);
+            
+            Local();
+        }
+
+    }
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalConstantUsedInLambdaDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int c = 10;
+            var f = (int arg = c) => Console.WriteLine(arg);
+            f();
+        }
+
+    }
+";
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleDependentLocalConstants_LambdaDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int a = 10;
+            const int b = a + 1;
+            const int c = a + b;
+            var f = (int arg = c) => Console.WriteLine(arg);
+            f();
+        }
+    }
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

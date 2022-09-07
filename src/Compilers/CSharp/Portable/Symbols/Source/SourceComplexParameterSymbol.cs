@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
+        protected BoundParameterEqualsValue? _lazyBoundEqualsValueSyntax = null;
 
         protected SourceComplexParameterSymbolBase(
             Symbol owner,
@@ -217,7 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
-        private ConstantValue DefaultSyntaxValue
+        private ConstantValue DefaultSyntaxValue => DefaultSyntax.Item1;
+        public override BoundParameterEqualsValue? BoundEqualsValue => DefaultSyntax.Item2;
+
+        private (ConstantValue, BoundParameterEqualsValue?) DefaultSyntax
         {
             get
             {
@@ -236,6 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (parameterEqualsValue is not null)
                     {
+                        var previousEqualsValueSyntax = Interlocked.CompareExchange(ref _lazyBoundEqualsValueSyntax, parameterEqualsValue, null);
+                        Debug.Assert(previousEqualsValueSyntax is null);
+
                         if (binder is not null &&
                             GetDefaultValueSyntaxForIsNullableAnalysisEnabled(CSharpSyntaxNode) is { } valueSyntax)
                         {
@@ -255,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, default(CancellationToken));
-                return _lazyDefaultSyntaxValue;
+                return (_lazyDefaultSyntaxValue, _lazyBoundEqualsValueSyntax);
             }
         }
 

@@ -2704,6 +2704,7 @@ struct S
             var source =
 @"struct S
 {
+            
     private object F;
     private object G;
     public S(object x, object y)
