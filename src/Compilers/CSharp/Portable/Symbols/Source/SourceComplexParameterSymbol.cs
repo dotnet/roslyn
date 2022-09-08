@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
-        protected BoundParameterEqualsValue _lazyBoundEqualsValueSyntax = null;
 
         protected SourceComplexParameterSymbolBase(
             Symbol owner,
@@ -218,11 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
-        private ConstantValue DefaultSyntaxValue => DefaultSyntax.ConstValue;
-
-        public override BoundParameterEqualsValue? BoundEqualsValue => DefaultSyntax.BoundEqualsValue;
-
-        private (ConstantValue ConstValue, BoundParameterEqualsValue? BoundEqualsValue) DefaultSyntax
+        private ConstantValue DefaultSyntaxValue
         {
             get
             {
@@ -241,9 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (parameterEqualsValue is not null)
                     {
-                        var previousEqualsValueSyntax = Interlocked.CompareExchange(ref _lazyBoundEqualsValueSyntax, parameterEqualsValue, null);
-                        Debug.Assert(previousEqualsValueSyntax is null);
-
                         if (binder is not null &&
                             GetDefaultValueSyntaxForIsNullableAnalysisEnabled(CSharpSyntaxNode) is { } valueSyntax)
                         {
@@ -263,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, default(CancellationToken));
-                return (_lazyDefaultSyntaxValue, _lazyBoundEqualsValueSyntax);
+                return _lazyDefaultSyntaxValue;
             }
         }
 
