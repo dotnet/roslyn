@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 """, writer.ToString());
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/63856")]
         public void DuplicateAnalyzerReference()
         {
             var directory = Temp.CreateDirectory();
