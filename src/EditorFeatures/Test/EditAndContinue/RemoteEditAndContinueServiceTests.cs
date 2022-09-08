@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
             if (testHost == TestHost.InProcess)
             {
-                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
+                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService), typeof(MockDiagnosticAnalyzerService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
+            var mockDiagnosticService = (MockDiagnosticAnalyzerService)localWorkspace.GetService<IDiagnosticAnalyzerService>();
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {

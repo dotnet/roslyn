@@ -5,20 +5,26 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
+    [Export(typeof(IDiagnosticAnalyzerService)), Shared, PartNotDiscoverable]
     internal class MockDiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         public readonly List<DocumentId> DocumentsToReanalyze = new();
+        public DiagnosticData? DiagnosticData;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MockDiagnosticAnalyzerService(IGlobalOptionService globalOptions)
         {
             GlobalOptions = globalOptions;
@@ -48,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics = true, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
-            => throw new NotImplementedException();
+            => DiagnosticData != null ? Task.FromResult(ImmutableArray.Create(DiagnosticData)) : throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
