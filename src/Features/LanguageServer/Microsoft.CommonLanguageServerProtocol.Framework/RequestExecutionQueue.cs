@@ -65,9 +65,6 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
-    /// <inheritdoc cref="IRequestExecutionQueue{TRequestContext}.RequestServerShutdown"/>
-    public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
-
     public RequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
     {
         _logger = logger;
@@ -165,6 +162,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     private async Task ProcessQueueAsync()
     {
+        ILspServices? lspServices = null;
         try
         {
             while (!_cancelSource.IsCancellationRequested)
@@ -186,6 +184,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                 try
                 {
                     var (work, cancellationToken) = queueItem;
+                    lspServices = work.LspServices;
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
@@ -219,16 +218,17 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
             // We encountered an unexpected exception in processing the queue or in a mutating request.
             // Log it, shutdown the queue, and exit the loop.
             _logger.LogException(ex);
-            await OnRequestServerShutdownAsync($"Error occurred processing queue: {ex.Message}.").ConfigureAwait(false);
+            var message = $"Error occurred processing queue: {ex.Message}.";
+            if (lspServices is not null)
+            {
+                var lifecycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
+                await lifecycleManager.ShutdownAsync(message).ConfigureAwait(false);
+                await lifecycleManager.ExitAsync().ConfigureAwait(false);
+            }
+
+            await DisposeAsync().ConfigureAwait(false);
             return;
         }
-    }
-
-    private async Task OnRequestServerShutdownAsync(string message)
-    {
-        RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
-
-        await DisposeAsync().ConfigureAwait(false);
     }
 
     /// <summary>

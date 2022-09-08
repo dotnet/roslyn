@@ -24,11 +24,4 @@ public interface IRequestExecutionQueue<TRequestContext> : IAsyncDisposable
     /// Start the queue accepting requests once any event handlers have been attached.
     /// </summary>
     void Start();
-
-    /// <summary>
-    /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
-    /// and so the only course of action is to shutdown the server so that the client re-connects and we can
-    /// start over again.
-    /// </summary>
-    event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 }

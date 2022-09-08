@@ -24,13 +24,14 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
     private readonly TRequest _request;
     private readonly IMethodHandler _handler;
-    private readonly ILspServices _lspServices;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
     /// This is the task that the client is waiting on.
     /// </summary>
     private readonly TaskCompletionSource<TResponse> _completionSource = new();
+
+    public ILspServices LspServices { get; }
 
     public bool MutatesServerState { get; }
 
@@ -54,7 +55,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         _handler = handler;
         _logger = logger;
         _request = request;
-        _lspServices = lspServices;
+        LspServices = lspServices;
         MethodHandler = methodHandler;
 
         MutatesServerState = mutatesSolutionState;
@@ -98,7 +99,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var requestContextFactory = _lspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
+            var requestContextFactory = LspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
             var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
 
             if (context is null)

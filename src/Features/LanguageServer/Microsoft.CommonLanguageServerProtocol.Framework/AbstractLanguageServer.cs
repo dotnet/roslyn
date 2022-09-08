@@ -128,7 +128,6 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
     {
         var handlerProvider = GetHandlerProvider();
         var queue = new RequestExecutionQueue<TRequestContext>(_logger, handlerProvider);
-        queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
         queue.Start();
 
@@ -229,19 +228,6 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
     }
 
 #pragma warning disable VSTHRD100
-    private async void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
-    {
-        // log message and shut down
-        _logger.LogWarning($"Request queue is requesting shutdown due to error: {e.Message}");
-
-        var lspServices = GetLspServices();
-
-        // We want to sue the LifecycleManager to ensure we fire the events
-        var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-        await lifeCycleManager.ShutdownAsync(e.Message).ConfigureAwait(false);
-        await lifeCycleManager.ExitAsync().ConfigureAwait(false);
-    }
-
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
     /// </summary>

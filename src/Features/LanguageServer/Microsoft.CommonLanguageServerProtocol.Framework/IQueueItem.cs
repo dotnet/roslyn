@@ -19,6 +19,8 @@ public interface IQueueItem<TRequestContext>
     /// </summary>
     Task StartRequestAsync(CancellationToken cancellationToken);
 
+    ILspServices LspServices { get; }
+
     /// <summary>
     /// Indicates that this request may mutate the server state, so that the queue may handle its execution appropriatly.
     /// </summary>
