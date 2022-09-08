@@ -156,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
-            symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
             var parameterIndex = 0;
 
             // If we're being called on an invocation and not a definition we need to find the selected argument index based on the original definition.

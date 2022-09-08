@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 
 [IntentProvider(WellKnownIntents.DeleteParameter, LanguageNames.CSharp), Shared]
-internal class DeleteParameterIntentProvider : IIntentProvider
+internal sealed class DeleteParameterIntentProvider : IIntentProvider
 {
     private readonly IGlobalOptionService _globalOptionService;
 
@@ -68,7 +68,6 @@ internal class DeleteParameterIntentProvider : IIntentProvider
             return ImmutableArray<IntentProcessorResult>.Empty;
         }
 
-        Contract.ThrowIfNull(changeSignatureResult.UpdatedSolution);
         var changedDocuments = changeSignatureResult.UpdatedSolution.GetChangedDocuments(priorDocument.Project.Solution).ToImmutableArray();
         return ImmutableArray.Create(new IntentProcessorResult(changeSignatureResult.UpdatedSolution, changedDocuments, EditorFeaturesResources.Change_Signature, WellKnownIntents.DeleteParameter));
     }
