@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingNamedType.AssociatedFileIdentifier();
+                return UnderlyingNamedType.GetFileLocalTypeMetadataNamePrefix();
             }
         }
 #nullable disable

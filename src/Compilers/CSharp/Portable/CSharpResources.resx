@@ -6784,7 +6784,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
     <value>A ref field can only be declared in a ref struct.</value>
   </data>
-
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
     <value>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
@@ -7143,11 +7142,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FileTypeNested" xml:space="preserve">
     <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
   </data>
+  <data name="ERR_FilePathCannotBeConvertedToUtf8" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</value>
+  </data>
   <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
     <value>File-local type '{0}' cannot be used in a 'global using static' directive.</value>
   </data>
   <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'file'.</value>
+  </data>
+  <data name="ERR_FileTypeNonUniquePath" xml:space="preserve">
+    <value>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</value>
   </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
@@ -7221,7 +7226,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitScopedRef" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</value>
   </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
+  </data>
   <data name="ERR_UnscopedScoped" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
+  </data>
+  <data name="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn" xml:space="preserve">
+    <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
   </data>
 </root>

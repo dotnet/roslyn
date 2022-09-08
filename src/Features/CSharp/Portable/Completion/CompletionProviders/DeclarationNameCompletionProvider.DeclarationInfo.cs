@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class DeclarationNameCompletionProvider
     {
-        internal struct NameDeclarationInfo
+        internal readonly struct NameDeclarationInfo
         {
             private static readonly ImmutableArray<SymbolKindOrTypeKind> s_parameterSyntaxKind =
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter));

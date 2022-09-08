@@ -2858,6 +2858,15 @@ class Program
     public struct Boolean { }
     public struct Int32 { }
     public struct IntPtr { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var sourceB =
 @"class Program
@@ -9390,7 +9399,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }

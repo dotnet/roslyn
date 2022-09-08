@@ -82,6 +82,11 @@
         <target state="translated">A expressão lambda pode ser removida</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="new">Make struct 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Diretiva using em local incorreto</target>
@@ -185,6 +190,11 @@
       <trans-unit id="Simplify_property_pattern">
         <source>Simplify property pattern</source>
         <target state="translated">Simplificar o padrão de propriedade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="new">Struct can be made 'readonly'</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">

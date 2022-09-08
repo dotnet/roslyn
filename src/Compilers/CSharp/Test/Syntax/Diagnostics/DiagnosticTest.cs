@@ -354,6 +354,7 @@ class X
                         case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                         case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                        case ErrorCode.WRN_DuplicateAnalyzerReference:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -2882,6 +2883,7 @@ class Program
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                    case ErrorCode.ERR_FileTypeNonUniquePath:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 
