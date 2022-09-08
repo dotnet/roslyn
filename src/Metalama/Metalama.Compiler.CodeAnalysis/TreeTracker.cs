@@ -124,15 +124,15 @@ namespace Metalama.Compiler
             // find an ancestor that contains the annotation
             while (ancestor != null)
             {
-                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out _))
+                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out annotation))
                 {
-                    break;
+                    return (ancestor, annotation);
                 }
-                
+
                 ancestor = ancestor.ParentOrStructuredTriviaParent;
             }
 
-            return (ancestor, annotation);
+            return (null, null);
         }
 
         private static (SyntaxNodeOrToken? ancestor, SyntaxAnnotation? annotation) FindAncestorWithAnnotation(
