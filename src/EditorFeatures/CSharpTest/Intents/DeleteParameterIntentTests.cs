@@ -423,4 +423,106 @@ public static class FooExtensions
 
         await VerifyExpectedTextAsync(WellKnownIntents.DeleteParameter, initialText, currentText, expectedText).ConfigureAwait(false);
     }
+
+    [Fact]
+    public async Task TestDeleteParameterOnStaticExtensionInvocationAsync()
+    {
+        var initialText =
+@"public static class AExtension
+{
+    public static void Method(this A c, int i)
+    {
+
+    }
+}
+
+public class A
+{
+    void M()
+    {
+        AExtension.Method(new A(), {|priorSelection:1|});
+    }
+}";
+        var currentText =
+@"public static class AExtension
+{
+    public static void Method(this A c, int i)
+    {
+
+    }
+}
+
+public class A
+{
+    void M()
+    {
+        AExtension.Method(new A());
+    }
+}";
+        var expectedText =
+@"public static class AExtension
+{
+    public static void Method(this A c)
+    {
+
+    }
+}
+
+public class A
+{
+    void M()
+    {
+        AExtension.Method(new A());
+    }
+}";
+
+        await VerifyExpectedTextAsync(WellKnownIntents.DeleteParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+    }
+
+    [Fact]
+    public async Task TestDeleteParameterOnConstructorInvocationAsync()
+    {
+        var initialText =
+@"public class A
+{
+    public A(int i, string s)
+    {
+
+    }
+
+    static A M()
+    {
+        return new A(1, {|priorSelection:""hello""|});
+    }
+}";
+        var currentText =
+@"public class A
+{
+    public A(int i, string s)
+    {
+
+    }
+
+    static A M()
+    {
+        return new A(1);
+    }
+}";
+        var expectedText =
+@"public class A
+{
+    public A(int i)
+    {
+
+    }
+
+    static A M()
+    {
+        return new A(1);
+    }
+}";
+
+        await VerifyExpectedTextAsync(WellKnownIntents.DeleteParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+    }
+
 }
