@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = solution.GetDocument(documentId)!;
+                // Completion always uses frozen-partial semantic in-proc, which is not automatically passed to OOP, so enable it explicitly
+                var document = solution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = SymbolKey.ResolveString(receiverTypeSymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
