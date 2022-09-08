@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
@@ -21,10 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         /// </summary>
         private const string CS8865 = nameof(CS8865);
 
+        private IGlobalOptionService _globalOptionService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConvertToRecordCodeFixProvider()
+        public CSharpConvertToRecordCodeFixProvider(IGlobalOptionService globalOptionService)
         {
+            _globalOptionService = globalOptionService;
         }
 
         public override FixAllProvider? GetFixAllProvider()
@@ -36,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            if (_globalOptionService.GetOption(ConvertToRecordOptions.Disable))
+            {
+                return null;
+            }
+
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
