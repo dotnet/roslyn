@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -1122,6 +1123,39 @@ using ああ;
 ";
 
             await CheckAsync(initial, final);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData(CompareOptions.IgnoreCase)]
+        [InlineData(CompareOptions.IgnoreWidth)]
+        [InlineData(CompareOptions.IgnoreCase | CompareOptions.IgnoreWidth)]
+        [InlineData(CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreWidth)]
+        [InlineData(CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreWidth)]
+        public void CaseSensitivity3(CompareOptions options)
+        {
+            Compare("ｱ", "ア", options);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData(CompareOptions.IgnoreCase)]
+        [InlineData(CompareOptions.IgnoreWidth)]
+        [InlineData(CompareOptions.IgnoreCase | CompareOptions.IgnoreWidth)]
+        [InlineData(CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreWidth)]
+        [InlineData(CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreWidth)]
+        public void CaseSensitivity4(CompareOptions options)
+        {
+            Compare("あ", "ア", options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void CaseSensitivity5()
+        {
+            Assert.Equal("", $"{Environment.Version},{Environment.OSVersion}");
+        }
+
+        private static void Compare(string one, string two, CompareOptions option = CompareOptions.None)
+        {
+            Assert.Equal("", $"({one}, {two}) = {CultureInfo.InvariantCulture.CompareInfo.Compare(one, two, option)}");
         }
 
         [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
