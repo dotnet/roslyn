@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Class RenameEngineResult
         Implements IDisposable
         Private Const CaretString = "$$"
+        Private Const SelectionSpanString = "[||]"
 
         Private ReadOnly _workspace As TestWorkspace
         Private ReadOnly _resolution As ConflictResolution
@@ -39,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         ''' </summary>
         Private ReadOnly _unassertedRelatedLocations As HashSet(Of RelatedLocation)
         Private ReadOnly _nonConflictLocationToReplacementText As ImmutableDictionary(Of DocumentId, ImmutableDictionary(Of TextSpan, String))
-
         Private ReadOnly _annotatedRenameTagToSymbolsMap As ImmutableDictionary(Of String, ISymbol)
+        Private ReadOnly _assertedLocations As Dictionary(Of DocumentId, Dictionary(Of String, List(Of TextSpan)))
 
         Private _failedAssert As Boolean
 
@@ -54,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
             _nonConflictLocationToReplacementText = nonConflictLocationToReplacementText
             _annotatedRenameTagToSymbolsMap = annotatedTagToSymbolsMap
+            _assertedLocations = New Dictionary(Of DocumentId, Dictionary(Of String, List(Of TextSpan)))()
         End Sub
 
         Private Shared Function CreateTestWorkspace(helper As ITestOutputHelper,
@@ -135,22 +137,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim symbolToRenameInfo = Await GetRenamedSymbolInfoMapAsync(workspace, renameSymbolTagToReplacementStringAndOptions).ConfigureAwait(False)
                 Dim tagToSymbol = Await GetTagToSymbolMapAsync(workspace, renameSymbolTagToReplacementStringAndOptions).ConfigureAwait(False)
                 Dim nonConflictLocationsToReplacementTextMapBuilder = New Dictionary(Of DocumentId, Dictionary(Of TextSpan, String))
-
                 AddNonConflictRenameLocationForAnnotatedLocations(
-                workspace,
-                nonConflictLocationTagToReplacementText,
-                nonConflictLocationsToReplacementTextMapBuilder)
+                    workspace,
+                    nonConflictLocationTagToReplacementText,
+                    nonConflictLocationsToReplacementTextMapBuilder)
+
                 Dim nonConflictLocationsToReplacementTextMap = nonConflictLocationsToReplacementTextMapBuilder.ToImmutableDictionary(
-                Function(pair) pair.Key,
-                Function(pair) pair.Value.ToImmutableDictionary())
+                    Function(pair) pair.Key,
+                    Function(pair) pair.Value.ToImmutableDictionary())
 
                 Dim solution = workspace.CurrentSolution
                 Dim conflictResolution = Await Renamer.RenameSymbolsAsync(
-                solution,
-                symbolToRenameInfo,
-                CodeActionOptions.DefaultProvider,
-                ImmutableArray(Of SymbolKey).Empty,
-                CancellationToken.None).ConfigureAwait(False)
+                    solution,
+                    symbolToRenameInfo,
+                    CodeActionOptions.DefaultProvider,
+                    ImmutableArray(Of SymbolKey).Empty,
+                    CancellationToken.None).ConfigureAwait(False)
 
                 If expectFailure Then
                     Assert.False(conflictResolution.IsSuccessful)
@@ -159,11 +161,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Assert.True(conflictResolution.IsSuccessful)
                 End If
 
+                Dim assertedTags = tagToSymbol.Keys.Union(nonConflictLocationTagToReplacementText.Keys).ToHashSet()
                 engineResult = New RenameEngineResult(
-                workspace,
-                conflictResolution,
-                nonConflictLocationsToReplacementTextMap,
-                tagToSymbol)
+                    workspace,
+                    conflictResolution,
+                    nonConflictLocationsToReplacementTextMap,
+                    tagToSymbol)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
 
                 success = True
@@ -173,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     If engineResult IsNot Nothing Then
                         engineResult.Dispose()
                     Else
-                        Workspace.Dispose()
+                        workspace.Dispose()
                     End If
                 End If
             End Try
@@ -324,6 +327,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
+        Private Sub AssertLabels(label As String)
+            Dim labels = GetLabeledLocations(label)
+        End Sub
+
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
             For Each documentWithSpans In _workspace.Documents.Where(Function(d) Not d.IsSourceGenerated)
                 Dim documentId = documentWithSpans.Id
@@ -451,9 +458,68 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             Let spanText = document.GetTextSynchronously(CancellationToken.None).ToString(location.ConflictCheckSpan)
                             Select $"{spanText} @{document.Name}[{location.ConflictCheckSpan.Start}..{location.ConflictCheckSpan.End})"))
                 End If
-            End If
 
+                AssertAllTaggedLocationsAreAsserted()
+            End If
             _workspace.Dispose()
+        End Sub
+
+        Private Sub AssertAllTaggedLocationsAreAsserted()
+            Dim allLocationsShouldBeAsserted = New Dictionary(Of DocumentId, Dictionary(Of String, List(Of TextSpan)))
+            Dim allTaggedLocations = _workspace.Documents.ToDictionary(Function(doc) doc.Id, Function(doc) doc.AnnotatedSpans.ToDictionary(Function(pair) pair.Key, Function(pair) pair.Value.ToList()))
+            MergeTaggedLocationDictionary(allTaggedLocations, allLocationsShouldBeAsserted)
+
+            Dim allSelectionLocations = _workspace.Documents.ToDictionary(
+                Function(doc) doc.Id,
+                Function(doc)
+                    Dim dictionary = New Dictionary(Of String, List(Of TextSpan))
+                    dictionary(SelectionSpanString) = doc.SelectedSpans.ToList()
+                    Return dictionary
+                End Function)
+            MergeTaggedLocationDictionary(allTaggedLocations, allSelectionLocations)
+
+            Dim allCaretLocations = _workspace.Documents.Where(Function(doc) doc.CursorPosition IsNot Nothing).ToDictionary(
+                    Function(doc) doc.Id,
+                    Function(doc)
+                        Dim dictionary = New Dictionary(Of String, List(Of TextSpan))
+                        dictionary(CaretString) = New List(Of TextSpan) From {New TextSpan(doc.CursorPosition.Value, 0)}
+                        Return dictionary
+                    End Function)
+            MergeTaggedLocationDictionary(allTaggedLocations, allCaretLocations)
+
+            AssertEx.SetEqual(_assertedLocations.Keys, allTaggedLocations.Keys)
+            For Each documentToTaggedSpanPair In _assertedLocations
+                Dim documentId = documentToTaggedSpanPair.Key
+                Dim assertedSpanInDocument = documentToTaggedSpanPair.Value
+                Dim allTaggedSpansInDocument = allLocationsShouldBeAsserted(documentId)
+                AssertEx.SetEqual(allTaggedSpansInDocument.Keys, assertedSpanInDocument.Keys)
+                For Each tagToSpans In assertedSpanInDocument
+                    Dim tag = tagToSpans.Key
+                    Dim assertedSpans = tagToSpans.Value.OrderBy(Function(span) span)
+                    Dim taggedSpans = allTaggedSpansInDocument(tag).OrderBy(Function(span) span)
+                    Assert.Equal(taggedSpans, assertedSpans)
+                Next
+            Next
+        End Sub
+
+        Private Shared Sub MergeTaggedLocationDictionary(dict1 As Dictionary(Of DocumentId, Dictionary(Of String, List(Of TextSpan))), builder As Dictionary(Of DocumentId, Dictionary(Of String, List(Of TextSpan))))
+            For Each documentIdAndTagLocationsPair In dict1
+                Dim documentId = documentIdAndTagLocationsPair.Key
+                Dim tagToSpan = documentIdAndTagLocationsPair.Value
+                If Not builder.ContainsKey(documentId) Then
+                    builder(documentId) = New Dictionary(Of String, List(Of TextSpan))()
+                End If
+
+                Dim existingTagToSpan = builder(documentId)
+                For Each tagAndSpanPair In tagToSpan
+                    Dim tag = tagAndSpanPair.Key
+                    Dim spans = tagAndSpanPair.Value
+                    If Not existingTagToSpan.ContainsKey(tag) Then
+                        existingTagToSpan(tag) = New List(Of TextSpan)()
+                    End If
+                    existingTagToSpan(tag).AddRange(spans)
+                Next
+            Next
         End Sub
 
         Protected Overrides Sub Finalize()
