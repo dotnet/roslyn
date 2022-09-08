@@ -1040,54 +1040,9 @@ using cc;
 using cC;
 using CC;
 
-// In .Net Core あ always comes before ア. In .NetFramework if Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
+// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
 // If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
 
-#if NETCOREAPP
-            var final =
-@"using a;
-using A;
-using aa;
-using aA;
-using Aa;
-using AA;
-using b;
-using B;
-using bb;
-using bB;
-using Bb;
-using BB;
-using bbb;
-using bbB;
-using bBb;
-using bBB;
-using Bbb;
-using BbB;
-using BBb;
-using BBB;
-using c;
-using C;
-using cc;
-using cC;
-using cC;
-using Cc;
-using CC;
-using あ;
-using ｱ;
-using ああ;
-using あｱ;
-using ｱあ;
-using ｱｱ;
-using あア;
-using ｱア;
-using ア;
-using アあ;
-using アｱ;
-using アア;
-
-// In .Net Core あ always comes before ア. In .NetFramework if Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
-#else
             var final =
 @"using a;
 using A;
@@ -1129,10 +1084,8 @@ using あア;
 using あｱ;
 using ああ;
 
-// In .Net Core あ always comes before ア. In .NetFramework if Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";     
-#endif
-
+// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
+// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
             await CheckAsync(initial, final);
         }
 
@@ -1153,22 +1106,6 @@ using ｱあ;
 using ｱア;
 using ｱｱ;";
 
-#if NETCOREAPP
-            var final =
-@"using あ;
-using ｱ;
-using ああ;
-using あｱ;
-using ｱあ;
-using ｱｱ;
-using あア;
-using ｱア;
-using ア;
-using アあ;
-using アｱ;
-using アア;
-";
-#else
             var final =
 @"using ア;
 using ｱ;
@@ -1183,7 +1120,6 @@ using あア;
 using あｱ;
 using ああ;
 ";
-#endif
 
             await CheckAsync(initial, final);
         }
