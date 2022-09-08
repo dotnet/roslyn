@@ -37,9 +37,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly LspServices _lspServices;
 
         /// <summary>
-        /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
+        /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
+        /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
+        /// </summary>
+        public readonly Workspace? Workspace;
+
+        /// <summary>
+        /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see
+        /// langword="null"/> otherwise
         /// </summary>
         public readonly Solution? Solution;
+
+        /// <summary>
+        /// The document that the request is for, if applicable. This comes from the <see
+        /// cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see
+        /// cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// </summary>
+        public readonly Document? Document;
 
         /// <summary>
         /// The client capabilities for the request.
@@ -50,19 +64,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// The LSP server handling the request.
         /// </summary>
         public readonly WellKnownLspServerKinds ServerKind;
-
-        /// <summary>
-        /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
-        /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
-        /// </summary>
-        public readonly Workspace? Workspace;
-
-        /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see
-        /// cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see
-        /// cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
-        /// </summary>
-        public readonly Document? Document;
 
         /// <summary>
         /// The languages supported by the server making the request.
@@ -77,12 +78,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ILspLogger _logger;
 
         public RequestContext(
+            Workspace? workspace,
             Solution? solution,
+            Document? document,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             WellKnownLspServerKinds serverKind,
-            Workspace? workspace,
-            Document? document,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
@@ -90,8 +91,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken queueCancellationToken)
         {
             Workspace = workspace;
-            Document = document;
             Solution = solution;
+            Document = document;
             ClientCapabilities = clientCapabilities;
             ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
@@ -128,9 +129,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 return new RequestContext(
-                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, workspace: null, document: null,
-                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
-                    queueCancellationToken: queueCancellationToken);
+                    workspace: null, solution: null, document: null, logger, clientCapabilities, serverKind, 
+                    documentChangeTracker, trackedDocuments, supportedLanguages, lspServices, queueCancellationToken);
             }
 
             Workspace? workspace = null;
@@ -143,20 +143,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 (workspace, document) = await lspWorkspaceManager.GetLspWorkspaceAndDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
 
-            var workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
-            if (workspaceSolution == null)
+            var solution = document?.Project.Solution;
+            if (solution is null)
+                (workspace, solution) = await lspWorkspaceManager.TryGetHostLspWorkspaceAndSolutionAsync(requestCancellationToken).ConfigureAwait(false);
+
+            if (workspace is null)
+            {
+                logger.TraceError("Could not find appropriate workspace for operation");
+                return null;
+            }
+
+            if (solution == null)
             {
                 logger.TraceError("Could not find appropriate solution for operation");
                 return null;
             }
 
             var context = new RequestContext(
-                workspaceSolution,
+                workspace,
+                solution,
+                document,
                 logger,
                 clientCapabilities,
                 serverKind,
-                workspace,
-                document,
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,

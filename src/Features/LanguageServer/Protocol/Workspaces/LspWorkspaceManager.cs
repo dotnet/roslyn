@@ -152,15 +152,15 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<Solution?> TryGetHostLspSolutionAsync(CancellationToken cancellationToken)
+    public async Task<(Workspace?, Solution?)> TryGetHostLspWorkspaceAndSolutionAsync(CancellationToken cancellationToken)
     {
         // Ensure we have the latest lsp solutions
         var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var (_, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
+        var (hostWorkspace, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
-        return hostWorkspaceSolution;
+        return (hostWorkspace, hostWorkspaceSolution);
     }
 
     /// <summary>

@@ -268,7 +268,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.True(IsWorkspaceRegistered(testWorkspaceTwo, testLspServer));
 
         // Verify the host workspace returned is the workspace with kind host.
-        var hostSolution = await GetLspHostSolutionAsync(testLspServer).ConfigureAwait(false);
+        var (_, hostSolution) = await GetLspHostWorkspaceAndSolutionAsync(testLspServer).ConfigureAwait(false);
         AssertEx.NotNull(hostSolution);
         Assert.Equal("FirstWorkspaceProject", hostSolution.Projects.First().Name);
     }
@@ -293,7 +293,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
 
         // Verify there is not workspace matching the host workspace kind.
-        Assert.Null(await GetLspHostSolutionAsync(testLspServer).ConfigureAwait(false));
+        var (_, solution) = await GetLspHostWorkspaceAndSolutionAsync(testLspServer).ConfigureAwait(false);
+        Assert.Null(solution);
     }
 
     [Fact]
@@ -485,8 +486,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         return testLspServer.GetManager().GetLspWorkspaceAndDocumentAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None);
     }
 
-    private static Task<Solution?> GetLspHostSolutionAsync(TestLspServer testLspServer)
+    private static Task<(Workspace?, Solution?)> GetLspHostWorkspaceAndSolutionAsync(TestLspServer testLspServer)
     {
-        return testLspServer.GetManager().TryGetHostLspSolutionAsync(CancellationToken.None);
+        return testLspServer.GetManager().TryGetHostLspWorkspaceAndSolutionAsync(CancellationToken.None);
     }
 }
