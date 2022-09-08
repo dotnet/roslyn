@@ -175,20 +175,20 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
 
         // Verify the request on the loose file fails.
-        var lspDocument = await testLspServer.GetManager().GetLspDocumentAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri }, CancellationToken.None).ConfigureAwait(false);
+        var (_, lspDocument) = await testLspServer.GetManager().GetLspDocumentAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri }, CancellationToken.None).ConfigureAwait(false);
         Assert.Null(lspDocument);
     }
 
     private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, Uri fileUri)
     {
-        var lspDocument = await testLspServer.GetManager().GetLspDocumentAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);
-        Assert.Equal(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace(), lspDocument!.Project.Solution.Workspace);
+        var (lspWorkspace, _) = await testLspServer.GetManager().GetLspDocumentAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);
+        Assert.Equal(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace(), lspWorkspace);
     }
 
     private static async Task AssertFileInMainWorkspaceAsync(TestLspServer testLspServer, Uri fileUri)
     {
-        var lspDocument = await testLspServer.GetManager().GetLspDocumentAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None).ConfigureAwait(false);
-        Assert.Equal(testLspServer.TestWorkspace, lspDocument!.Project.Solution.Workspace);
+        var (lspWorkspace, _) = await testLspServer.GetManager().GetLspDocumentAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None).ConfigureAwait(false);
+        Assert.Equal(testLspServer.TestWorkspace, lspWorkspace);
 
     }
 
