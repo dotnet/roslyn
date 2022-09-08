@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                InitializeWorkspace(sourceProject);
+                _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
@@ -163,11 +164,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             return false;
-        }
-
-        private void InitializeWorkspace(Project project)
-        {
-            _workspace ??= new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
         }
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
