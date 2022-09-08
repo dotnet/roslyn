@@ -527,7 +527,8 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
+                        // https://github.com/dotnet/roslyn/issues/63856
+                        //diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
                     }
                 }
                 else
