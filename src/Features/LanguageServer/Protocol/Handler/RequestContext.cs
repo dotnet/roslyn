@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             Workspace? workspace = null;
+            Solution? solution = null;
             Document? document = null;
             if (textDocument is not null)
             {
@@ -141,9 +142,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
                 // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
                 (workspace, document) = await lspWorkspaceManager.GetLspWorkspaceAndDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
+                solution = document?.Project.Solution;
             }
 
-            var solution = document?.Project.Solution;
             if (solution is null)
                 (workspace, solution) = await lspWorkspaceManager.TryGetHostLspWorkspaceAndSolutionAsync(requestCancellationToken).ConfigureAwait(false);
 
