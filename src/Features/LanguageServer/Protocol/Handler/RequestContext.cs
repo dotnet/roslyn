@@ -44,6 +44,9 @@ internal readonly struct RequestContext
     /// <summary>
     /// The client capabilities for the request.
     /// </summary>
+    /// <remarks>
+    /// Should only be null on the "initialize" request.
+    /// </remarks>
     public readonly ClientCapabilities? ClientCapabilities;
 
     /// <summary>
