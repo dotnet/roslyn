@@ -51,10 +51,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly WellKnownLspServerKinds ServerKind;
 
+        /// <summary>
+        /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
+        /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
+        /// </summary>
         public readonly Workspace? Workspace;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// The document that the request is for, if applicable. This comes from the <see
+        /// cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see
+        /// cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
         /// </summary>
         public readonly Document? Document;
 
