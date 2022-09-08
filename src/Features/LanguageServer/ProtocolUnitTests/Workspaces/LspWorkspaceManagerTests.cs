@@ -481,13 +481,14 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         return testLspServer.GetManagerAccessor().IsWorkspaceRegistered(workspace);
     }
 
-    private static Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(Uri uri, TestLspServer testLspServer)
+    private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(Uri uri, TestLspServer testLspServer)
     {
-        return testLspServer.GetManager().GetLspWorkspaceAndDocumentAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None);
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
+        return (workspace, document);
     }
 
     private static Task<(Workspace?, Solution?)> GetLspHostWorkspaceAndSolutionAsync(TestLspServer testLspServer)
     {
-        return testLspServer.GetManager().TryGetHostLspWorkspaceAndSolutionAsync(CancellationToken.None);
+        return testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None);
     }
 }

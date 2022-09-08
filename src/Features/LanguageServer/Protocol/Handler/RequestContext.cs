@@ -138,25 +138,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document? document = null;
             if (textDocument is not null)
             {
-                // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
-                // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
-                // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
-                (workspace, document) = await lspWorkspaceManager.GetLspWorkspaceAndDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
-                solution = document?.Project.Solution;
+                // we were given a request associated with a document.  Find the corresponding roslyn document for this.
+                // There are certain cases where we may be asked for a document that does not exist (for example a
+                // document is removed) For example, document pull diagnostics can ask us after removal to clear
+                // diagnostics for a document.
+                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
 
-            if (solution is null)
-                (workspace, solution) = await lspWorkspaceManager.TryGetHostLspWorkspaceAndSolutionAsync(requestCancellationToken).ConfigureAwait(false);
+            if (workspace is null)
+                (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(requestCancellationToken).ConfigureAwait(false);
 
             if (workspace is null)
             {
                 logger.TraceError("Could not find appropriate workspace for operation");
-                return null;
-            }
-
-            if (solution == null)
-            {
-                logger.TraceError("Could not find appropriate solution for operation");
                 return null;
             }
 
