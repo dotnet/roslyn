@@ -1687,7 +1687,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (parameter.ContainingSymbol is LocalFunctionSymbol or LambdaSymbol &&
-                    parameter.HasExplicitDefaultValue && parameter.BindParameterEqualsValue() is { } boundValue)
+                    parameter.ExplicitDefaultConstantValue?.IsBad != true &&
+                    parameter.BindParameterEqualsValue() is { } boundValue)
             {
                 VisitRvalue(boundValue.Value);
             }
