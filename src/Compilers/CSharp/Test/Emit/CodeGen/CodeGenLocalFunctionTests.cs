@@ -5968,7 +5968,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
         public void InOutAttributes()
         {
@@ -6005,54 +6005,6 @@ class Program
             Assert.True(localFunctionParam.IsMetadataIn);
             Assert.True(localFunctionParam.IsMetadataOut);
 
-            verifier.VerifyTypeIL("Program", """
-                .class private auto ansi beforefieldinit Program
-                    extends [netstandard]System.Object
-                {
-                    // Methods
-                    .method private hidebysig static 
-                        void M (
-                            [in] [out] class State state
-                        ) cil managed 
-                    {
-                        // Method begins at RVA 0x2059
-                        // Code size 10 (0xa)
-                        .maxstack 8
-                        IL_0000: nop
-                        IL_0001: ldarg.0
-                        IL_0002: call void Program::'<M>g__local|0_0'(class State)
-                        IL_0007: nop
-                        IL_0008: nop
-                        IL_0009: ret
-                    } // end of method Program::M
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
-                    {
-                        // Method begins at RVA 0x2050
-                        // Code size 8 (0x8)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
-                        IL_0006: nop
-                        IL_0007: ret
-                    } // end of method Program::.ctor
-                    .method assembly hidebysig static 
-                        void '<M>g__local|0_0' (
-                            [in] [out] class State state
-                        ) cil managed 
-                    {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        // Method begins at RVA 0x2064
-                        // Code size 2 (0x2)
-                        .maxstack 8
-                        IL_0000: nop
-                        IL_0001: ret
-                    } // end of method Program::'<M>g__local|0_0'
-                } // end of class Program
-                """);
-
             void validateMetadata(ModuleSymbol module)
             {
                 var methodParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.M").Parameters[0];
@@ -6065,12 +6017,19 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Theory]
+        [InlineData("[In] ")]
+        [InlineData("[Attr] ")]
+        [InlineData("[In] [Attr] ")]
+        [InlineData("")]
         [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
-        public void IsMetadataIn_UsingModifierInSource()
+        public void IsMetadataIn_UsingModifierInSource(string attributes)
         {
-            var source = @"
+            var source = $$"""
 using System.Runtime.InteropServices;
+using System;
+
+class Attr : Attribute { }
 
 class State
 {
@@ -6079,16 +6038,16 @@ class State
 
 class Program
 {
-    static void M(in State state)
+    static void M({{attributes}}in State state)
     {
         local(in state);
 
-        static void local(in State state)
+        static void local({{attributes}}in State state)
         {
         }
     }
 }
-";
+""";
             var verifier = CompileAndVerify(
                 source,
                 targetFramework: TargetFramework.StandardAndCSharp,
@@ -6102,62 +6061,6 @@ class Program
             Assert.True(localFunctionParam.IsMetadataIn);
             Assert.False(localFunctionParam.IsMetadataOut);
 
-            verifier.VerifyTypeIL("Program", """
-                .class private auto ansi beforefieldinit Program
-                    extends [netstandard]System.Object
-                {
-                    // Methods
-                    .method private hidebysig static 
-                        void M (
-                            [in] class State& state
-                        ) cil managed 
-                    {
-                        .param [1]
-                            .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                        // Method begins at RVA 0x2072
-                        // Code size 10 (0xa)
-                        .maxstack 8
-                        IL_0000: nop
-                        IL_0001: ldarg.0
-                        IL_0002: call void Program::'<M>g__local|0_0'(class State&)
-                        IL_0007: nop
-                        IL_0008: nop
-                        IL_0009: ret
-                    } // end of method Program::M
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
-                    {
-                        // Method begins at RVA 0x2069
-                        // Code size 8 (0x8)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
-                        IL_0006: nop
-                        IL_0007: ret
-                    } // end of method Program::.ctor
-                    .method assembly hidebysig static 
-                        void '<M>g__local|0_0' (
-                            [in] class State& state
-                        ) cil managed 
-                    {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        .param [1]
-                            .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
-                                01 00 00 00
-                            )
-                        // Method begins at RVA 0x207d
-                        // Code size 2 (0x2)
-                        .maxstack 8
-                        IL_0000: nop
-                        IL_0001: ret
-                    } // end of method Program::'<M>g__local|0_0'
-                } // end of class Program
-                """);
-
             void validateMetadata(ModuleSymbol module)
             {
                 var methodParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.M").Parameters[0];
@@ -6170,12 +6073,19 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Theory]
+        [InlineData("[Out] ")]
+        [InlineData("[Attr] ")]
+        [InlineData("[Out] [Attr] ")]
+        [InlineData("")]
         [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
-        public void IsMetadataOut_UsingModifierInSource()
+        public void IsMetadataOut_UsingModifierInSource(string attributes)
         {
-            var source = @"
+            var source = $$"""
 using System.Runtime.InteropServices;
+using System;
+
+class Attr : Attribute { }
 
 class State
 {
@@ -6184,17 +6094,17 @@ class State
 
 class Program
 {
-    static void M(out State state)
+    static void M({{attributes}}out State state)
     {
         local(out state);
 
-        static void local(out State state)
+        static void local({{attributes}}out State state)
         {
             state = null!;
         }
     }
 }
-";
+""";
             var verifier = CompileAndVerify(
                 source,
                 targetFramework: TargetFramework.StandardAndCSharp,
@@ -6207,57 +6117,6 @@ class Program
             var localFunctionParam = verifier.FindLocalFunction("local").Parameters[0].GetSymbol<ParameterSymbol>();
             Assert.False(localFunctionParam.IsMetadataIn);
             Assert.True(localFunctionParam.IsMetadataOut);
-
-            verifier.VerifyTypeIL("Program", """
-                .class private auto ansi beforefieldinit Program
-                    extends [netstandard]System.Object
-                {
-                    // Methods
-                    .method private hidebysig static 
-                        void M (
-                            [out] class State& state
-                        ) cil managed 
-                    {
-                        // Method begins at RVA 0x2072
-                        // Code size 10 (0xa)
-                        .maxstack 8
-                        IL_0000: nop
-                        IL_0001: ldarg.0
-                        IL_0002: call void Program::'<M>g__local|0_0'(class State&)
-                        IL_0007: nop
-                        IL_0008: nop
-                        IL_0009: ret
-                    } // end of method Program::M
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
-                    {
-                        // Method begins at RVA 0x2069
-                        // Code size 8 (0x8)
-                        .maxstack 8
-                        IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
-                        IL_0006: nop
-                        IL_0007: ret
-                    } // end of method Program::.ctor
-                    .method assembly hidebysig static 
-                        void '<M>g__local|0_0' (
-                            [out] class State& state
-                        ) cil managed 
-                    {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        // Method begins at RVA 0x207d
-                        // Code size 5 (0x5)
-                        .maxstack 8
-                        IL_0000: nop
-                        IL_0001: ldarg.0
-                        IL_0002: ldnull
-                        IL_0003: stind.ref
-                        IL_0004: ret
-                    } // end of method Program::'<M>g__local|0_0'
-                } // end of class Program
-                """);
 
             void validateMetadata(ModuleSymbol module)
             {

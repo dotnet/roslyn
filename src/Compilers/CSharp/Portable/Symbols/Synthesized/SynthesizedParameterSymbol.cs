@@ -48,10 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsDiscard => false;
 
-        internal override bool IsMetadataIn => RefKind == RefKind.In;
-
-        internal override bool IsMetadataOut => RefKind == RefKind.Out;
-
         public override string Name
         {
             get { return _name; }
@@ -208,6 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal sealed override bool IsMetadataIn => RefKind == RefKind.In;
+
+        internal sealed override bool IsMetadataOut => RefKind == RefKind.Out;
+
         public static ParameterSymbol Create(
             MethodSymbol? container,
             TypeWithAnnotations type,
@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
 
-        internal override bool IsMetadataIn => base.IsMetadataIn || _baseParameterForAttributes?.IsMetadataIn == true;
+        internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.IsMetadataIn == true;
 
-        internal override bool IsMetadataOut => base.IsMetadataOut || _baseParameterForAttributes?.IsMetadataOut == true;
+        internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.IsMetadataOut == true;
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 
