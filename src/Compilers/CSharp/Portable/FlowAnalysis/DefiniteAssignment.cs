@@ -1686,7 +1686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteWrite(parameter, value: null, read: true);
             }
 
-            if (parameter.BoundEqualsValue is { } boundValue)
+            if (parameter.ContainingSymbol is LocalFunctionSymbol or LambdaSymbol &&
+                    parameter.HasExplicitDefaultValue && parameter.BindParameterEqualsValue() is { } boundValue)
             {
                 VisitRvalue(boundValue.Value);
             }

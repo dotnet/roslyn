@@ -217,6 +217,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
+        public override BoundParameterEqualsValue? BindParameterEqualsValue()
+        {
+            // Rebind default value expression, ignoring any diagnostics, in order to produce
+            // a bound node that can be used for passes such as definite assignment.
+            MakeDefaultExpression(BindingDiagnosticBag.Discarded, out var _, out var parameterEqualsValue);
+            return parameterEqualsValue;
+        }
+
         private ConstantValue DefaultSyntaxValue
         {
             get

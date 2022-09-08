@@ -5596,7 +5596,6 @@ class C
             var f = (int arg = c) => Console.WriteLine(arg);
             f();
         }
-
     }
 ";
 
