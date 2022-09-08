@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             var expectedCodeAfterCommit =
 @"for (int i = 0; i < length; i++)
 {
-        $$
+    $$
 }
 ";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
