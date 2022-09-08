@@ -15,13 +15,13 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [Export(typeof(IDiagnosticAnalyzerService)), Shared, PartNotDiscoverable]
     internal class MockDiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         public readonly List<DocumentId> DocumentsToReanalyze = new();
-        public DiagnosticData? DiagnosticData;
+        public ImmutableArray<DiagnosticData> Diagnostics;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics = true, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
-            => DiagnosticData != null ? Task.FromResult(ImmutableArray.Create(DiagnosticData)) : throw new NotImplementedException();
+            => !Diagnostics.IsDefault ? Task.FromResult(Diagnostics) : throw new NotImplementedException();
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();

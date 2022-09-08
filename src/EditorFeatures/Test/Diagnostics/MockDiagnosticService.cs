@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 location: location),
                 document);
 
-            analyzerService.DiagnosticData = _diagnosticData;
+            analyzerService.Diagnostics = ImmutableArray.Create(_diagnosticData);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 this, workspace, workspace.CurrentSolution,
                 GetProjectId(workspace), GetDocumentId(workspace),
