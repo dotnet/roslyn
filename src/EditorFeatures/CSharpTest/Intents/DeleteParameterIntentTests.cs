@@ -524,5 +524,4 @@ public class A
 
         await VerifyExpectedTextAsync(WellKnownIntents.DeleteParameter, initialText, currentText, expectedText).ConfigureAwait(false);
     }
-
 }
