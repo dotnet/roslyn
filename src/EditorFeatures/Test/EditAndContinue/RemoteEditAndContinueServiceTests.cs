@@ -41,10 +41,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
         [Theory, CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
-            var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
+            var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)
+                .AddExcludedPartTypes(typeof(DiagnosticAnalyzerService))
+                .AddParts(typeof(MockDiagnosticAnalyzerService));
             if (testHost == TestHost.InProcess)
             {
-                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService), typeof(MockDiagnosticAnalyzerService));
+                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
