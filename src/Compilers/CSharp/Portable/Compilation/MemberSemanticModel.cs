@@ -1993,14 +1993,16 @@ done:
 #nullable enable
                 MethodSymbol? getConstructorInitializer(BoundNode boundRoot)
                 {
-                    if (this.MemberSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor } constructor)
+                    // We can get here in speculative binding, when the symbols is a constructor symbol but the body is not a constructor body. For these cases, we don't need or want
+                    // to pass an initializer, as that will have already been calculated.
+                    if (this.MemberSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor } constructor || boundRoot is not BoundConstructorMethodBody constructorBody)
                     {
                         return null;
                     }
 
-                    if (boundRoot is BoundConstructorMethodBody { Initializer: { } initializerNode })
+                    if (constructorBody.Initializer is not null)
                     {
-                        return initializerNode.GetConstructorInitializerThisOrBaseSymbol();
+                        return constructorBody.Initializer.GetConstructorInitializerThisOrBaseSymbol();
                     }
                     else
                     {

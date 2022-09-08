@@ -1855,7 +1855,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                Debug.Assert(constructorInitializer is not null || method.ContainingType.BaseTypeNoUseSiteDiagnostics.IsErrorType());
+                                Debug.Assert(constructorInitializer is not null
+                                             || method.IsStatic
+                                             || method.ContainingType.BaseTypeNoUseSiteDiagnostics is null or { SpecialType: SpecialType.System_ValueType }
+                                             || method.ContainingType.BaseTypeNoUseSiteDiagnostics.IsErrorType());
                                 Debug.Assert(constructor.Initializer is null);
                                 Debug.Assert(constructor.Locals.IsEmpty);
                             }
