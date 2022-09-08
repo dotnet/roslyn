@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Metalama.Compiler
 {
-
     internal static class TreeTracker
     {
         private static readonly ConditionalWeakTable<SyntaxAnnotation, MappedNode> preTransformationNodeMap = new();
@@ -54,7 +53,7 @@ namespace Metalama.Compiler
         public static TNode AnnotateNodeAndChildren<TNode>(TNode node, SyntaxNode? preTransformationNode)
             where TNode : SyntaxNode
         {
-            Debug.Assert(!node.GetAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind).Any());
+            Debug.Assert(!node.HasAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind));
 
             // copied from SyntaxNode.WithAdditionalAnnotationsInternal to avoid infinite recursion
             return (TNode)node.Green.WithAdditionalAnnotationsGreen(new[]
@@ -125,24 +124,21 @@ namespace Metalama.Compiler
             // find an ancestor that contains the annotation
             while (ancestor != null)
             {
-                annotation = ancestor.GetAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind).SingleOrDefault();
-
-                if (annotation is not null)
+                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out annotation))
                 {
-                    break;
+                    return (ancestor, annotation);
                 }
 
                 ancestor = ancestor.ParentOrStructuredTriviaParent;
             }
 
-            return (ancestor, annotation);
+            return (null, null);
         }
 
         private static (SyntaxNodeOrToken? ancestor, SyntaxAnnotation? annotation) FindAncestorWithAnnotation(
             SyntaxToken token)
         {
-            var annotation = token.GetAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind).SingleOrDefault();
-            if (annotation is not null)
+            if ( token.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var annotation ) )
             {
                 return (token, annotation);
             }
@@ -551,7 +547,7 @@ namespace Metalama.Compiler
             }
 
             // if there are no annotations in the whole tree, then there is nothing to do
-            if (!tree.GetRoot().GetAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind).Any())
+            if (!tree.GetRoot().TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out _))
             {
                 return (location, null);
             }
