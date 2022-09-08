@@ -553,13 +553,19 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             try
             {
+                // It's common for us to have references to paths that don't exist for things like project-to-project references;
+                // the project system gives us metadata references we convert, but if the user unloads projects we might have some
+                // places we do see them. Since we're going to swallow all failures, we can avoid throwing first-chance exceptions
+                // for this case.
+                if (!File.Exists(reference.FilePath))
+                    return null;
+
                 return reference.GetMetadata();
             }
             catch
             {
-                // we have a reference but the file the reference is pointing to
-                // might not actually exist on disk.
-                // in that case, rather than crashing, we will handle it gracefully.
+                // Something prevented our ability to read the metadata; in this case we'll count this as a failure when computing checksums
+                // or serializing.
                 return null;
             }
         }
