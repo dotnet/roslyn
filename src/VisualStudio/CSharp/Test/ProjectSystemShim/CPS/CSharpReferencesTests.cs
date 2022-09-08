@@ -115,10 +115,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
         {
-            using var environment = new TestEnvironment(typeof(NoCompilationLanguageServiceFactory));
+            using var environment = new TestEnvironment(typeof(NoCompilationLanguageService));
             var project1 = await CreateCSharpCPSProjectAsync(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
-            var project2 = await CreateNonCompilableProjectAsync(environment, "project2", @"C:\project2.fsproj");
-            project2.BinOutputPath = "c:\\project2.dll";
+            var project2 = await CreateNonCompilableProjectAsync(environment, "project2", @"C:\project2.fsproj", targetPath: @"c:\project2.dll");
 
             project1.AddMetadataReference(project2.BinOutputPath, MetadataReferenceProperties.Assembly);
 

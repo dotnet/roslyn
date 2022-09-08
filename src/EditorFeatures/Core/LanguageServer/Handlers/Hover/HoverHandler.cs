@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
+            var quickInfoService = document.Project.Services.GetRequiredService<QuickInfoService>();
             var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             var info = await quickInfoService.GetQuickInfoAsync(document, position, options, cancellationToken).ConfigureAwait(false);
             if (info == null)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SemanticModel semanticModel,
             int position,
             SymbolDescriptionOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             CancellationToken cancellationToken)
         {
             Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return new VSInternalHover
                 {
                     Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                    Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+                    Contents = new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
                     // Build the classified text without navigation actions - they are not serializable.
                     // TODO - Switch to markup content once it supports classifications.
                     // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138

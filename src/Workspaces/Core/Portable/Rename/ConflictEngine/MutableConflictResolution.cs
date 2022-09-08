@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// </summary>
     internal sealed class MutableConflictResolution
     {
-        public readonly string ErrorMessage;
-
         // Used to map spans from oldSolution to the newSolution
         private readonly RenamedSpansTracker _renamedSpansTracker;
 
@@ -52,9 +48,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public Solution CurrentSolution { get; private set; }
 
         private (DocumentId documentId, string newName) _renamedDocument;
-
-        public MutableConflictResolution(string errorMessage)
-            => ErrorMessage = errorMessage;
 
         public MutableConflictResolution(
             Solution oldSolution,
@@ -89,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (_renamedSpansTracker.IsDocumentChanged(documentId))
                 {
-                    var document = CurrentSolution.GetDocument(documentId);
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var document = CurrentSolution.GetRequiredDocument(documentId);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // For the computeReplacementToken and computeReplacementNode functions, use 
                     // the "updated" node to maintain any annotation removals from descendants.
@@ -161,9 +154,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         public ConflictResolution ToConflictResolution()
         {
-            if (ErrorMessage != null)
-                return new ConflictResolution(ErrorMessage);
-
             var documentIds = _renamedSpansTracker.DocumentIds.Concat(
                 this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
 

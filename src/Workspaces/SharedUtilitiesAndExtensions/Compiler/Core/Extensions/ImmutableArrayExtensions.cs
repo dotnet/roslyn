@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
             for (var i = 0; i < count; i++)
                 result.Add(array[i]);
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

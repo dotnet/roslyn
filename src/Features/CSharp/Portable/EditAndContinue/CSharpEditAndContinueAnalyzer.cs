@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
                SyntaxUtilities.HasBackingField(propertyDecl);
 
-        internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? declaration)
+        internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, EditKind editKind, [NotNullWhen(true)] out SyntaxNode? declaration)
         {
             if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
             {
@@ -1169,7 +1169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
+            // For deletes, we don't associate accessors with their parents, as deleting accessors is allowed
+            if (editKind != EditKind.Delete && node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
             {
                 declaration = node.Parent.Parent!;
                 return true;

@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IsSuppressed = isSuppressed;
         }
 
+        public DiagnosticData WithLocations(DiagnosticDataLocation location, ImmutableArray<DiagnosticDataLocation> additionalLocations)
+            => new(Id, Category, Message, Severity, DefaultSeverity, IsEnabledByDefault,
+                WarningLevel, CustomTags, Properties, ProjectId, location, additionalLocations,
+                Language, Title, Description, HelpLink, IsSuppressed);
+
         public DocumentId? DocumentId => DataLocation?.DocumentId;
         public bool HasTextSpan => (DataLocation?.SourceSpan).HasValue;
 
@@ -210,14 +215,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Math.Min(textSpan.Start, text.Length),
                 Math.Min(textSpan.End, text.Length));
 
-        public DiagnosticData WithCalculatedSpan(SourceText text)
+        public DiagnosticData WithSpan(SourceText text, SyntaxTree tree)
         {
             Contract.ThrowIfNull(DocumentId);
             Contract.ThrowIfNull(DataLocation);
             Contract.ThrowIfTrue(HasTextSpan);
 
             var span = GetTextSpan(DataLocation, text);
-            var newLocation = DataLocation.WithCalculatedSpan(span);
+            var newLocation = DataLocation.WithSpan(span, tree);
 
             return new DiagnosticData(
                 id: Id,
@@ -371,10 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (diagnosticsLspClientName != null)
             {
-                if (additionalProperties == null)
-                {
-                    additionalProperties = ImmutableDictionary.Create<string, string?>();
-                }
+                additionalProperties ??= ImmutableDictionary.Create<string, string?>();
 
                 additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
             }
@@ -442,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -503,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
-            var diagnosticSpanMappingService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            var diagnosticSpanMappingService = document.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService != null)
             {
                 diagnosticSpanMappingService.GetAdjustedDiagnosticSpan(document.Id, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);

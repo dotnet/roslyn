@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
 
             using var workspace = new AdhocWorkspace();
-            var languageServices = workspace.Services.GetLanguageServices(language);
+            var languageServices = workspace.Services.SolutionServices.GetLanguageServices(language);
 
             var options = new object[]
             {

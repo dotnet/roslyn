@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             foreach (var diagnostic in group)
                             {
-                                builder.Add(diagnostic.WithCalculatedSpan(text));
+                                builder.Add(diagnostic.WithSpan(text, tree));
                             }
                         }
                     }
@@ -254,6 +254,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             try
             {
                 using var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
+
+                var originalSolution = _workspace.CurrentSolution;
                 var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
@@ -300,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 // We have different suppression fixers for every language.
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
-                var languageServices = new HashSet<HostLanguageServices>(projectDiagnosticsToFixMap.Select(p => p.Key.LanguageServices).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.LanguageServices)));
+                var languageServices = projectDiagnosticsToFixMap.Select(p => p.Key.Services).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Services)).ToHashSet();
 
                 foreach (var languageService in languageServices)
                 {
@@ -389,6 +391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     using var scope = context.AddScope(allowCancellation: true, description: waitDialogMessage);
                     await _editHandlerService.ApplyAsync(
                         _workspace,
+                        originalSolution,
                         fromDocument: null,
                         operations: operations,
                         title: title,

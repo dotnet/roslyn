@@ -99,12 +99,15 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
-        {
-            var symbol = definition.GetInternalSymbol()?.GetISymbol();
+            => definition.GetInternalSymbol() is { } internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes);
 
-            while (symbol != null)
+        public bool IsReplaced(ISymbol symbol, bool checkEnclosingTypes = false)
+        {
+            ISymbol? currentSymbol = symbol;
+
+            while (currentSymbol != null)
             {
-                if (_replacedSymbols.Contains(symbol))
+                if (_replacedSymbols.Contains(currentSymbol))
                 {
                     return true;
                 }
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     return false;
                 }
 
-                symbol = symbol.ContainingType;
+                currentSymbol = currentSymbol.ContainingType;
             }
 
             return false;

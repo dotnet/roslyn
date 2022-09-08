@@ -58,10 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
 
             result = loader(name);
 
-            if (cache == null)
-            {
-                cache = new Dictionary<string, TResult>();
-            }
+            cache ??= new Dictionary<string, TResult>();
 
             cache[name] = result;
 

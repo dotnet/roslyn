@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -19,16 +20,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
+        private readonly bool _registerOleComponent;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public RenameFlyoutViewModel(InlineRenameSession session)
+        public RenameFlyoutViewModel(InlineRenameSession session, TextSpan selectionSpan, bool registerOleComponent)
         {
             _session = session;
+            _registerOleComponent = registerOleComponent;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
+            StartingSelection = selectionSpan;
+
             ComputeRenameFile();
             RegisterOleComponent();
         }
@@ -45,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
         }
+
+        public InlineRenameSession Session => _session;
 
         public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
@@ -128,15 +135,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool IsRenameOverloadsEditable
             => !_session.MustRenameOverloads;
 
+        public bool IsRenameOverloadsVisible
+            => _session.HasRenameOverloads;
+
+        public TextSpan StartingSelection { get; }
+
         public void Submit()
-        {
-            _session.Commit();
-        }
+            => _session.Commit();
 
         public void Cancel()
-        {
-            _session.Cancel();
-        }
+            => _session.Cancel();
 
         public void Dispose()
         {
@@ -152,6 +160,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         public void RegisterOleComponent()
         {
+            // In unit testing we won't have an OleComponentManager available, so 
+            // calls to OleComponent.CreateHostedComponent will throw
+            if (!_registerOleComponent)
+            {
+                return;
+            }
+
             Debug.Assert(_oleComponent is null);
 
             _oleComponent = OleComponent.CreateHostedComponent("Microsoft CodeAnalysis Inline Rename");

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             public SymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                HostWorkspaceServices workspaceServices,
+                SolutionServices services,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
-                : base(semanticModel, position, workspaceServices, structuralTypeDisplayService, options, cancellationToken)
+                : base(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
             {
             }
 

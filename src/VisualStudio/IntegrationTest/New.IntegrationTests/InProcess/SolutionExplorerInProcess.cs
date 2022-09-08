@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -113,6 +114,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ((VSProject3)project.Object).AnalyzerReferences.Add(filePath);
         }
 
+        public async Task AddDllReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            ((VSProject3)project.Object).References.Add(filePath);
+        }
+
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -205,9 +214,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return;
             }
 
-            var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
-            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
-
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
                 async cancellationToken =>
@@ -229,6 +235,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
+
+            // Wait for async save operations to complete before proceeding
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+
+            // Verify documents are truly saved after a Save Solution operation
+            await TestServices.SolutionExplorerVerifier.AllDocumentsAreSavedAsync(cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -243,6 +255,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
             ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
             ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
+        }
+
+        public async Task CloseActiveWindow(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var monitorSelection = await GetRequiredGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var windowFrameObj));
+            var windowFrame = (IVsWindowFrame)windowFrameObj;
+
+            ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
         }
 
         public async Task CloseCodeFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)

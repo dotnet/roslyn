@@ -65,6 +65,7 @@ try {
 catch [exception] {
   Write-Host $_
   Write-Host $_.Exception
+  Write-Host "How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/compilers/Bootstrap%20Builds.md#Investigating"
   exit 1
 }
 finally {

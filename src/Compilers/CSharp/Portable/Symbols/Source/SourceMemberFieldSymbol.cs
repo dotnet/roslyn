@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
-            if (type.IsStatic)
+            if (type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, this.ErrorLocation, type, ContainingType);
+            }
+            else if (type.IsStatic)
             {
                 // Cannot declare a variable of static type '{0}'
                 diagnostics.Add(ErrorCode.ERR_VarDeclIsStaticClass, this.ErrorLocation, type);
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -481,6 +485,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (refKind != RefKind.None)
                     {
                         MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.Location);
+                        if (!compilation.Assembly.RuntimeSupportsByRefFields)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, ErrorLocation);
+                        }
+
+                        if (!containingType.IsRefLikeType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
+                        }
                         if (type.Type?.IsRefLikeType == true)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.Location);

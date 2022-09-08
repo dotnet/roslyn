@@ -6,6 +6,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -103,6 +104,12 @@ namespace RunTests
 
         public string Architecture { get; set; }
 
+        public string? AccessToken { get; set; }
+
+        public string? PhaseName { get; set; }
+
+        public string? TargetBranchName { get; set; }
+
         public Options(
             string dotnetFilePath,
             string artifactsDirectory,
@@ -140,6 +147,9 @@ namespace RunTests
             var collectDumps = false;
             string? procDumpFilePath = null;
             string? artifactsPath = null;
+            string? accessToken = null;
+            string? phaseName = null;
+            string? targetBranchName = null;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
@@ -161,6 +171,9 @@ namespace RunTests
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
                 { "retry", "Retry failed test a few times", o => retry = o is object },
+                { "accessToken=", "Pipeline access token with permissions to view test history", (string s) => accessToken = s },
+                { "phaseName=", "Pipeline phase name associated with this test run", (string s) => phaseName = s },
+                { "targetBranchName=", "Target branch of this pipeline run", (string s) => targetBranchName = s },
             };
 
             List<string> assemblyList;
@@ -237,6 +250,9 @@ namespace RunTests
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 Retry = retry,
+                AccessToken = accessToken,
+                PhaseName = phaseName,
+                TargetBranchName = targetBranchName,
             };
 
             static string? TryGetArtifactsPath()

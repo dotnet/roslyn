@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
@@ -62,10 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
 
                     if (type.IsVar)
                     {
-                        if (semanticModel == null)
-                        {
-                            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        }
+                        semanticModel ??= await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                         var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
                         boundSymbol = boundSymbol?.OriginalDefinition;

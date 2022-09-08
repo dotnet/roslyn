@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,12 +16,13 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionList
     {
-        private readonly bool _isExclusive;
         private readonly Lazy<ImmutableArray<CompletionItem>> _lazyItems;
 
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
+        [Obsolete($"This property is obsolete. Use {nameof(ItemsList)} instead", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This property is preferred over `Items` because of the flexibility it provides. 
         /// For example, the list can be backed by types like SegmentedList to avoid LOH allocations.
         /// </summary>
-        internal IReadOnlyList<CompletionItem> ItemsList { get; }
+        public IReadOnlyList<CompletionItem> ItemsList { get; }
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
@@ -61,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem? SuggestionModeItem { get; }
 
+        /// <summary>
+        /// Whether the items in this list should be the only items presented to the user.
+        /// </summary>
+        internal bool IsExclusive { get; }
+
         private CompletionList(
             TextSpan defaultSpan,
             IReadOnlyList<CompletionItem> itemsList,
@@ -74,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
-            _isExclusive = isExclusive;
+            IsExclusive = isExclusive;
 
             foreach (var item in ItemsList)
             {
@@ -129,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return Create(newSpan, newItemsList, newRules, newSuggestionModeItem, isExclusive: false);
+                return Create(newSpan, newItemsList, newRules, newSuggestionModeItem, IsExclusive);
             }
         }
 
@@ -177,18 +184,5 @@ namespace Microsoft.CodeAnalysis.Completion
             suggestionModeItem: null, isExclusive: false);
 
         internal bool IsEmpty => ItemsList.Count == 0 && SuggestionModeItem is null;
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly CompletionList _completionList;
-
-            public TestAccessor(CompletionList completionList)
-                => _completionList = completionList;
-
-            internal bool IsExclusive => _completionList._isExclusive;
-        }
     }
 }

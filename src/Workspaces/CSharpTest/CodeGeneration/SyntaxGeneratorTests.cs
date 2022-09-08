@@ -1608,6 +1608,24 @@ public interface IFace
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
                 "[assembly: a]\r\n[assembly: b]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<StatementSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.BreakStatement(),
+                    Generator.Attribute("a")),
+                "[a]\r\nbreak;");
+
+            VerifySyntax<TypeParameterSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.TypeParameter("T"),
+                    Generator.Attribute("a")),
+                "[a]\r\nT");
+
+            VerifySyntax<LambdaExpressionSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.ParenthesizedLambdaExpression(),
+                    Generator.Attribute("a")),
+                "[a]\r\n() =>");
         }
 
         [Fact]
@@ -2282,6 +2300,90 @@ public class C
             Assert.Equal(
                 DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual,
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
+        }
+
+        [Fact]
+        public void TestAddPublicToStaticConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", modifiers: DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"static C()
+{
+}");
+
+            var publicCtor = Generator.WithAccessibility(ctor, Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(publicCtor, @"public C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddStaticToPublicConstructor()
+        {
+            var ctor = Generator.ConstructorDeclaration("C", accessibility: Accessibility.Public);
+            VerifySyntax<ConstructorDeclarationSyntax>(ctor, @"public C()
+{
+}");
+
+            var staticCtor = Generator.WithModifiers(ctor, DeclarationModifiers.Static);
+            VerifySyntax<ConstructorDeclarationSyntax>(staticCtor, @"static C()
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddAbstractToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var fileAbstractClass = Generator.WithModifiers(fileClass, Generator.GetModifiers(fileClass).WithIsAbstract(true));
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddPublicToFileClass()
+        {
+            var fileClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("file class C { }");
+            var filePublicClass = Generator.WithAccessibility(fileClass, Accessibility.Public);
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToAbstractClass()
+        {
+            var abstractClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("abstract class C { }");
+            var fileAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsFile(true));
+            VerifySyntax<ClassDeclarationSyntax>(fileAbstractClass, @"file abstract class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddFileModifierToPublicClass()
+        {
+            var publicClass = (ClassDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public class C { }");
+            var filePublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsFile(true));
+            VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddRequiredModifierToVirtualProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public virtual int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Fact]
+        public void TestAddVirtualModifierToRequiredProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public required int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsVirtual(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
         }
 
         [Fact]
@@ -3558,7 +3660,7 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

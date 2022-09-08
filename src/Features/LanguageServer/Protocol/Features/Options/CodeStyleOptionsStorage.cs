@@ -21,7 +21,7 @@ internal interface ICodeStyleOptionsStorage : ILanguageService
 
 internal static class CodeStyleOptionsStorage
 {
-    public static IdeCodeStyleOptions GetCodeStyleOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static IdeCodeStyleOptions GetCodeStyleOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeStyleOptionsStorage>().GetOptions(globalOptions);
 
     public static IdeCodeStyleOptions.CommonOptions GetCommonCodeStyleOptions(this IGlobalOptionService globalOptions, string language)
@@ -30,7 +30,7 @@ internal static class CodeStyleOptionsStorage
             PreferObjectInitializer = globalOptions.GetOption(CodeStyleOptions2.PreferObjectInitializer, language),
             PreferCollectionInitializer = globalOptions.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language),
             PreferSimplifiedBooleanExpressions = globalOptions.GetOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, language),
-            OperatorPlacementWhenWrapping = globalOptions.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, language),
+            OperatorPlacementWhenWrapping = globalOptions.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
             PreferCoalesceExpression = globalOptions.GetOption(CodeStyleOptions2.PreferCoalesceExpression, language),
             PreferNullPropagation = globalOptions.GetOption(CodeStyleOptions2.PreferNullPropagation, language),
             PreferExplicitTupleNames = globalOptions.GetOption(CodeStyleOptions2.PreferExplicitTupleNames, language),
@@ -49,7 +49,7 @@ internal static class CodeStyleOptionsStorage
             OtherBinaryParentheses = globalOptions.GetOption(CodeStyleOptions2.OtherBinaryParentheses, language),
             RelationalBinaryParentheses = globalOptions.GetOption(CodeStyleOptions2.RelationalBinaryParentheses, language),
             OtherParentheses = globalOptions.GetOption(CodeStyleOptions2.OtherParentheses, language),
-            ForEachExplicitCastInSource = globalOptions.GetOption(CodeStyleOptions2.ForEachExplicitCastInSource, language),
+            ForEachExplicitCastInSource = globalOptions.GetOption(CodeStyleOptions2.ForEachExplicitCastInSource),
             PreferNamespaceAndFolderMatchStructure = globalOptions.GetOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure, language),
             AllowMultipleBlankLines = globalOptions.GetOption(CodeStyleOptions2.AllowMultipleBlankLines, language),
             AllowStatementImmediatelyAfterBlock = globalOptions.GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, language),

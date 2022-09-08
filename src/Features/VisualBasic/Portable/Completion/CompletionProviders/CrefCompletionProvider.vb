@@ -111,7 +111,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
-            Dim workspace = document.Project.Solution.Workspace
 
             Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
             Return (token, semanticModel, symbols.ToImmutableArray())

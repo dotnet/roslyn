@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var stopwatch = SharedStopwatch.StartNew();
             var items = SortCompletionitems(data, cancellationToken).ToImmutableArray();
 
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(items);
         }
 
@@ -51,16 +51,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var stopwatch = SharedStopwatch.StartNew();
             var itemList = session.CreateCompletionList(SortCompletionitems(data, cancellationToken));
 
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(itemList);
         }
 
         private static SegmentedList<VSCompletionItem> SortCompletionitems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList);
-            items.Sort(VSItemComparer.Instance);
+            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);
+            foreach (var item in data.InitialItemList)
+            {
+                CompletionItemData.GetOrAddDummyRoslynItem(item);
+                items.Add(item);
+            }
 
+            items.Sort(VSItemComparer.Instance);
             return items;
         }
 
@@ -122,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             finally
             {
-                AsyncCompletionLogger.LogItemManagerUpdateDataPoint((int)stopwatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
+                AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
             }
         }
 

@@ -6,15 +6,18 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -63,7 +66,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                         assignment.Left,
                         SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken),
                         assignment.Right).WithTriviaFrom(assignment);
-                    var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment).WithTriviaFrom(ifStatement);
+
+                    var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment);
+
+                    // If there's leading trivia on the original inner statement, then combine that with the leading
+                    // trivia on the if-statement.  We'll need to add a formatting annotation so that the leading comments
+                    // are put in the right location.
+                    if (newWhenTrueStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        newWhenTrueStatement = newWhenTrueStatement
+                            .WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia())
+                            .WithAdditionalAnnotations(Formatter.Annotation);
+                    }
+                    else
+                    {
+                        newWhenTrueStatement = newWhenTrueStatement.WithLeadingTrivia(ifStatement.GetLeadingTrivia());
+                    }
+
+                    // If there's trailing comments on the original inner statement, then preserve that.  Otherwise,
+                    // replace it with the trailing trivia of hte original if-statement.
+                    if (!newWhenTrueStatement.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                        newWhenTrueStatement = newWhenTrueStatement.WithTrailingTrivia(ifStatement.GetTrailingTrivia());
 
                     editor.ReplaceNode(ifStatement, newWhenTrueStatement);
                 }

@@ -7,8 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition
@@ -19,9 +20,10 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
         protected abstract int? GetTargetPositionIfControlFlow(SemanticModel semanticModel, SyntaxToken token);
 
-        public async Task<(ISymbol?, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken)
+        public async Task<(ISymbol?, Project, TextSpan)> GetSymbolProjectAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
+            var project = document.Project;
+            var services = document.Project.Solution.Services;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
@@ -29,10 +31,28 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             if (symbol is null)
             {
-                return (null, semanticInfo.Span);
+                return (null, project, semanticInfo.Span);
             }
 
-            return (FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation), semanticInfo.Span);
+            // If this document is not in the primary workspace, we may want to search for results
+            // in a solution different from the one we started in. Use the starting workspace's
+            // ISymbolMappingService to get a context for searching in the proper solution.
+            // For example when looking at a file from Source Link, it could be a partial type that
+            // only has a subset of the type actually part of the project (because the rest hasn't been
+            // downloaded) so we want to ensure we're navigating based on the original metadata symbol.
+            var mappingService = services.GetRequiredService<ISymbolMappingService>();
+            var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
+
+            // If the mapping fails, we proceed as normal with the symbol we originally found.
+            if (mapping is not null)
+            {
+                symbol = mapping.Symbol;
+                project = mapping.Project;
+            }
+
+            // The compilation will have already been realised, either by the semantic model or the symbol mapping
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            return (FindRelatedExplicitlyDeclaredSymbol(symbol, compilation), project, semanticInfo.Span);
         }
 
         public async Task<int?> GetTargetIfControlFlowAsync(Document document, int position, CancellationToken cancellationToken)

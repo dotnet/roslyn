@@ -66,14 +66,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
-            Solution solution, PortableExecutableReference reference,
-            bool loadOnly, CancellationToken cancellationToken)
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
-            return GetInfoForMetadataReferenceAsync(
-                solution, reference, checksum,
-                loadOnly, cancellationToken);
+            var checksum = GetMetadataChecksum(solution.Services, reference, cancellationToken);
+            return GetInfoForMetadataReferenceAsync(solution, reference, checksum, cancellationToken);
         }
 
         /// <summary>
@@ -81,11 +78,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Note:  will never return null;
         /// </summary>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
+        private static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
-            bool loadOnly,
             CancellationToken cancellationToken)
         {
             var metadataId = GetMetadataIdNoThrow(reference);
@@ -103,14 +99,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (metadata == null)
                 return CreateEmpty(checksum);
 
-            // If the data isn't in the table, and the client only wants the data if already loaded, then bail out as we
-            // have no results to give.  The data will eventually populate in memory due to
-            // SymbolTreeInfoIncrementalAnalyzer eventually getting around to loading it.
-            if (loadOnly)
-                return null;
-
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Workspace.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
+                solution.Services, SolutionKey.ToSolutionKey(solution), reference, metadata, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<SymbolTreeInfo?> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
@@ -123,10 +113,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
-            Checksum checksum,
             Metadata metadata,
             CancellationToken cancellationToken)
         {
@@ -138,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var asyncLazy = s_metadataIdToInfo.GetValue(
                 metadata.Id,
                 id => new AsyncLazy<SymbolTreeInfo>(
-                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
+                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, c),
                     cacheResult: true));
 
             return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -146,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
         public static Checksum GetMetadataChecksum(
-            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+            SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
@@ -157,14 +146,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // Break things up to the fast path above and this slow path where we allocate a closure.
-            return GetMetadataChecksumSlow(solution, reference, cancellationToken);
+            return GetMetadataChecksumSlow(services, reference, cancellationToken);
         }
 
-        private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        private static Checksum GetMetadataChecksumSlow(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
-                var serializer = solution.Workspace.Services.GetRequiredService<ISerializerService>();
+                var serializer = services.GetRequiredService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
                 // Include serialization format version in our checksum.  That way if the 
@@ -174,33 +163,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             });
         }
 
+        private static string GetMetadataKeySuffix(PortableExecutableReference reference)
+            => "_Metadata_" + reference.FilePath;
+
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
-            Checksum checksum,
             CancellationToken cancellationToken)
         {
-            var filePath = reference.FilePath ?? "";
-
-            var result = TryLoadOrCreateAsync(
+            return LoadOrCreateAsync(
                 services,
                 solutionKey,
-                checksum,
-                loadOnly: false,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, checksum, reference),
-                keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, filePath, nodes)),
-                cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result);
-            return result;
+                getChecksumAsync: () => new ValueTask<Checksum>(GetMetadataChecksum(services, reference, cancellationToken)),
+                createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, reference).Create()),
+                keySuffix: GetMetadataKeySuffix(reference),
+                cancellationToken);
         }
 
-        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
+        /// <summary>
+        /// Loads any info we have for this reference from our persistence store.  Will succeed regardless of the
+        /// checksum of the <paramref name="reference"/>.  Should only be used by clients that are ok with potentially
+        /// stale data.
+        /// </summary>
+        public static Task<SymbolTreeInfo> LoadAnyInfoForMetadataReferenceAsync(
+            Solution solution,
+            PortableExecutableReference reference,
+            CancellationToken cancellationToken)
         {
-            var creator = new MetadataInfoCreator(services, solutionKey, checksum, reference);
-            return Task.FromResult(creator.Create());
+            return LoadAsync(
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                checksum: GetMetadataChecksum(solution.Services, reference, cancellationToken),
+                checksumMustMatch: false,
+                keySuffix: GetMetadataKeySuffix(reference),
+                cancellationToken);
         }
 
         private struct MetadataInfoCreator : IDisposable
@@ -208,8 +205,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
             private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
 
-            private readonly HostWorkspaceServices _services;
-            private readonly SolutionKey _solutionKey;
             private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
 
@@ -231,10 +226,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
+                Checksum checksum, PortableExecutableReference reference)
             {
-                _services = services;
-                _solutionKey = solutionKey;
                 _checksum = checksum;
                 _reference = reference;
                 _containsExtensionsMethod = false;
@@ -299,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    _services, _solutionKey, _checksum, _reference.FilePath ?? "", unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
             public void Dispose()
@@ -760,7 +753,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private class MetadataNode
+        private sealed class MetadataNode
         {
             private static readonly ObjectPool<MetadataNode> s_pool = SharedPools.Default<MetadataNode>();
 

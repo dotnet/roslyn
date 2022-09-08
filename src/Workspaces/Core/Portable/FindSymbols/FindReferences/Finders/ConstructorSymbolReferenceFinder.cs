@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, typeName).ConfigureAwait(false);
 
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.LanguageServices.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
+            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.Services.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
@@ -179,11 +179,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (predefinedType == PredefinedType.None)
                 return new(ImmutableArray<FinderLocation>.Empty);
 
-            return FindReferencesInDocumentAsync(
-                symbol, state,
-                static (state, token, predefinedType, _) => IsPotentialReference(predefinedType, state.SyntaxFacts, token),
-                predefinedType,
-                cancellationToken);
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .WhereAsArray(
+                    static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
+                    (state, predefinedType));
+
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(

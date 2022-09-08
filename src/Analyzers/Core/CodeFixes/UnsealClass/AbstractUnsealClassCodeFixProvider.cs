@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnsealClass
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnsealClass
                 var document = solution.GetDocument(documentId);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+                var editor = new SyntaxEditor(root, document.Project.Solution.Services);
                 var generator = editor.Generator;
 
                 foreach (var syntaxReference in syntaxReferences)

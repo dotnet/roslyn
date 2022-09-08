@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -618,10 +618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (Helpers.IsObjectBrowser(listFlags))
                 {
-                    if (assemblyIdentitySet == null)
-                    {
-                        assemblyIdentitySet = new HashSet<AssemblyIdentity>();
-                    }
+                    assemblyIdentitySet ??= new HashSet<AssemblyIdentity>();
 
                     foreach (var reference in project.MetadataReferences)
                     {

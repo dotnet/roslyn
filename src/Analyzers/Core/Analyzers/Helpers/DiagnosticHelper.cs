@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -265,6 +265,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (id.StartsWith("JSON", StringComparison.Ordinal))
                 return null;
 
+            // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
+            if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId ||
+                id == "IDE0005_gen")
+            {
+                return null;
+            }
+
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
             return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
@@ -308,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using var argumentsBuilderDisposer = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
+                    using var _ = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
                     for (var i = 0; i < length; i++)
                     {
                         argumentsBuilder.Add(reader.ReadString());

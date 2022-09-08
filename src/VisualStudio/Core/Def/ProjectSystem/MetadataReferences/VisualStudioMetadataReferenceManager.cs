@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// <remarks>
     /// They monitor changes in the underlying files and provide snapshot references (subclasses of <see cref="PortableExecutableReference"/>) 
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
-    /// from <see cref="ITemporaryStorageService"/>.
+    /// from <see cref="ITemporaryStorageServiceInternal"/>.
     /// </remarks>
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Assumes.Present(_temporaryStorageService);
         }
 
-        internal IEnumerable<ITemporaryStreamStorage>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+        internal IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             unsafe
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
 
                 // hold onto storage if requested
                 storages?.Add(storage);
@@ -268,11 +268,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
-            if (metadata == null)
-            {
-                // getting metadata didn't work out through importer. fallback to shadow copy one
-                metadata = CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
-            }
+            // getting metadata didn't work out through importer. fallback to shadow copy one
+            metadata ??= CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
 
             return metadata;
         }

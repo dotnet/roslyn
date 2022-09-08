@@ -293,10 +293,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             bool Filter(TTag tag)
                 => true;
 
-            if (filter == null)
-            {
-                filter = Filter;
-            }
+            filter ??= Filter;
 
             return ExecuteOnActiveView(view =>
             {

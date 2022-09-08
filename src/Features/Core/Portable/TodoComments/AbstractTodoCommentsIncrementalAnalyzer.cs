@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,8 +16,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
     internal abstract partial class AbstractTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         private readonly object _gate = new();
-        private string? _lastTokenList = null;
-        private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
+        private ImmutableArray<string> _lastTokenList = ImmutableArray<string>.Empty;
+        private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = ImmutableArray<TodoCommentDescriptor>.Empty;
 
         /// <summary>
         /// Set of documents that we have reported an non-empty set of todo comments for.  Used so that we don't bother
@@ -45,11 +46,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
-        private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(string tokenList)
+        private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(ImmutableArray<string> tokenList)
         {
             lock (_gate)
             {
-                if (tokenList != _lastTokenList)
+                if (!tokenList.SequenceEqual(_lastTokenList))
                 {
                     _lastDescriptors = TodoCommentDescriptor.Parse(tokenList);
                     _lastTokenList = tokenList;

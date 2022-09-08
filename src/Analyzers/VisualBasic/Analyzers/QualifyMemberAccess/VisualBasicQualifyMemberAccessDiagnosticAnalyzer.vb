@@ -13,10 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
     Friend NotInheritable Class VisualBasicQualifyMemberAccessDiagnosticAnalyzer
         Inherits AbstractQualifyMemberAccessDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax, SimpleNameSyntax)
 
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
-        End Function
-
         Protected Overrides ReadOnly Property Simplification As ISimplification
             Get
                 Return VisualBasicSimplification.Instance

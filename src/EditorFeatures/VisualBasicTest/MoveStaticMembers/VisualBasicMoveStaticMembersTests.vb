@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.MoveStaticMembers
 
         Private Shared ReadOnly s_testServices As TestComposition = FeaturesTestCompositions.Features.AddParts(GetType(TestMoveStaticMembersService))
 
-#Region "Perform Actions From Options"
+#Region "Perform New Type Action From Options"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveField() As Task
             Dim initialMarkup = "
@@ -36,6 +36,35 @@ End Namespace"
         Public Shared TestField As Integer = 0
     End Class
 End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <WorkItem(62283, "https://github.com/dotnet/roslyn/issues/62283")>
+        Public Async Function TestMoveField_MultipleDeclarators() As Task
+            Dim initialMarkup = "
+Class Program
+
+    Public Shared G[||]oo As Integer, Bar As Integer
+
+End Class
+"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Goo")
+            Dim expectedText1 = "
+Class Program
+
+    Public Shared Bar As Integer
+
+End Class
+"
+            Dim expectedText2 = "Class Class1Helpers
+
+    Public Shared Goo As Integer
+End Class
 "
 
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
@@ -1936,6 +1965,445 @@ End Namespace
         End Function
 
 #End Region
+#Region "Perform Existing Type Action From Options"
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFieldToExistingType() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared Test[||]Field As Integer = 0
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestField")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared TestField As Integer = 0
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMovePropertyToExistingType() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared ReadOnly Property Test[||]Prop As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestProp")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared ReadOnly Property TestProp As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveEventToExistingType() As Task
+            Dim initialSourceMarkup = "
+Imports System
+
+Public Class Class1
+    Public Shared Event Test[||]Event As EventHandler
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestEvent")
+            Dim fixedSourceMarkup = "
+Imports System
+
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "Imports System
+
+Public Class Class1Helpers
+    Public Shared Event TestEvent As EventHandler
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionToExistingType() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared Function Test[||]Func() As Integer
+        Return 0
+    End Function
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared Function TestFunc() As Integer
+        Return 0
+    End Function
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveSubToExistingType() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared Sub Test[||]Sub()
+        Return
+    End Sub
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestSub")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared Sub TestSub()
+        Return
+    End Sub
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveConstToExistingType() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Const Test[||]Field As Integer = 0
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestField")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Const TestField As Integer = 0
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveExtensionFunctionToExistingType() As Task
+            Dim initialSourceMarkup = "
+Imports System.Runtime.CompilerServices
+
+Public Module Class1
+    <Extension>
+    Public Function Test[||]Func(other As Other) As Integer
+        Return other.OtherInt + 2
+    End Function
+End Module
+
+Public Class Class2
+    Public Function GetOtherInt() As Integer
+        Dim other = New Other()
+        Return other.TestFunc()
+    End Function
+End Class
+
+Public Class Other
+    Public OtherInt As Integer
+
+    Public Sub New()
+        OtherInt = 5
+    End Sub
+End Class"
+            Dim initialDestinationMarkup = "
+Public Module Class1Helpers
+End Module"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Imports System.Runtime.CompilerServices
+
+Public Module Class1
+End Module
+
+Public Class Class2
+    Public Function GetOtherInt() As Integer
+        Dim other = New Other()
+        Return other.TestFunc()
+    End Function
+End Class
+
+Public Class Other
+    Public OtherInt As Integer
+
+    Public Sub New()
+        OtherInt = 5
+    End Sub
+End Class"
+            Dim fixedDestinationMarkup = "Imports System.Runtime.CompilerServices
+
+Public Module Class1Helpers
+    <Extension>
+    Public Function Test[||]Func(other As Other) As Integer
+        Return other.OtherInt + 2
+    End Function
+End Module"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionToExistingTypeWithNamespace() As Task
+            Dim initialSourceMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim initialDestinationMarkup = "
+Namespace TestNs
+    Public Class Class1Helpers
+    End Class
+End Namespace"
+            Dim newTypeName = "TestNs.Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim fixedDestinationMarkup = "
+Namespace TestNs
+    Public Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionToExistingTypeWithNewNamespace() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared Function Test[||]Func() As Integer
+        Return 0
+    End Function
+End Class"
+            Dim initialDestinationMarkup = "
+Namespace TestNs
+    Public Class Class1Helpers
+    End Class
+End Namespace"
+            Dim newTypeName = "TestNs.Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Namespace TestNs
+    Public Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionToExistingTypeRefactorSourceUsage() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared Function Test[||]Func() As Integer
+        Return 0
+    End Function
+
+    Public Shared Function TestFunc2() As Integer
+        Return TestFunc()
+    End Function
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+    Public Shared Function TestFunc2() As Integer
+        Return Class1Helpers.TestFunc()
+    End Function
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared Function TestFunc() As Integer
+        Return 0
+    End Function
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionToExistingModuleRefactorSourceUsage() As Task
+            Dim initialSourceMarkup = "
+Public Module Class1
+    Public Function Test[||]Func() As Integer
+        Return 0
+    End Function
+
+    Public Function TestFunc2() As Integer
+        Return TestFunc()
+    End Function
+End Module"
+            Dim initialDestinationMarkup = "
+Public Module Class1Helpers
+End Module"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Public Module Class1
+    Public Function TestFunc2() As Integer
+        Return TestFunc()
+    End Function
+End Module"
+            Dim fixedDestinationMarkup = "
+Public Module Class1Helpers
+    Public Function TestFunc() As Integer
+        Return 0
+    End Function
+End Module"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionToExistingTypeRefactorDestinationUsage() As Task
+            Dim initialSourceMarkup = "
+Public Class Class1
+    Public Shared Function Test[||]Func() As Integer
+        Return 0
+    End Function
+End Class"
+            Dim initialDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared Function TestFunc2() As Integer
+        Return Class1.TestFunc()
+    End Function
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim fixedSourceMarkup = "
+Public Class Class1
+End Class"
+            Dim fixedDestinationMarkup = "
+Public Class Class1Helpers
+    Public Shared Function TestFunc2() As Integer
+        Return Class1Helpers.TestFunc()
+    End Function
+    Public Shared Function TestFunc() As Integer
+        Return 0
+    End Function
+End Class"
+
+            Await TestMovementExistingFileAsync(initialSourceMarkup,
+                                                initialDestinationMarkup,
+                                                fixedSourceMarkup,
+                                                fixedDestinationMarkup,
+                                                newTypeName,
+                                                selection).ConfigureAwait(False)
+        End Function
+#End Region
 #Region "SelectionTests"
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -2040,6 +2508,214 @@ End Namespace
 "
 
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        ' There seems to be some whitespace formatting errors when we select multiple members in the following tests
+        ' Mostly, when we "split" a variable, a newline should be added but isn't
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectMultipleFieldDeclarations() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        [|Public Shared Foo As Integer = 0, Goo As Integer = 0|]
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Foo", "Goo")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectOneOfMultipleFieldDeclarations() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared F[||]oo As Integer = 0, Goo As Integer = 0
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Foo")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Goo As Integer = 0
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Foo As Integer = 0
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectMultipleMembers1() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        [|Public Shared Foo As Integer = 0
+
+        Public Shared Function DoSomething() As Integer
+            Return 4
+        End Function|]
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Foo", "DoSomething")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Foo As Integer = 0
+
+        Public Shared Function DoSomething() As Integer
+            Return 4
+        End Function
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectMultipleMembers2() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function DoSomething() As Integer
+            Return 4
+        End [|Function
+        Public Shared Foo As Integer = 0|]
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Foo")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function DoSomething() As Integer
+            Return 4
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Foo As Integer = 0
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectMultipleMembers3() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property Prop As Integer
+            Get
+                Return 4
+            [|End Get
+        End Property
+        Public Shared Foo As Integer = 0
+        Public Shared Function DoSometh|]ing() As Integer
+            Return 4
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Foo", "DoSomething")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property Prop As Integer
+            Get
+                Return 4
+            End Get
+        End Property
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Foo As Integer = 0
+
+        Public Shared Function DoSomething() As Integer
+            Return 4
+        End Function
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectMultipleMembers4() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property [|Prop As Integer
+            Get
+                Return 4
+            End Get
+        End Property
+        Public Shared Foo As Integer = 0
+        Public Shared F|]unction DoSomething() As Integer
+            Return 4
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("Foo", "Prop")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function DoSomething() As Integer
+            Return 4
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Foo As Integer = 0
+
+        Public Shared ReadOnly Property Prop As Integer
+            Get
+                Return 4
+            End Get
+        End Property
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileWithSelectionAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -2155,6 +2831,72 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectInIncompleteField_NoAction1() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public[||]{|BC30203:|}
+    End Class
+End Namespace"
+
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectInIncompleteField_NoAction2() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Sha[||] {|BC30205:TestField|} As Integer = 0
+    End Class
+End Namespace"
+
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectNonEmptySpanInIncompleteField_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        [|Public|]{|BC30203:|}
+    End Class
+End Namespace"
+
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectNonEmptySpanInsideMethodBlock_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Foo() As Integer
+            [|Return 0|]
+        End Function
+    End Class
+End Namespace"
+
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestSelectNonSharedProperty_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -2171,7 +2913,7 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        Public Async Function TestSelectPropertyGetter_NoAction() As Task
+        Public Async Function TestSelectPropertyGetter_NoAction1() As Task
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
@@ -2184,6 +2926,56 @@ Namespace TestNs
 End Namespace"
 
             Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectPropertyGetter_NoAction2() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property TestProperty As Integer
+            [|Get|]
+                Return 0
+            End Get
+        End Property
+    End Class
+End Namespace"
+
+            Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMovePropertyWithNonEmptySelection() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property Test[|Property As Integer
+            Get
+                Return 0
+            End Get|]
+        End Property
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestProperty")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared ReadOnly Property TestProperty As Integer
+            Get
+                Return 0
+            End Get
+        End Property
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -2233,10 +3025,14 @@ End Namespace"
 
             Public Sub New(destinationType As String,
                            members As ImmutableArray(Of String),
-                           newFileName As String)
+                           newFileName As String,
+                           Optional testPreselection As Boolean = False,
+                           Optional newType As Boolean = True)
                 _destinationType = destinationType
                 _members = members
                 _newFileName = newFileName
+                _testPreselection = testPreselection
+                _newType = newType
             End Sub
 
             Private ReadOnly _destinationType As String
@@ -2245,14 +3041,23 @@ End Namespace"
 
             Private ReadOnly _newFileName As String
 
+            Private ReadOnly _testPreselection As Boolean
+
+            Private ReadOnly _newType As Boolean
+
             Protected Overrides Function CreateWorkspaceImpl() As Workspace
                 Dim hostServices = s_testServices.GetHostServices()
-
                 Dim workspace = New AdhocWorkspace(hostServices)
                 Dim optionsService = DirectCast(workspace.Services.GetRequiredService(Of IMoveStaticMembersOptionsService)(), TestMoveStaticMembersService)
-                optionsService.DestinationType = _destinationType
+                optionsService.DestinationName = _destinationType
                 optionsService.Filename = _newFileName
                 optionsService.SelectedMembers = _members
+                If _testPreselection Then
+                    optionsService.ExpectedPrecheckedMembers = _members
+                Else
+                    optionsService.ExpectedPrecheckedMembers = ImmutableArray(Of String).Empty
+                End If
+                optionsService.CreateNew = _newType
 
                 Return workspace
             End Function
@@ -2266,6 +3071,44 @@ End Namespace"
                                                         newTypeName As String) As Task
 
             Dim test = New Test(newTypeName, selectedMembers, newFileName) With
+            {
+                .TestCode = initialMarkup
+            }
+            test.FixedState.Sources.Add(expectedSource)
+            test.FixedState.Sources.Add((newFileName, expectedNewFile))
+            Await test.RunAsync().ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function TestMovementExistingFileAsync(initialSourceMarkup As String,
+                                                                    initialDestinationMarkup As String,
+                                                                    fixedSourceMarkup As String,
+                                                                    fixedDestinationMarkup As String,
+                                                                    destinationName As String,
+                                                                    selectedMembers As ImmutableArray(Of String),
+                                                                    Optional destinationFileName As String = Nothing) As Task
+            Dim test = New Test(destinationName, selectedMembers, destinationFileName, newType:=False)
+            test.TestState.Sources.Add(initialSourceMarkup)
+            test.FixedState.Sources.Add(fixedSourceMarkup)
+
+            If destinationFileName IsNot Nothing Then
+                test.TestState.Sources.Add((destinationFileName, initialDestinationMarkup))
+                test.FixedState.Sources.Add((destinationFileName, fixedDestinationMarkup))
+            Else
+                test.TestState.Sources.Add(initialDestinationMarkup)
+                test.FixedState.Sources.Add(fixedDestinationMarkup)
+            End If
+
+            Await test.RunAsync().ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function TestMovementNewFileWithSelectionAsync(initialMarkup As String,
+                                                        expectedSource As String,
+                                                        expectedNewFile As String,
+                                                        newFileName As String,
+                                                        selectedMembers As ImmutableArray(Of String),
+                                                        newTypeName As String) As Task
+
+            Dim test = New Test(newTypeName, selectedMembers, newFileName, testPreselection:=True) With
             {
                 .TestCode = initialMarkup
             }

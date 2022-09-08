@@ -10088,8 +10088,10 @@ class Program
 {
     static R F1(ref R r) { Console.WriteLine(r._i); return new R(); }
     static R F2(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
-    static R F3(ref scoped R r) { Console.WriteLine(r._i); return new R(); }
-    static R F4(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
+    static R F3(in R r) { Console.WriteLine(r._i); return new R(); }
+    static R F4(scoped in R r) { Console.WriteLine(r._i); return new R(); }
+    static R F5(out R r) { r = new R(-5); Console.WriteLine(r._i); return new R(); }
+    static R F6(scoped out R r) { r = new R(-6); Console.WriteLine(r._i); return new R(); }
     static void Main()
     {
         var d1 = F1;
@@ -10102,12 +10104,20 @@ class Program
         Report(d2);
         var d3 = F3;
         var r3 = new R(3);
-        d3(ref r3);
+        d3(r3);
         Report(d3);
         var d4 = F4;
         var r4 = new R(4);
-        d4(ref r4);
+        d4(r4);
         Report(d4);
+        var d5 = F5;
+        var r5 = new R(5);
+        d5(out r5);
+        Report(d5);
+        var d6 = F6;
+        var r6 = new R(6);
+        d6(out r6);
+        Report(d6);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
@@ -10115,12 +10125,18 @@ class Program
 @"1
 <>f__AnonymousDelegate0
 2
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate0
 3
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate1
 4
 <>f__AnonymousDelegate1
+-5
+<>f__AnonymousDelegate2
+-6
+<>f__AnonymousDelegate2
 ");
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]

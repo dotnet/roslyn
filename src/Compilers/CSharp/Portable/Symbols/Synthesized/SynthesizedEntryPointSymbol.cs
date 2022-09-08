@@ -309,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
 
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
@@ -453,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Creates a new top-level binder that just contains the global imports for the compilation.
                 // The imports are required if a consumer of the scripting API is using a Task implementation 
                 // that uses extension methods.
-                Binder binder = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, next: new BuckStopsHereBinder(compilation), withImportChainEntry: true);
+                Binder binder = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, next: new BuckStopsHereBinder(compilation, null), withImportChainEntry: true);
                 binder = new InContainerBinder(compilation.GlobalNamespace, binder);
 
                 var ctor = _containingType.GetScriptConstructor();

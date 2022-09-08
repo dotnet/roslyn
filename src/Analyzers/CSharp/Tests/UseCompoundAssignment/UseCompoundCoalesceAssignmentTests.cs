@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 TestCode = testCode,
                 FixedCode = testCode,
                 LanguageVersion = languageVersion,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
         }
 
@@ -635,6 +637,261 @@ class C
         o ??= new C(); // After
     }
 }");
+        }
+
+        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatement_Trivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        [|if|] (o is null)
+        {
+            // Before
+            o = new C(); // After
+        }
+    }
+}",
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        // Before
+        o ??= new C(); // After
+    }
+}");
+        }
+
+        [WorkItem(32985, "https://github.com/dotnet/roslyn/issues/32985")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatement_Trivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        // Before1
+        [|if|] (o is null)
+        {
+            // Before2
+            o = new C(); // After
+        }
+    }
+}",
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        // Before1
+        // Before2
+        o ??= new C(); // After
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock1()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if true
+            o = """";
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock2()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if X
+            Console.WriteLine(""Only run if o is null"");
+#endif
+            o = """";
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock3()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if X
+            Console.WriteLine(""Only run if o is null"");
+#else
+            o = """";
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock4()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if X
+            Console.WriteLine(""Only run if o is null"");
+#elif true
+            o = """";
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock5()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if true
+            o = """";
+#else
+            Console.WriteLine(""Only run if o is null"");
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock6()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if true
+            o = """";
+#elif X
+            Console.WriteLine(""Only run if o is null"");
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestPointerCannotUseCoalesceAssignment()
+        {
+            // The purpose of this test is to keep track of whether the language
+            // allows ??= for pointers in future. It should be kept in 'Preview'.
+            // If the test failed because language added support and this is no longer
+            // an error. The behavior for test 'TestPointer' below should be updated as well to suggest ??=
+            // Note that, when ??= is supported for pointers, the analyzer should check the language version which supports it.
+            await TestMissingAsync("""
+                unsafe class Program
+                {
+                    private static void Main()
+                    {
+                        byte* ptr = null;
+                        {|CS0019:ptr ??= Get()|};
+                    }
+
+                    static byte* Get() => null;
+                }
+                """, LanguageVersion.Preview);
+        }
+
+        [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestPointer()
+        {
+            await TestMissingAsync("""
+                unsafe class Program
+                {
+                    private static void Main()
+                    {
+                        byte* ptr = null;
+                        if (ptr is null)
+                        {
+                            ptr = Get();
+                        }
+                    }
+
+                    static byte* Get() => null;
+                }
+                """, LanguageVersion.Preview);
+        }
+
+        [WorkItem(63551, "https://github.com/dotnet/roslyn/issues/63551")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestFunctionPointer()
+        {
+            await TestMissingAsync("""
+                using System.Runtime.InteropServices;
+                public unsafe class C {
+                    [DllImport("A")]
+                    private static extern delegate* unmanaged<void> GetFunc();
+
+                    private delegate* unmanaged<void> s_func;
+
+                    public delegate* unmanaged<void> M() {
+                        delegate* unmanaged<void> func = s_func;
+                        if (func == null)
+                        {
+                            func = s_func = GetFunc();
+                        }
+                        return func;
+                    }
+                }
+                """, LanguageVersion.Preview);
         }
     }
 }
