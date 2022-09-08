@@ -5,8 +5,8 @@ pr: none
 # Nightly run of integration tests against the scouting queue
 schedules:
 - cron: "0 0 * * *"
-displayName: Daily midnight build
-branches:
+  displayName: Nightly builds
+  branches:
     include:
     - main
     - main-vs-deps
