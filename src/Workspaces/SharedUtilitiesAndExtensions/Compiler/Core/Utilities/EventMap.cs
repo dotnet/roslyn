@@ -147,7 +147,7 @@ namespace Roslyn.Utilities
         internal struct EventHandlerSet<TEventHandler>
             where TEventHandler : class
         {
-            private ImmutableArray<Registry<TEventHandler>> _registries;
+            private readonly ImmutableArray<Registry<TEventHandler>> _registries;
 
             internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
                 => _registries = registries;
