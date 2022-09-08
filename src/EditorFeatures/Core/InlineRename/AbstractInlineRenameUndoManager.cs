@@ -7,7 +7,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected readonly InlineRenameService InlineRenameService;
-
+        private readonly IGlobalOptionService _globalOptionService;
         protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = new Dictionary<ITextBuffer, TBufferState>();
         protected readonly Stack<ActiveSpanState> UndoStack = new Stack<ActiveSpanState>();
         protected readonly Stack<ActiveSpanState> RedoStack = new Stack<ActiveSpanState>();
@@ -37,9 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private InlineRenameSession _currentSession;
 
-        public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService)
+        public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService)
         {
             this.InlineRenameService = inlineRenameService;
+            _globalOptionService = globalOptionService;
+
             InlineRenameService.ActiveSessionChanged += InlineRenameService_ActiveSessionChanged;
         }
 
@@ -48,6 +53,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_currentSession is not null)
             {
                 _currentSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
+            }
+
+            if (!_globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment))
+            {
+                // If the user is typing directly into the editor as the only way to change 
+                // the replacement text then we don't need to respond to text changes. The 
+                // listener on the textview that calls UpdateCurrentState will handle
+                // this correctly. This option cannot change when we are currently in a session, so
+                // only hook up as needed
+                _currentSession = null;
+                return;
             }
 
             _currentSession = InlineRenameService.ActiveSession;
