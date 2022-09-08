@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static readonly SyntaxTree Dummy = new DummySyntaxTree();
 
-        private InternalSyntax.DirectiveStack _directives;
+        private InternalSyntax.DirectiveStack _lazyDirectives;
 
         /// <summary>
         /// Stores positions where preprocessor state changes. Sorted by position.
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpSyntaxTree(InternalSyntax.DirectiveStack directives)
         {
-            _directives = directives;
+            _lazyDirectives = directives;
         }
 
         /// <summary>
@@ -156,20 +156,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Preprocessor Symbols
 
-        private InternalSyntax.DirectiveStack GetDirectives()
+        internal InternalSyntax.DirectiveStack GetDirectives()
         {
-            if (_directives.IsNull)
+            if (_lazyDirectives.IsNull)
             {
-                _directives = GetRoot().CsGreen.ApplyDirectives(default);
+                InternalSyntax.DirectiveStack.InterlockedInitialize(ref _lazyDirectives, GetRoot().CsGreen.ApplyDirectives(InternalSyntax.DirectiveStack.Empty));
             }
 
-            return _directives;
+            Debug.Assert(!_lazyDirectives.IsNull);
+
+            return _lazyDirectives;
         }
 
         internal bool IsAnyPreprocessorSymbolDefined(ImmutableArray<string> conditionalSymbols)
         {
-            Debug.Assert(conditionalSymbols != null);
-
             var directives = GetDirectives();
 
             foreach (string conditionalSymbol in conditionalSymbols)

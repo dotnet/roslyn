@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _path,
                     (CSharpParseOptions)options,
                     (CSharpSyntaxNode)root,
-                    _directives,
+                    _lazyDirectives,
                     _diagnosticOptions,
                     cloneRoot: true);
             }

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _path,
                     (CSharpParseOptions)options,
                     (CSharpSyntaxNode)root,
-                    _directives,
+                    ReferenceEquals(_root, root) ? _lazyDirectives : default,
                     _diagnosticOptions,
                     cloneRoot: true);
             }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     path,
                     _options,
                     _root,
-                    _directives,
+                    _lazyDirectives,
                     _diagnosticOptions,
                     cloneRoot: true);
             }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _path,
                     _options,
                     _root,
-                    _directives,
+                    _lazyDirectives,
                     options,
                     cloneRoot: true);
             }

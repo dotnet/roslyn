@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Subclass,
             ParseText,
             SynthesizedSyntaxTree,
+            ParsedTreeWithPath,
+            ParsedTreeWithRootAndOptions,
         }
 
         [Theory]
@@ -83,8 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxTreeFactoryKind.ParseText => CSharpSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
                 SyntaxTreeFactoryKind.Subclass => new MockCSharpSyntaxTree(root, SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
                 SyntaxTreeFactoryKind.SynthesizedSyntaxTree => SyntaxNode.CloneNodeAsRoot(root, syntaxTree: null).SyntaxTree,
+                SyntaxTreeFactoryKind.ParsedTreeWithPath => WithInitializedDirectives(CSharpSyntaxTree.Create(root, options: parseOptions, path: "old path", Encoding.UTF8)).WithFilePath("new path"),
+                SyntaxTreeFactoryKind.ParsedTreeWithRootAndOptions => WithInitializedDirectives(SyntaxFactory.ParseSyntaxTree("", options: parseOptions)).WithRootAndOptions(root, parseOptions),
                 _ => throw ExceptionUtilities.UnexpectedValue(factoryKind)
             };
+
+            Assert.Equal("#define U | #undef U | #define Y", ((CSharpSyntaxTree)tree).GetDirectives().GetDebuggerDisplay());
 
             var compilation = CSharpCompilation.Create("test", new[] { tree }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), TestOptions.DebugDll);
 
@@ -98,6 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0007:  ret
 }
 ");
+
+            static SyntaxTree WithInitializedDirectives(SyntaxTree tree)
+            {
+                _ = ((CSharpSyntaxTree)tree).GetDirectives();
+                return tree;
+            }
         }
 
         // Diagnostic options on syntax trees are now obsolete
