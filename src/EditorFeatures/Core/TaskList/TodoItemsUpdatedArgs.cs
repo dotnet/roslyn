@@ -4,11 +4,12 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor.TaskList
 {
-    internal sealed class TodoItemsUpdatedArgs : UpdatedEventArgs
+    internal sealed class TaskListItemsUpdatedArgs : UpdatedEventArgs
     {
         /// <summary>
         /// Solution this task items are associated with
@@ -18,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<TodoCommentData> TodoItems { get; }
+        public ImmutableArray<TaskListItem> Items { get; }
 
-        public TodoItemsUpdatedArgs(
-            object id, Solution solution, DocumentId documentId, ImmutableArray<TodoCommentData> todoItems)
+        public TaskListItemsUpdatedArgs(
+            object id, Solution solution, DocumentId documentId, ImmutableArray<TaskListItem> items)
             : base(id, solution.Workspace, documentId.ProjectId, documentId)
         {
             Solution = solution;
-            TodoItems = todoItems;
+            Items = items;
         }
 
         /// <summary>

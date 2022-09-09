@@ -5,19 +5,18 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal sealed class TodoTableItem : TableItem
+    internal sealed class TaskListTableItem : TableItem
     {
-        public readonly TodoCommentData Data;
+        public readonly TaskListItem Data;
 
-        private TodoTableItem(
+        private TaskListTableItem(
             Workspace workspace,
-            TodoCommentData data,
+            TaskListItem data,
             string? projectName,
             Guid projectGuid,
             string[] projectNames,
@@ -27,14 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Data = data;
         }
 
-        public static TodoTableItem Create(Workspace workspace, TodoCommentData data)
+        public static TaskListTableItem Create(Workspace workspace, TaskListItem data)
         {
             GetProjectNameAndGuid(workspace, data.DocumentId.ProjectId, out var projectName, out var projectGuid);
-            return new TodoTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
+            return new TaskListTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
         }
 
         public override TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids)
-            => new TodoTableItem(Workspace, Data, projectName: null, projectGuid: Guid.Empty, projectNames, projectGuids);
+            => new TaskListTableItem(Workspace, Data, projectName: null, projectGuid: Guid.Empty, projectNames, projectGuids);
 
         public override DocumentId DocumentId
             => Data.DocumentId;
@@ -50,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (other is not TodoTableItem otherTodoItem)
+            if (other is not TaskListTableItem otherTodoItem)
             {
                 return false;
             }
@@ -65,17 +64,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// We want to avoid displaying diagnostic multuple times when it is reported from 
         /// multi-targeted projects and/or files linked to multiple projects.
         /// </summary>
-        internal sealed class GroupingComparer : IEqualityComparer<TodoCommentData>, IEqualityComparer<TodoTableItem>
+        internal sealed class GroupingComparer : IEqualityComparer<TaskListItem>, IEqualityComparer<TaskListTableItem>
         {
             public static readonly GroupingComparer Instance = new();
 
-            public bool Equals(TodoCommentData left, TodoCommentData right)
+            public bool Equals(TaskListItem left, TaskListItem right)
                 => left.Span == right.Span;
 
-            public int GetHashCode(TodoCommentData data)
+            public int GetHashCode(TaskListItem data)
                 => data.Span.GetHashCode();
 
-            public bool Equals(TodoTableItem left, TodoTableItem right)
+            public bool Equals(TaskListTableItem left, TaskListTableItem right)
             {
                 if (ReferenceEquals(left, right))
                 {
@@ -90,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return Equals(left.Data, right.Data);
             }
 
-            public int GetHashCode(TodoTableItem item)
+            public int GetHashCode(TaskListTableItem item)
                 => GetHashCode(item.Data);
         }
     }

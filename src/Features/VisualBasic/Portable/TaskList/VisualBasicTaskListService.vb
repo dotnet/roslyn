@@ -7,32 +7,33 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.TodoComments
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
-    <ExportLanguageService(GetType(ITodoCommentDataService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicTodoCommentService
-        Inherits AbstractTodoCommentService
+Namespace Microsoft.CodeAnalysis.VisualBasic.TaskList
+    <ExportLanguageService(GetType(ITaskListService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicTaskListService
+        Inherits AbstractTaskListService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Sub AppendTodoComments(
-                commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
+        Protected Overrides Sub AppendTaskListItems(
+                commentDescriptors As ImmutableArray(Of TaskListItemDescriptor),
                 document As SyntacticDocument,
                 trivia As SyntaxTrivia,
-                todoList As ArrayBuilder(Of TodoCommentData))
+                items As ArrayBuilder(Of TaskListItem))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
+                AppendTaskListItemsOnSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, items)
                 Return
             End If
 
             If IsSingleLineComment(trivia) Then
-                ProcessMultilineComment(commentDescriptors, document, trivia, postfixLength:=0, todoList:=todoList)
+                ProcessMultilineComment(commentDescriptors, document, trivia, postfixLength:=0, items)
                 Return
             End If
 

@@ -7,30 +7,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsDiscoveryService : BrokeredServiceBase, IRemoteTodoCommentsDiscoveryService
+    internal partial class RemoteTaskListService : BrokeredServiceBase, IRemoteTaskListService
     {
-        internal sealed class Factory : FactoryBase<IRemoteTodoCommentsDiscoveryService, IRemoteTodoCommentsDiscoveryService.ICallback>
+        internal sealed class Factory : FactoryBase<IRemoteTaskListService, IRemoteTaskListService.ICallback>
         {
-            protected override IRemoteTodoCommentsDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback)
-                => new RemoteTodoCommentsDiscoveryService(arguments, callback);
+            protected override IRemoteTaskListService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
+                => new RemoteTaskListService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> _callback;
+        private readonly RemoteCallback<IRemoteTaskListService.ICallback> _callback;
 
-        private RemoteTodoCommentsIncrementalAnalyzer? _lazyAnalyzer;
+        private RemoteTaskListIncrementalAnalyzer? _lazyAnalyzer;
 
-        public RemoteTodoCommentsDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback)
+        public RemoteTaskListService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
         }
 
-        public ValueTask ComputeTodoCommentsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask ComputeTaskListItemsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
@@ -38,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
 
                 // This method should only be called once.
-                Contract.ThrowIfFalse(Interlocked.Exchange(ref _lazyAnalyzer, new RemoteTodoCommentsIncrementalAnalyzer(_callback, callbackId)) == null);
+                Contract.ThrowIfFalse(Interlocked.Exchange(ref _lazyAnalyzer, new RemoteTaskListIncrementalAnalyzer(_callback, callbackId)) == null);
 
                 registrationService.AddAnalyzerProvider(
-                    new RemoteTodoCommentsIncrementalAnalyzerProvider(_lazyAnalyzer),
+                    new RemoteTaskListIncrementalAnalyzerProvider(_lazyAnalyzer),
                     new IncrementalAnalyzerProviderMetadata(
-                        nameof(RemoteTodoCommentsIncrementalAnalyzerProvider),
+                        nameof(RemoteTaskListIncrementalAnalyzerProvider),
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
@@ -69,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
-            Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(
+            Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var service = document.GetRequiredLanguageService<ITodoCommentDataService>();
-                return await service.GetTodoCommentDataAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+                var service = document.GetRequiredLanguageService<ITaskListService>();
+                return await service.GetTaskListItemsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }
