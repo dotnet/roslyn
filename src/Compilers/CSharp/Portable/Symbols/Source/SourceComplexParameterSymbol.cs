@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns the bound default value syntax from the parameter, if it exists.
         /// Note that this method will only return a non-null value if the
-        /// default value was supplied in syntax and not in metadata. Thus, there are cases
-        /// where ExplicitDefaultValue will be non-null but this method will return null.
+        /// default value was supplied in syntax. If the value is supplied through the DefaultParameterValue
+        /// attribute, then ExplicitDefaultValue will be non-null but this method will return null.
         /// However, if ExplicitDefaultValue is null, this method should always return null.
         /// </summary>
         public BoundParameterEqualsValue? BindParameterEqualsValue()
