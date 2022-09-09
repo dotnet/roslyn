@@ -4,17 +4,16 @@
 
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
     [DataContract]
     internal readonly record struct TaskListOptions
     {
-        private static readonly ImmutableArray<string> s_defaultTokenList = ImmutableArray.Create("HACK:2", "TODO:2", "UNDONE:2", "UnresolvedMergeConflict:3");
+        private static readonly ImmutableArray<string> s_defaultDescriptors = ImmutableArray.Create("HACK:2", "TODO:2", "UNDONE:2", "UnresolvedMergeConflict:3");
 
         [DataMember]
-        public ImmutableArray<string> TokenList { get; init; } = s_defaultTokenList;
+        public ImmutableArray<string> Descriptors { get; init; } = s_defaultDescriptors;
 
         public TaskListOptions()
         {

@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis.TaskList
 {
     internal static class TaskListOptionsStorage
     {
-        public static readonly Option2<ImmutableArray<string>> TokenList = new(
-            "TodoCommentOptions",
-            "TokenList",
-            TaskListOptions.Default.TokenList,
+        public static readonly Option2<ImmutableArray<string>> Descriptors = new(
+            "TaskListOptionsStorage",
+            "Descriptors",
+            TaskListOptions.Default.Descriptors,
             new RoamingProfileStorageLocation("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens"));
 
         public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
             => new()
             {
-                TokenList = globalOptions.GetOption(TokenList)
+                Descriptors = globalOptions.GetOption(Descriptors)
             };
     }
 }

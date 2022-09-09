@@ -10,13 +10,14 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
 {
-    public abstract class AbstractTodoCommentTests
+    public abstract class AbstractTaskListTests
     {
         private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
         private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);
@@ -30,25 +31,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
         {
             using var workspace = CreateWorkspace(codeWithMarker, host);
 
-            var tokenList = TodoCommentOptions.Default.TokenList;
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), tokenList);
+            var descriptors = TaskListOptions.Default.Descriptors;
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), descriptors);
 
             var hostDocument = workspace.Documents.First();
             var initialTextSnapshot = hostDocument.GetTextBuffer().CurrentSnapshot;
             var documentId = hostDocument.Id;
 
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-            var service = document.GetRequiredLanguageService<ITodoCommentDataService>();
-            var todoComments = await service.GetTodoCommentDataAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
+            var service = document.GetRequiredLanguageService<ITaskListService>();
+            var items = await service.GetTaskListItemsAsync(document, TaskListItemDescriptor.Parse(descriptors), CancellationToken.None);
 
             var expectedLists = hostDocument.SelectedSpans;
-            Assert.Equal(todoComments.Length, expectedLists.Count);
+            Assert.Equal(items.Length, expectedLists.Count);
 
             var sourceText = await document.GetTextAsync();
             var tree = await document.GetSyntaxTreeAsync();
-            for (var i = 0; i < todoComments.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
-                var todo = todoComments[i];
+                var todo = items[i];
                 var span = expectedLists[i];
 
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.TaskList
         private void GlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             // Notify remote service that TokenList changed and the solution needs to be re-analyzed:
-            if (e.Option == TaskListOptionsStorage.TokenList && _lazyConnection != null)
+            if (e.Option == TaskListOptionsStorage.Descriptors && _lazyConnection != null)
             {
                 // only perform the call if connection has not been disposed:
                 _ = Task.Run(() => _lazyConnection?.TryInvokeAsync((service, cancellationToken) => service.ReanalyzeAsync(cancellationToken), _disposalToken))

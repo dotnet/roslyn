@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                 return;
 
             var options = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var descriptors = GetTaskListItemDescriptors(options.TokenList);
+            var descriptors = GetTaskListItemDescriptors(options.Descriptors);
 
             // We're out of date.  Recompute this info.
             var items = await todoCommentService.GetTaskListItemsAsync(
