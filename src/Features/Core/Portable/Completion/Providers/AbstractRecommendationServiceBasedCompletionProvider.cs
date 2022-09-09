@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // In order to provide better completion experience we need to know a type we are inheriting from.
                 // For instance, normally class cannot inherit from itself, so we need to filter it out from the list.
-                // The type should always be an INamedTypeSymbol, but we are doing it safe with 'as' cast just in case
-                var inheritingFrom = context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeDeclaration, cancellationToken) as INamedTypeSymbol;
+                var inheritingFrom = (INamedTypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeDeclaration, cancellationToken)!;
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => (s, preselect: false));
             }
             else
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return true;
         }
 
-        private static bool IsValidForInheritanceContext(ISymbol symbol, INamedTypeSymbol? inheritingFrom, TSyntaxContext context)
+        private static bool IsValidForInheritanceContext(ISymbol symbol, INamedTypeSymbol inheritingFrom, TSyntaxContext context)
         {
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if ((context.IsBaseClassContext || context.IsBaseRecordContext) &&
                 namedType.TypeKind is TypeKind.Class &&
-                inheritingFrom?.TypeKind is not TypeKind.Struct)
+                inheritingFrom.TypeKind is not TypeKind.Struct)
             {
                 if (namedType.IsStatic || namedType.IsSealed)
                     return namedType.GetTypeMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
