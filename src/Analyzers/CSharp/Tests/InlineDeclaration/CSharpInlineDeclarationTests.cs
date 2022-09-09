@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
     public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public CSharpInlineDeclarationTests(ITestOutputHelper logger)
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariable1()
         {
             await TestInRegularAndScript1Async(
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineInNestedCall()
         {
             await TestInRegularAndScript1Async(
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariableWithConstructor1()
         {
             await TestInRegularAndScript1Async(
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariableMissingWithIndexer1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariableIntoFirstOut1()
         {
             await TestInRegularAndScript1Async(
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariableIntoFirstOut2()
         {
             await TestInRegularAndScript1Async(
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingInCSharp6()
         {
             await TestMissingAsync(
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariablePreferVar1()
         {
             await TestInRegularAndScript1Async(
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }", new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariablePreferVarExceptForPredefinedTypes1()
         {
             await TestInRegularAndScript1Async(
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }", new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeButKeepIntrinsics()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestAvailableWhenWrittenAfter1()
         {
             await TestInRegularAndScript1Async(
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingWhenWrittenBetween1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingWhenReadBetween1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingWithComplexInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestAvailableInOuterScopeIfNotWrittenOutside()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingIfWrittenAfterInOuterScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingIfWrittenBetweenInOuterScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingInNonOut()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingInField()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingInField2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -444,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingInNonLocalStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -462,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingInEmbeddedStatementWithWriteAfterwards()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -481,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInEmbeddedStatement()
         {
             await TestInRegularAndScript1Async(
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestAvailableInNestedBlock()
         {
             await TestInRegularAndScript1Async(
@@ -541,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestOverloadResolutionDoNotUseVar1()
         {
             await TestInRegularAndScript1Async(
@@ -582,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }", new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestOverloadResolutionDoNotUseVar2()
         {
             await TestInRegularAndScript1Async(
@@ -623,7 +624,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }", new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestGenericInferenceDoNotUseVar3()
         {
             await TestInRegularAndScript1Async(
@@ -656,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }", new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments1()
         {
             await TestInRegularAndScript1Async(
@@ -687,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments2()
         {
             await TestInRegularAndScript1Async(
@@ -717,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments3()
         {
             await TestInRegularAndScript1Async(
@@ -749,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments4()
         {
             await TestInRegularAndScript1Async(
@@ -779,7 +780,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments5()
         {
             await TestInRegularAndScript1Async(
@@ -809,7 +810,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments6()
         {
             await TestInRegularAndScript1Async(
@@ -839,7 +840,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments7()
         {
             await TestInRegularAndScript1Async(
@@ -869,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments8()
         {
             await TestInRegularAndScript1Async(
@@ -901,7 +902,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestComments9()
         {
             await TestInRegularAndScript1Async(
@@ -935,7 +936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestCommentsTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -971,7 +972,7 @@ class Program
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestCommentsTrivia2()
         {
             await TestInRegularAndScript1Async(
@@ -1023,7 +1024,7 @@ class Program
         }
 
         [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
         {
             await TestInRegularAndScript1Async(
@@ -1059,7 +1060,7 @@ class C
         }
 
         [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingIfCapturedInLambdaAndUsedAfterwards()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1082,7 +1083,7 @@ class C
         }
 
         [WorkItem(15408, "https://github.com/dotnet/roslyn/issues/15408")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestDataFlow1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1108,7 +1109,7 @@ class C
         }
 
         [WorkItem(15408, "https://github.com/dotnet/roslyn/issues/15408")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestDataFlow2()
         {
             await TestInRegularAndScript1Async(
@@ -1152,7 +1153,7 @@ class C
         }
 
         [WorkItem(16028, "https://github.com/dotnet/roslyn/issues/16028")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestExpressionTree1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1181,7 +1182,7 @@ class Program
         }
 
         [WorkItem(16198, "https://github.com/dotnet/roslyn/issues/16198")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestIndentation1()
         {
             await TestInRegularAndScript1Async(
@@ -1215,7 +1216,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInLoops1()
         {
             await TestMissingAsync(
@@ -1243,7 +1244,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInLoops2()
         {
             await TestMissingAsync(
@@ -1270,7 +1271,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInLoops3()
         {
             await TestMissingAsync(
@@ -1298,7 +1299,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInLoops4()
         {
             await TestMissingAsync(
@@ -1326,7 +1327,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInUsing()
         {
             await TestMissingAsync(
@@ -1353,7 +1354,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInExceptionFilter()
         {
             await TestMissingAsync(
@@ -1383,7 +1384,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInShortCircuitExpression1()
         {
             await TestMissingAsync(
@@ -1407,7 +1408,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInShortCircuitExpression2()
         {
             await TestMissingAsync(
@@ -1431,7 +1432,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestNotInFixed()
         {
             await TestMissingAsync(
@@ -1458,7 +1459,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInLoops1()
         {
             await TestInRegularAndScript1Async(
@@ -1502,7 +1503,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInLoops2()
         {
             await TestInRegularAndScript1Async(
@@ -1544,7 +1545,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInLoops3()
         {
             await TestInRegularAndScript1Async(
@@ -1588,7 +1589,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInLoops4()
         {
             await TestInRegularAndScript1Async(
@@ -1632,7 +1633,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInUsing()
         {
             await TestInRegularAndScript1Async(
@@ -1674,7 +1675,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInExceptionFilter()
         {
             await TestInRegularAndScript1Async(
@@ -1722,7 +1723,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInShortCircuitExpression1()
         {
             await TestInRegularAndScript1Async(
@@ -1760,7 +1761,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInShortCircuitExpression2()
         {
             await TestInRegularAndScript1Async(
@@ -1798,7 +1799,7 @@ class C
         }
 
         [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInFixed()
         {
             await TestInRegularAndScript1Async(
@@ -1840,7 +1841,7 @@ class C
         }
 
         [WorkItem(17743, "https://github.com/dotnet/roslyn/issues/17743")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInLocalFunction1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1867,7 +1868,7 @@ class Demo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestInLocalFunction2()
         {
             await TestInRegularAndScript1Async(
@@ -1915,7 +1916,7 @@ class Demo
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMultipleDeclarationStatementsOnSameLine1()
         {
             await TestInRegularAndScript1Async(
@@ -1940,7 +1941,7 @@ class C
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMultipleDeclarationStatementsOnSameLine2()
         {
             await TestInRegularAndScript1Async(
@@ -1965,7 +1966,7 @@ class C
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMultipleDeclarationStatementsOnSameLine3()
         {
             await TestInRegularAndScript1Async(
@@ -1991,7 +1992,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingOnUnderscore()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2012,7 +2013,7 @@ class C
         }
 
         [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestDefiniteAssignmentIssueWithVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2031,7 +2032,7 @@ class C
         }
 
         [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestDefiniteAssignmentIssueWithNonVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2050,7 +2051,7 @@ class C
         }
 
         [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingOnCrossFunction1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2080,7 +2081,7 @@ class Program
         }
 
         [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingOnCrossFunction2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2113,7 +2114,7 @@ class Program
         }
 
         [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingOnCrossFunction3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2145,7 +2146,7 @@ class Program
         }
 
         [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestMissingOnCrossFunction4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2178,7 +2179,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestDefiniteAssignment1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2200,7 +2201,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TestDefiniteAssignment2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2223,7 +2224,7 @@ class C
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Theory]
         [InlineData("c && M(out x)", "c && M(out bool x)")]
         [InlineData("false || M(out x)", "false || M(out bool x)")]
         [InlineData("M(out x) || M(out x)", "M(out bool x) || M(out x)")]
@@ -2265,7 +2266,7 @@ class C
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task InlineVariable_NullableEnable()
         {
             await TestInRegularAndScript1Async(@"
@@ -2291,7 +2292,7 @@ class C
         }
 
         [WorkItem(44429, "https://github.com/dotnet/roslyn/issues/44429")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task TopLevelStatement()
         {
             await TestMissingAsync(@"
@@ -2302,7 +2303,7 @@ if (int.TryParse(v, out i))
         }
 
         [WorkItem(47041, "https://github.com/dotnet/roslyn/issues/47041")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact]
         public async Task CollectionInitializer()
         {
             await TestInRegularAndScript1Async(

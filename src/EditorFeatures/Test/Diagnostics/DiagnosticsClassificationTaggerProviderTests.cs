@@ -26,9 +26,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public class DiagnosticsClassificationTaggerProviderTests
     {
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task Test_FadingSpans(bool throughAdditionalLocations)
         {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfTheory]
         [WorkItem(62183, "https://github.com/dotnet/roslyn/issues/62183")]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, true)]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, false)]

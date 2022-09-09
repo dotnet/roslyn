@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
     public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public FullyQualifyUnboundIdentifierTests(ITestOutputHelper logger)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
             => FlattenActions(actions);
 
         [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyUnboundIdentifier1()
         {
             await TestInRegularAndScriptAsync(
@@ -62,7 +63,7 @@ class Test
         }
 
         [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyUnboundIdentifier2()
         {
             await TestInRegularAndScriptAsync(

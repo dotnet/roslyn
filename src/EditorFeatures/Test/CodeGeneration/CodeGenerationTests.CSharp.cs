@@ -24,6 +24,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public partial class CodeGenerationTests
     {
         [UseExportProvider]
@@ -1597,7 +1598,7 @@ namespace N
         }
 
         [WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public async Task TestExtensionMethods()
         {
             var generationSource = @"
@@ -1616,7 +1617,7 @@ public static class [|C|]
         }
 
         [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public async Task TestVBPropertiesWithParams()
         {
             var generationSource = @"
@@ -1647,7 +1648,7 @@ End Namespace
         }
 
         [WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public async Task TestRefParamsWithDefaultValue()
         {
             var generationSource = @"
@@ -1666,7 +1667,7 @@ End Class";
         }
 
         [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public async Task TestConstraints()
         {
             var generationSource = @"

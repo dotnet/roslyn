@@ -9,16 +9,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class WhereKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -34,7 +35,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -42,28 +43,28 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNewClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -71,7 +72,7 @@ $$");
           $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -80,7 +81,7 @@ $$");
           $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousContinuationClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -89,14 +90,14 @@ $$");
           $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtEndOfPreviousClause()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestBetweenClauses()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -105,7 +106,7 @@ $$");
           from z in w"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterWhere()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -114,105 +115,105 @@ $$");
           from z in w"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass()
         {
             await VerifyAbsenceAsync(
 @"class C $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGenericClass()
         {
             await VerifyKeywordAsync(
 @"class C<T> $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClassBaseList()
         {
             await VerifyAbsenceAsync(
 @"class C : IGoo $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGenericClassBaseList()
         {
             await VerifyKeywordAsync(
 @"class C<T> : IGoo $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDelegate()
         {
             await VerifyAbsenceAsync(
 @"delegate void D() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGenericDelegate()
         {
             await VerifyKeywordAsync(
 @"delegate void D<T>() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousClassConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : class $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousStructConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : struct $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousNewConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : new() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : IList<T> $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousDelegateClassConstraint()
         {
             await VerifyKeywordAsync(
 @"delegate void D<T>() where T : class $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousDelegateStructConstraint()
         {
             await VerifyKeywordAsync(
 @"delegate void D<T>() where T : struct $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousDelegateNewConstraint()
         {
             await VerifyKeywordAsync(
 @"delegate void D<T>() where T : new() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousDelegateConstraint()
         {
             await VerifyKeywordAsync(
 @"delegate void D<T>() where T : IList<T> $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterMethod()
         {
             await VerifyAbsenceAsync(
@@ -220,7 +221,7 @@ $$");
     void D() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGenericMethod()
         {
             await VerifyKeywordAsync(
@@ -228,7 +229,7 @@ $$");
     void D<T>() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousMethodClassConstraint()
         {
             await VerifyKeywordAsync(
@@ -236,7 +237,7 @@ $$");
     void D<T>() where T : class $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousMethodStructConstraint()
         {
             await VerifyKeywordAsync(
@@ -244,7 +245,7 @@ $$");
     void D<T>() where T : struct $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousMethodNewConstraint()
         {
             await VerifyKeywordAsync(
@@ -252,7 +253,7 @@ $$");
     void D<T>() where T : new() $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousMethodConstraint()
         {
             await VerifyKeywordAsync(
@@ -261,7 +262,7 @@ $$");
         }
 
         [WorkItem(550715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550715")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterWhereTypeConstraint()
         {
             await VerifyAbsenceAsync(
@@ -270,7 +271,7 @@ $$");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterWhereWhere()
         {
             await VerifyAbsenceAsync(
@@ -279,7 +280,7 @@ $$");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterWhereWhereWhere()
         {
             await VerifyAbsenceAsync(
@@ -289,7 +290,7 @@ $$");
         }
 
         [WorkItem(550720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550720")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNoWhereAfterDot()
         {
             await VerifyAbsenceAsync(
@@ -299,7 +300,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDot1()
         {
             await VerifyAbsenceAsync(
@@ -310,7 +311,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDot2()
         {
             await VerifyAbsenceAsync(
@@ -320,7 +321,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidConstraint1()
         {
             await VerifyKeywordAsync(
@@ -331,7 +332,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidConstraint2()
         {
             await VerifyKeywordAsync(
@@ -341,7 +342,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobal1()
         {
             await VerifyAbsenceAsync(
@@ -352,7 +353,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobal2()
         {
             await VerifyAbsenceAsync(
@@ -362,7 +363,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidConstraint3()
         {
             await VerifyKeywordAsync(
@@ -373,7 +374,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidConstraint4()
         {
             await VerifyKeywordAsync(
@@ -383,7 +384,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGenericConstraintStart1()
         {
             await VerifyAbsenceAsync(
@@ -394,7 +395,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGenericConstraintStart2()
         {
             await VerifyAbsenceAsync(
@@ -404,7 +405,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraint1()
         {
             await VerifyKeywordAsync(
@@ -415,7 +416,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraint2()
         {
             await VerifyKeywordAsync(
@@ -425,7 +426,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGenericConstraintStartSecondParameter1()
         {
             await VerifyAbsenceAsync(
@@ -436,7 +437,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGenericConstraintStartSecondParameter2()
         {
             await VerifyAbsenceAsync(
@@ -446,7 +447,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraint3()
         {
             await VerifyKeywordAsync(
@@ -457,7 +458,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraint4()
         {
             await VerifyKeywordAsync(
@@ -467,7 +468,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDoubleUnclosedGenericConstraint1()
         {
             await VerifyAbsenceAsync(
@@ -478,7 +479,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDoubleUnclosedGenericConstraint2()
         {
             await VerifyAbsenceAsync(
@@ -488,7 +489,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraint5()
         {
             await VerifyKeywordAsync(
@@ -499,7 +500,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraint6()
         {
             await VerifyKeywordAsync(
@@ -509,7 +510,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterTupleInsideGenericConstraintStart1()
         {
             await VerifyAbsenceAsync(
@@ -520,7 +521,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterTupleInsideGenericConstraintStart2()
         {
             await VerifyAbsenceAsync(
@@ -530,7 +531,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterTupleClosedInsideGenericConstraintStart1()
         {
             await VerifyAbsenceAsync(
@@ -541,7 +542,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterTupleClosedInsideGenericConstraintStart2()
         {
             await VerifyAbsenceAsync(
@@ -551,7 +552,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraintWithTuple1()
         {
             await VerifyKeywordAsync(
@@ -562,7 +563,7 @@ $$");
         }
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterValidGenericConstraintWithTuple2()
         {
             await VerifyKeywordAsync(
