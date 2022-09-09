@@ -12,10 +12,9 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.TodoComments;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
+namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
 {
     public abstract class AbstractTaskListTests
     {

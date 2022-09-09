@@ -4,28 +4,28 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
+using Microsoft.CodeAnalysis.Test.Utilities.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList
 {
     [UseExportProvider]
-    public class NoCompilationTodoCommentTests : AbstractTodoCommentTests
+    public class NoCompilationTaskListTests : AbstractTaskListTests
     {
         protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         {
@@ -37,7 +37,7 @@ $@"<Workspace>
 </Workspace>"), composition: composition.AddParts(
                 typeof(NoCompilationContentTypeDefinitions),
                 typeof(NoCompilationContentTypeLanguageService),
-                typeof(NoCompilationTodoCommentService)));
+                typeof(NoCompilationTaskListService)));
 
             return workspace;
         }
@@ -52,18 +52,18 @@ $@"<Workspace>
     }
 
     [PartNotDiscoverable]
-    [ExportLanguageService(typeof(ITodoCommentDataService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTodoCommentService : ITodoCommentDataService
+    [ExportLanguageService(typeof(ITaskListService), language: NoCompilationConstants.LanguageName), Shared]
+    internal class NoCompilationTaskListService : ITaskListService
     {
         [ImportingConstructor]
-        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NoCompilationTodoCommentService()
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NoCompilationTaskListService()
         {
         }
 
-        public Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create(new TodoCommentData(
-                commentDescriptors.First().Priority,
+        public Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
+            => Task.FromResult(ImmutableArray.Create(new TaskListItem(
+                descriptors.First().Priority,
                 "Message",
                 document.Id,
                 span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
