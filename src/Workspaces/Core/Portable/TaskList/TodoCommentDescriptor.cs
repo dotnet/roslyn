@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
