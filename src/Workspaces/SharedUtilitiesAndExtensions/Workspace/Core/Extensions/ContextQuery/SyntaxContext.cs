@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAwaitKeywordContext { get; }
         /// <summary>
         /// Tells if in a position of a base list, where class name is a valid completion.
-        /// For instatnce, this flag will be <see langword="true" /> for
+        /// For instance, this flag will be <see langword="true" /> for
         /// <code>class C : $$</code>
         /// but not for
         /// <code>class C : A, $$</code>
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsBaseClassContext { get; }
         /// <summary>
         /// Tells if in a position of a base list, where interface name is a valid completion.
-        /// For instatnce, this flag will be <see langword="true" /> for
+        /// For instance, this flag will be <see langword="true" /> for
         /// <code>class C : $$</code>
         /// <code>class C : A, $$</code>
         /// <code>interface I : $$</code>
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsBaseInterfaceContext { get; }
         /// <summary>
         /// Tells if in a position of a base list, where record name is a valid completion.
-        /// For instatnce, this flag will be <see langword="true" /> for
+        /// For instance, this flag will be <see langword="true" /> for
         /// <code>record R : $$</code>
         /// but not for
         /// <code>class C : $$</code>
