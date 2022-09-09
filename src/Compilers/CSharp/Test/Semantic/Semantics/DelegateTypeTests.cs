@@ -91,7 +91,8 @@ class Program
             CreateCompilation(source, targetFramework: targetFramework).VerifyDiagnostics(expectedDiagnostics);
         }
 
-        public void TestInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, string? expectedOutput = null, params DiagnosticDescription[] diagnosticDescriptions)
+        public void TestInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, string? expectedOutput = null, CSharpCompilationOptions? compilationOptions = null,
+            params DiagnosticDescription[] diagnosticDescriptions)
         {
             if (usings is null)
             {
@@ -115,7 +116,7 @@ class Program
 }}
 ";
             // create compilation with main body
-            CompileAndVerify(source, targetFramework: targetFramework, expectedOutput: expectedOutput)
+            CompileAndVerify(source, targetFramework: targetFramework, expectedOutput: expectedOutput, options: compilationOptions)
                 .VerifyDiagnostics(diagnosticDescriptions);
         }
 
@@ -12108,7 +12109,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch()
+        public void LambdaWithDefaultNamedDelegateConversion_TargetMissingOptional()
         {
             var source = """
 class Program
@@ -12129,7 +12130,23 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch_WithParameterError()
+        public void LambdWithDefaultNamedDelegateConversion_LambdaMissingOptional()
+        {
+            var source = """
+class Program
+{
+    delegate int D(int x = 3);
+    public static void Main()
+    {
+        D d = (int x) => x;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_TargetDelegateMissingOptionalParameter_WithParameterError()
         {
             var source = """
 class Program
@@ -12703,7 +12720,7 @@ class Program
         }
 
         [Fact]
-        public void MethodGroupTargetConversion_DefaultRequiredMismatch()
+        public void MethodGroupTargetConversion_ParameterOptionalInMethodGroupOnly()
         {
             var source = """
 using System;
@@ -13116,7 +13133,7 @@ class Program
         }
 
         [Fact]
-        public void MethodGroup_LambdaAssignment_DefaultParameterMismatch_03()
+        public void MethodGroup_LambdaAssignment_DefaultParameterValueMismatch_03()
         {
             var source = """
 using System;
@@ -13136,7 +13153,7 @@ class Program
         }
 
         [Fact]
-        public void MethodGroup_LambdaAssignment_DefaultParameterMatch()
+        public void MethodGroup_LambdaAssignment_DefaultParameterValueMatch()
         {
             var source = """
 using System;
@@ -13337,6 +13354,210 @@ var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
                 //         var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""u8 string""u8").WithArguments("s").WithLocation(6, 43));
 
+        }
+
+        [Fact]
+        public void LambdaWithParameterDefaultValueAttribute()
+        {
+            var source = """
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = ([DefaultParameterValue(3)] int x) => x;
+        Console.WriteLine(lam());
+        Report(lam);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"3
+<>f__AnonymousDelegate0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_UnsafeNull()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static unsafe void Main()
+    {
+unsafe
+{
+        var lam = (int *ptr = null) => ptr;
+        Console.WriteLine(lam() == (int*) null);
+}
+    }
+}
+
+""";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_UnsafeSizeof()
+        {
+            TestInMain(
+"""
+unsafe
+{
+    var lam = (int sz = sizeof(int)) => sz;
+    Console.WriteLine(lam());
+}
+
+""", usings: new[] { "System" }, expectedOutput: "4", compilationOptions: TestOptions.UnsafeReleaseExe);
+        }
+
+        // PROTOTYPE: The emitted lambda method uses object as the parameter type, even though
+        // it was specified as "dynamic" in source
+        [Fact]
+        public void LambdaDefaultParameter_Dynamic()
+        {
+            var source = """
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var lam = (dynamic d = null) => { };
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
+$@"
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance void Invoke (
+			[opt] object ''
+		) runtime managed 
+	{{
+		.param [1] = nullref
+			.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+				01 00 00 00
+			)
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+");
+        }
+
+        // PROTOTYPE: The emitted lambda method uses object as the parameter type, even though
+        // it was specified as "dynamic" in source
+        [Fact]
+        public void LambdaRefParameterWithDynamicParameter()
+        {
+            var source = """
+using System;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam = (ref int i, dynamic d) => i;
+        Report(lam);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyTypeIL(
+                "<>F{00000001}`3",
+@$"
+.class private auto ansi sealed '<>F{{00000001}}`3'<T1, T2, TResult>
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+
+	}} // end of method '<>F{{00000001}}`3'::.ctor
+	.method public hidebysig newslot virtual 
+		instance !TResult Invoke (
+			!T1& '',
+
+			!T2 ''
+		) runtime managed 
+	{{
+	}} // end of method '<>F{{00000001}}`3'::Invoke
+}} // end of class <>F{{00000001}}`3
+");
+            verifier.VerifyTypeIL("<>c",
+@$"
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>F{{00000001}}`3'<int32, object, int32> '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{{
+		// Method begins at RVA 0x208b
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	}} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{{
+		// Method begins at RVA 0x2083
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+		IL_0006: ret
+	}} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance int32 '<Main>b__1_0' (
+			int32& i,
+			object d
+		) cil managed 
+	{{
+		.param [2]
+			.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+				01 00 00 00
+			)
+		// Method begins at RVA 0x2097
+		// Code size 3 (0x3)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ldind.i4
+		IL_0002: ret
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+");
         }
     }
 }

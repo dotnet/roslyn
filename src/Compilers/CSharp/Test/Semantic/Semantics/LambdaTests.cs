@@ -7620,7 +7620,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-       [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
         public void LambdaDefaultSelfReference_ParameterAfter()
         {
             var source = """
@@ -7702,6 +7702,26 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(6, 27));
         }
 
+        [Fact]
+        public void LambdaWithDefaultParameterAndParams()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int i = 3, params int[] args) => i;
+    }   
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,31): error CS1670: params is not valid in this context
+                //         var lam = (int i = 3, params int[] args) => i;
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(5, 31),
+                // (5,48): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (int i = 3, params int[] args) => i;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 48));
+        }
     }
 }
 
