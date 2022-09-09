@@ -361,6 +361,50 @@ class B {";
             }
         }
 
+        [Fact]
+        public async Task TestDocumentDiagnosticsHasSameIdentifierForLinkedFile()
+        {
+            var documentText =
+@"class A { err }";
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""C:\C.cs"">{documentText}</Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1"">{documentText}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: false);
+
+            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            // Open either of the documents via LSP, we're tracking the URI and text.
+            await OpenDocumentAsync(testLspServer, csproj1Document);
+
+            var csproj1Results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, GetVsTextDocumentIdentifier(csproj1Document), useVSDiagnostics: true);
+            var csproj1Diagnostic = (VSDiagnostic)csproj1Results.Single().Diagnostics.Single();
+            var csproj2Results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, GetVsTextDocumentIdentifier(csproj2Document), useVSDiagnostics: true);
+            var csproj2Diagnostic = (VSDiagnostic)csproj2Results.Single().Diagnostics.Single();
+            Assert.Equal(csproj1Diagnostic.Identifier, csproj2Diagnostic.Identifier);
+
+            static VSTextDocumentIdentifier GetVsTextDocumentIdentifier(Document document)
+            {
+                var projectContext = new VSProjectContext
+                {
+                    Id = ProtocolConversions.ProjectIdToProjectContextId(document.Project.Id),
+                    Label = document.Project.Name
+                };
+                return new VSTextDocumentIdentifier
+                {
+                    ProjectContext = projectContext,
+                    Uri = document.GetURI(),
+                };
+            }
+        }
+
         [Theory, CombinatorialData]
         public async Task TestDocumentDiagnosticsWithChangeInReferencedProject(bool useVSDiagnostics)
         {

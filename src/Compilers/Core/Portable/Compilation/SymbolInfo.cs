@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return _candidateSymbols;
+                return CandidateSymbols;
             }
         }
 

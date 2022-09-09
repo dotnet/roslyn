@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Its second nested node has a <see cref="Method"/> (Deconstructable2.Deconstruct), no <see cref="Conversion"/>, and two <see cref="Nested"/> nodes.
     /// Those last two nested nodes have no <see cref="Method"/>, but each have a <see cref="Conversion"/> (ImplicitNumeric, from int to long).
     /// </summary>
-    public struct DeconstructionInfo
+    public readonly struct DeconstructionInfo
     {
         private readonly Conversion _conversion;
 

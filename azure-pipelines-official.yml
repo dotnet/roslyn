@@ -135,6 +135,14 @@ stages:
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
+    # Needed for SBOM tool
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 runtime'
+      inputs:
+        packageType: runtime
+        version: 3.1.28
+        installationPath: '$(Build.SourcesDirectory)\.dotnet'
+
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
       displayName: 'Use .NET Core sdk'

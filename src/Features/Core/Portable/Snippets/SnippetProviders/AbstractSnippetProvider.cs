@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -36,20 +38,24 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Generates the new snippet's TextChanges that are being inserted into the document
+        /// Generates the new snippet's TextChanges that are being inserted into the document.
         /// </summary>
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Method for each snippet to locate the inserted SyntaxNode to reformat
+        /// Method for each snippet to locate the inserted SyntaxNode to reformat.
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the position that we want the caret to be at after all of the indentation/formatting has been done.
+        /// </summary>
         protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
 
         /// <summary>
-        /// Every SnippetProvider will need a method to retrieve the "main" snippet syntax once it has been inserted as a TextChange.
+        /// Helper function to retrieve the specific type of snippet syntax when it needs to be searched for again.
         /// </summary>
-        protected abstract SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts);
+        protected abstract Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts);
 
         /// <summary>
         /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
@@ -179,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await snippetDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nearestStatement = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var nearestStatement = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
 
             if (nearestStatement is null)
             {
@@ -212,6 +218,26 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
+        }
+
+        protected virtual SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+        {
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
+
+            if (!isCorrectContainer(closestNode))
+            {
+                return null;
+            }
+
+            // Checking to see if that expression statement that we found is
+            // starting at the same position as the position we inserted
+            // the if statement.
+            if (closestNode.SpanStart != position)
+            {
+                return null;
+            }
+
+            return closestNode;
         }
 
         /// <summary>

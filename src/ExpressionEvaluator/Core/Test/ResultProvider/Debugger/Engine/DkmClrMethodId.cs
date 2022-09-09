@@ -13,7 +13,7 @@ using System;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
-    public struct DkmClrMethodId : IComparable<DkmClrMethodId>, IEquatable<DkmClrMethodId>
+    public readonly struct DkmClrMethodId : IComparable<DkmClrMethodId>, IEquatable<DkmClrMethodId>
     {
         public int CompareTo(DkmClrMethodId other)
         {

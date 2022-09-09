@@ -9,8 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Helpers.RemoveUnnecessaryImports;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
@@ -21,15 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         {
             private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
             private readonly CancellationToken _cancellationToken;
-            private readonly Document _document;
 
             public Rewriter(
-                Document document,
                 ISet<UsingDirectiveSyntax> unnecessaryUsings,
                 CancellationToken cancellationToken)
                 : base(visitIntoStructuredTrivia: true)
             {
-                _document = document;
                 _unnecessaryUsingsDoNotAccessDirectly = unnecessaryUsings;
                 _cancellationToken = cancellationToken;
             }
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultCompilationUnit.GetFirstToken();
-                    var newFirstToken = StripNewLines(_document, firstToken);
+                    var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                     resultCompilationUnit = resultCompilationUnit.ReplaceToken(firstToken, newFirstToken);
                 }
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultNamespace.Members.First().GetFirstToken();
-                    var newFirstToken = StripNewLines(_document, firstToken);
+                    var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                     resultNamespace = resultNamespace.ReplaceToken(firstToken, newFirstToken);
                 }
 

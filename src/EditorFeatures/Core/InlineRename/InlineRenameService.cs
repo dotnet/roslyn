@@ -98,11 +98,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
+            var fileRenameInfo = renameInfo.GetFileRenameInfo();
+            var canRenameFile = fileRenameInfo == InlineRenameFileRenameInfo.Allowed;
+
             var options = new SymbolRenameOptions(
                 RenameOverloads: renameInfo.MustRenameOverloads || GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameOverloads),
                 RenameInStrings: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameInStrings),
                 RenameInComments: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameInComments),
-                RenameFile: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameFile));
+                RenameFile: canRenameFile && GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameFile));
 
             var previewChanges = GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.PreviewChanges);
 

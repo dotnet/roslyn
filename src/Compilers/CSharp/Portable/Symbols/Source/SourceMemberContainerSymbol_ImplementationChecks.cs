@@ -1168,10 +1168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overridingMethod,
                         diagnostics,
                         static (diagnostics, _, _, overridingParameter, _, location) =>
-                            diagnostics.Add(
-                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                location,
-                                new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat)),
+                            {
+                                // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+                                // overrides or interface implementations until variance is supported.
+                                //diagnostics.Add(
+                                //    ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                //    location,
+                                //    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
+                            },
                         overridingMemberLocation);
                 }
 

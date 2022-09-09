@@ -41,6 +41,7 @@ pr:
       - .vscode/*
       - .github/*
       - .devcontainer/*
+      - src/Compilers/*
       - .git-blame-ignore-revs
       - .vsconfig
       - CODE-OF-CONDUCT.md

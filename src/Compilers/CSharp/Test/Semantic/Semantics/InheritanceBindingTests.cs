@@ -9794,5 +9794,32 @@ class C2 : I
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(63490, "https://github.com/dotnet/roslyn/issues/63490")]
+        public void MultipleBasesWithObliviousDifferencesAndInterfaces()
+        {
+            var source1 = @"
+#nullable enable
+interface ITest
+{
+    void Test();
+}
+
+class Generic<T> { }
+class Argument { }
+partial class Partial : Generic<Argument> { }
+";
+
+            var source2 = @"
+#nullable disable
+partial class Partial : Generic<Argument>, ITest
+{
+    void ITest.Test() { }
+}
+";
+            CreateCompilation(source1 + source2).VerifyDiagnostics();
+            CreateCompilation(source2 + source1).VerifyDiagnostics();
+        }
     }
 }

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct ProjectChanges
+    public readonly struct ProjectChanges
     {
         private readonly Project _newProject;
         private readonly Project _oldProject;
