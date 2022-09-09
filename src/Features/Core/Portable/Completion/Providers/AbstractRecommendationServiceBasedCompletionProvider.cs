@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (symbol is IAliasSymbol alias)
                 symbol = alias.Target;
 
-            if (symbol is INamespaceSymbol @namespace)
-                return @namespace.GetMembers().Any(m => IsValidForInheritanceContext(m, inheritingFrom, context));
+            if (symbol.IsNamespace())
+                return true;
 
             if (symbol is not INamedTypeSymbol namedType ||
                 symbol.IsDelegateType() ||

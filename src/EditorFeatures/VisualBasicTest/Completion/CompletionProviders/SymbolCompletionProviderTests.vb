@@ -5296,7 +5296,7 @@ End Interface
 
 Class C
     Inherits $$
-    End Class
+End Class
 End Namespace
 "
 
@@ -5314,7 +5314,7 @@ End Interface
 
 Class C
     Inherits $$
-    End Class
+End Class
 End Namespace
 "
 
@@ -5490,18 +5490,18 @@ End Class
 
         <WorkItem(530726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530726")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInherits_DoNotShowNamespaceWithNoApplicableClasses() As Task
+        Public Async Function TestInherits_NamespaceContainingClass() As Task
             Const markup = "
 Namespace N
-    Module M
-    End Module
+    Class C
+    End Class
 End Namespace
 Class C
     Inherits $$
 End Class
 "
 
-            Await VerifyItemIsAbsentAsync(markup, "N")
+            Await VerifyItemExistsAsync(markup, "N")
         End Function
 
         <WorkItem(530725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530725")>
