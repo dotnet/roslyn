@@ -46,6 +46,18 @@ namespace Microsoft.VisualStudio.VsixInstaller
                     return Assembly.LoadFrom(path);
                 }
 
+                path = Path.Combine(installationPath, @"Common7\IDE\PublicAssemblies\Nerdbank.Streams.2.x", new AssemblyName(args.Name).Name + ".dll");
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
+
+                path = Path.Combine(installationPath, @"Common7\IDE\PublicAssemblies\MessagePack.2.x", new AssemblyName(args.Name).Name + ".dll");
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
+
                 path = Path.Combine(installationPath, @"Common7\IDE\PrivateAssemblies\Newtonsoft.Json.13.0.1.0", new AssemblyName(args.Name).Name + ".dll");
                 if (File.Exists(path))
                 {
