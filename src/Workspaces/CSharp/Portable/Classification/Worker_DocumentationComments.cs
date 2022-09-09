@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -144,7 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (token.HasLeadingTrivia)
                     ClassifyXmlTrivia(token.LeadingTrivia);
 
-                ClassifyXmlTextToken(token);
+                if (token.Parent is XmlTextAttributeSyntax { Name.LocalName.Text: "langword" })
+                {
+                    ClassifyXmlLangwordAttributeValue(token);
+                }
+                else
+                {
+                    ClassifyXmlTextToken(token);
+                }
 
                 if (token.HasTrailingTrivia)
                     ClassifyXmlTrivia(token.TrailingTrivia);
@@ -166,24 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
                         break;
                     case SyntaxKind.XmlTextAttribute:
-                        if (token.Parent is XmlTextAttributeSyntax { Name.LocalName.Text: "langword" })
-                        {
-                            var tokenText = token.Text;
-
-                            if (SyntaxFacts.GetKeywordKind(tokenText) != SyntaxKind.None ||
-                                SyntaxFacts.GetContextualKeywordKind(tokenText) != SyntaxKind.None)
-                            {
-                                AddClassification(token, ClassificationTypeNames.Keyword);
-                                break;
-                            }
-
-                            if (SyntaxFacts.GetPreprocessorKeywordKind(tokenText) != SyntaxKind.None)
-                            {
-                                AddClassification(token, ClassificationTypeNames.PreprocessorKeyword);
-                                break;
-                            }
-                        }
-
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue);
                         break;
                     case SyntaxKind.XmlComment:
@@ -196,6 +186,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentProcessingInstruction);
                         break;
                 }
+            }
+        }
+
+        private void ClassifyXmlLangwordAttributeValue(SyntaxToken token)
+        {
+            var tokenText = token.Text;
+
+            if (SyntaxFacts.GetKeywordKind(tokenText) != SyntaxKind.None ||
+                SyntaxFacts.GetContextualKeywordKind(tokenText) != SyntaxKind.None)
+            {
+                AddClassification(token, ClassificationTypeNames.Keyword);
+                return;
+            }
+
+            if (SyntaxFacts.GetPreprocessorKeywordKind(tokenText) != SyntaxKind.None)
+            {
+                AddClassification(token, ClassificationTypeNames.PreprocessorKeyword);
             }
         }
 
