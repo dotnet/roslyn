@@ -2811,6 +2811,7 @@ public ref struct S<T>
         }
 
         [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem(35606, "https://github.com/dotnet/roslyn/issues/35606")]
         [Fact]
         public void ReadOnlyIndexer_RefLikeStructParameter_02()
         {
