@@ -6131,6 +6131,51 @@ class Program
         }
 
         [Fact]
+        [InlineData("")]
+        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        public void BaseParameterWithDifferentRefKind()
+        {
+            var source = $$"""
+using System;
+
+class Attr : Attribute { }
+
+public class State
+{
+    public bool B;
+}
+
+static class Program
+{
+    static void M()
+    {
+        local(new State());
+
+        static void local([Attr] in State state)
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunction = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
+            var param = localFunction.Parameters[0];
+            Assert.True(param.IsMetadataIn);
+            Assert.False(param.IsMetadataOut);
+
+            // Test a scenario where the baseParameterAttributes has a different RefKind than the synthesized parameter.
+            // We expect the RefKind of the base parameter to be ignored here.
+            var synthesizedParam = SynthesizedParameterSymbol.Create(localFunction, param.TypeWithAnnotations, ordinal: 0, RefKind.Out, param.Name, baseParameterForAttributes: (SourceComplexParameterSymbolBase)param);
+            Assert.False(synthesizedParam.IsMetadataIn);
+            Assert.True(synthesizedParam.IsMetadataOut);
+        }
+
+        [Fact]
         [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_01()
         {
