@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList
     [UseExportProvider]
     public class NoCompilationTaskListTests : AbstractTaskListTests
     {
-        protected override TestWorkspace CreateWorkspace(string codeWithMarker)
+        protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         {
             var workspace = TestWorkspace.CreateWorkspace(XElement.Parse(
 $@"<Workspace>
     <Project Language=""NoCompilation"">
         <Document>{codeWithMarker}</Document>
     </Project>
-</Workspace>"), composition: EditorTestCompositions.EditorFeatures.AddParts(
+</Workspace>"), composition: composition.AddParts(
                 typeof(NoCompilationContentTypeDefinitions),
                 typeof(NoCompilationContentTypeLanguageService),
                 typeof(NoCompilationTaskListService)));
@@ -42,12 +42,12 @@ $@"<Workspace>
             return workspace;
         }
 
-        [Fact, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-        public async Task TodoCommentInNoCompilationProject()
+        [Theory, CombinatorialData, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
+        public async Task TodoCommentInNoCompilationProject(TestHost host)
         {
             var code = @"(* [|Message|] *)";
 
-            await TestAsync(code);
+            await TestAsync(code, host);
         }
     }
 
