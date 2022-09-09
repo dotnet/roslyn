@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected ActiveSpanState currentState;
         protected bool updatePending = false;
 
-        private InlineRenameSession _currentSession;
+        private InlineRenameSession _trackedSession;
 
         public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService)
         {
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void InlineRenameService_ActiveSessionChanged(object sender, InlineRenameService.ActiveSessionChangedEventArgs e)
         {
-            if (_currentSession is not null)
+            if (_trackedSession is not null)
             {
-                _currentSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
+                _trackedSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
             }
 
             if (!_globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment))
@@ -62,28 +62,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // listener on the textview that calls UpdateCurrentState will handle
                 // this correctly. This option cannot change when we are currently in a session, so
                 // only hook up as needed
-                _currentSession = null;
+                _trackedSession = null;
                 return;
             }
 
-            _currentSession = InlineRenameService.ActiveSession;
+            _trackedSession = InlineRenameService.ActiveSession;
 
-            if (_currentSession is not null)
+            if (_trackedSession is not null)
             {
-                _currentSession.ReplacementTextChanged += InlineRenameSession_ReplacementTextChanged;
+                _trackedSession.ReplacementTextChanged += InlineRenameSession_ReplacementTextChanged;
             }
         }
 
         private void InlineRenameSession_ReplacementTextChanged(object sender, System.EventArgs e)
         {
-            if (currentState.ReplacementText != _currentSession.ReplacementText)
+            if (currentState.ReplacementText != _trackedSession.ReplacementText)
             {
                 // No need to update anchor points here, just make sure the state in the undo stack
                 // ends up with the correct replacement text. This can happen if the text buffer isn't
                 // edited directly
                 this.currentState = new ActiveSpanState()
                 {
-                    ReplacementText = _currentSession.ReplacementText,
+                    ReplacementText = _trackedSession.ReplacementText,
                     SelectionAnchorPoint = currentState.SelectionAnchorPoint,
                     SelectionActivePoint = currentState.SelectionActivePoint
                 };
