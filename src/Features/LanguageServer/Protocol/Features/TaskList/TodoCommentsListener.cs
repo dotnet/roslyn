@@ -15,35 +15,36 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
-    internal sealed class TodoCommentsListener : ITodoCommentsListener, IDisposable
+    internal sealed class TaskListItemListener : ITaskListItemListener, IDisposable
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
         private readonly SolutionServices _services;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly Action<DocumentId, ImmutableArray<TodoCommentData>, ImmutableArray<TodoCommentData>> _onTodoCommentsUpdated;
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
+        private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTodoCommentsUpdated;
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToItems = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection<IRemoteTodoCommentsDiscoveryService>? _lazyConnection;
+        private RemoteServiceConnection<IRemoteTaskListService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentAndComments> _workQueue;
+        private readonly AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)> _workQueue;
 
-        public TodoCommentsListener(
+        public TaskListItemListener(
             IGlobalOptionService globalOptions,
             SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            Action<DocumentId, ImmutableArray<TodoCommentData>, ImmutableArray<TodoCommentData>> onTodoCommentsUpdated,
+            Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> onTodoCommentsUpdated,
             CancellationToken disposalToken)
         {
             _globalOptions = globalOptions;
@@ -52,9 +53,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
             _onTodoCommentsUpdated = onTodoCommentsUpdated;
             _disposalToken = disposalToken;
 
-            _workQueue = new AsyncBatchingWorkQueue<DocumentAndComments>(
+            _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
                 TimeSpan.FromSeconds(1),
-                ProcessTodoCommentInfosAsync,
+                ProcessTaskListItemsAsync,
                 _asyncListener,
                 _disposalToken);
         }
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                ComputeTodoCommentsInCurrentProcess(cancellationToken);
+                ComputeTaskListItemsInCurrentProcess(cancellationToken);
                 return;
             }
 
@@ -87,24 +88,24 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this);
+            _lazyConnection = client.CreateConnection<IRemoteTaskListService>(callbackTarget: this);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
             _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeTaskListItemsAsync(callbackId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
+        private void ComputeTaskListItemsInCurrentProcess(CancellationToken cancellationToken)
         {
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcTodoCommentsIncrementalAnalyzerProvider(this);
+            var analyzerProvider = new InProcTaskListIncrementalAnalyzerProvider(this);
 
             registrationService.AddAnalyzerProvider(
                 analyzerProvider,
                 new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcTodoCommentsIncrementalAnalyzerProvider),
+                    nameof(InProcTaskListIncrementalAnalyzerProvider),
                     highPriorityForActiveFile: false,
                     workspaceKinds: WorkspaceKind.Host));
         }
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private void GlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             // Notify remote service that TokenList changed and the solution needs to be re-analyzed:
-            if (e.Option == TodoCommentOptionsStorage.TokenList && _lazyConnection != null)
+            if (e.Option == TaskListOptionsStorage.TokenList && _lazyConnection != null)
             {
                 // only perform the call if connection has not been disposed:
                 _ = Task.Run(() => _lazyConnection?.TryInvokeAsync((service, cancellationToken) => service.ReanalyzeAsync(cancellationToken), _disposalToken))
@@ -123,11 +124,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
         {
             try
             {
-                _workQueue.AddWork(new DocumentAndComments(documentId, infos));
+                _workQueue.AddWork((documentId, items));
                 return ValueTaskFactory.CompletedTask;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -140,48 +141,45 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetTodoCommentOptions());
+        public ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_globalOptions.GetTaskListOptions());
 
-        private ValueTask ProcessTodoCommentInfosAsync(
-            ImmutableSegmentedList<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
+        private ValueTask ProcessTaskListItemsAsync(
+            ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
-            AddFilteredInfos(docAndCommentsArray, filteredArray);
+            using var _1 = ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)>.GetInstance(out var filteredArray);
+            AddFilteredItems(docAndCommentsArray, filteredArray);
 
-            foreach (var docAndComments in filteredArray)
+            foreach (var (documentId, newItems) in filteredArray)
             {
-                var documentId = docAndComments.DocumentId;
-                var newComments = docAndComments.Comments;
-
-                var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
+                var oldComments = _documentToItems.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
-                    : ImmutableArray<TodoCommentData>.Empty;
+                    : ImmutableArray<TaskListItem>.Empty;
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
-                if (newComments.IsEmpty)
+                if (newItems.IsEmpty)
                 {
-                    _documentToInfos.TryRemove(documentId, out _);
+                    _documentToItems.TryRemove(documentId, out _);
                 }
                 else
                 {
-                    _documentToInfos[documentId] = newComments;
+                    _documentToItems[documentId] = newItems;
                 }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
-                _onTodoCommentsUpdated(documentId, oldComments, newComments);
+                _onTodoCommentsUpdated(documentId, oldComments, newItems);
             }
 
             return ValueTaskFactory.CompletedTask;
         }
 
-        private static void AddFilteredInfos(
-            ImmutableSegmentedList<DocumentAndComments> array,
-            ArrayBuilder<DocumentAndComments> filteredArray)
+        private static void AddFilteredItems(
+            ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> array,
+            ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)> filteredArray)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
@@ -191,16 +189,16 @@ namespace Microsoft.CodeAnalysis.TodoComments
             for (var i = array.Count - 1; i >= 0; i--)
             {
                 var info = array[i];
-                if (seenDocumentIds.Add(info.DocumentId))
+                if (seenDocumentIds.Add(info.documentId))
                     filteredArray.Add(info);
             }
         }
 
-        public ImmutableArray<TodoCommentData> GetTodoItems(DocumentId documentId)
+        public ImmutableArray<TaskListItem> GetItems(DocumentId documentId)
         {
-            return _documentToInfos.TryGetValue(documentId, out var values)
+            return _documentToItems.TryGetValue(documentId, out var values)
                 ? values
-                : ImmutableArray<TodoCommentData>.Empty;
+                : ImmutableArray<TaskListItem>.Empty;
         }
     }
 }

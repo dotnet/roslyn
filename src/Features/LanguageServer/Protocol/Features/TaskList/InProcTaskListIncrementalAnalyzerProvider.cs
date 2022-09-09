@@ -3,22 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the workspace
     /// to automatically load this.  Instead, VS waits until it is ready
     /// and then calls into the service to tell it to start analyzing the solution.  At that point we'll get
     /// created and added to the solution crawler.
     /// </remarks>
-    internal sealed class InProcTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
+    internal sealed class InProcTaskListIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly TodoCommentsListener _listener;
+        private readonly TaskListItemListener _listener;
 
-        public InProcTodoCommentsIncrementalAnalyzerProvider(TodoCommentsListener listener)
+        public InProcTaskListIncrementalAnalyzerProvider(TaskListItemListener listener)
             => _listener = listener;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new InProcTodoCommentsIncrementalAnalyzer(_listener);
+            => new InProcTaskListIncrementalAnalyzer(_listener);
     }
 }
