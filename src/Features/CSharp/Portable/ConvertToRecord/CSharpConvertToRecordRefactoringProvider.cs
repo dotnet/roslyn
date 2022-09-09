@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
@@ -16,23 +15,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
     internal sealed class CSharpConvertToRecordRefactoringProvider : CodeRefactoringProvider
     {
 
-        private IGlobalOptionService _globalOptionService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConvertToRecordRefactoringProvider(IGlobalOptionService globalOptionService)
+        public CSharpConvertToRecordRefactoringProvider()
         {
-            _globalOptionService = globalOptionService;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (_globalOptionService.GetOption(ConvertToRecordOptions.Disable))
-            {
-                return null;
-            }
-
             var (document, _, cancellationToken) = context;
+
+
+            if (!context.Options.GetOptions(document.Project.Services).EnableConvertToRecord)
+            {
+                return;
+            }
 
             var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
             if (typeDeclaration == null)

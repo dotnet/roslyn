@@ -69,6 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
 
+#if !CODE_STYLE
+            internal CodeActionOptionsProvider CodeActionOptions
+            {
+                get => _sharedState.CodeActionOptions;
+                set => _sharedState.CodeActionOptions = value;
+            }
+#endif
+
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {

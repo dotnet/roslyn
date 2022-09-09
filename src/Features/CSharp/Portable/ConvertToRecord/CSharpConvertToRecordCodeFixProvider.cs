@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
@@ -22,13 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         /// </summary>
         private const string CS8865 = nameof(CS8865);
 
-        private IGlobalOptionService _globalOptionService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConvertToRecordCodeFixProvider(IGlobalOptionService globalOptionService)
+        public CSharpConvertToRecordCodeFixProvider()
         {
-            _globalOptionService = globalOptionService;
         }
 
         public override FixAllProvider? GetFixAllProvider()
@@ -40,14 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (_globalOptionService.GetOption(ConvertToRecordOptions.Disable))
-            {
-                return null;
-            }
-
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
+
+            if (!context.Options.GetOptions(document.Project.Services).EnableConvertToRecord)
+            {
+                return;
+            }
+
             // get the class declaration. The span should be on the base type in the base list
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var baseTypeSyntax = root.FindNode(span) as BaseTypeSyntax;

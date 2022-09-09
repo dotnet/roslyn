@@ -8,11 +8,9 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -33,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 ExtractMethodOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
-                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language)
+                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
+                EnableConvertToRecord = globalOptions.GetOption(EnableConvertToRecord),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
@@ -46,5 +45,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
             "UseConditionalExpressionOptions",
             "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));
+
+        public static Option2<bool> EnableConvertToRecord = new(
+            "ConvertToRecord", "EnableConvertToRecord", defaultValue: false,
+            storageLocation: new FeatureFlagStorageLocation("Roslyn.EnableConvertToRecord"));
     }
 }
