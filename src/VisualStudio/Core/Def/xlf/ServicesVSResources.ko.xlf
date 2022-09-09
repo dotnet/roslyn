@@ -1142,6 +1142,11 @@
         <target state="translated">범위 연산자 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="new">Prefer read-only struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">읽기 전용 필드 선호</target>

@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
+            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {

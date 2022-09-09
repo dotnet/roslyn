@@ -592,6 +592,11 @@
         <target state="translated">필드와 유사한 이벤트 '{0}'이(가) 'readonly'일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
+        <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
+        <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
         <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
         <target state="translated">원본 파일은 파일 범위 선언과 일반 네임스페이스 선언을 모두 포함할 수 없습니다.</target>
@@ -625,6 +630,11 @@
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
         <source>File-local type '{0}' cannot use accessibility modifiers.</source>
         <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNonUniquePath">
+        <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
+        <target state="new">File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -1260,6 +1270,11 @@
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
         <target state="translated">'{0}': 속성 또는 인덱서에 get 접근자와 set 접근자가 둘 다 있는 경우에만 접근자에 'readonly'를 사용할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
+        <target state="new">'readonly' is not supported as a parameter modifier. Did you mean 'in'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">

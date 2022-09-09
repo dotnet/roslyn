@@ -37,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     It.IsAny<ImmutableArray<Document>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
                     It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Project project,
                      ImmutableArray<Document> priorityDocuments,
                      string pattern,
                      IImmutableSet<string> kinds,
+                     Document? activeDocument,
                      Func<INavigateToSearchResult, Task> onResultFound,
                      CancellationToken cancellationToken) =>
                     {
@@ -54,11 +56,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     It.IsAny<Project>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
                     It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Project project,
                      string pattern,
                      IImmutableSet<string> kinds,
+                     Document? activeDocument,
                      Func<INavigateToSearchResult, Task> onResultFound,
                      CancellationToken cancellationToken) =>
                     {
@@ -75,12 +79,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     It.IsAny<ImmutableArray<Document>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
+                    It.IsAny<Document?>(),
                     It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Project project,
                      ImmutableArray<Document> priorityDocuments,
                      string pattern2,
                      IImmutableSet<string> kinds,
+                     Document? activeDocument,
                      Func<INavigateToSearchResult, Task> onResultFound2,
                      CancellationToken cancellationToken) =>
                     {

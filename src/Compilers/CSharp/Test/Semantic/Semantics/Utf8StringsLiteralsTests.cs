@@ -3857,6 +3857,10 @@ class C
                 Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Addition(System.ReadOnlySpan<System.Byte> left, System.ReadOnlySpan<System.Byte> right)", method.ToTestDisplayString());
                 Assert.True(method.IsImplicitlyDeclared);
                 Assert.Equal(MethodKind.BuiltinOperator, method.MethodKind);
+
+                var synthesizedMethod = comp.CreateBuiltinOperator(
+                    method.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                Assert.Equal(synthesizedMethod, method);
             }
         }
 
@@ -4049,7 +4053,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        [ConditionalFact(typeof(CoreClrOnly), typeof(NoIOperationValidation)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
         public void DeeplyNestedConcatenation()
         {
             var longConcat = new StringBuilder();
