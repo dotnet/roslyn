@@ -33,7 +33,7 @@ internal partial class CSharpRecommendationService
         {
             if (_context.IsInNonUserCode ||
                 _context.IsPreProcessorDirectiveContext ||
-                _context.IsBaseEnumContext)
+                _context.IsBaseEnumContext) // The only types available in a base list of an enum are byte, short, int etc., so no symbol recommendation is required
             {
                 return default;
             }
