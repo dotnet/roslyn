@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (token.HasLeadingTrivia)
                     ClassifyXmlTrivia(token.LeadingTrivia);
 
-                if (token.Parent is XmlTextAttributeSyntax { Name.LocalName.Text: "langword" })
+                if (token.Parent is XmlTextAttributeSyntax { Name.LocalName.Text: DocumentationCommentXmlNames.LangwordAttributeName })
                 {
                     ClassifyXmlLangwordAttributeValue(token);
                 }
