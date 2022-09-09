@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        protected internal override bool SupportsDiagnosticMode(DiagnosticMode mode)
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
         {
             // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
             // lsp client.

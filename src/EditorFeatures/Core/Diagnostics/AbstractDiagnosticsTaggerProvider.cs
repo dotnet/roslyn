@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected internal abstract bool IsEnabled { get; }
-        protected internal abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
+        protected internal abstract bool SupportsDignosticMode(DiagnosticMode mode);
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
         protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
 
             var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            if (!SupportsDiagnosticMode(diagnosticMode))
+            if (!SupportsDignosticMode(diagnosticMode))
                 return;
 
             var document = spanToTag.Document;
