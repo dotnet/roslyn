@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(CurrentSolution.Services, moniker, defaultEncoding: null));
+                    OnDocumentClosed(id, new WorkspaceFileTextLoaderNoException(CurrentSolution.Services, moniker, defaultEncoding: null));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }

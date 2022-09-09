@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
                     fileName,
                     filePath: file,
-                    loader: new FileTextLoaderNoException(services, file, defaultEncoding: null));
+                    loader: new WorkspaceFileTextLoaderNoException(services, file, defaultEncoding: null));
                 docInfos.Add(docInfo);
             }
 

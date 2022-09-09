@@ -28,6 +28,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected override SourceText CreateText(Stream stream, CancellationToken cancellationToken)
-            => _textFactory.CreateText(stream, DefaultEncoding, CancellationToken.None);
+            => _textFactory.CreateText(stream, DefaultEncoding, cancellationToken);
     }
 }
