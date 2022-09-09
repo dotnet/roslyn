@@ -41,14 +41,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         /// <code>class C : $$</code>
         /// but not for
         /// <code>class C : A, $$</code>
+        /// <code>interface I : $$</code>
+        /// <code>struct S : $$</code>
+        /// <code>record R : $$</code>
         /// </summary>
         public bool IsBaseClassContext { get; }
         /// <summary>
         /// Tells if in a position of a base list, where interface name is a valid completion.
         /// For instatnce, this flag will be <see langword="true" /> for
         /// <code>class C : $$</code>
-        /// or
+        /// <code>class C : A, $$</code>
         /// <code>interface I : $$</code>
+        /// <code>struct S : $$</code>
+        /// <code>record R : $$</code>
+        /// <code>record R : A, $$</code>
         /// </summary>
         public bool IsBaseInterfaceContext { get; }
         /// <summary>
@@ -56,6 +62,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         /// For instatnce, this flag will be <see langword="true" /> for
         /// <code>record R : $$</code>
         /// but not for
+        /// <code>class C : $$</code>
+        /// <code>class C : A, $$</code>
+        /// <code>interface I : $$</code>
+        /// <code>struct S : $$</code>
         /// <code>record R : A, $$</code>
         /// </summary>
         public bool IsBaseRecordContext { get; }
