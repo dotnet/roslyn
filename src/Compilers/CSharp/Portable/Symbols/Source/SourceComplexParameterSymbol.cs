@@ -217,7 +217,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
             parameterSyntax?.Default?.Value;
 
-        public override BoundParameterEqualsValue? BindParameterEqualsValue()
+        /// <summary>
+        /// Returns the bound default value syntax from the parameter, if it exists.
+        /// Note that this method will only return a non-null value if the
+        /// default value was supplied in syntax and not in metadata. Thus, there are cases
+        /// where ExplicitDefaultValue will be non-null but this method will return null.
+        /// However, if ExplicitDefaultValue is null, this method should always return null.
+        /// </summary>
+        public BoundParameterEqualsValue? BindParameterEqualsValue()
         {
             // Rebind default value expression, ignoring any diagnostics, in order to produce
             // a bound node that can be used for passes such as definite assignment.
