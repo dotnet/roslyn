@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Editor.TaskList
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.TodoComments
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
@@ -127,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(item.Span.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -135,11 +136,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedLine, line)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedColumn, column)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -176,7 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(item.Span.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -184,11 +185,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedLine, line)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedColumn, column)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -386,12 +387,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 priority:=0,
                 message:="test",
                 documentId:=documentId,
-                mappedLine:=10,
-                originalLine:=10,
-                mappedColumn:=20,
-                originalColumn:=20,
-                mappedFilePath:=Nothing,
-                originalFilePath:="test1")
+                span:=span,
+                mappedSpan:=span)
         End Function
 
         Private Class TestTaskListProvider
