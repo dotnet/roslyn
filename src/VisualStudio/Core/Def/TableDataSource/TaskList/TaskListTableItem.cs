@@ -42,10 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new(Data.OriginalLine, Data.OriginalColumn);
+            => Data.Span.StartLinePosition;
 
         public override string? GetOriginalFilePath()
-            => Data.OriginalFilePath;
+            => Data.Span.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
