@@ -6131,7 +6131,6 @@ class Program
         }
 
         [Fact]
-        [InlineData("")]
         [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
         public void BaseParameterWithDifferentRefKind()
         {
