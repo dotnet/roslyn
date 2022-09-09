@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
 
@@ -52,7 +53,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public static async ValueTask<ImmutableArray<TaskListItem>> ConvertAsync(
             Document document,
             ImmutableArray<TodoComment> todoComments,
-            ArrayBuilder<TodoCommentData> converted,
             CancellationToken cancellationToken)
         {
             if (todoComments.Length == 0)
