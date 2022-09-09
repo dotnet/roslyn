@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
 
-        internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.IsMetadataIn == true;
+        internal override bool IsMetadataIn => RefKind == RefKind.In || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
-        internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.IsMetadataOut == true;
+        internal override bool IsMetadataOut => RefKind == RefKind.Out || _baseParameterForAttributes?.GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 
