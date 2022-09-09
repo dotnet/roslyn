@@ -9231,5 +9231,35 @@ class Class
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(63883, "https://github.com/dotnet/roslyn/issues/63883")]
+        public async Task TestNullableCoalesce()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Example
+{
+    int? A() => [|B()|] ?? C();
+
+    int? C() => null;
+}",
+@"
+using System;
+
+class Example
+{
+    int? A() => [|B()|] ?? C();
+
+    private int? B()
+    {
+        throw new NotImplementedException();
+    }
+
+    int? C() => null;
+}");
+        }
     }
 }
