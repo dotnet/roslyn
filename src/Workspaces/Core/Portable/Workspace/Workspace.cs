@@ -1255,6 +1255,9 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedSolutionChanges(SolutionChanges solutionChanges)
         {
+            // Note: For each kind of change first check if the change is disallowed and only if it is determine whether the change is actually made.
+            // This is more efficient since most workspaces allow most changes and CanApplyChange is implementation is usually trivial.
+
             if (!CanApplyChange(ApplyChangesKind.RemoveProject) && solutionChanges.GetRemovedProjects().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_projects_is_not_supported);
@@ -1283,6 +1286,9 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
+            // If CanApplyChange is true for ApplyChangesKind.ChangeCompilationOptions we allow any change to the compilaton options.
+            // If only subset of changes is allowed CanApplyChange shall return false and CanApplyCompilationOptionChange
+            // determines the outcome for the particular option change.
             if (!CanApplyChange(ApplyChangesKind.ChangeCompilationOptions) &&
                 projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
             {
