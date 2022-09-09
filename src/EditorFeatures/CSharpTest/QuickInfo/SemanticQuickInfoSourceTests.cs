@@ -8345,6 +8345,42 @@ $@"
     'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType4()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int param = 42) => param + 1;
+        $$lam();
+    }
+}
+",
+    MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
+    AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate int (int = 42)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType5()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        $$var lam = (int param = 42) => param;
+    }
+}
+", MainDescription($"delegate int <anonymous delegate>(int)"));
+        }
+
         [WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestSingleTupleType()
