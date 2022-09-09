@@ -2796,7 +2796,6 @@ class C {
             EOF();
         }
 
-
         [Fact]
         public void TestDefaultMissingValueClause_DelegateSyntax2()
         {
@@ -2856,7 +2855,6 @@ class C {
             }
             EOF();
         }
-
 
         [Fact]
         public void TestDefaultValueMissingRestOfLambda1()
@@ -4809,7 +4807,6 @@ class C {
                 N(SyntaxKind.VariableDeclaration);
                 {
                     N(SyntaxKind.GenericName);
-
                     {
                         N(SyntaxKind.IdentifierToken, "Func");
                         N(SyntaxKind.TypeArgumentList);
