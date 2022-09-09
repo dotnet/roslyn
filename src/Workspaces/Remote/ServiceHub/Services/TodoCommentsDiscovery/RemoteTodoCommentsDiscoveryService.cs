@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
@@ -66,17 +64,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 registrationService.Reanalyze(workspace, _lazyAnalyzer, projectIds: null, documentIds: null, highPriority: false);
 
                 return ValueTaskFactory.CompletedTask;
-            }, cancellationToken);
-        }
-
-        public ValueTask<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
-            Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var service = document.GetRequiredLanguageService<ITodoCommentDataService>();
-                return await service.GetTodoCommentDataAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }
