@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IWpfTextView _textView;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
@@ -32,13 +34,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IEditorFormatMapService editorFormatMapService,
             IInlineRenameColorUpdater? dashboardColorUpdater,
             IWpfTextView textView,
-            IGlobalOptionService globalOptionService)
+            IGlobalOptionService globalOptionService,
+            IAsyncQuickInfoBroker asyncQuickInfoBroker)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
             _globalOptionService = globalOptionService;
+            _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
@@ -94,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     var adornment = new RenameFlyout(
                         (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService)),
-                        _textView);
+                        _textView,
+                        _asyncQuickInfoBroker);
 
                     _adornmentLayer.AddAdornment(
                         AdornmentPositioningBehavior.ViewportRelative,

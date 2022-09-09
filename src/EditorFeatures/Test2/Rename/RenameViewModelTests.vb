@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.VisualStudio.Language.Intellisense
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
@@ -616,7 +617,8 @@ class D : B
 
                 Using flyout = New RenameFlyout(
                     New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
-                    textView:=cursorDocument.GetTextView())
+                    textView:=cursorDocument.GetTextView(),
+                    New TestQuickInfoBroker())
 
                     Await WaitForRename(workspace)
 
@@ -702,5 +704,25 @@ class D : B
 
             End Using
         End Sub
+    End Class
+
+    Friend Class TestQuickInfoBroker
+        Implements IAsyncQuickInfoBroker
+
+        Public Function IsQuickInfoActive(textView As VisualStudio.Text.Editor.ITextView) As Boolean Implements IAsyncQuickInfoBroker.IsQuickInfoActive
+            Return False
+        End Function
+
+        Public Function TriggerQuickInfoAsync(textView As VisualStudio.Text.Editor.ITextView, Optional triggerPoint As VisualStudio.Text.ITrackingPoint = Nothing, Optional options As QuickInfoSessionOptions = QuickInfoSessionOptions.None, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IAsyncQuickInfoSession) Implements IAsyncQuickInfoBroker.TriggerQuickInfoAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetQuickInfoItemsAsync(textView As VisualStudio.Text.Editor.ITextView, triggerPoint As VisualStudio.Text.ITrackingPoint, cancellationToken As CancellationToken) As Task(Of QuickInfoItemsCollection) Implements IAsyncQuickInfoBroker.GetQuickInfoItemsAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetSession(textView As VisualStudio.Text.Editor.ITextView) As IAsyncQuickInfoSession Implements IAsyncQuickInfoBroker.GetSession
+            Return Nothing
+        End Function
     End Class
 End Namespace

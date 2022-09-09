@@ -3,10 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -17,12 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly IWpfTextView _textView;
+        private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IAsyncQuickInfoBroker asyncQuickInfoBroker)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
-
+            _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
@@ -36,10 +41,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Don't hook up our close events until we're done loading and have focused within the textbox
                 _textView.LostAggregateFocus += TextView_LostFocus;
                 IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
+
+                DismissToolTipsAsync().FileAndForget("InlineRename.DismissToolTips");
             };
 
             InitializeComponent();
             PositionAdornment();
+        }
+
+        private async Task DismissToolTipsAsync()
+        {
+            var infoSession = _asyncQuickInfoBroker.GetSession(_textView);
+            if (infoSession is null)
+            {
+                return;
+            }
+
+            await infoSession.DismissAsync().ConfigureAwait(false);
         }
 
 #pragma warning disable CA1822 // Mark members as static - used in xaml
