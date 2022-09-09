@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1770,6 +1772,68 @@ class Bar { }";
                 Class("Bar"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task XmlDocComment_Langword_NormalKeywords(TestHost testHost)
+        {
+            var keywords = SyntaxFacts.GetKeywordKinds().Select(SyntaxFacts.GetText);
+
+            foreach (var keyword in keywords)
+            {
+                var code = @$"
+///   <see langword=""{keyword}"" />
+class Bar {{ }}";
+                await TestAsync(code,
+                    testHost,
+                    XmlDoc.Delimiter("///"),
+                    XmlDoc.Text("   "),
+                    XmlDoc.Delimiter("<"),
+                    XmlDoc.Name("see"),
+                    XmlDoc.AttributeName("langword"),
+                    XmlDoc.Delimiter("="),
+                    XmlDoc.AttributeQuotes(@""""),
+                    Keyword(keyword),
+                    XmlDoc.AttributeQuotes(@""""),
+                    XmlDoc.Delimiter("/>"),
+                    Keyword("class"),
+                    Class("Bar"),
+                    Punctuation.OpenCurly,
+                    Punctuation.CloseCurly);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task XmlDocComment_Langword_PreprocessorKeywords(TestHost testHost)
+        {
+            var keywords = SyntaxFacts.GetPreprocessorKeywordKinds()
+                                      .Where(k => !SyntaxFacts.GetKeywordKinds().Contains(k))
+                                      .Select(SyntaxFacts.GetText);
+
+            foreach (var keyword in keywords)
+            {
+                var code = @$"
+///   <see langword=""{keyword}"" />
+class Bar {{ }}";
+                await TestAsync(code,
+                    testHost,
+                    XmlDoc.Delimiter("///"),
+                    XmlDoc.Text("   "),
+                    XmlDoc.Delimiter("<"),
+                    XmlDoc.Name("see"),
+                    XmlDoc.AttributeName("langword"),
+                    XmlDoc.Delimiter("="),
+                    XmlDoc.AttributeQuotes(@""""),
+                    PPKeyword(keyword),
+                    XmlDoc.AttributeQuotes(@""""),
+                    XmlDoc.Delimiter("/>"),
+                    Keyword("class"),
+                    Class("Bar"),
+                    Punctuation.OpenCurly,
+                    Punctuation.CloseCurly);
+            }
         }
 
         [Theory]

@@ -1140,7 +1140,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
             {
-                yield return (SyntaxKind)i;
+                // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
+                if (i != 8441)
+                {
+                    yield return (SyntaxKind)i;
+                }
             }
         }
 

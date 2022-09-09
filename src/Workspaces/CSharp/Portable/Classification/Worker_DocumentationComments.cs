@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -158,13 +159,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
-                RoslynDebug.Assert(token.Parent is object);
+                RoslynDebug.Assert(token.Parent is not null);
                 switch (token.Parent.Kind())
                 {
                     case SyntaxKind.XmlText:
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
                         break;
                     case SyntaxKind.XmlTextAttribute:
+                        if (token.Parent is XmlTextAttributeSyntax { Name.LocalName.Text: "langword" })
+                        {
+                            var tokenText = token.Text;
+
+                            if (SyntaxFacts.GetKeywordKind(tokenText) != SyntaxKind.None ||
+                                SyntaxFacts.GetContextualKeywordKind(tokenText) != SyntaxKind.None)
+                            {
+                                AddClassification(token, ClassificationTypeNames.Keyword);
+                                break;
+                            }
+
+                            if (SyntaxFacts.GetPreprocessorKeywordKind(tokenText) != SyntaxKind.None)
+                            {
+                                AddClassification(token, ClassificationTypeNames.PreprocessorKeyword);
+                                break;
+                            }
+                        }
+
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue);
                         break;
                     case SyntaxKind.XmlComment:
