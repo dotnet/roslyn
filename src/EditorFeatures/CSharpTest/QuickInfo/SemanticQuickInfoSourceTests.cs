@@ -8381,6 +8381,51 @@ class C
 ", MainDescription($"delegate int <anonymous delegate>(int)"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType6()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (i$$nt param = 42) => param;
+    }
+}
+", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType7()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int pa$$ram = 42) => param;
+    }
+}
+", MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType8()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int param = 4$$2) => param;
+    }
+}
+", MainDescription("struct System.Int32"));
+        }
+
         [WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestSingleTupleType()
