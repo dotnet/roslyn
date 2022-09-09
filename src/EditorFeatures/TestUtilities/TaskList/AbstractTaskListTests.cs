@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -18,17 +19,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
 {
     public abstract class AbstractTaskListTests
     {
-        private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
-        private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);
+        protected abstract TestWorkspace CreateWorkspace(string codeWithMarker);
 
-        protected TestWorkspace CreateWorkspace(string codeWithMarker, TestHost host)
-            => CreateWorkspace(codeWithMarker, host == TestHost.OutOfProcess ? s_outOffProcessComposition : s_inProcessComposition);
-
-        protected abstract TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition testComposition);
-
-        protected async Task TestAsync(string codeWithMarker, TestHost host)
+        protected async Task TestAsync(string codeWithMarker)
         {
-            using var workspace = CreateWorkspace(codeWithMarker, host);
+            using var workspace = CreateWorkspace(codeWithMarker);
 
             var descriptors = TaskListOptions.Default.Descriptors;
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), descriptors);
@@ -54,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
                 var text = initialTextSnapshot.GetText(span.ToSpan());
 
-                Assert.Equal(todo.MappedSpan.Span.Start.Line, line.LineNumber);
-                Assert.Equal(todo.MappedSpan.Span.Start.Character, span.Start - line.Start);
+                Assert.Equal(todo.MappedLine, line.LineNumber);
+                Assert.Equal(todo.MappedColumn, span.Start - line.Start);
                 Assert.Equal(todo.Message, text);
             }
         }

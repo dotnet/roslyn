@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -24,6 +25,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
+using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -145,9 +147,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(new TaskListItem(
                 priority: 1,
                 message: "HACK: Test",
-                documentId,
-                posSpan,
-                posSpan), items[0]);
+                mappedFilePath: null,
+                originalFilePath: "test1.cs",
+                originalLine: 2,
+                mappedLine: 2,
+                originalColumn: 3,
+                mappedColumn: 3), items[0]);
 
             resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
@@ -162,9 +167,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(new TaskListItem(
                 priority: 1,
                 message: "TODO: Test",
-                documentId,
-                span,
-                span), items[0]);
+                mappedFilePath: null,
+                originalFilePath: "test1.cs",
+                originalLine: 3,
+                mappedLine: 3,
+                originalColumn: 3,
+                mappedColumn: 3), items[0]);
 
             cancellationTokenSource.Cancel();
         }

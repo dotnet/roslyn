@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var location = tree == null
                 ? Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan))
                 : tree.GetLocation(textSpan);
+            var originalLineInfo = location.GetLineSpan();
+            var mappedLineInfo = location.GetMappedLineSpan();
 
             return new TaskListItem(
                 Descriptor.Priority,
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public static async ValueTask<ImmutableArray<TaskListItem>> ConvertAsync(
             Document document,
             ImmutableArray<TodoComment> todoComments,
+            ArrayBuilder<TodoCommentData> converted,
             CancellationToken cancellationToken)
         {
             if (todoComments.Length == 0)

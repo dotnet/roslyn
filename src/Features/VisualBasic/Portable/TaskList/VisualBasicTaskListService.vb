@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TaskList
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TaskList
             ' 3 for REM
             Dim index = GetFirstCharacterIndex(message)
             If index >= message.Length OrElse
-                       index > message.Length - "REM".Length Then
+                       index > message.Length - 3 Then
                 Return index
             End If
 

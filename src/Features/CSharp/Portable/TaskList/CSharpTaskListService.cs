@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TaskList
     [ExportLanguageService(typeof(ITaskListService), LanguageNames.CSharp), Shared]
     internal class CSharpTaskListService : AbstractTaskListService
     {
-        private static readonly int s_multilineCommentPostfixLength = "*/".Length;
-        private const string SingleLineCommentPrefix = "//";
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpTaskListService()
