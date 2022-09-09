@@ -9,34 +9,35 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [ExportLanguageService(typeof(ITodoCommentDataService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptTodoCommentDataService : ITodoCommentDataService
+    [ExportLanguageService(typeof(ITaskListService), InternalLanguageNames.TypeScript), Shared]
+    internal sealed class VSTypeScriptTaskListService : ITaskListService
     {
-        private readonly IVSTypeScriptTodoCommentDataServiceImplementation? _impl;
+        private readonly IVSTypeScriptTaskListServiceImplementation? _impl;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptTodoCommentDataService([Import(AllowDefault = true)] IVSTypeScriptTodoCommentDataServiceImplementation impl)
+        public VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation impl)
         {
             _impl = impl;
         }
 
-        public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
         {
             if (_impl is null)
-                return ImmutableArray<TodoCommentData>.Empty;
+                return ImmutableArray<TaskListItem>.Empty;
 
-            var result = await _impl.GetTodoCommentDataAsync(
+            var result = await _impl.GetTaskListItemsAsync(
                 document,
-                commentDescriptors.SelectAsArray(d => new VSTypeScriptTodoCommentDescriptorWrapper(d)),
+                descriptors.SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d)),
                 cancellationToken).ConfigureAwait(false);
             if (result.Length == 0)
-                return ImmutableArray<TodoCommentData>.Empty;
+                return ImmutableArray<TaskListItem>.Empty;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 var location = Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan));
                 var span = location.GetLineSpan();
 
-                return new TodoCommentData(d.Descriptor.Descriptor.Priority, d.Message, document.Id, span, span);
+                return new TaskListItem(d.Descriptor.Descriptor.Priority, d.Message, document.Id, span, span);
             });
         }
     }

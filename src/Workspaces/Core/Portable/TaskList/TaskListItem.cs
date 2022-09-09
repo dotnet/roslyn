@@ -6,13 +6,13 @@ using System;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <summary>
     /// Serialization type used to pass information to/from OOP and VS.
     /// </summary>
     [DataContract]
-    internal readonly struct TodoCommentData : IEquatable<TodoCommentData>
+    internal readonly struct TaskListItem : IEquatable<TaskListItem>
     {
         [DataMember(Order = 0)]
         public readonly int Priority;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         [DataMember(Order = 4)]
         public readonly FileLinePositionSpan MappedSpan;
 
-        public TodoCommentData(
+        public TaskListItem(
             int priority,
             string message,
             DocumentId documentId,
@@ -43,23 +43,23 @@ namespace Microsoft.CodeAnalysis.TodoComments
             MappedSpan = mappedSpan;
         }
 
-        public override bool Equals(object? obj)
-            => obj is TodoCommentData other && Equals(other);
-
         public override int GetHashCode()
             => GetHashCode(this);
 
         public override string ToString()
             => $"{Priority} {Message} {MappedSpan.Path ?? ""} ({MappedSpan.StartLinePosition.Line}, {MappedSpan.StartLinePosition.Character}) [original: {Span.Path ?? ""} ({Span.StartLinePosition.Line}, {Span.StartLinePosition.Character})";
 
-        public bool Equals(TodoCommentData obj)
+        public override bool Equals(object? obj)
+            => obj is TaskListItem other && Equals(other);
+
+        public bool Equals(TaskListItem obj)
             => DocumentId == obj.DocumentId &&
                Priority == obj.Priority &&
                Message == obj.Message &&
                Span == obj.Span &&
                MappedSpan == obj.MappedSpan;
 
-        public static int GetHashCode(TodoCommentData item)
+        public static int GetHashCode(TaskListItem item)
             => Hash.Combine(item.DocumentId,
                Hash.Combine(item.Priority,
                Hash.Combine(item.Message,

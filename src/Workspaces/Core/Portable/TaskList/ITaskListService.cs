@@ -7,14 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <summary>
     /// Determines locations of 'todo' comments within a particular file.  The specific 'todo' comment forms (e.g.
-    /// '<c>TODO</c>', '<c>UNDONE</c>', etc.) are provided through <see cref="TodoCommentDescriptor"/>.
+    /// '<c>TODO</c>', '<c>UNDONE</c>', etc.) are provided through <see cref="TaskListItemDescriptor"/>.
     /// </summary>
-    internal interface ITodoCommentDataService : ILanguageService
+    internal interface ITaskListService : ILanguageService
     {
-        Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> sescriptors, CancellationToken cancellationToken);
     }
 }

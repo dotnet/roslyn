@@ -5,42 +5,43 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptTodoCommentData
+    internal readonly struct VSTypeScriptTaskListItem
     {
-        public VSTypeScriptTodoCommentData(VSTypeScriptTodoCommentDescriptorWrapper descriptor, string message, int position)
+        public VSTypeScriptTaskListItem(VSTypeScriptTaskListItemDescriptorWrapper descriptor, string message, int position)
         {
             Descriptor = descriptor;
             Message = message;
             Position = position;
         }
 
-        public VSTypeScriptTodoCommentDescriptorWrapper Descriptor { get; }
+        public VSTypeScriptTaskListItemDescriptorWrapper Descriptor { get; }
         public string Message { get; }
         public int Position { get; }
     }
 
-    internal readonly struct VSTypeScriptTodoCommentDescriptorWrapper
+    internal readonly struct VSTypeScriptTaskListItemDescriptorWrapper
     {
-        internal readonly TodoCommentDescriptor Descriptor;
+        internal readonly TaskListItemDescriptor Descriptor;
 
         public string Text => Descriptor.Text;
 
-        internal VSTypeScriptTodoCommentDescriptorWrapper(TodoCommentDescriptor descriptor)
+        internal VSTypeScriptTaskListItemDescriptorWrapper(TaskListItemDescriptor descriptor)
         {
             Descriptor = descriptor;
         }
 
-        public static ImmutableArray<VSTypeScriptTodoCommentDescriptorWrapper> Parse(ImmutableArray<string> items)
-            => TodoCommentDescriptor.Parse(items).SelectAsArray(d => new VSTypeScriptTodoCommentDescriptorWrapper(d));
+        public static ImmutableArray<VSTypeScriptTaskListItemDescriptorWrapper> Parse(ImmutableArray<string> items)
+            => TaskListItemDescriptor.Parse(items).SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d));
     }
 
-    internal interface IVSTypeScriptTodoCommentDataServiceImplementation
+    internal interface IVSTypeScriptTaskListServiceImplementation
     {
-        Task<ImmutableArray<VSTypeScriptTodoCommentData>> GetTodoCommentDataAsync(
-            Document document, ImmutableArray<VSTypeScriptTodoCommentDescriptorWrapper> value, CancellationToken cancellationToken);
+        Task<ImmutableArray<VSTypeScriptTaskListItem>> GetTaskListItemsAsync(
+            Document document, ImmutableArray<VSTypeScriptTaskListItemDescriptorWrapper> value, CancellationToken cancellationToken);
     }
 }
