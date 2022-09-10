@@ -2494,7 +2494,7 @@ class C
 
         [Fact]
         [WorkItem(63315, "https://github.com/dotnet/roslyn/issues/63315")]
-        public async Task ExtractMethodInsideNamespace()
+        public async Task TestMethodInsideNamespace_NoException()
         {
             var code = """
                 namespace N
