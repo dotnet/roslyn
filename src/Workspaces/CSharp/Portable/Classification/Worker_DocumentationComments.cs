@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -145,14 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (token.HasLeadingTrivia)
                     ClassifyXmlTrivia(token.LeadingTrivia);
 
-                if (token.Parent is XmlTextAttributeSyntax { Name.LocalName.Text: DocumentationCommentXmlNames.LangwordAttributeName })
-                {
-                    ClassifyXmlLangwordAttributeValue(token);
-                }
-                else
-                {
-                    ClassifyXmlTextToken(token);
-                }
+                ClassifyXmlTextToken(token);
 
                 if (token.HasTrailingTrivia)
                     ClassifyXmlTrivia(token.TrailingTrivia);
@@ -189,20 +180,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyXmlLangwordAttributeValue(SyntaxToken token)
+        private void ClassifyXmlLangwordAttributeTextTokens(SyntaxTokenList textTokens)
         {
-            var tokenText = token.Text;
-
-            if (SyntaxFacts.GetKeywordKind(tokenText) != SyntaxKind.None ||
-                SyntaxFacts.GetContextualKeywordKind(tokenText) != SyntaxKind.None)
+            foreach (var token in textTokens)
             {
-                AddClassification(token, ClassificationTypeNames.Keyword);
-                return;
-            }
+                if (token.HasLeadingTrivia)
+                    ClassifyXmlTrivia(token.LeadingTrivia);
 
-            if (SyntaxFacts.GetPreprocessorKeywordKind(tokenText) != SyntaxKind.None)
-            {
-                AddClassification(token, ClassificationTypeNames.PreprocessorKeyword);
+                var tokenText = token.Text;
+
+                if (SyntaxFacts.GetKeywordKind(tokenText) != SyntaxKind.None ||
+                    SyntaxFacts.GetContextualKeywordKind(tokenText) != SyntaxKind.None)
+                {
+                    AddClassification(token, ClassificationTypeNames.Keyword);
+                }
+                else if (SyntaxFacts.GetPreprocessorKeywordKind(tokenText) != SyntaxKind.None)
+                {
+                    AddClassification(token, ClassificationTypeNames.PreprocessorKeyword);
+                }
+                else
+                {
+                    ClassifyXmlTextToken(token);
+                }
+
+                if (token.HasTrailingTrivia)
+                    ClassifyXmlTrivia(token.TrailingTrivia);
             }
         }
 
@@ -278,6 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
             switch (attribute.Kind())
             {
+                case SyntaxKind.XmlTextAttribute when attribute.Name.LocalName.Text == DocumentationCommentXmlNames.LangwordAttributeName:
+                    ClassifyXmlLangwordAttributeTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens);
+                    break;
                 case SyntaxKind.XmlTextAttribute:
                     ClassifyXmlTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens);
                     break;
