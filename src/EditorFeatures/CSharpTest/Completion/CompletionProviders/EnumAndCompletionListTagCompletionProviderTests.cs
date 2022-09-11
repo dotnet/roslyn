@@ -52,8 +52,7 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
             var markup = @"
@@ -81,8 +80,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberNever()
         {
             var markup = @"
@@ -110,8 +108,7 @@ public enum Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {
             var markup = @"

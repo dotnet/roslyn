@@ -516,8 +516,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter4()
         {
             var markup = @"
@@ -544,8 +543,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter6()
         {
             var markup = @"
@@ -568,8 +566,7 @@ void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
             await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter8()
         {
             var markup = @"
@@ -583,8 +580,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact]
-        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        [Fact, WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter9()
         {
             var markup = @"
@@ -693,8 +689,7 @@ public class C
             }
         }
 
-        [Fact]
-        [WorkItem(36248, "https://github.com/dotnet/roslyn/issues/36248")]
+        [Fact, WorkItem(36248, "https://github.com/dotnet/roslyn/issues/36248")]
         public async Task Parameter13()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
@@ -717,8 +712,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "CancellationToken", options: options);
         }
 
-        [Fact]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task SuggestParameterNamesFromExistingOverloads()
         {
             var markup = @"
@@ -734,8 +728,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task SuggestParameterNamesFromExistingOverloads_Constructor()
         {
             var markup = @"
@@ -752,8 +745,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "firstName");
         }
 
-        [Fact]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestParameterNamesFromTheSameOverload()
         {
             var markup = @"
@@ -765,8 +757,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "name");
         }
 
-        [Fact]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestParameterNamesFromNonOverloads()
         {
             var markup = @"
@@ -782,8 +773,7 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestInGenericType()
         {
             var markup = @"
@@ -798,8 +788,7 @@ public class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
-        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        [Fact, WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestInOptionalParameterDefaultValue()
         {
             var markup = @"
@@ -2875,8 +2864,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "GetAsync");
         }
 
-        [Fact]
-        [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
+        [Fact, WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();

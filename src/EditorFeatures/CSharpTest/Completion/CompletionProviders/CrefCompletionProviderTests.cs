@@ -496,8 +496,7 @@ class C
             await VerifyNoItemsExistAsync(text);
         }
 
-        [Fact]
-        [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
+        [Fact, WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
         public async Task CRef_InParameter()
         {
             var text = @"

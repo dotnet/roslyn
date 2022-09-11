@@ -4960,8 +4960,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        [Fact, WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
         public async Task SimpleBoolCast()
         {
             await VerifyCS.VerifyCodeFixAsync(

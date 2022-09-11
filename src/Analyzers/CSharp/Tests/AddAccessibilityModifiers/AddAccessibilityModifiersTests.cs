@@ -550,8 +550,7 @@ internal struct S1 { }
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        [Fact, WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestPartial_WithExistingModifier()
         {
             var source = @"
@@ -583,8 +582,7 @@ public partial class C
             await test.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        [Fact, WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
         public async Task TestStaticOperatorInInterface()
         {
             var source = @"
@@ -633,8 +631,7 @@ internal class C : I<C>
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [Fact, WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestFileDelegate()
         {
             var source = "file delegate void M();";

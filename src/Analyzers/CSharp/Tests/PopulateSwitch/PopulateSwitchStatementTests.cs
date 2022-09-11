@@ -950,8 +950,7 @@ class MyClass
 }", index: 2);
         }
 
-        [Fact]
-        [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
+        [Fact, WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
         public async Task AllMissingTokens()
         {
             await TestInRegularAndScriptAsync(
@@ -988,8 +987,7 @@ class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        [Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
         public async Task TestAddMissingCasesForNullableEnum()
         {
             await TestInRegularAndScriptAsync(

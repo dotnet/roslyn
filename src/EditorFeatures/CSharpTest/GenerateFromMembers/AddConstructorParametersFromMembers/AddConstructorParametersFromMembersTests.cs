@@ -86,8 +86,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        [Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters1()
         {
             await new VerifyCS.Test
@@ -125,8 +124,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        [Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters2()
         {
             await new VerifyCS.Test
@@ -171,8 +169,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        [Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters3()
         {
             await new VerifyCS.Test
@@ -215,8 +212,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        [Fact, WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters4()
         {
             await new VerifyCS.Test
@@ -2494,8 +2490,7 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(60816, "https://github.com/dotnet/roslyn/issues/60816")]
+        [Fact, WorkItem(60816, "https://github.com/dotnet/roslyn/issues/60816")]
         public async Task TestAddMultipleParametersWithWrapping()
         {
             await new VerifyCS.Test

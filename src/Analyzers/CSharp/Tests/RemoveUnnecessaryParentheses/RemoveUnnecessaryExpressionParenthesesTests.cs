@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: IgnoreAllParentheses));
         }
 
-        [Fact]
-        [WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")]
+        [Fact, WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")]
         public async Task TestVariableInitializer_TestMissingParenthesis()
         {
             await TestMissingAsync(
@@ -90,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
         }
 
-        [Fact]
-        [WorkItem(44629, "https://github.com/dotnet/roslyn/issues/44629")]
+        [Fact, WorkItem(44629, "https://github.com/dotnet/roslyn/issues/44629")]
         public async Task TestStackAlloc()
         {
             await TestMissingAsync(
@@ -104,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }");
         }
 
-        [Fact]
-        [WorkItem(47365, "https://github.com/dotnet/roslyn/issues/47365")]
+        [Fact, WorkItem(47365, "https://github.com/dotnet/roslyn/issues/47365")]
         public async Task TestDynamic()
         {
             await TestMissingAsync(
@@ -2754,8 +2751,7 @@ public class C
 ", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact]
-        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        [Fact, WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
         public async Task TestArithmeticOverflow1()
         {
             await TestMissingAsync(
@@ -2771,8 +2767,7 @@ public class C
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact]
-        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        [Fact, WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
         public async Task TestArithmeticOverflow1_CompilationOption()
         {
             await TestMissingAsync(
@@ -2787,8 +2782,7 @@ public class C
     compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow: true)));
         }
 
-        [Fact]
-        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        [Fact, WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
         public async Task TestArithmeticOverflow2()
         {
             await TestInRegularAndScript1Async(
@@ -2808,8 +2802,7 @@ public class C
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax1()
         {
             await TestInRegularAndScriptAsync(
@@ -2835,8 +2828,7 @@ public class C {
 }");
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax2()
         {
             await TestInRegularAndScriptAsync(
@@ -2862,8 +2854,7 @@ public class C {
 }");
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax3()
         {
             await TestInRegularAndScriptAsync(
@@ -2889,8 +2880,7 @@ public class C {
 }");
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax4()
         {
             await TestInRegularAndScriptAsync(
@@ -2916,8 +2906,7 @@ public class C {
 }");
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestMethodArgumentsBecomeGenericSyntax1()
         {
             await TestInRegularAndScriptAsync(
@@ -2943,8 +2932,7 @@ public class C {
 }");
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestMethodArgumentsBecomeGenericSyntax2()
         {
             await TestInRegularAndScriptAsync(
@@ -2970,8 +2958,7 @@ public class C {
 }");
         }
 
-        [Fact]
-        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestMethodArgumentsBecomeGenericSyntax3()
         {
             await TestInRegularAndScriptAsync(

@@ -351,8 +351,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(31572, "https://github.com/dotnet/roslyn/issues/31572")]
+        [Fact, WorkItem(31572, "https://github.com/dotnet/roslyn/issues/31572")]
         public async Task EntryPointMethodNotFlagged_05()
         {
             var code = @"using System.Threading.Tasks;
@@ -633,8 +632,7 @@ class C : I
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
+        [Fact, WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
         public async Task EventIsUnused_ExplicitInterfaceImplementation()
         {
             var code = @"interface I
@@ -654,8 +652,7 @@ class C : I
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        [Fact, WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
         public async Task WriteOnlyProperty_NotWritten()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -668,8 +665,7 @@ class C : I
 }");
         }
 
-        [Fact]
-        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        [Fact, WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
         public async Task WriteOnlyProperty_Written()
         {
             var code = @"class C
@@ -1074,8 +1070,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")]
+        [Fact, WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")]
         public async Task FieldInNameOf()
         {
             var code = @"class MyClass
@@ -1087,8 +1082,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        [Fact, WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
         public async Task GenericFieldInNameOf()
         {
             var code = @"class MyClass<T>
@@ -1101,8 +1095,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        [Fact, WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task MethodInNameOf()
         {
             var code = @"class MyClass
@@ -1114,8 +1107,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        [Fact, WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
         public async Task GenericMethodInNameOf()
         {
             var code = @"class MyClass<T>
@@ -1128,8 +1120,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        [Fact, WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task PropertyInNameOf()
         {
             var code = @"class MyClass
@@ -1141,8 +1132,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        [Fact, WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
         public async Task TestDynamicInvocation()
         {
             var code = @"class MyClass
@@ -1154,8 +1144,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        [Fact, WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
         public async Task TestDynamicObjectCreation()
         {
             var code = @"class MyClass
@@ -1167,8 +1156,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        [Fact, WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
         public async Task TestDynamicIndexerAccess()
         {
             var code = @"class MyClass
@@ -1243,8 +1231,7 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(33994, "https://github.com/dotnet/roslyn/issues/33994")]
+        [Fact, WorkItem(33994, "https://github.com/dotnet/roslyn/issues/33994")]
         public async Task PropertyIsOnlyWritten()
         {
             var source =
@@ -1424,8 +1411,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
+        [Fact, WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
         public async Task FieldIsIncrementedAndValueUsed()
         {
             var code = @"class MyClass
@@ -1437,8 +1423,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
+        [Fact, WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
         public async Task FieldIsIncrementedAndValueUsed_02()
         {
             var code = @"class MyClass
@@ -2368,8 +2353,7 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        [Fact, WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
         public async Task SerializableConstructor_TypeImplementsISerializable()
         {
             var code = @"using System.Runtime.Serialization;
@@ -2392,8 +2376,7 @@ class C : ISerializable
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        [Fact, WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
         public async Task SerializableConstructor_BaseTypeImplementsISerializable()
         {
             var code = @"using System;
@@ -2438,8 +2421,7 @@ class C : Exception
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
+        [Fact, WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
         public async Task ShouldSerializePropertyMethod()
         {
             var code = @"class C
@@ -2455,8 +2437,7 @@ class C : Exception
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(38491, "https://github.com/dotnet/roslyn/issues/38491")]
+        [Fact, WorkItem(38491, "https://github.com/dotnet/roslyn/issues/38491")]
         public async Task ResetPropertyMethod()
         {
             var code = @"class C
@@ -2472,8 +2453,7 @@ class C : Exception
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(30377, "https://github.com/dotnet/roslyn/issues/30377")]
+        [Fact, WorkItem(30377, "https://github.com/dotnet/roslyn/issues/30377")]
         public async Task EventHandlerMethod()
         {
             var code = $@"using System;
@@ -2488,8 +2468,7 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
+        [Fact, WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
         public async Task NestedStructLayoutTypeWithReference()
         {
             var code = @"using System.Runtime.InteropServices;
@@ -2659,8 +2638,7 @@ static class MyClass3
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
         public async Task UsedExtensionMethod_ReferencedFromPartialMethod()
         {
             var source1 = @"
@@ -2741,8 +2719,7 @@ public class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")]
+        [Fact, WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")]
         public async Task UsedPrivateExtensionMethod()
         {
             var code = @"public static class B

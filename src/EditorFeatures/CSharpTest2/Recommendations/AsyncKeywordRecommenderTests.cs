@@ -347,8 +347,7 @@ class Goo
 @"$$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Fact, WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction5()
         {

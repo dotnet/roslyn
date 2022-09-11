@@ -54,8 +54,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNullTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -72,8 +71,7 @@ class C
 new[] { CSharpAnalyzersResources.Use_is_null_check });
         }
 
-        [Fact]
-        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsObjectTitle()
         {
             await TestExactActionSetOfferedAsync(
@@ -91,8 +89,7 @@ new[] { CSharpAnalyzersResources.Use_is_object_check },
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact]
-        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNotNullTitle()
         {
             await TestExactActionSetOfferedAsync(

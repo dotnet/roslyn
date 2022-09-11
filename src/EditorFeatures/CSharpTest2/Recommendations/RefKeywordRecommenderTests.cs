@@ -670,8 +670,7 @@ $$");
 @"$$ readonly struct { }");
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
         {
             await VerifyAbsenceAsync(
@@ -979,8 +978,7 @@ $$");
 $$");
         }
 
-        [Fact]
-        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnDifferentLines()
         {
             await VerifyKeywordAsync(
@@ -994,8 +992,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnSameLine()
         {
             await VerifyKeywordAsync(

@@ -1253,8 +1253,7 @@ class D
             });
         }
 
-        [Fact]
-        [WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
+        [Fact, WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
         [WorkItem(8009, "https://github.com/dotnet/roslyn/issues/8009")]
         public async Task NavigateToGeneratedFiles()
         {

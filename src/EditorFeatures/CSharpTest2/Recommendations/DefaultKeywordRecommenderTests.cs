@@ -282,8 +282,7 @@ class C
 @"ref int x = ref $$"));
         }
 
-        [Fact]
-        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        [Fact, WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
         public async Task TestInTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
@@ -295,8 +294,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        [Fact, WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
         public async Task TestInTypeParameterConstraint_InOverride()
         {
             await VerifyKeywordAsync(
@@ -308,8 +306,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        [Fact, WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
         public async Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
         {
             await VerifyKeywordAsync(

@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineTriviaTests : CSharpFormattingTestBase
     {
-        [Fact]
-        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
         public async Task PreprocessorNullable()
         {
             var content = @"

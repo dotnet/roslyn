@@ -281,8 +281,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference1()
         {
             var text = @"using System;
@@ -296,8 +295,7 @@ class C
             await TestAsync(text, "global::System.Boolean", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference2()
         {
             var text = @"using System;
@@ -326,8 +324,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference4()
         {
             var text = @"using System;
@@ -364,8 +361,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference6()
         {
             var text = @"using System;
@@ -394,8 +390,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference1()
         {
             var text = @"using System;
@@ -409,8 +404,7 @@ class C
             await TestAsync(text, "global::System.Boolean", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference2()
         {
             var text = @"using System;
@@ -439,8 +433,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference4()
         {
             var text = @"using System;
@@ -477,8 +470,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference6()
         {
             var text = @"using System;
@@ -507,8 +499,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference1()
         {
             var text = @"using System;
@@ -522,8 +513,7 @@ class C
             await TestAsync(text, "global::System.Boolean", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference2()
         {
             var text = @"using System;
@@ -552,8 +542,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference4()
         {
             var text = @"using System;
@@ -590,8 +579,7 @@ class C
             await TestAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
+        [Fact, WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference6()
         {
             var text = @"using System;
@@ -2169,8 +2157,7 @@ class C
             await TestAsync(text, "global::System.String", mode);
         }
 
-        [Fact]
-        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestCustomCollectionInitializerAddMethod1()
         {
             var text =
@@ -2688,8 +2675,7 @@ catch (Exception) if ([|M|])
             await TestInMethodAsync(text, "global::System.Boolean", mode);
         }
 
-        [Fact]
-        [WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
+        [Fact, WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause2()
         {
             var text =
@@ -2701,8 +2687,7 @@ catch (Exception) if ([|M|].N)
             await TestInMethodAsync(text, "global::System.Object", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestAwaitExpressionWithChainingMethod()
         {
             var text =
@@ -2719,8 +2704,7 @@ class C
             await TestAsync(text, "global::System.Threading.Tasks.Task<global::System.Boolean>", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestAwaitExpressionWithChainingMethod2()
         {
             var text =
@@ -2737,8 +2721,7 @@ class C
             await TestAsync(text, "global::System.Threading.Tasks.Task<global::System.Object>", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
+        [Fact, WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
         public async Task TestAwaitExpressionWithGenericMethod1()
         {
             var text =
@@ -2827,8 +2810,7 @@ public class C
             await TestAsync(text, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
         }
 
-        [Fact]
-        [WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
+        [Fact, WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
         public async Task TestSelectLambda()
         {
             var text =
@@ -2845,8 +2827,7 @@ class C
             await TestAsync(text, "global::System.Object", TestMode.Node);
         }
 
-        [Fact]
-        [WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
+        [Fact, WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
         public async Task TestSelectLambda2()
         {
             var text =
@@ -2883,8 +2864,7 @@ class C
             await TestAsync(text, "global::B", mode);
         }
 
-        [Fact]
-        [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
+        [Fact, WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
         public async Task TestDefaultStatement1()
         {
             var text =
@@ -2898,8 +2878,7 @@ class C
             await TestAsync(text, "global::System.ConsoleModifiers", TestMode.Position);
         }
 
-        [Fact]
-        [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
+        [Fact, WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
         public async Task TestDefaultStatement2()
         {
             var text =

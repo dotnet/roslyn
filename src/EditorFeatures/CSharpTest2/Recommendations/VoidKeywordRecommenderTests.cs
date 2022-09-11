@@ -619,8 +619,7 @@ $$");
         public async Task TestAfterAsyncAsType()
             => await VerifyKeywordAsync(@"class c { async async $$ }");
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction()
         {
@@ -634,8 +633,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction2()
@@ -650,8 +648,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction3()
         {
@@ -665,8 +662,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction4()
         {
@@ -680,8 +676,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction5()
         {
@@ -696,8 +691,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction6()
         {
@@ -711,8 +705,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Fact, WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction7()
         {
@@ -793,8 +786,7 @@ class C
     delegate*$$");
         }
 
-        [Fact]
-        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        [Fact, WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
         public async Task TestAfterReadonlyInStruct()
         {
             await VerifyKeywordAsync(@"
@@ -812,8 +804,7 @@ record struct S
     public readonly $$");
         }
 
-        [Fact]
-        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        [Fact, WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
         public async Task TestNotAfterReadonlyInClass()
         {
             await VerifyAbsenceAsync(@"

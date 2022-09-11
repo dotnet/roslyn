@@ -2819,8 +2819,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(48042, "https://github.com/dotnet/roslyn/issues/48042")]
+        [Fact, WorkItem(48042, "https://github.com/dotnet/roslyn/issues/48042")]
         public async Task TestNamedArgOnExtensionMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -2850,8 +2849,7 @@ namespace r
 }");
         }
 
-        [Fact]
-        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        [Fact, WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
         public async Task TestPositionalRecord()
         {
             await TestInRegularAndScriptAsync(@"
@@ -2877,8 +2875,7 @@ namespace System.Runtime.CompilerServices
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        [Fact, WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
         public async Task TestPositionalRecordStruct()
         {
             await TestInRegularAndScriptAsync(@"
@@ -2904,8 +2901,7 @@ namespace System.Runtime.CompilerServices
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions()
         {
             await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
@@ -2917,8 +2913,7 @@ record Test(string V);
 ");
         }
 
-        [Fact]
-        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions_RecordStruct()
         {
             await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];

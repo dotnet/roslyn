@@ -1254,8 +1254,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact]
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypesFromReferencedProjects()
         {
             var refDoc1 = @"

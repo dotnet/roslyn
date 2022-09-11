@@ -1408,8 +1408,7 @@ namespace A.Extension
 parseOptions: null);
         }
 
-        [Fact]
-        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        [Fact, WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
         public async Task TestMethodConflictWithGenericExtension()
         {
             await TestInRegularAndScriptAsync(
@@ -1467,8 +1466,7 @@ namespace A.Extensions
 }");
         }
 
-        [Fact]
-        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        [Fact, WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
         public async Task TestMethodConflictWithConditionalGenericExtension()
         {
             await TestInRegularAndScriptAsync(

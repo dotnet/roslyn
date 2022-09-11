@@ -373,8 +373,7 @@ Console.WriteLine(i);
 ");
         }
 
-        [Fact]
-        [WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
+        [Fact, WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
         public async Task Regression8190()
         {
             await TestMissingInRegularAndScriptAsync(

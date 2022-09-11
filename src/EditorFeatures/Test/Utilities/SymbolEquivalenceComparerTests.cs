@@ -1131,8 +1131,7 @@ class C
                          falseComp.GetHashCode(method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [Fact, WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
         [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
         [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples1()
@@ -1162,8 +1161,7 @@ class C
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [Fact, WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
         [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
         [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples2()
@@ -1193,8 +1191,7 @@ class C
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [Fact, WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
         [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
         [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples3()
@@ -1225,8 +1222,7 @@ class C
             Assert.True(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [Fact, WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
         [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
         [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples4()
@@ -1257,8 +1253,7 @@ class C
             Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [Fact, WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
         [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
         [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
         public async Task TestTuples5()
@@ -1289,8 +1284,7 @@ class C
             Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
         }
 
-        [Fact]
-        [WorkItem(56133, "https://github.com/dotnet/roslyn/issues/56133")]
+        [Fact, WorkItem(56133, "https://github.com/dotnet/roslyn/issues/56133")]
         [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
         [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
         [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]

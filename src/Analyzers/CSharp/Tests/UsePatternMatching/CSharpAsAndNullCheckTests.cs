@@ -200,8 +200,7 @@ $@"class C
 }");
         }
 
-        [Fact]
-        [WorkItem(25237, "https://github.com/dotnet/roslyn/issues/25237")]
+        [Fact, WorkItem(25237, "https://github.com/dotnet/roslyn/issues/25237")]
         public async Task TestMissingOnReturnStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -682,8 +681,7 @@ $@"class C
 }");
         }
 
-        [Fact]
-        [WorkItem(28821, "https://github.com/dotnet/roslyn/issues/28821")]
+        [Fact, WorkItem(28821, "https://github.com/dotnet/roslyn/issues/28821")]
         public async Task TestDefiniteAssignment8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -708,8 +706,7 @@ $@"class C
 }");
         }
 
-        [Fact]
-        [WorkItem(28866, "https://github.com/dotnet/roslyn/issues/28866")]
+        [Fact, WorkItem(28866, "https://github.com/dotnet/roslyn/issues/28866")]
         public async Task TestWrittenExpressionBeforeNullCheck()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1100,8 +1097,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact]
-        [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
+        [Fact, WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
         public async Task TestEmbeddedStatement1()
         {
             await TestInRegularAndScript1Async(
@@ -1138,8 +1134,7 @@ public static class C
 }");
         }
 
-        [Fact]
-        [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
+        [Fact, WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
         public async Task TestEmbeddedStatement2()
         {
             await TestMissingInRegularAndScriptAsync(

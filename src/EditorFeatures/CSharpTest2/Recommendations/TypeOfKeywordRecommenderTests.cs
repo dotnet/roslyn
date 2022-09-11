@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class TypeOfKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact]
-        [WorkItem(543541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543541")]
+        [Fact, WorkItem(543541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543541")]
         public async Task TestOfferedInAttributeConstructorArgumentList()
             => await VerifyKeywordAsync("using System.ComponentModel; [DefaultValue($$ class C { }");
 

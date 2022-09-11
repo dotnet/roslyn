@@ -222,8 +222,7 @@ class Class
 }}");
                 }
 
-                [Fact]
-                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                [Fact, WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment1()
                 {
                     await TestAsync(
@@ -379,8 +378,7 @@ class Class
 }}");
                 }
 
-                [Fact]
-                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                [Fact, WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment2()
                 {
                     await TestAsync(
@@ -435,8 +433,7 @@ class Class
 }}");
                 }
 
-                [Fact]
-                [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
+                [Fact, WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
                 public async Task TestNoDuplicateSuppressionCodeFixes()
                 {
                     var source = @"
@@ -1135,8 +1132,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [Fact]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveTrailingWhitespace()
                 {
                     var expected =
@@ -1168,8 +1164,7 @@ using System;
                 private static bool HasTrailingWhitespace(string line)
                     => line.LastOrNull() is char last && char.IsWhiteSpace(last);
 
-                [Fact]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveLeadingBlankLines()
                 {
                     var expected =
@@ -1199,8 +1194,7 @@ using System;
 }", expected);
                 }
 
-                [Fact]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveMoreThanOneTrailingBlankLine()
                 {
                     var expected =
@@ -1726,8 +1720,7 @@ class Class
 }");
                 }
 
-                [Fact]
-                [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+                [Fact, WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
                 public async Task TestSuppressionOnTriviaBetweenFields()
                 {
                     await TestAsync(

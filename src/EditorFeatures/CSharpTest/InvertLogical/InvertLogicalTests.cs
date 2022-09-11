@@ -169,8 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task InverSelection()
         {
             await TestInRegularAndScriptAsync(
@@ -190,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task MissingInverSelection1()
         {
             // Can't convert selected partial subtrees 
@@ -280,8 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task MissingSelectedSubtree()
         {
             await TestMissingInRegularAndScriptAsync(

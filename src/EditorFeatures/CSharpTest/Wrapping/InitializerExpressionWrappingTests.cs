@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact]
-        [WorkItem(59624, "https://github.com/dotnet/roslyn/issues/59624")]
+        [Fact, WorkItem(59624, "https://github.com/dotnet/roslyn/issues/59624")]
         public async Task TestNoWrappingSuggestions_TrailingComma()
         {
             await TestMissingAsync(
@@ -68,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact]
-        [WorkItem(59624, "https://github.com/dotnet/roslyn/issues/59624")]
+        [Fact, WorkItem(59624, "https://github.com/dotnet/roslyn/issues/59624")]
         public async Task TestWrappingShortInitializerExpression_TrailingComma()
         {
             await TestAllWrappingCasesAsync(

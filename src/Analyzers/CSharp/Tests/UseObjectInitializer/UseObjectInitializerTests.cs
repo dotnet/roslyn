@@ -291,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -323,8 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerComma()
         {
             await TestInRegularAndScriptAsync(
@@ -358,8 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 }");
         }
 
-        [Fact]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
         {
             await TestInRegularAndScriptAsync(

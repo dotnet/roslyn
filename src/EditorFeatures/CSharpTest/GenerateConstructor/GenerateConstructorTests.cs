@@ -3224,8 +3224,7 @@ class D : B
 }");
         }
 
-        [Fact]
-        [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        [Fact, WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
         public async Task StripUnderscoresFromParameterNames()
         {
@@ -3268,8 +3267,7 @@ class D
 }");
         }
 
-        [Fact]
-        [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        [Fact, WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
         public async Task DoNotStripSingleUnderscore()
         {
             await TestInRegularAndScriptAsync(
@@ -3307,8 +3305,7 @@ class D
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
@@ -3333,8 +3330,7 @@ class D
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -3359,8 +3355,7 @@ class D
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
@@ -3385,8 +3380,7 @@ class D
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -3411,8 +3405,7 @@ class D
 }");
         }
 
-        [Fact]
-        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [Fact, WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_CSharp6()
         {
             await TestAsync(
@@ -3438,8 +3431,7 @@ class D
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact]
-        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [Fact, WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
         {
             await TestAsync(
@@ -3465,8 +3457,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact]
-        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [Fact, WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
         {
             await TestAsync(
@@ -3492,8 +3483,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact]
-        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [Fact, WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
         {
             await TestAsync(
@@ -3519,8 +3509,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact]
-        [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
+        [Fact, WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
         public async Task Support_Readonly_Properties()
         {
             await TestInRegularAndScriptAsync(
@@ -4054,8 +4043,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestWithUnsafe_Field()
         {
             await TestInRegularAndScriptAsync(
@@ -4082,8 +4070,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestWithUnsafe_Property()
         {
             await TestInRegularAndScriptAsync(

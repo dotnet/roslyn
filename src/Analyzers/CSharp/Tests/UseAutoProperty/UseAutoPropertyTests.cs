@@ -102,8 +102,7 @@ class Class
 }", new TestParameters(TestOptions.RegularPreview));
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable1()
         {
             // ⚠ The expected outcome of this test should not change.
@@ -123,8 +122,7 @@ class Class
 struct MutableInt { public int Value; }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable2()
         {
             await TestInRegularAndScript1Async(
@@ -148,8 +146,7 @@ struct MutableInt { public int Value; }",
 struct MutableInt { public int Value; }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable3()
         {
             await TestInRegularAndScript1Async(
@@ -171,8 +168,7 @@ struct MutableInt { public int Value; }");
 }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable4()
         {
             await TestInRegularAndScript1Async(
@@ -194,8 +190,7 @@ struct MutableInt { public int Value; }");
 }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable5()
         {
             // Recursive type check
@@ -216,8 +211,7 @@ class Class
 struct MutableInt { public int Value; }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestMutableValueType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -236,8 +230,7 @@ struct MutableInt { public int Value; }");
 struct MutableInt { public int Value; }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestMutableValueType2()
         {
             await TestInRegularAndScript1Async(
@@ -261,8 +254,7 @@ struct MutableInt { public int Value; }",
 struct MutableInt { public int Value; }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestMutableValueType3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -281,8 +273,7 @@ struct MutableInt { public int Value; }");
 struct MutableInt { public int Value { get; set; } }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -300,8 +291,7 @@ struct MutableInt { public int Value { get; set; } }");
 }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType2()
         {
             await TestInRegularAndScript1Async(
@@ -323,8 +313,7 @@ struct MutableInt { public int Value { get; set; } }");
 }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -342,8 +331,7 @@ struct MutableInt { public int Value { get; set; } }");
 }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType4()
         {
             await TestInRegularAndScript1Async(
@@ -365,8 +353,7 @@ struct MutableInt { public int Value { get; set; } }");
 }");
         }
 
-        [Fact]
-        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        [Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType5()
         {
             await TestInRegularAndScript1Async(
@@ -1927,8 +1914,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [Fact]
-        [WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
+        [Fact, WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
         public async Task TestGetterAccessibilityDiffers()
         {
             await TestInRegularAndScript1Async(
@@ -1955,8 +1941,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [Fact]
-        [WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
+        [Fact, WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
         public async Task TestSetterAccessibilityDiffers()
         {
             await TestInRegularAndScript1Async(
@@ -1983,8 +1968,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [Fact]
-        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        [Fact, WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestPreserveTrailingTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -2002,8 +1986,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [Fact]
-        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        [Fact, WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestPreserveTrailingTrivia2()
         {
             await TestInRegularAndScript1Async(
@@ -2021,8 +2004,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [Fact]
-        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        [Fact, WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestPreserveTrailingTrivia3()
         {
             await TestInRegularAndScript1Async(
@@ -2042,8 +2024,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [Fact]
-        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        [Fact, WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestKeepLeadingBlank()
         {
             await TestInRegularAndScript1Async(

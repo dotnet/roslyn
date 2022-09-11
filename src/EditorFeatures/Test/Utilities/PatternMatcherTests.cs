@@ -79,38 +79,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             VerifyBreakIntoCharacterParts("42Bar", "42", "Bar");
         }
 
-        [Fact]
-        [WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
+        [Fact, WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
         public void BreakIntoWordParts_VerbatimIdentifier()
             => VerifyBreakIntoWordParts("@int:", "int");
 
-        [Fact]
-        [WorkItem(537875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
+        [Fact, WorkItem(537875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
         public void BreakIntoWordParts_AllCapsConstant()
             => VerifyBreakIntoWordParts("C_STYLE_CONSTANT", "C", "_", "STYLE", "_", "CONSTANT");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix1()
             => VerifyBreakIntoWordParts("UInteger", "U", "Integer");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix2()
             => VerifyBreakIntoWordParts("IDisposable", "I", "Disposable");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_TwoCharacterCapitalIdentifier()
             => VerifyBreakIntoWordParts("UIElement", "UI", "Element");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XDocument()
             => VerifyBreakIntoWordParts("XDocument", "X", "Document");
 
-        [Fact]
-        [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
+        [Fact, WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XMLDocument1()
             => VerifyBreakIntoWordParts("XMLDocument", "XML", "Document");
 

@@ -338,8 +338,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode);
         }
 
-        [Fact]
-        [WorkItem(59255, "https://github.com/dotnet/roslyn/issues/59255")]
+        [Fact, WorkItem(59255, "https://github.com/dotnet/roslyn/issues/59255")]
         public async Task TestUseExpressionBody5()
         {
             var code = @"
@@ -546,8 +545,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59255, "https://github.com/dotnet/roslyn/issues/59255")]
+        [Fact, WorkItem(59255, "https://github.com/dotnet/roslyn/issues/59255")]
         public async Task TestUseBlockBody6()
         {
             var code = @"

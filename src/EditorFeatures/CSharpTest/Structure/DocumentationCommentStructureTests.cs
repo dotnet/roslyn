@@ -225,8 +225,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact]
-        [WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
+        [Fact, WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
         public async Task CrefInSummary()
         {
             const string code = @"

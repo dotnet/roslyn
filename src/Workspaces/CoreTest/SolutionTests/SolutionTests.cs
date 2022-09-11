@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
         }
 
-        [Fact]
-        [WorkItem(34837, "https://github.com/dotnet/roslyn/issues/34837")]
+        [Fact, WorkItem(34837, "https://github.com/dotnet/roslyn/issues/34837")]
         [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/37125")]
         public void WithDocumentFilePath()
         {
@@ -271,8 +270,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
         }
 
-        [Fact]
-        [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
+        [Fact, WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
         public async Task WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
         {
             var projectId = ProjectId.CreateNewId();
@@ -842,8 +840,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
         }
 
-        [Fact]
-        [WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
+        [Fact, WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
         public void WithProjectReferences_ProjectNotInSolution()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -1203,8 +1200,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("bar", project.AssemblyName);
         }
 
-        [Fact]
-        [WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
+        [Fact, WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
         public void MultipleProjectsWithSameDisplayName()
         {
             using var workspace = CreateWorkspace();
@@ -1914,8 +1910,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact]
-        [WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [Fact, WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -2494,8 +2489,7 @@ End Class";
             }
         }
 
-        [Fact]
-        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
+        [Fact, WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
         public async Task TestDocumentFileAccessFailureMissingFile()
         {
             var workspace = new AdhocWorkspace();
@@ -2794,8 +2788,7 @@ public class C : A {
             Assert.True(exceptionThrown);
         }
 
-        [Fact]
-        [WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
+        [Fact, WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
         public void TestWithSyntaxTree()
         {
             // get one to get to syntax tree factory
@@ -3089,8 +3082,7 @@ public class C : A {
             Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
         }
 
-        [Fact]
-        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        [Fact, WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
         {
             using var workspace = CreateWorkspace();

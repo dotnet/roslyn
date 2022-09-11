@@ -2598,8 +2598,7 @@ struct Type<T>
                 Method("nameof"));
         }
 
-        [WpfFact]
-        [WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
+        [WpfFact, WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash

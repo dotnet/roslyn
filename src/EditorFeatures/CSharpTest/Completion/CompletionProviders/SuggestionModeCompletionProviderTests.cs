@@ -256,8 +256,7 @@ class a
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact]
-        [WorkItem(860580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860580")]
+        [Fact, WorkItem(860580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860580")]
         public async Task ReturnStatement()
         {
             var markup = @"using System;
@@ -411,8 +410,7 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact]
-        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        [Fact, WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
         public async Task TestInObjectCreation()
         {
             var markup = @"using System;
@@ -426,8 +424,7 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact]
-        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        [Fact, WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
         public async Task TestInArrayCreation()
         {
             var markup = @"using System;
@@ -441,8 +438,7 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact]
-        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        [Fact, WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
         public async Task TestInArrayCreation2()
         {
             var markup = @"using System;

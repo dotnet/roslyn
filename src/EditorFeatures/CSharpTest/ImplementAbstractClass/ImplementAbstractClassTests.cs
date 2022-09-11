@@ -122,8 +122,7 @@ class Program : Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(16434, "https://github.com/dotnet/roslyn/issues/16434")]
+        [Fact, WorkItem(16434, "https://github.com/dotnet/roslyn/issues/16434")]
         public async Task TestMethodWithTupleNames()
         {
             await TestAllOptionsOffAsync(

@@ -134,8 +134,7 @@ class Class
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact]
-        [WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")]
+        [Fact, WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")]
         public async Task NameMatchesNamespaceName()
         {
             await TestInRegularAndScriptAsync(
@@ -7694,8 +7693,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        [Fact, WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task MethodWithNativeIntegerTypes()
         {
             await TestInRegularAndScriptAsync(
@@ -7801,8 +7799,7 @@ class Class
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
@@ -7829,8 +7826,7 @@ class Class
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
@@ -7857,8 +7853,7 @@ class Class
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -7885,8 +7880,7 @@ class Class
 }");
         }
 
-        [Fact]
-        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -8025,8 +8019,7 @@ class Class
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact]
-        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [Fact, WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction1()
         {
             await TestAsync(
@@ -8056,8 +8049,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [Fact, WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction2()
         {
             await TestAsync(
@@ -8118,8 +8110,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [Fact, WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction4()
         {
             await TestAsync(
@@ -8237,8 +8228,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
+        [Fact, WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
         public async Task TestTupleElement1()
         {
             await TestAsync(
@@ -8268,8 +8258,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
+        [Fact, WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
         public async Task TestTupleElement2()
         {
             await TestAsync(
@@ -8299,8 +8288,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
         public async Task TestTupleAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -8331,8 +8319,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
         public async Task TestTupleAssignment2()
         {
             await TestInRegularAndScriptAsync(
@@ -8361,8 +8348,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName1()
         {
             await TestAsync(
@@ -8396,8 +8382,7 @@ class Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName2()
         {
             await TestAsync(
@@ -8431,8 +8416,7 @@ interface Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName3()
         {
             await TestAsync(
@@ -8466,8 +8450,7 @@ struct Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName4()
         {
             await TestAsync(
@@ -8501,8 +8484,7 @@ delegate void Goo()",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName5()
         {
             await TestAsync(
@@ -8536,8 +8518,7 @@ namespace Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact]
-        [WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName6()
         {
             await TestAsync(

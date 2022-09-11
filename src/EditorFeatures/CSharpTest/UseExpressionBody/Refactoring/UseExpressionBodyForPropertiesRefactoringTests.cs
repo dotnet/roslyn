@@ -289,8 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }
 
-        [Fact]
-        [WorkItem(20360, "https://github.com/dotnet/roslyn/issues/20360")]
+        [Fact, WorkItem(20360, "https://github.com/dotnet/roslyn/issues/20360")]
         public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody_CSharp6()
         {
             await TestAsync(

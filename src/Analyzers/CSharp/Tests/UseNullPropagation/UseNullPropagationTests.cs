@@ -2046,8 +2046,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
+        [Fact, WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
         public async Task TestNotWithColorColorStaticCase()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2073,8 +2072,7 @@ public class C
 }");
         }
 
-        [Fact]
-        [WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
+        [Fact, WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
         public async Task TestWithColorColorInstanceCase()
         {
             await TestInRegularAndScript1Async(

@@ -260,8 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)));
         }
 
-        [Fact]
-        [WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
+        [Fact, WorkItem(36467, "https://github.com/dotnet/roslyn/issues/36467")]
         public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
         {
             await TestMissingAsync(

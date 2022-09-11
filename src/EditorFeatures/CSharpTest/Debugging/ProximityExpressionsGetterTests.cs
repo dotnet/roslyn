@@ -298,8 +298,7 @@ class Class
 ", topLevelStatement, "args");
         }
 
-        [Fact]
-        [WorkItem(538879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
+        [Fact, WorkItem(538879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
         public async Task TestValueInPropertySetter()
         {
             await TestTryDoAsync(@"
@@ -313,8 +312,7 @@ class Class
 }", "this", "value");
         }
 
-        [Fact]
-        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        [Fact, WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
         public async Task TestValueInPropertyInit()
         {
             await TestTryDoAsync(@"
@@ -356,8 +354,7 @@ class Class
 }", "this", "value");
         }
 
-        [Fact]
-        [WorkItem(538880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
+        [Fact, WorkItem(538880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
         public async Task TestValueInIndexerSetter()
         {
             await TestTryDoAsync(@"
@@ -456,8 +453,7 @@ class Class
 ", topLevelStatement, "a", "new Bar(a).Baz", "Goo", "args");
         }
 
-        [Fact]
-        [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
+        [Fact, WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
         public async Task Test2()
         {
             await TestIsValidAsync(@"
@@ -475,8 +471,7 @@ class Class
 }", "D.x", false);
         }
 
-        [Fact]
-        [WorkItem(538890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
+        [Fact, WorkItem(538890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
         public async Task TestArrayCreation()
         {
             await TestTryDoAsync(@"

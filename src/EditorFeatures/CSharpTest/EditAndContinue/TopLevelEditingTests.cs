@@ -1166,8 +1166,7 @@ public class A3 : System.Attribute { }
                 Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
         }
 
-        [Fact]
-        [WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")]
+        [Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")]
         public void Type_Rename_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { }";
@@ -1183,8 +1182,7 @@ public class A3 : System.Attribute { }
                 Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
         }
 
-        [Fact]
-        [WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")]
+        [Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")]
         public void Type_Rename_Reloadable_AddAndDeleteMember()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { int x = 1; }";
@@ -7474,8 +7472,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method));
         }
 
-        [Fact]
-        [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void ExternMethodDeleteInsert()
         {
             var srcA1 = @"
@@ -7519,8 +7516,7 @@ class C
                 });
         }
 
-        [Fact]
-        [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
+        [Fact, WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         public void ExternMethod_Attribute_DeleteInsert()
         {
             var srcA1 = @"
@@ -9656,8 +9652,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact]
-        [WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
+        [Fact, WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_ExternModifier_Add()
         {
             var src1 = "class C { }";
@@ -9827,8 +9822,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class B", DeletedSymbolDisplay(CSharpFeaturesResources.destructor, "~B()")));
         }
 
-        [Fact]
-        [WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")]
+        [Fact, WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")]
         public void ConstructorUpdate_AnonymousTypeInFieldInitializer()
         {
             var src1 = "class C { int a = F(new { A = 1, B = 2 }); C() { x = 1; } }";
@@ -11770,8 +11764,7 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [Fact]
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void FieldInitializerUpdate_SwitchExpressionInConstructor()
         {
@@ -11820,8 +11813,7 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [Fact]
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor1()
         {
@@ -11833,8 +11825,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor2()
         {
@@ -11846,8 +11837,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [Fact, WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor3()
         {

@@ -57,8 +57,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
+        [Fact, WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
         public async Task TestMissingOnIf()
         {
             await TestMissingInRegularAndScriptAsync(

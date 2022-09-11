@@ -195,8 +195,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact]
-        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickFirst()
         {
             var markup = @"
@@ -242,8 +241,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact]
-        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickSecond()
         {
             var markup = @"

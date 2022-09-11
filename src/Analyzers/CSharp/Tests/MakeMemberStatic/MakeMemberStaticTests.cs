@@ -35,8 +35,7 @@ public static class Foo
 }");
         }
 
-        [Fact]
-        [WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
+        [Fact, WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
         public async Task TestTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(

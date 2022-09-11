@@ -1989,8 +1989,7 @@ class Test
             await TestMissingAsync(text);
         }
 
-        [Fact]
-        [WorkItem(48950, "https://github.com/dotnet/roslyn/issues/48950")]
+        [Fact, WorkItem(48950, "https://github.com/dotnet/roslyn/issues/48950")]
         public async Task NullableReferenceVar()
         {
             var text = @"

@@ -2172,8 +2172,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")]
+        [Fact, WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")]
         public async Task TestImportSystem()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -2199,8 +2198,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesNone_SameLineFalse()
         {
             await new VerifyCS.Test
@@ -2234,8 +2232,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineFalse()
         {
             await new VerifyCS.Test
@@ -2269,8 +2266,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineFalse()
         {
             await new VerifyCS.Test
@@ -2306,8 +2302,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesNone_SameLineTrue()
         {
             await new VerifyCS.Test
@@ -2340,8 +2335,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineTrue()
         {
             await new VerifyCS.Test
@@ -2374,8 +2368,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineTrue()
         {
             await new VerifyCS.Test
@@ -2411,8 +2404,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineFalse()
         {
             await new VerifyCS.Test
@@ -2448,8 +2440,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineFalse()
         {
             await new VerifyCS.Test
@@ -2485,8 +2476,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineFalse()
         {
             await new VerifyCS.Test
@@ -2524,8 +2514,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineTrue()
         {
             await new VerifyCS.Test
@@ -2560,8 +2549,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineTrue()
         {
             await new VerifyCS.Test
@@ -2596,8 +2584,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineTrue()
         {
             await new VerifyCS.Test
@@ -2635,8 +2622,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        [Fact, WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_AllParameters()
         {
             await new VerifyCS.Test
@@ -2737,8 +2723,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [Fact]
-        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
+        [Fact, WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
         public async Task TestNotInRecord()
         {
             var code = @"

@@ -570,8 +570,7 @@ End _
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [WorkItem(544470, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544470")]
+        [Fact, WorkItem(544470, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544470")]
         public async Task AttributeTargetColon()
         {
             var code = @"[|<Assembly: _
@@ -583,8 +582,7 @@ CLSCompliant>";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(529428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529428")]
+        [Fact, WorkItem(529428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529428")]
         public async Task LineContinuationInImport()
         {
             var code = @"[|Imports System _
@@ -598,8 +596,7 @@ CLSCompliant>";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(529425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529425")]
+        [Fact, WorkItem(529425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529425")]
         public async Task ColonInOption()
         {
             var code = @"[|Option Infer On :: Option Explicit Off|]";
@@ -609,8 +606,7 @@ CLSCompliant>";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544524")]
+        [Fact, WorkItem(544524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544524")]
         public async Task LineContinuationInNamedFieldInitializer()
         {
             var code = @"[|Class C
@@ -636,8 +632,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
+        [Fact, WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
         public async Task IfPart_Colon1()
         {
             var code = @"[|Module M
@@ -657,8 +652,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
+        [Fact, WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
         public async Task IfPart_Colon2()
         {
             var code = @"[|Module M
@@ -678,8 +672,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
+        [Fact, WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
         public async Task IfPart_Colon3()
         {
             var code = @"[|Module M
@@ -699,8 +692,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
+        [Fact, WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
         public async Task IfPart_Colon4()
         {
             var code = @"[|Module M
@@ -720,8 +712,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544521")]
+        [Fact, WorkItem(544521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544521")]
         public async Task LabelColon()
         {
             var code = @"[|Module Program
@@ -739,8 +730,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544521")]
+        [Fact, WorkItem(544521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544521")]
         public async Task LabelColon_ColonTrivia()
         {
             var code = @"[|Module Program
@@ -758,8 +748,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task LineContinuation_MixedWithImplicitLineContinuation()
         {
             var code = @"[|Module Program
@@ -781,8 +770,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544549")]
+        [Fact, WorkItem(544549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544549")]
         public async Task ColonTrivia_EndOfFile()
         {
             var code = @"[|:::::::
@@ -794,8 +782,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545538")]
+        [Fact, WorkItem(545538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545538")]
         public async Task ColonTriviaBeforeCommentTrivia()
         {
             var code = @"[|Module M
@@ -813,8 +800,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
+        [Fact, WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
         public async Task InsideWithStatementWithMemberCall()
         {
             var code = @"[|Module Program
@@ -838,8 +824,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
+        [Fact, WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
         public async Task InsideWithStatementWithMemberCall2()
         {
             var code = @"[|Module Program
@@ -863,8 +848,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
+        [Fact, WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
         public async Task InsideWithStatementWithMemberCall3()
         {
             var code = @"[|Module Program
@@ -888,8 +872,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
+        [Fact, WorkItem(545540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
         public async Task InsideWithStatementWithMemberCall4()
         {
             var code = @"[|Module Program
@@ -913,8 +896,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(607791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
+        [Fact, WorkItem(607791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
         public async Task InsideWithStatementWithDictionaryAccess()
         {
             var code = @"[|Imports System.Collections
@@ -942,8 +924,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(607791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
+        [Fact, WorkItem(607791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
         public async Task InsideWithStatementWithDictionaryAccess2()
         {
             var code = @"[|Imports System.Collections
@@ -969,8 +950,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(529821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529821")]
+        [Fact, WorkItem(529821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529821")]
         public async Task InsideObjectInitializer()
         {
             var code = @"[|Imports System.Runtime.CompilerServices
@@ -1000,8 +980,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545545")]
+        [Fact, WorkItem(545545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545545")]
         public async Task LineContinuationBetweenXmlAndDot()
         {
             var code = @"[|Module Program
@@ -1021,8 +1000,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545545")]
+        [Fact, WorkItem(545545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545545")]
         public async Task LineContinuationBetweenXmlAndDot1()
         {
             var code = @"[|Module Program
@@ -1042,8 +1020,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545565")]
+        [Fact, WorkItem(545565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545565")]
         public async Task LineContinuationBeforeFromQueryExpression()
         {
             var code = @"[|Class C
@@ -1063,8 +1040,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(545565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545565")]
+        [Fact, WorkItem(545565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545565")]
         public async Task LineContinuationBeforeFromAggregateExpression()
         {
             var code = @"[|Class C
@@ -1084,8 +1060,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530635")]
+        [Fact, WorkItem(530635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530635")]
         public async Task LineContinuationAtEndOfLambdaExpression1()
         {
             var code = @"[|Interface I
@@ -1111,8 +1086,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530635")]
+        [Fact, WorkItem(530635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530635")]
         public async Task LineContinuationAtEndOfLambdaExpression2()
         {
             var code = @"[|Interface I
@@ -1142,8 +1116,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")]
+        [Fact, WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")]
         public async Task LineContinuationAfterDot()
         {
             var code = @"[|
@@ -1157,8 +1130,7 @@ End Class";
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
-        [Fact]
-        [WorkItem(530621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530621")]
+        [Fact, WorkItem(530621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530621")]
         [WorkItem(631933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
         public async Task DontRemoveLineContinuationAfterColonInSingleLineIfStatement()
         {
@@ -1175,8 +1147,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(609481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
+        [Fact, WorkItem(609481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
         [WorkItem(631933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
         public async Task DontRemoveLineContinuationInSingleLineIfStatement()
         {
@@ -1206,8 +1177,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(609481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
+        [Fact, WorkItem(609481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
         [WorkItem(631933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
         public async Task DontRemoveLineContinuationInNestedSingleLineIfStatement()
         {
@@ -1265,8 +1235,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
+        [Fact, WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         public async Task DontRemoveLineContinuationInStringInterpolation1()
         {
             var code = @"[|
@@ -1285,8 +1254,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
+        [Fact, WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         public async Task DontRemoveLineContinuationInStringInterpolation2()
         {
             var code = @"[|
@@ -1305,8 +1273,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
+        [Fact, WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         public async Task DontRemoveLineContinuationInStringInterpolation3()
         {
             var code = @"[|
@@ -1331,8 +1298,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(1085887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
+        [Fact, WorkItem(1085887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
         public async Task DontRemoveLineContinuationInVisualBasic9()
         {
             var code = @"[|
@@ -1361,8 +1327,7 @@ End Module
             await VerifyAsync(code, expected, langVersion: LanguageVersion.VisualBasic9);
         }
 
-        [Fact]
-        [WorkItem(1085887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
+        [Fact, WorkItem(1085887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
         public async Task RemoveLineContinuationInVisualBasic10_11_12_And_14()
         {
             var code = @"[|

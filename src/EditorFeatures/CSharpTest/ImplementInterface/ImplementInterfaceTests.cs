@@ -161,8 +161,7 @@ record Record : IInterface
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        [Fact, WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task TestMethodWithNativeIntegers()
         {
             var nativeIntegerAttributeDefinition = @"
@@ -8294,8 +8293,7 @@ abstract class Class : IInterface
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_Property()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8328,8 +8326,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_Method_InaccessibleReturnType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8359,8 +8356,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_Method_InaccessibleParameterType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8390,8 +8386,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_Event()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8429,8 +8424,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_Indexer_InaccessibleReturnType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8463,8 +8457,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_Indexer_InaccessibleParameterType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8497,8 +8490,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_InaccessibleMemberAsGenericArgument()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8532,8 +8524,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_InaccessibleMemberDueToContainingType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8569,8 +8560,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_InaccessibleGenericConstraintAsReturnType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8600,8 +8590,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_InaccessibleGenericConstraintAsParameter()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8631,8 +8620,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_InaccessibleGenericConstraintWhichIsNotUsed()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8662,8 +8650,7 @@ public class C : {|CS0535:I|}
 }");
         }
 
-        [Fact]
-        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        [Fact, WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_SeveralMembers_ShouldExplicitlyImplementOnlyInaccessible()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -10455,8 +10442,7 @@ abstract class C : ITest<C>
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(60214, "https://github.com/dotnet/roslyn/issues/60214")]
+        [Fact, WorkItem(60214, "https://github.com/dotnet/roslyn/issues/60214")]
         public async Task TestImplementCheckedOperators_Explicitly()
         {
             await new VerifyCS.Test
@@ -10530,8 +10516,7 @@ class C3 : I1<C3>
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(60214, "https://github.com/dotnet/roslyn/issues/60214")]
+        [Fact, WorkItem(60214, "https://github.com/dotnet/roslyn/issues/60214")]
         public async Task TestImplementCheckedOperators_Implicitly()
         {
             await new VerifyCS.Test
@@ -10605,8 +10590,7 @@ class C3 : I1<C3>
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(60214, "https://github.com/dotnet/roslyn/issues/60214")]
+        [Fact, WorkItem(60214, "https://github.com/dotnet/roslyn/issues/60214")]
         public async Task TestImplementCheckedOperators_Abstractly()
         {
             await new VerifyCS.Test

@@ -29,8 +29,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ExternAlias()
         {
             var markup = @"

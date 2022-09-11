@@ -2476,8 +2476,7 @@ struct Program : IEquatable<Program>
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        [Fact, WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
         public async Task TestOverrideEqualsOnRefStructReturnsFalse()
         {
             var code =
@@ -2506,8 +2505,7 @@ ref struct Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        [Fact, WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
         public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
         {
             var code =

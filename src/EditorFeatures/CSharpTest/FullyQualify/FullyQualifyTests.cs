@@ -1499,8 +1499,7 @@ class Class
 @"using M = System.Math");
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableNeverSameProject()
         {
             const string InitialWorkspace = @"
@@ -1541,8 +1540,7 @@ class Program
             await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableNeverDifferentProject()
         {
             const string InitialWorkspace = @"
@@ -1573,8 +1571,7 @@ class Program
             await TestMissingAsync(InitialWorkspace);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn()
         {
             const string InitialWorkspace = @"
@@ -1615,8 +1612,7 @@ class Program
             await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText);
         }
 
-        [Fact]
-        [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
+        [Fact, WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff()
         {
             var initialWorkspace = @"

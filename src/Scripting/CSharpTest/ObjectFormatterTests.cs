@@ -780,8 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [Fact]
-        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+        [Fact, WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
             var obj = new MockDesktopTask(TaskMethod);

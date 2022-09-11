@@ -248,8 +248,7 @@ $$");
 @"delegate void D(int i, [Goo]$$");
         }
 
-        [Fact]
-        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        [Fact, WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestNotAfterOperator()
         {
             await VerifyAbsenceAsync(

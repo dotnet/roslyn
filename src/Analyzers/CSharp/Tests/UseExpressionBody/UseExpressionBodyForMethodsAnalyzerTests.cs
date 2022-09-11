@@ -796,8 +796,7 @@ class C
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [Fact]
-        [WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
+        [Fact, WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
         public async Task TestUseBlockBodyTrivia1()
         {
             var code = @"

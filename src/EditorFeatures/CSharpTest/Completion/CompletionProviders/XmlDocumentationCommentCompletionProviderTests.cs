@@ -489,8 +489,7 @@ static void Main(string[] args)
 ", "args", sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute()
         {
             // Local functions do not support documentation comments
@@ -502,8 +501,7 @@ static void Goo(string str)
 ", "str", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute_Interactive()
         {
             await VerifyItemExistsAsync(@"
@@ -514,8 +512,7 @@ static void Goo(string str)
 ", "str", sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        [Fact, WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
         public async Task DelegateParams()
         {
             await VerifyItemExistsAsync(@"

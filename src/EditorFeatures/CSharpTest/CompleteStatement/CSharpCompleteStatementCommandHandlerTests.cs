@@ -2490,8 +2490,7 @@ public class Class1
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(52365, "https://github.com/dotnet/roslyn/issues/52365")]
+        [WpfFact, WorkItem(52365, "https://github.com/dotnet/roslyn/issues/52365")]
         public void TupleExpression_Handled()
         {
             var code = @"
@@ -4221,8 +4220,7 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        [WorkItem(37874, "https://github.com/dotnet/roslyn/pull/37874")]
+        [WpfFact, WorkItem(37874, "https://github.com/dotnet/roslyn/pull/37874")]
         public void TestWithSettingTurnedOff()
         {
             var code = @"

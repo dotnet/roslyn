@@ -1873,8 +1873,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
+        [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
         public async Task TestUsingsInPPRegionWithoutOtherMembers()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1948,8 +1947,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
+        [Fact, WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
         public async Task TestWhitespaceBeforeUnusedUsings_FileScopedNamespace()
         {
             await new VerifyCS.Test
@@ -1985,8 +1983,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleUsing()
         {
             await new VerifyCS.Test
@@ -2018,8 +2015,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleUsings()
         {
             await new VerifyCS.Test
@@ -2052,8 +2048,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_NotAllFirstGroupIsDeleted()
         {
             await new VerifyCS.Test
@@ -2090,8 +2085,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_AllLastGroupIsDeleted()
         {
             await new VerifyCS.Test

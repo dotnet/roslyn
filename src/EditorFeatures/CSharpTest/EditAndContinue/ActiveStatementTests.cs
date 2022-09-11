@@ -6303,8 +6303,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_MemberExpressionBody()
         {
             var src1 = @"
@@ -6323,8 +6322,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_LambdaBody()
         {
             var src1 = @"
@@ -6343,8 +6341,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_QueryLambdaBody()
         {
             var src1 = @"
@@ -6375,8 +6372,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_NestedInGoverningExpression()
         {
             var src1 = @"
@@ -6396,8 +6392,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "(G() switch { 0 => 10, _ => 20 }) switch { 10 =>       100       , _ => 200 }"));
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_NestedInArm()
         {
             var src1 = @"
@@ -6424,8 +6419,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_Delete1()
         {
             var src1 = @"
@@ -6450,8 +6444,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_Delete2()
         {
             var src1 = @"
@@ -6476,8 +6469,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact, WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_Delete3()
         {
             var src1 = @"
@@ -8718,8 +8710,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
+        [Fact, WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
         public void Lambdas_EditAroundTry_WithActiveStatement()
         {
             var src1 =
@@ -9943,8 +9934,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "a"));
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunctionToAsyncLocalFunction_BlockBody_WithActiveStatement()
         {
             var src1 = @"
@@ -9980,8 +9970,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "f"));
         }
 
-        [Fact]
-        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
+        [Fact, WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
         public void LocalFunction_EditAroundTry_WithActiveStatement()
         {
             var src1 =
@@ -10030,8 +10019,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunctionToAsyncLocalFunction_ExpressionBody_WithActiveStatement()
         {
             var src1 = @"
@@ -10793,8 +10781,7 @@ class C
                 });
         }
 
-        [Fact]
-        [WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [Fact, WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
         [WorkItem(54758, "https://github.com/dotnet/roslyn/issues/54758")]
         public void InsertDeleteMethod_Active()
         {

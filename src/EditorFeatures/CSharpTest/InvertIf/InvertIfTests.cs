@@ -1029,8 +1029,7 @@ class C
 @"string x; if (x.Length <= 0.0f) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [Fact]
-        [WorkItem(29434, "https://github.com/dotnet/roslyn/issues/29434")]
+        [Fact, WorkItem(29434, "https://github.com/dotnet/roslyn/issues/29434")]
         public async Task TestIsExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1038,8 +1037,7 @@ class C
 @"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
         }
 
-        [Fact]
-        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestEmptyIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1047,8 +1045,7 @@ class C
                 @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
         }
 
-        [Fact]
-        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlySingleLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1084,8 +1081,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        [Fact, WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
         public async Task TestOnlyMultilineLineCommentIf()
         {
             await TestInRegularAndScriptAsync(
@@ -1133,8 +1129,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp6()
         {
             await TestInRegularAndScriptAsync(
@@ -1168,8 +1163,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Fact]
-        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -1203,8 +1197,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact]
-        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -1238,8 +1231,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsNotObjectCheck_CSharp8()
         {
             // Not terrific.  But the starting code is not legal C#8 either.  In this case because we don't even support
@@ -1276,8 +1268,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact]
-        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        [Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsNotObjectCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(

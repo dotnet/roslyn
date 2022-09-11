@@ -760,8 +760,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(52258, "https://github.com/dotnet/roslyn/issues/52258")]
+        [Fact, WorkItem(52258, "https://github.com/dotnet/roslyn/issues/52258")]
         public async Task TestTrivia_03()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -791,8 +790,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
+        [Fact, WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
         public async Task TestSeverity()
         {
             var source =
@@ -831,8 +829,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(36995, "https://github.com/dotnet/roslyn/issues/36995")]
+        [Fact, WorkItem(36995, "https://github.com/dotnet/roslyn/issues/36995")]
         public async Task TestAddParenthesesAroundBinaryExpression()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2074,8 +2071,7 @@ j = i switch
             await test.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        [Fact, WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
         public async Task TestOnMultiCaseSection_String_CSharp9()
         {
             var testCode = @"
@@ -2115,8 +2111,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        [Fact, WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
         public async Task TestParenthesizedExpression1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2142,8 +2137,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        [Fact, WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
         public async Task TestParenthesizedExpression2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2169,8 +2163,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Assignment1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2207,8 +2200,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Assignment2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2249,8 +2241,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Return1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2283,8 +2274,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        [Fact, WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
         public async Task TestRuntimeTypeConversion_Return2()
         {
             await VerifyCS.VerifyCodeFixAsync(

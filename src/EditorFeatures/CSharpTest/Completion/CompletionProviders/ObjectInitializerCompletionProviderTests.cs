@@ -41,8 +41,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact]
-        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        [Fact, WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
         public async Task ImplicitObjectCreation_NothingToInitialize()
         {
             var markup = @"
@@ -79,8 +78,7 @@ class D
             await VerifyExclusiveAsync(markup, true);
         }
 
-        [Fact]
-        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        [Fact, WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
         public async Task ImplicitObjectCreation_OneItem1()
         {
             var markup = @"
@@ -498,8 +496,7 @@ class Bar
             await VerifyItemIsAbsentAsync(markup, "Gibberish");
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationAlways()
         {
             var markup = @"
@@ -527,8 +524,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationNever()
         {
             var markup = @"
@@ -555,8 +551,7 @@ public class Goo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_PropertyInObjectCreationAdvanced()
         {
             var markup = @"

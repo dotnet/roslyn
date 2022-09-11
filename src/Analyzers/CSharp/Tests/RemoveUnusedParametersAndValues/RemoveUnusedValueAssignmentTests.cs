@@ -8210,8 +8210,7 @@ class C
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact]
-        [WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        [Fact, WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
         public async Task UsingDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -8231,8 +8230,7 @@ class C : IDisposable
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        [WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
+        [Fact, WorkItem(33464, "https://github.com/dotnet/roslyn/issues/33464")]
         public async Task UsingDeclarationWithInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -8253,8 +8251,7 @@ class C : IDisposable
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        [Fact, WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
         public async Task RefParameter_WrittenBeforeThrow()
         {
             await TestDiagnosticMissingAsync(
@@ -8273,8 +8270,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        [Fact, WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
         public async Task OutParameter_WrittenBeforeThrow()
         {
             await TestDiagnosticMissingAsync(
@@ -8297,8 +8293,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        [Fact, WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
         public async Task RefParameter_RefAssignmentFollowedByAssignment()
         {
             await TestDiagnosticMissingAsync(
@@ -8317,8 +8312,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        [Fact, WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
         public async Task RefParameter_RefConditionalAssignment()
         {
             await TestDiagnosticMissingAsync(
@@ -8611,8 +8605,7 @@ public class Test
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(39344, "https://github.com/dotnet/roslyn/issues/39344")]
+        [Fact, WorkItem(39344, "https://github.com/dotnet/roslyn/issues/39344")]
         public async Task AssignmentInTry_UsedInFinally_NoDiagnostic()
         {
             await TestDiagnosticMissingAsync(
@@ -8641,8 +8634,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        [Fact, WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
         public async Task AssignmentInTry_UsedInFinally_NoDiagnostic_02()
         {
             await TestDiagnosticMissingAsync(
@@ -8673,8 +8665,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        [Fact, WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
         public async Task AssignmentInTry_NotUsedInFinally_Diagnostic()
         {
             await TestInRegularAndScriptAsync(

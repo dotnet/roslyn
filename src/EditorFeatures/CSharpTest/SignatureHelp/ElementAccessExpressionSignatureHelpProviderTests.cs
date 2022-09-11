@@ -51,8 +51,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact]
-        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        [Fact, WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
         public async Task TestInvocationWithParametersOn1_WithRefReturn()
         {
             var markup = @"
@@ -74,8 +73,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact]
-        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        [Fact, WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
         public async Task TestInvocationWithParametersOn1_WithRefReadonlyReturn()
         {
             var markup = @"

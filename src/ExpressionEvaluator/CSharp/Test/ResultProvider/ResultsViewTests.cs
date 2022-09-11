@@ -1538,8 +1538,7 @@ class C : IEnumerable
             }
         }
 
-        [Fact]
-        [WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
+        [Fact, WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
         [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void GetEnumerableException()
         {

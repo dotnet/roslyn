@@ -403,8 +403,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact]
-        [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        [Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
         public async Task DoNotTouchCommentsAtBeginningOfFile4()
         {
             var initial =
@@ -430,8 +429,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact]
-        [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        [Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
         public async Task DoNotTouchCommentsAtBeginningOfFile5()
         {
             var initial =

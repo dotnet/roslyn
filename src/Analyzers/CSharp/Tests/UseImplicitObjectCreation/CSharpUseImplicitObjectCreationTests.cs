@@ -667,8 +667,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
+        [Fact, WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
         public async Task TestMissingOnNullableStruct()
         {
             var source = @"
@@ -683,8 +682,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
+        [Fact, WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
         public async Task TestOnNullableReferenceType()
         {
             await new VerifyCS.Test

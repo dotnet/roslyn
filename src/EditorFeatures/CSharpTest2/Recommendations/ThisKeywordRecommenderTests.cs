@@ -279,8 +279,7 @@ $$");
     static int Goo($$");
         }
 
-        [Fact]
-        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        [Fact, WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
         public async Task TestInLocalFunction()
         {
             await VerifyKeywordAsync(
@@ -296,8 +295,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        [Fact, WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
         public async Task TestInNestedLocalFunction()
         {
             await VerifyKeywordAsync(
@@ -316,8 +314,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        [Fact, WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
         public async Task TestInLocalFunctionInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -332,8 +329,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
+        [Fact, WorkItem(27028, "https://github.com/dotnet/roslyn/issues/27028")]
         public async Task TestInNestedLocalFunctionInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -352,8 +348,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
+        [Fact, WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
         public async Task TestInStaticLocalFunction()
         {
             await VerifyAbsenceAsync(
@@ -368,8 +363,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
+        [Fact, WorkItem(35644, "https://github.com/dotnet/roslyn/issues/35644")]
         public async Task TestInNestedInStaticLocalFunction()
         {
             await VerifyAbsenceAsync(
@@ -388,8 +382,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethod()
         {
             await VerifyKeywordAsync(
@@ -405,8 +398,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedAnonymousMethod()
         {
             await VerifyKeywordAsync(
@@ -425,8 +417,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -442,8 +433,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedAnonymousMethodInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -462,8 +452,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInLambdaExpression()
         {
             await VerifyKeywordAsync(
@@ -479,8 +468,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedLambdaExpression()
         {
             await VerifyKeywordAsync(
@@ -499,8 +487,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInLambdaExpressionInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -516,8 +503,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedLambdaExpressionInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -536,8 +522,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedLambdaExpressionInAnonymousMethod()
         {
             await VerifyKeywordAsync(
@@ -556,8 +541,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedAnonymousInLambdaExpression()
         {
             await VerifyKeywordAsync(
@@ -576,8 +560,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedAnonymousMethodInLambdaExpressionInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -596,8 +579,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInNestedLambdaExpressionInAnonymousMethodInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -616,8 +598,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAProperty()
         {
             await VerifyKeywordAsync(
@@ -630,8 +611,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAPropertyInitializer()
         {
             await VerifyKeywordAsync(
@@ -641,8 +621,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAExpressionProperty()
         {
             await VerifyKeywordAsync(
@@ -652,8 +631,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAFieldInitializer()
         {
             await VerifyKeywordAsync(
@@ -663,8 +641,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAStaticProperty()
         {
             await VerifyAbsenceAsync(
@@ -677,8 +654,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAStaticPropertyInitializer()
         {
             await VerifyAbsenceAsync(
@@ -688,8 +664,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAStaticExpressionProperty()
         {
             await VerifyAbsenceAsync(
@@ -699,8 +674,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
+        [Fact, WorkItem(27923, "https://github.com/dotnet/roslyn/issues/27923")]
         public async Task TestInAnonymousMethodInAStaticFieldInitializer()
         {
             await VerifyAbsenceAsync(

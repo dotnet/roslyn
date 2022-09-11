@@ -3528,8 +3528,7 @@ class A
 }");
         }
 
-        [Fact]
-        [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
+        [Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public async Task TestConditionalAccessWithExtensionMethodInvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -3584,8 +3583,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
+        [Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public async Task TestConditionalAccessWithExtensionMethodInvocation_2()
         {
             await TestInRegularAndScriptAsync(
@@ -4062,8 +4060,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(11028, "https://github.com/dotnet/roslyn/issues/11028")]
+        [Fact, WorkItem(11028, "https://github.com/dotnet/roslyn/issues/11028")]
         public async Task TuplesWithDifferentNames()
         {
             var code = @"
@@ -4117,8 +4114,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(12802, "https://github.com/dotnet/roslyn/issues/12802")]
+        [Fact, WorkItem(12802, "https://github.com/dotnet/roslyn/issues/12802")]
         public async Task Deconstruction2()
         {
             var code = @"
@@ -4159,8 +4155,7 @@ public class KVP<T1, T2>
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")]
+        [Fact, WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")]
         public async Task EnsureParenthesesInStringConcatenation()
         {
             var code = @"
@@ -4290,8 +4285,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(19047, "https://github.com/dotnet/roslyn/issues/19047")]
+        [Fact, WorkItem(19047, "https://github.com/dotnet/roslyn/issues/19047")]
         public async Task ExplicitTupleNameAdded_DeconstructionDeclaration()
         {
             var code = @"
@@ -4317,8 +4311,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(19047, "https://github.com/dotnet/roslyn/issues/19047")]
+        [Fact, WorkItem(19047, "https://github.com/dotnet/roslyn/issues/19047")]
         public async Task ExplicitTupleNameAdded_DeconstructionDeclaration2()
         {
             var code = @"
@@ -4733,8 +4726,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(35645, "https://github.com/dotnet/roslyn/issues/35645")]
+        [Fact, WorkItem(35645, "https://github.com/dotnet/roslyn/issues/35645")]
         public async Task UsingDeclaration()
         {
             var code = @"
@@ -4864,8 +4856,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        [Fact, WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
         public async Task TestUnaryNegationOfDeclarationPattern()
         {
             await TestInRegularAndScriptAsync(
@@ -4894,8 +4885,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(18322, "https://github.com/dotnet/roslyn/issues/18322")]
+        [Fact, WorkItem(18322, "https://github.com/dotnet/roslyn/issues/18322")]
         public async Task TestInlineIntoExtensionMethodInvokedOnThis()
         {
             await TestInRegularAndScriptAsync(
@@ -5285,8 +5275,7 @@ namespace System.Runtime.CompilerServices
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        [Fact]
-        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
         public async Task Call_TopLevelStatement()
         {
             var code = @"
@@ -5398,8 +5387,7 @@ namespace Whatever
 </Workspace>");
         }
 
-        [Fact]
-        [WorkItem(50207, "https://github.com/dotnet/roslyn/issues/50207")]
+        [Fact, WorkItem(50207, "https://github.com/dotnet/roslyn/issues/50207")]
         public async Task TestImplicitObjectCreation()
         {
             var code = @"

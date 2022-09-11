@@ -504,8 +504,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestSemicolonPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -529,8 +528,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestParenthesisPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -554,8 +552,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestAnotherConditionalPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -583,8 +580,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(53190, "https://github.com/dotnet/roslyn/issues/53190")]
+        [Fact, WorkItem(53190, "https://github.com/dotnet/roslyn/issues/53190")]
         public async Task TestNotWithTargetTyping()
         {
             await TestMissingAsync(

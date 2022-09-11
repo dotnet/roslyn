@@ -62,8 +62,7 @@ namespace A
 }",
 expectedSuccess: false);
 
-        [Fact]
-        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        [Fact, WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace_FileScopedNamespace()
             => TestMoveToNamespaceAsync(
 @"using System;
@@ -215,8 +214,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
 expectedSuccess: false);
 
-        [Fact]
-        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        [Fact, WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
         public Task MoveToNamespace_MoveItems_CaretAfterFileScopedNamespaceSemicolon()
         => TestMoveToNamespaceAsync(
 @"namespace A;  [||]
@@ -1117,8 +1115,7 @@ expectedNamespaceName: "A  .    B   .   C");
 }",
 expectedNamespaceName: "A  .    B   .   C");
 
-        [Fact]
-        [WorkItem(34736, "https://github.com/dotnet/roslyn/issues/34736")]
+        [Fact, WorkItem(34736, "https://github.com/dotnet/roslyn/issues/34736")]
         public Task MoveToNamespace_MoveType_Usings()
             => TestMoveToNamespaceAsync(
 @"namespace One
@@ -1159,8 +1156,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"Two.C2", "Three.C2" }
 });
 
-        [Fact]
-        [WorkItem(35577, "https://github.com/dotnet/roslyn/issues/35577")]
+        [Fact, WorkItem(35577, "https://github.com/dotnet/roslyn/issues/35577")]
         public async Task MoveToNamespace_WithoutOptionsService()
         {
             var code = @"namespace A[||]
@@ -1241,8 +1237,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }}",
     expectedSuccess: false);
 
-        [Fact]
-        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        [Fact, WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInNamesapce_SelectType()
             => TestMoveToNamespaceAsync(
 @"namespace NS
@@ -1257,8 +1252,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
     expectedSuccess: false);
 
-        [Fact]
-        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        [Fact, WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInNamesapce_SelectNamespace()
             => TestMoveToNamespaceAsync(
 @"namespace NS[||]
@@ -1273,8 +1267,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 }",
     expectedSuccess: false);
 
-        [Fact]
-        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        [Fact, WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInGlobalNamesapce()
             => TestMoveToNamespaceAsync(
 @"partial class MyClass[||]
@@ -1285,8 +1278,7 @@ partial class MyClass
 }",
     expectedSuccess: false);
 
-        [Fact]
-        [WorkItem(39234, "https://github.com/dotnet/roslyn/issues/39234")]
+        [Fact, WorkItem(39234, "https://github.com/dotnet/roslyn/issues/39234")]
         public async Task TestMultiTargetingProject()
         {
             // Create two projects with same project file path and single linked document to simulate a multi-targeting project.
@@ -1347,8 +1339,7 @@ namespace B
             }
         }
 
-        [Fact]
-        [WorkItem(35507, "https://github.com/dotnet/roslyn/issues/35507")]
+        [Fact, WorkItem(35507, "https://github.com/dotnet/roslyn/issues/35507")]
         public Task MoveToNamespace_MoveTypeFromSystemNamespace()
             => TestMoveToNamespaceAsync(
 @"namespace System

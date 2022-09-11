@@ -1492,8 +1492,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestNotWithPartialDefinition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1513,8 +1512,7 @@ public partial class C
 }");
         }
 
-        [Fact]
-        [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestWithPartialDefinitionAndImplementation()
         {
             await TestInRegularAndScriptAsync(

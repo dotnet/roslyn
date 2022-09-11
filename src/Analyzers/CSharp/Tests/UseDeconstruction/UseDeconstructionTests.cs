@@ -733,8 +733,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
+        [Fact, WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
         public async Task TestPreserveAwait()
         {
             await TestInRegularAndScript1Async(

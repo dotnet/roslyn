@@ -386,8 +386,7 @@ class [|Cat|]$$
             await state.AssertTag("Cat", "Dog");
         }
 
-        [WpfFact]
-        [WorkItem(34280, "https://github.com/dotnet/roslyn/issues/34280")]
+        [WpfFact, WorkItem(34280, "https://github.com/dotnet/roslyn/issues/34280")]
         public async Task RenameTrackingReplaceIdentifierWithDiscard()
         {
             var code = @"
@@ -583,8 +582,7 @@ namespace NS
             await state.AssertTag("NS", "NSA");
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Attribute_CSharp()
         {
             var code = @"
@@ -607,8 +605,7 @@ class CustomAttribute : Attribute
             Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Attribute_VB()
         {
             var code = @"
@@ -631,8 +628,7 @@ End Class
             Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Capitalized_Attribute_VB()
         {
             var code = @"
@@ -655,8 +651,7 @@ End Class
             Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Not_Capitalized_Attribute_VB()
         {
             var code = @"
@@ -909,8 +904,7 @@ End Enum";
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
+        [WpfFact, WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
         public async Task RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
         {
             var code = @"
@@ -1048,8 +1042,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(762964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762964")]
+        [WpfFact, WorkItem(762964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762964")]
         public async Task RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
         {
             var code = @"
@@ -1067,8 +1060,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         public async Task RenameTracking_CannotRenameToVarInCSharp()
         {
             var code = @"
@@ -1095,8 +1087,7 @@ class C
             Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         public async Task RenameTracking_CannotRenameFromVarInCSharp()
         {
             var code = @"
@@ -1113,8 +1104,7 @@ class C
             Assert.Null(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         public async Task RenameTracking_CanRenameToVarInVisualBasic()
         {
             var code = @"
@@ -1131,8 +1121,7 @@ End Class";
             Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [WpfFact, WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         public async Task RenameTracking_CannotRenameToDynamicInCSharp()
         {
             var code = @"
@@ -1234,8 +1223,7 @@ End Class
             Assert.Null(await state.TryGetCodeActionAsync());
         }
 
-        [WpfFact]
-        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        [WpfFact, WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleReturnDeclaration_CSharp()
         {
             var code = @"
@@ -1254,8 +1242,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        [WpfFact, WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleReturnDeclaration_VB()
         {
             var code = @"
@@ -1272,8 +1259,7 @@ End Class";
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        [WpfFact, WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleFieldReference_CSharp()
         {
             var code = @"
@@ -1292,8 +1278,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        [WpfFact, WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleFieldReference_VB()
         {
             var code = @"
@@ -1310,8 +1295,7 @@ End Class";
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        [WpfFact, WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleElementsInDeclarations_CSharp()
         {
             var code = @"
@@ -1327,8 +1311,7 @@ class C
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        [WpfFact, WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleElementsInDeclarations_VB()
         {
             var code = @"
@@ -1342,8 +1325,7 @@ End Class";
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
+        [WpfFact, WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
         public async Task RenameTrackingNotOnWellKnownValueTupleType()
         {
             var workspaceXml = @"
@@ -1375,8 +1357,7 @@ namespace System
             await state.AssertNoTag();
         }
 
-        [WpfFact]
-        [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
+        [WpfFact, WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
         public async Task RenameTrackingOnThingsCalledValueTupleThatAreNotTheWellKnownType()
         {
             var workspaceXml = @"

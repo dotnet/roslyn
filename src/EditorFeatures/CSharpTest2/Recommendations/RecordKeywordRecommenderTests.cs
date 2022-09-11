@@ -367,8 +367,7 @@ $$");
         public async Task TestNotAfterClass()
             => await VerifyAbsenceAsync(@"class $$");
 
-        [Fact]
-        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -378,8 +377,7 @@ $$
 using Bar;");
         }
 
-        [Fact]
-        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_01()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
@@ -389,8 +387,7 @@ $$
 using Bar;");
         }
 
-        [Fact]
-        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_02()
         {
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214

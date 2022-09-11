@@ -392,8 +392,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        [Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReturnedInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -417,8 +416,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        [Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReadInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -790,8 +788,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -805,8 +802,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -818,8 +814,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -834,8 +829,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -861,8 +855,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -884,8 +877,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -904,8 +896,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -923,8 +914,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -942,8 +932,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly1()
         {
             await TestInRegularAndScript1Async(
@@ -965,8 +954,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly2()
         {
             await TestInRegularAndScript1Async(
@@ -984,8 +972,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly3()
         {
             await TestInRegularAndScript1Async(
@@ -1009,8 +996,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly4()
         {
             await TestInRegularAndScript1Async(
@@ -1054,8 +1040,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly5()
         {
             await TestInRegularAndScript1Async(
@@ -1091,8 +1076,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly6()
         {
             await TestInRegularAndScript1Async(
@@ -1124,8 +1108,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly7()
         {
             await TestInRegularAndScript1Async(
@@ -1155,8 +1138,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly8()
         {
             await TestInRegularAndScript1Async(
@@ -1186,8 +1168,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ConditionOfRefConditional1()
         {
             await TestInRegularAndScript1Async(
@@ -1211,8 +1192,7 @@ partial class MyClass
 }");
         }
 
-        [Fact]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ConditionOfRefConditional2()
         {
             await TestInRegularAndScript1Async(
