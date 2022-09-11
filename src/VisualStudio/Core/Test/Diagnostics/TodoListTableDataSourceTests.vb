@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.TodoComments
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.Shell.TableManager
@@ -125,7 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.Span.Path, filename)
+                Assert.Equal(item.OriginalFilePath, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -133,11 +132,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedSpan.StartLinePosition.Line, line)
+                Assert.Equal(item.MappedLine, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedSpan.StartLinePosition.Character, column)
+                Assert.Equal(item.MappedColumn, column)
             End Using
         End Sub
 
@@ -174,7 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.Span.Path, filename)
+                Assert.Equal(item.OriginalFilePath, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -182,11 +181,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedSpan.StartLinePosition.Line, line)
+                Assert.Equal(item.MappedLine, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedSpan.StartLinePosition.Character, column)
+                Assert.Equal(item.MappedColumn, column)
             End Using
         End Sub
 
@@ -244,12 +243,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                Dim pos = New LinePosition(11, 21)
-                Dim span2 = New FileLinePositionSpan("test2", pos, pos)
-                Dim span1 = New FileLinePositionSpan("test1", pos, pos)
                 provider.Items = New TodoCommentData() {
-                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, span:=span2, mappedSpan:=span2),
-                    New TodoCommentData(priority:=0, message:="test", documentId:=documentId, span:=span1, mappedSpan:=span1)
+                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TodoCommentData(priority:=0, message:="test", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test1")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -282,12 +278,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                Dim pos = New LinePosition(11, 21)
-                Dim span2 = New FileLinePositionSpan("test2", pos, pos)
-                Dim span3 = New FileLinePositionSpan("test3", pos, pos)
                 provider.Items = New TodoCommentData() {
-                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, span:=span2, mappedSpan:=span2),
-                    New TodoCommentData(priority:=0, message:="test3", documentId:=documentId, span:=span3, mappedSpan:=span3)
+                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TodoCommentData(priority:=0, message:="test3", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test3")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -378,14 +371,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         Private Shared Function CreateItem(documentId As DocumentId) As TodoCommentData
-            Dim pos = New LinePosition(10, 20)
-            Dim span = New FileLinePositionSpan("test1", pos, pos)
             Return New TodoCommentData(
                 priority:=0,
                 message:="test",
                 documentId:=documentId,
-                span:=span,
-                mappedSpan:=span)
+                mappedLine:=10,
+                originalLine:=10,
+                mappedColumn:=20,
+                originalColumn:=20,
+                mappedFilePath:=Nothing,
+                originalFilePath:="test1")
         End Function
 
         Private Class TestTodoListProvider
