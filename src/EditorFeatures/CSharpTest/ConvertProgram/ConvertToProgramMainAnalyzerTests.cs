@@ -630,8 +630,7 @@ partial class Program
             }.RunAsync();
         }
 
-        [Theory]
-        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        [Theory, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("static")]

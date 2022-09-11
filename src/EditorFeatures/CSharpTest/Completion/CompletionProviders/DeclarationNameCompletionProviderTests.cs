@@ -332,8 +332,7 @@ namespace System.Collections.Generic
         internal override Type GetCompletionProviderType()
             => typeof(DeclarationNameCompletionProvider);
 
-        [Theory]
-        [WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
+        [Theory, WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
         [InlineData("record")]
         [InlineData("record class")]
         [InlineData("record struct")]
@@ -597,8 +596,7 @@ public class C
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [Theory, WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter10(LanguageVersion languageVersion)
         {
@@ -628,8 +626,7 @@ public class C
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [Theory, WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter11(LanguageVersion languageVersion)
         {
@@ -660,8 +657,7 @@ public class C
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory]
-        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [Theory, WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
         public async Task Parameter12(LanguageVersion languageVersion)
         {
@@ -2660,8 +2656,7 @@ class ClassA
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory]
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Theory, WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
         [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         public async Task TestUseLocalAsLocalFunctionParameter(LanguageVersion languageVersion)
         {
@@ -2692,8 +2687,7 @@ class ClassA
         [InlineData(LanguageVersion.CSharp7)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.Latest)]
-        [Theory]
-        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Theory, WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
         [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         public async Task TestCompletionDoesNotUseLocalAsLocalFunctionVariable(LanguageVersion languageVersion)
         {

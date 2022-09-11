@@ -161,8 +161,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$",
                     "c[$$]")]
         [InlineData("c. $$",
@@ -220,8 +219,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("/* Leading trivia */c.$$",
                     "/* Leading trivia */c[$$]")]
         [InlineData("c. $$ /* Trailing trivia */",

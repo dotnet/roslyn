@@ -131,8 +131,7 @@ public class Program
 ", "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [Theory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$", true)]
         [InlineData("c.fl$$", true)]
         [InlineData("c.  $$", true)]
@@ -206,8 +205,7 @@ public class Program
 ");
         }
 
-        [Theory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("", "Nested1.C", "Nested2.C")]
         [InlineData("using N1.Nested1;", "C", "Nested2.C")]
         [InlineData("using N1.Nested2;", "C", "Nested1.C")]
@@ -422,8 +420,7 @@ public class Program
 Explicit conversion of S to int.");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("sbyte", "byte", "char", "uint", "ulong", "ushort")]
         [InlineData("byte", "char", "sbyte")]
         [InlineData("short", "byte", "char", "sbyte", "uint", "ulong", "ushort")]
@@ -587,8 +584,7 @@ namespace A.C
 {FormatExplicitConversionDescription("B.E", "int")}");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("e.$$", true)]
         [InlineData("e. $$", true)]
         [InlineData("e.in$$", true)]
@@ -634,8 +630,7 @@ public class Program
 ", "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("C", "byte")]
         [InlineData("byte", "C")]
         public async Task ExplicitBuiltinConversionWithAlias(string fromType, string expected)

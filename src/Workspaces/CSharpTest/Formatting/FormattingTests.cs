@@ -9396,8 +9396,7 @@ public class Test
 }");
         }
 
-        [Theory]
-        [WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
+        [Theory, WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
         [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
         [CombinatorialData]
         public async Task ConversionOperator_CorrectlySpaceArgumentList(

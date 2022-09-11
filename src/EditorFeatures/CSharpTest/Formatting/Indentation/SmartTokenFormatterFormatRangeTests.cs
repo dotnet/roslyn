@@ -569,8 +569,7 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfTheory]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfTheory, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         [InlineData("get")]
         [InlineData("set")]

@@ -1412,8 +1412,7 @@ class P
         [InlineData("params string[] x")]
         [InlineData("string x = null, string y = null")]
         [InlineData("string x = null, string y = null, params string[] z")]
-        [Theory]
-        [WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
+        [Theory, WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
         public async Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
         {
             var markup = $@"

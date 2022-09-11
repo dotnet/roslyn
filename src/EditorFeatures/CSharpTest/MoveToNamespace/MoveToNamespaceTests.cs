@@ -407,8 +407,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"A.MyType", "B.MyType" }
 });
 
-        [Theory]
-        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        [Theory, WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
         [MemberData(nameof(SupportedKeywords))]
         public Task MoveToNamespace_MoveType_Single_FileScopedNamespace(string typeKeyword)
         => TestMoveToNamespaceAsync(
@@ -1180,8 +1179,7 @@ class MyClass
             Assert.Empty(actions);
         }
 
-        [Theory]
-        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        [Theory, WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         [MemberData(nameof(SupportedKeywords))]
         public Task MoveToNamespace_MoveOnlyTypeInGlobalNamespace(string typeKeyword)
         => TestMoveToNamespaceAsync(
@@ -1200,8 +1198,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
     {"MyType", "A.MyType" }
 });
 
-        [Theory]
-        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        [Theory, WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         [MemberData(nameof(SupportedKeywords))]
         public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
         {
@@ -1223,8 +1220,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
       targetNamespace: "");
         }
 
-        [Theory]
-        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        [Theory, WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         [MemberData(nameof(SupportedKeywords))]
         public Task MoveToNamespace_MoveOneTypeInGlobalNamespace(string typeKeyword)
             => TestMoveToNamespaceAsync(

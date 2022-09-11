@@ -2463,8 +2463,7 @@ public class Class1
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WpfTheory]
-        [WorkItem(52137, "https://github.com/dotnet/roslyn/issues/52137")]
+        [WpfTheory, WorkItem(52137, "https://github.com/dotnet/roslyn/issues/52137")]
         [InlineData("typeof(object$$)", "typeof(object)")]
         [InlineData("typeof($$object)", "typeof(object)")]
         public void TypeOfExpression_Handled(string expression, string expectedExpression)

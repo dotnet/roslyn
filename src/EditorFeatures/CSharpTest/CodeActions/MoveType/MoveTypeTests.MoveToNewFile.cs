@@ -1648,8 +1648,7 @@ class A
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfTheory]
-        [WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
+        [WpfTheory, WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("interface")]

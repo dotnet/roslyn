@@ -302,8 +302,7 @@ public class C
 }");
         }
 
-        [Theory]
-        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
@@ -323,8 +322,7 @@ public class C
 }}");
         }
 
-        [Theory]
-        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
@@ -344,8 +342,7 @@ public class C
 }}");
         }
 
-        [Theory]
-        [WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [Theory, WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
@@ -365,8 +362,7 @@ public class C
 }}");
         }
 
-        [Theory]
-        [WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [Theory, WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingIntegerAndStringIndex(string logicalOperator)

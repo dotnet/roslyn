@@ -472,8 +472,7 @@ on a new line ""U8"),
                 Local("stuff"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VerbatimStringLiterals6(bool script, TestHost testHost)
         {
@@ -692,8 +691,7 @@ on a new line ""U8"),
                 String(@"""bar"""));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VarContextualKeywordAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -712,8 +710,7 @@ on a new line ""U8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
         {
