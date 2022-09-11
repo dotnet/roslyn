@@ -20,6 +20,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
     public partial class UseConditionalExpressionForAssignmentTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly CSharpParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement },
         };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -71,7 +72,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleAssignment_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -101,7 +102,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleAssignment_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -131,7 +132,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestNotWithTwoThrows()
         {
             await TestMissingAsync(
@@ -153,7 +154,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -175,7 +176,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestWithSimpleThrow()
         {
             await TestMissingAsync(
@@ -196,7 +197,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleAssignmentNoBlocks()
         {
             await TestInRegularAndScript1Async(
@@ -221,7 +222,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleAssignmentNoBlocks_NotInBlock()
         {
             await TestInRegularAndScript1Async(
@@ -248,7 +249,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestNotOnSimpleAssignmentToDifferentTargets()
         {
             await TestMissingAsync(
@@ -269,7 +270,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToUndefinedField()
         {
             await TestInRegularAndScript1Async(
@@ -299,7 +300,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToUndefinedField_Throw()
         {
             await TestInRegularAndScript1Async(
@@ -328,7 +329,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnNonUniformTargetSyntax()
         {
             await TestInRegularAndScript1Async(
@@ -357,7 +358,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToDefinedField()
         {
             await TestInRegularAndScript1Async(
@@ -390,7 +391,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToAboveLocalNoInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -421,7 +422,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -452,7 +453,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -482,7 +483,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToAboveLocalLiteralInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -512,7 +513,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToAboveLocalDefaultLiteralInitializer()
         {
             await TestAsync(
@@ -542,7 +543,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnAssignmentToAboveLocalDefaultExpressionInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -572,7 +573,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -603,7 +604,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestDoNotMergeAssignmentToAboveLocalIfIntermediaryStatement()
         {
             await TestInRegularAndScript1Async(
@@ -636,7 +637,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition()
         {
             await TestInRegularAndScript1Async(
@@ -667,7 +668,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestDoNotMergeAssignmentToAboveIfMultiDecl()
         {
             await TestInRegularAndScript1Async(
@@ -698,7 +699,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestUseImplicitTypeForIntrinsicTypes()
         {
             await TestInRegularAndScript1Async(
@@ -728,7 +729,7 @@ class C
 }", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestUseImplicitTypeWhereApparent()
         {
             await TestInRegularAndScript1Async(
@@ -758,7 +759,7 @@ class C
 }", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestUseImplicitTypeWherePossible()
         {
             await TestInRegularAndScript1Async(
@@ -788,7 +789,7 @@ class C
 }", new TestParameters(options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingWithoutElse()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -805,7 +806,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingWithoutElseWithStatementAfterwards()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -825,7 +826,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingWithoutElseWithThrowStatementAfterwards()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -844,7 +845,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame()
         {
             await TestInRegularAndScript1Async(
@@ -877,7 +878,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp8()
         {
             await TestInRegularAndScript1Async(
@@ -908,7 +909,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp9()
         {
             await TestInRegularAndScript1Async(
@@ -938,7 +939,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways, parseOptions: CSharp9));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -968,7 +969,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches()
         {
             await TestInRegularAndScript1Async(
@@ -999,7 +1000,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1030,7 +1031,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1060,7 +1061,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp8()
         {
             await TestInRegularAndScript1Async(
@@ -1090,7 +1091,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways, parseOptions: CSharp8));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch_CSharp9()
         {
             await TestInRegularAndScript1Async(
@@ -1120,7 +1121,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways, parseOptions: CSharp9));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestKeepTriviaAroundIf()
         {
             await TestInRegularAndScript1Async(
@@ -1151,7 +1152,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -1192,7 +1193,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMultiLine1()
         {
             await TestInRegularAndScript1Async(
@@ -1225,7 +1226,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMultiLine2()
         {
             await TestInRegularAndScript1Async(
@@ -1258,7 +1259,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMultiLine3()
         {
             await TestInRegularAndScript1Async(
@@ -1293,7 +1294,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestElseIfWithBlock()
         {
             await TestInRegularAndScript1Async(
@@ -1332,7 +1333,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestElseIfWithBlock_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1371,7 +1372,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestElseIfWithBlock_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1409,7 +1410,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestElseIfWithoutBlock()
         {
             await TestInRegularAndScript1Async(
@@ -1434,7 +1435,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestRefAssignment1()
         {
             await TestInRegularAndScript1Async(
@@ -1466,7 +1467,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestRefAssignment1_Throw1()
         {
             await TestMissingAsync(
@@ -1489,7 +1490,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestRefAssignment1_Throw2()
         {
             await TestMissingAsync(
@@ -1511,7 +1512,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestTrueFalse1()
         {
             await TestInRegularAndScript1Async(
@@ -1541,7 +1542,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestTrueFalse_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1571,7 +1572,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestTrueFalse_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1600,7 +1601,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestTrueFalse2()
         {
             await TestInRegularAndScript1Async(
@@ -1630,7 +1631,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestFalseTrue_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1660,7 +1661,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestFalseTrue_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1690,7 +1691,7 @@ class C
         }
 
         [WorkItem(58898, "https://github.com/dotnet/roslyn/issues/58898")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestRemoveRedundantCast()
         {
             await TestInRegularAndScript1Async(

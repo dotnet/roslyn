@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             StartingSelection = selectionSpan;
 
-            ComputeRenameFile();
             RegisterOleComponent();
         }
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (value != _session.ReplacementText)
                 {
-                    _session.ApplyReplacementText(value, propagateEditImmediately: false);
+                    _session.ApplyReplacementText(value, propagateEditImmediately: true);
                     NotifyPropertyChanged(nameof(IdentifierText));
                 }
             }
@@ -242,12 +241,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void ComputeRenameFile()
-        {
-            // If replacementText is invalid, we won't rename the file.
-            RenameFileFlag = _isReplacementTextValid && AllowFileRename && _session.Options.RenameFile;
-        }
-
         private void OnReplacementTextChanged(object sender, EventArgs e)
         {
             NotifyPropertyChanged(nameof(IdentifierText));
@@ -257,7 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (Set(ref _isReplacementTextValid, result.ReplacementTextValid, "IsReplacementTextValid"))
             {
-                ComputeRenameFile();
                 NotifyPropertyChanged(nameof(AllowFileRename));
             }
         }

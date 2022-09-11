@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
     public class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllInDocument()
         {
             await TestInRegularAndScript1Async(
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllInProject()
         {
             await TestInRegularAndScript1Async(
@@ -128,7 +129,7 @@ class C3
 </Workspace>", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllInSolution()
         {
             await TestInRegularAndScript1Async(
@@ -200,7 +201,7 @@ class C3
 </Workspace>", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllInContainingMember()
         {
             await TestInRegularAndScript1Async(
@@ -243,7 +244,7 @@ class C2
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllInContainingType()
         {
             await TestInRegularAndScript1Async(
@@ -283,7 +284,7 @@ class C2
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Theory]
         [CombinatorialData]
         public async Task FixAllDoesNotFixDifferentSymbolKinds(bool forMethods)
         {

@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
     public partial class UseLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseLocalFunctionTests(ITestOutputHelper logger)
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
 
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingBeforeCSharp7()
         {
             await TestMissingAsync(
@@ -52,7 +53,7 @@ class C
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingIfWrittenAfter()
         {
             await TestMissingAsync(
@@ -77,7 +78,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingIfWrittenInside()
         {
             await TestMissingAsync(
@@ -101,7 +102,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingForErrorType()
         {
             await TestMissingAsync(
@@ -123,7 +124,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingForMultipleVariables()
         {
             await TestMissingAsync(
@@ -146,7 +147,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMissingForField()
         {
             await TestMissingAsync(
@@ -166,7 +167,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SimpleLambda_Block()
         {
             await TestInRegularAndScript1Async(
@@ -206,7 +207,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_ParenLambdaNoType_Block()
         {
             await TestInRegularAndScript1Async(
@@ -246,7 +247,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_ParenLambdaWithType_Block()
         {
             await TestInRegularAndScript1Async(
@@ -286,7 +287,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_AnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -326,7 +327,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -356,7 +357,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_ParenLambdaNoType_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -386,7 +387,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_ParenLambdaWithType_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -416,7 +417,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SimpleLambda_Block()
         {
             await TestInRegularAndScript1Async(
@@ -456,7 +457,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SimpleLambda_Block_ExtraParens()
         {
             await TestInRegularAndScript1Async(
@@ -496,7 +497,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_ParenLambdaNoType_Block()
         {
             await TestInRegularAndScript1Async(
@@ -536,7 +537,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_ParenLambdaWithType_Block()
         {
             await TestInRegularAndScript1Async(
@@ -576,7 +577,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_AnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -616,7 +617,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -646,7 +647,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_ParenLambdaNoType_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -676,7 +677,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_ParenLambdaWithType_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -706,7 +707,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_WrongName()
         {
             await TestMissingAsync(
@@ -730,7 +731,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_InitializedToOtherValue()
         {
             await TestMissingAsync(
@@ -754,7 +755,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SimpleLambda_Block()
         {
             await TestInRegularAndScript1Async(
@@ -795,7 +796,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -836,7 +837,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SimpleLambda_Block_DefaultLiteral()
         {
             await TestInRegularAndScript1Async(
@@ -880,7 +881,7 @@ class C
             new TestParameters(parseOptions: CSharp72ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression()
         {
             await TestInRegularAndScript1Async(
@@ -921,7 +922,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression_var()
         {
             await TestInRegularAndScript1Async(
@@ -962,7 +963,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_ParenLambdaNoType_Block()
         {
             await TestInRegularAndScript1Async(
@@ -1003,7 +1004,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_ParenLambdaWithType_Block()
         {
             await TestInRegularAndScript1Async(
@@ -1044,7 +1045,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_AnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -1085,7 +1086,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -1116,7 +1117,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_ParenLambdaNoType_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -1147,7 +1148,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_ParenLambdaWithType_ExprBody()
         {
             await TestInRegularAndScript1Async(
@@ -1178,7 +1179,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -1212,7 +1213,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -1246,7 +1247,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestInRegularAndScript1Async(
@@ -1281,7 +1282,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestFixAll4()
         {
             await TestInRegularAndScript1Async(
@@ -1316,7 +1317,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -1358,7 +1359,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestInWithParameters()
         {
             await TestInRegularAndScript1Async(
@@ -1384,7 +1385,7 @@ class C
             new TestParameters(parseOptions: CSharp72ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestRefReadOnlyWithReturnType()
         {
             await TestInRegularAndScript1Async(
@@ -1408,7 +1409,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestMissingIfConvertedToNonDelegate()
         {
@@ -1429,7 +1430,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToDelegate()
         {
@@ -1464,7 +1465,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestNotAvailableIfConvertedToSystemDelegate()
         {
@@ -1483,7 +1484,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestNotAvailableIfConvertedToSystemMulticastDelegate()
         {
@@ -1502,7 +1503,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate0()
         {
@@ -1533,7 +1534,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate1()
         {
@@ -1564,7 +1565,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate2()
         {
@@ -1595,7 +1596,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate3()
         {
@@ -1626,7 +1627,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(22672, "https://github.com/dotnet/roslyn/issues/22672")]
         public async Task TestMissingIfAdded()
         {
@@ -1650,7 +1651,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(22672, "https://github.com/dotnet/roslyn/issues/22672")]
         public async Task TestMissingIfUsedInMemberAccess1()
         {
@@ -1673,7 +1674,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23150, "https://github.com/dotnet/roslyn/issues/23150")]
         public async Task TestMissingIfUsedInMemberAccess2()
         {
@@ -1699,7 +1700,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(22672, "https://github.com/dotnet/roslyn/issues/22672")]
         public async Task TestMissingIfUsedInExpressionTree()
         {
@@ -1723,7 +1724,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24344, "https://github.com/dotnet/roslyn/issues/24344")]
         public async Task TestMissingIfUsedInExpressionTree2()
         {
@@ -1744,7 +1745,7 @@ public class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23150, "https://github.com/dotnet/roslyn/issues/23150")]
         public async Task TestWithInvokeMethod1()
         {
@@ -1783,7 +1784,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23150, "https://github.com/dotnet/roslyn/issues/23150")]
         public async Task TestWithInvokeMethod2()
         {
@@ -1822,7 +1823,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23150, "https://github.com/dotnet/roslyn/issues/23150")]
         public async Task TestWithInvokeMethod3()
         {
@@ -1867,7 +1868,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23150, "https://github.com/dotnet/roslyn/issues/23150")]
         public async Task TestWithInvokeMethod4()
         {
@@ -1912,7 +1913,7 @@ class Enclosing<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
         public async Task TestWithRecursiveInvokeMethod1()
         {
@@ -1938,7 +1939,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364807853")]
         public async Task TestWithRecursiveInvokeMethod2()
         {
@@ -1964,7 +1965,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364935495")]
         public async Task TestWithNestedInvokeMethod()
         {
@@ -1991,7 +1992,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithNestedRecursiveInvokeMethod()
         {
             await TestInRegularAndScript1Async(
@@ -2016,7 +2017,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithDefaultParameter1()
         {
             await TestInRegularAndScript1Async(
@@ -2040,7 +2041,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364655480")]
         public async Task TestWithDefaultParameter2()
         {
@@ -2065,7 +2066,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithDefaultParameter3()
         {
             await TestInRegularAndScript1Async(
@@ -2089,7 +2090,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364764542")]
         public async Task TestWithUnmatchingParameterList1()
         {
@@ -2114,7 +2115,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithUnmatchingParameterList2()
         {
             await TestInRegularAndScript1Async(
@@ -2138,7 +2139,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithAsyncLambdaExpression()
         {
             await TestInRegularAndScript1Async(
@@ -2164,7 +2165,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithAsyncAnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -2190,7 +2191,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithParameterlessAnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -2222,7 +2223,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24764, "https://github.com/dotnet/roslyn/issues/24764")]
         public async Task TestWithNamedArguments1()
         {
@@ -2253,7 +2254,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(24764, "https://github.com/dotnet/roslyn/issues/24764")]
         public async Task TestWithNamedArguments2()
         {
@@ -2286,7 +2287,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithNamedArgumentsAndBrokenCode1()
         {
             await TestInRegularAndScript1Async(
@@ -2318,7 +2319,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithNamedArgumentsAndBrokenCode2()
         {
             await TestInRegularAndScript1Async(
@@ -2352,7 +2353,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithNamedAndDefaultArguments()
         {
             await TestInRegularAndScript1Async(
@@ -2385,7 +2386,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithNamedAndDefaultArgumentsAndNestedRecursiveInvocations_FixAll()
         {
             await TestInRegularAndScript1Async(
@@ -2439,7 +2440,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine1()
         {
             await TestInRegularAndScript1Async(
@@ -2464,7 +2465,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine2()
         {
             await TestInRegularAndScript1Async(
@@ -2489,7 +2490,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine2Async()
         {
             await TestInRegularAndScript1Async(
@@ -2514,7 +2515,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine2MultiToken()
         {
             await TestInRegularAndScript1Async(
@@ -2537,7 +2538,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
         {
             await TestInRegularAndScript1Async(
@@ -2562,7 +2563,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine3()
         {
             await TestInRegularAndScript1Async(
@@ -2587,7 +2588,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine4()
         {
             await TestInRegularAndScript1Async(
@@ -2612,7 +2613,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSimpleInitialization_SingleLine4Async()
         {
             await TestInRegularAndScript1Async(
@@ -2637,7 +2638,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SingleLine1()
         {
             await TestInRegularAndScript1Async(
@@ -2662,7 +2663,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SingleLine2()
         {
             await TestInRegularAndScript1Async(
@@ -2687,7 +2688,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SingleLine2Async()
         {
             await TestInRegularAndScript1Async(
@@ -2712,7 +2713,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SingleLine3()
         {
             await TestInRegularAndScript1Async(
@@ -2737,7 +2738,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SingleLine4()
         {
             await TestInRegularAndScript1Async(
@@ -2762,7 +2763,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestCastInitialization_SingleLine4Async()
         {
             await TestInRegularAndScript1Async(
@@ -2787,7 +2788,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SingleLine1()
         {
             await TestInRegularAndScript1Async(
@@ -2813,7 +2814,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SingleLine2()
         {
             await TestInRegularAndScript1Async(
@@ -2839,7 +2840,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SingleLine2Async()
         {
             await TestInRegularAndScript1Async(
@@ -2865,7 +2866,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SingleLine3()
         {
             await TestInRegularAndScript1Async(
@@ -2891,7 +2892,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SingleLine4()
         {
             await TestInRegularAndScript1Async(
@@ -2917,7 +2918,7 @@ class C
         }
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestSplitInitialization_SingleLine4Async()
         {
             await TestInRegularAndScript1Async(
@@ -2942,7 +2943,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
         public async Task TestNotAvailableIfTypeParameterChanged1()
         {
@@ -2965,7 +2966,7 @@ class Enclosing<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
         public async Task TestNotAvailableIfTypeParameterChanged2()
         {
@@ -2991,7 +2992,7 @@ class Enclosing<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
         public async Task TestNotAvailableIfTypeParameterChanged3()
         {
@@ -3012,7 +3013,7 @@ class Enclosing<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
         public async Task TestNotAvailableIfTypeParameterChanged4()
         {
@@ -3038,7 +3039,7 @@ class Enclosing<T>
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27950"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27950")]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
         public async Task TestAvailableIfTypeParameterNotChanged1()
         {
@@ -3079,7 +3080,7 @@ class Enclosing<T> : DelegateEnclosing<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
         public async Task TestAvailableIfTypeParameterNotChanged2()
         {
@@ -3121,7 +3122,7 @@ class Enclosing<U> : DelegateEnclosing<U>
         }
 
         [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56963"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56963")]
         public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
         {
             await TestInRegularAndScript1Async(
@@ -3150,7 +3151,7 @@ class C
         }
 
         [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestAvailableWithCastIntroducedForGenericTypeInference1()
         {
             await TestInRegularAndScript1Async(
@@ -3187,7 +3188,7 @@ class C
         }
 
         [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestAvailableWithCastIntroducedForGenericTypeInference2()
         {
             await TestInRegularAndScript1Async(
@@ -3231,7 +3232,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestAvailableWithCastIntroducedForOverloadResolution()
         {
             await TestInRegularAndScript1Async(
@@ -3279,7 +3280,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
         {
             await TestInRegularAndScript1Async(
@@ -3328,7 +3329,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotAvailableWithInvalidDeclaration()
         {
             await TestMissingAsync(
@@ -3352,7 +3353,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotAvailableWithInvalidDeclaration2()
         {
             await TestMissingAsync(
@@ -3376,7 +3377,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestNotAvailableWithInvalidDeclaration3()
         {
             await TestMissingAsync(
@@ -3400,7 +3401,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithInvalidUnrelatedCode()
         {
             await TestInRegularAndScript1Async(
@@ -3437,7 +3438,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithInvalidUnrelatedCode2()
         {
             await TestInRegularAndScript1Async(
@@ -3474,7 +3475,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithObsoleteCode()
         {
             await TestInRegularAndScript1Async(
@@ -3523,7 +3524,7 @@ class C
         }
 
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithDeclarationWarning()
         {
             await TestInRegularAndScript1Async(
@@ -3561,7 +3562,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestMakeStaticIfNoCaptures()
         {
             await TestInRegularAndScript1Async(
@@ -3601,7 +3602,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestDoNotMakeStaticIfCaptures()
         {
             await TestInRegularAndScript1Async(
@@ -3643,7 +3644,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithAsyncLambdaExpression_MakeStatic()
         {
             await TestInRegularAndScript1Async(
@@ -3669,7 +3670,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithNullableParameterAndReturn()
         {
             await TestInRegularAndScript1Async(
@@ -3697,7 +3698,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact]
         public async Task TestWithDiscardParameters()
         {
             await TestInRegularAndScript1Async(

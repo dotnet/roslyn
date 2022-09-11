@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
     public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
             };
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task EmptyBlockBody()
         {
             var text = @"
@@ -66,7 +67,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task EmptyBody()
         {
             var text = @"
@@ -92,7 +93,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Body()
         {
             var text = @"
@@ -122,7 +123,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task BlockBody()
         {
             var text = @"
@@ -156,7 +157,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment()
         {
             var text = @"
@@ -190,7 +191,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment2()
         {
             var text = @"
@@ -223,7 +224,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment3()
         {
             var text = @"
@@ -249,7 +250,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment4()
         {
             var text = @"
@@ -279,7 +280,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment5()
         {
             var text = @"
@@ -309,7 +310,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment6()
         {
             var text = @"
@@ -342,7 +343,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Comment7()
         {
             var text = @"
@@ -374,7 +375,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task TestCommentsInTheMiddleOfParentheses()
         {
             var text = @"
@@ -400,7 +401,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task TestCommentsAtBeginningOfParentheses()
         {
             var text = @"
@@ -426,7 +427,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task TestCommentsAtTheEndOfParentheses()
         {
             var text = @"
@@ -452,7 +453,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task CollectionStatement()
         {
             var text = @"
@@ -484,7 +485,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task CollectionConflict()
         {
             var text = @"
@@ -520,7 +521,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task VariableWritten()
         {
             var text = @"
@@ -553,7 +554,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task IndexConflict()
         {
             var text = @"
@@ -586,7 +587,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task StructPropertyReadFromAndDiscarded()
         {
             var text = @"
@@ -629,7 +630,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task StructPropertyReadFromAndAssignedToLocal()
         {
             var text = @"
@@ -672,7 +673,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task WrongCaretPosition()
         {
             var text = @"
@@ -693,7 +694,7 @@ class Test
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task TestCaretBefore()
         {
             var text = @"
@@ -726,7 +727,7 @@ class Test
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task TestCaretAfter()
         {
             var text = @"
@@ -759,7 +760,7 @@ class Test
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task TestSelection()
         {
             var text = @"
@@ -791,7 +792,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Field()
         {
             var text = @"
@@ -824,7 +825,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task ArrayElement()
         {
             var text = @"
@@ -858,7 +859,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Parameter()
         {
             var text = @"
@@ -888,7 +889,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Property()
         {
             var text = @"
@@ -921,7 +922,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Interface()
         {
             var text = @"
@@ -958,7 +959,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task IListOfT()
         {
             var text = @"
@@ -995,7 +996,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task IReadOnlyListOfT()
         {
             var text = @"
@@ -1052,7 +1053,7 @@ class ReadOnly<T> : IReadOnlyList<T>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task IList()
         {
             var text = @"
@@ -1131,7 +1132,7 @@ class List : IList
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740")]
         public async Task ImmutableArray()
         {
             var text = @"
@@ -1175,7 +1176,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task ExplicitInterface()
         {
             var text = @"
@@ -1234,7 +1235,7 @@ class Explicit : IReadOnlyList<int>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task DoubleExplicitInterface()
         {
             var text = @"
@@ -1269,7 +1270,7 @@ class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task DoubleExplicitInterfaceWithExplicitType()
         {
             var text = @"
@@ -1336,7 +1337,7 @@ class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task MixedInterfaceImplementation()
         {
             var text = @"
@@ -1402,7 +1403,7 @@ class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task MixedInterfaceImplementationWithExplicitType()
         {
             var text = @"
@@ -1469,7 +1470,7 @@ class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task PreserveUserExpression()
         {
             var text = @"
@@ -1540,7 +1541,7 @@ namespace NS
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task EmbededStatement()
         {
             var text = @"
@@ -1556,7 +1557,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task EmbededStatement2()
         {
             var text = @"
@@ -1588,7 +1589,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task IndexConflict2()
         {
             var text = @"
@@ -1621,7 +1622,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task UseTypeAsUsedInForeach()
         {
             var text = @"
@@ -1654,7 +1655,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task String()
         {
             var text = @"
@@ -1687,7 +1688,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task StringLocalConst()
         {
             var text = @"
@@ -1720,7 +1721,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task StringConst()
         {
             var text = @"
@@ -1755,7 +1756,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task ElementExplicitCast()
         {
             var text = @"
@@ -1789,7 +1790,7 @@ class Test
         }
 
         [WorkItem(50469, "https://github.com/dotnet/roslyn/issues/50469")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task PreventExplicitCastToVar()
         {
             var text = @"
@@ -1822,7 +1823,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task NotAssignable()
         {
             var text = @"
@@ -1841,7 +1842,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task ElementMissing()
         {
             var text = @"
@@ -1860,7 +1861,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task ElementMissing2()
         {
             var text = @"
@@ -1878,7 +1879,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task StringExplicitType()
         {
             var text = @"
@@ -1911,7 +1912,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task Var()
         {
             var text = @"
@@ -1970,7 +1971,7 @@ class Explicit : IReadOnlyList<int>
             await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         public async Task ArrayRank2()
         {
             var text = @"
@@ -1988,7 +1989,7 @@ class Test
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact]
         [WorkItem(48950, "https://github.com/dotnet/roslyn/issues/48950")]
         public async Task NullableReferenceVar()
         {

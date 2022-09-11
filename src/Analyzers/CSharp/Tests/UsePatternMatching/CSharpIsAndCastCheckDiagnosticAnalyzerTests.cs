@@ -21,6 +21,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public CSharpIsAndCastCheckDiagnosticAnalyzerTests(ITestOutputHelper logger)
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpIsAndCastCheckDiagnosticAnalyzer(), new CSharpIsAndCastCheckCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInCSharp6()
         {
             await TestMissingAsync(
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInWrongName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInWrongType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnMultiVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnNonDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnAsExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckComplexExpression1()
         {
             await TestInRegularAndScript1Async(
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestInlineTypeCheckWithElse()
         {
             await TestInRegularAndScript1Async(
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments1()
         {
             await TestInRegularAndScript1Async(
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments2()
         {
             await TestInRegularAndScript1Async(
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments3()
         {
             await TestInRegularAndScript1Async(
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         }
 
         [WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments4()
         {
             await TestInRegularAndScript1Async(
@@ -328,7 +329,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckParenthesized1()
         {
             await TestInRegularAndScript1Async(
@@ -353,7 +354,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckParenthesized2()
         {
             await TestInRegularAndScript1Async(
@@ -378,7 +379,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckParenthesized3()
         {
             await TestInRegularAndScript1Async(
@@ -403,7 +404,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeConflict1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -423,7 +424,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeConflict2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -444,7 +445,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeConflict3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -465,7 +466,7 @@ namespace N {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckScopeNonConflict1()
         {
             await TestInRegularAndScript1Async(
@@ -503,7 +504,7 @@ namespace N {
         }
 
         [WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingWhenTypesDoNotMatch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -535,7 +536,7 @@ public static class C
         }
 
         [WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingWithNullableType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -555,7 +556,7 @@ class C
         }
 
         [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingWithDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -574,7 +575,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestSeverity()
         {
             var source =

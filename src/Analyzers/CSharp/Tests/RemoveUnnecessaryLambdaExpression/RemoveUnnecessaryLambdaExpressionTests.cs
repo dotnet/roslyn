@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
        CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer,
        CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
     public class RemoveUnnecessaryLambdaExpressionTests
     {
         private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.Preview)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
         private static Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
             => TestInRegularAndScriptAsync(testCode, testCode, version);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestMissingInCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -51,7 +52,7 @@ class C
 }", LanguageVersion.CSharp10);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestBasicCase()
         {
             await TestInRegularAndScriptAsync(
@@ -81,7 +82,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithOptionOff()
         {
             var code = @"using System;
@@ -105,7 +106,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotOnStaticLambda()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -123,7 +124,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotWithOptionalParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -141,7 +142,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotWithParams1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -159,7 +160,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotWithParams2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -177,7 +178,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithParams1()
         {
             await TestInRegularAndScriptAsync(
@@ -207,7 +208,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotWithRefChange1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -225,7 +226,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotWithRefChange2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -245,7 +246,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithSameRef()
         {
             await TestInRegularAndScriptAsync(
@@ -280,7 +281,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotOnConversionToObject()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -298,7 +299,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithParenthesizedLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -328,7 +329,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithAnonymousMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -358,7 +359,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithAnonymousMethodNoParameterList()
         {
             await TestInRegularAndScriptAsync(
@@ -388,7 +389,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestFixCoContravariance1()
         {
             await TestInRegularAndScriptAsync(
@@ -418,7 +419,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestFixCoContravariance2()
         {
             await TestInRegularAndScriptAsync(
@@ -448,7 +449,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestFixCoContravariance3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -466,7 +467,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestFixCoContravariance4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -484,7 +485,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestFixCoContravariance5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -502,7 +503,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestTwoArgs()
         {
             await TestInRegularAndScriptAsync(
@@ -532,7 +533,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestMultipleArgIncorrectPassing1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -550,7 +551,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestMultipleArgIncorrectPassing2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -568,7 +569,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestMultipleArgIncorrectPassing3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -586,7 +587,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestReturnStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -618,7 +619,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestReturnStatement2()
         {
             await TestInRegularAndScriptAsync(
@@ -651,7 +652,7 @@ class C
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -679,7 +680,7 @@ class A
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithConstraint1()
         {
             var code = @"
@@ -729,7 +730,7 @@ class A
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithConstraint2()
         {
             var code = @"
@@ -757,7 +758,7 @@ class A
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -792,7 +793,7 @@ class C<T>
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestWithLambdaWithDynamic()
         {
             await TestInRegularAndScriptAsync(
@@ -865,7 +866,7 @@ class C<T>
         }
 
         [WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -904,7 +905,7 @@ class C
         }
 
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNotWithSideEffects()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -920,7 +921,7 @@ class C
         }
 
         [WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -946,7 +947,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestTaskOfT1()
         {
             await TestInRegularAndScriptAsync(
@@ -978,7 +979,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTaskOfT1()
         {
             await TestInRegularAndScriptAsync(
@@ -1010,7 +1011,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTaskOfT2()
         {
             await TestInRegularAndScriptAsync(
@@ -1042,7 +1043,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncNoAwait1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1061,7 +1062,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestTaskOfT1_Return()
         {
             await TestInRegularAndScriptAsync(
@@ -1093,7 +1094,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTaskOfT1_Return()
         {
             await TestInRegularAndScriptAsync(
@@ -1125,7 +1126,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTaskOfT2_Return()
         {
             await TestInRegularAndScriptAsync(
@@ -1157,7 +1158,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncNoAwait1_Return()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1176,7 +1177,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestTask1()
         {
             await TestInRegularAndScriptAsync(
@@ -1208,7 +1209,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTask1()
         {
             await TestInRegularAndScriptAsync(
@@ -1240,7 +1241,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTask2()
         {
             await TestInRegularAndScriptAsync(
@@ -1272,7 +1273,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestTask1_ExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1291,7 +1292,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTask1_ExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1323,7 +1324,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncTask2_ExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1355,7 +1356,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestAsyncNoAwait1_ExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1374,7 +1375,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestExplicitGenericCall()
         {
             await TestInRegularAndScriptAsync(
@@ -1402,7 +1403,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestImplicitGenericCall()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1419,7 +1420,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestNullabilityChanges()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1461,7 +1462,7 @@ namespace System.Diagnostics.CodeAnalysis
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -1491,7 +1492,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestNotWithPartialDefinition()
         {
@@ -1512,7 +1513,7 @@ public partial class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        [Fact]
         [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestWithPartialDefinitionAndImplementation()
         {

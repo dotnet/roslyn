@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
     /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
     /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     /// </summary>
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTests
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task PrependedDollarSign()
         {
             const string code = @"
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task SymbolsAndPunctuation()
         {
             const string code = @"
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task IdentifierThatLooksLikeCode()
         {
             const string code = @"

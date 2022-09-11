@@ -15,10 +15,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class SourceFileHandlingTests
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(1100114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100114")]
         public void IgnoreAdditionsOfXomlFiles()
         {
@@ -35,7 +35,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithLinkPathUsesThatAsAFolder()
         {
             using var environment = new TestEnvironment();
@@ -49,7 +48,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithLinkPathWithoutFolderWorksCorrectly()
         {
             using var environment = new TestEnvironment();
@@ -63,7 +61,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithNoLinkPathComputesEmptyFolder()
         {
             using var environment = new TestEnvironment();
@@ -78,7 +75,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithNoLinkPathComputesRelativeFolderPath()
         {
             using var environment = new TestEnvironment();

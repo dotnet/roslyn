@@ -11,20 +11,21 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class TypeContextTests : AbstractContextTests
     {
         protected override void CheckResult(bool validLocation, int position, SyntaxTree syntaxTree)
             => Assert.Equal(validLocation, syntaxTree.IsTypeContext(position, CancellationToken.None));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void EmptyFile()
             => VerifyTrue(@"$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void UsingDirective()
             => VerifyFalse(@"using $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void InactiveRegion()
         {
             VerifyFalse(@"#if false 
@@ -32,11 +33,11 @@ $$
 #endif");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void SingleLineComment1()
             => VerifyFalse(@"// $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void SingleLineComment2()
         {
             VerifyTrue(@"class C { 
@@ -44,46 +45,46 @@ $$
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MultiLineComment()
             => VerifyFalse(@"/*  $$   */");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void SingleLineXmlComment()
             => VerifyFalse(@"/// $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MultiLineXmlComment()
             => VerifyFalse(@"/**  $$   */");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void OpenStringLiteral()
             => VerifyFalse(AddInsideMethod("string s = \"$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void StringLiteral()
             => VerifyFalse(AddInsideMethod("string s = \"$$\";"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void OpenCharLiteral()
             => VerifyFalse(AddInsideMethod("char c = '$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AssemblyAttribute()
             => VerifyTrue(@"[assembly: $$]");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeAttribute()
         {
             VerifyTrue(@"[$$]
 class CL {}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeParamAttribute()
             => VerifyTrue(@"class CL<[A$$]T> {}");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MethodAttribute()
         {
             VerifyTrue(@"class CL {
@@ -92,7 +93,7 @@ class CL {}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MethodTypeParamAttribute()
         {
             VerifyTrue(@"class CL{
@@ -100,7 +101,7 @@ class CL {}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MethodParamAttribute()
         {
             VerifyTrue(@"class CL{
@@ -108,15 +109,15 @@ class CL {}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void NamespaceName()
             => VerifyFalse(@"namespace $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void UnderNamespace()
             => VerifyFalse(@"namespace NS { $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void OutsideOfType()
         {
             VerifyFalse(@"namespace NS {
@@ -124,15 +125,15 @@ class CL {}
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AfterDot()
             => VerifyFalse(@"[assembly: A.$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void UsingAlias()
             => VerifyTrue(@"using MyType = $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void IncompleteMember()
         {
             VerifyTrue(@"class CL {
@@ -140,7 +141,7 @@ $$");
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void IncompleteMemberAccessibility()
         {
             VerifyTrue(@"class CL {
@@ -148,321 +149,321 @@ $$");
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void BadStatement()
             => VerifyTrue(AddInsideMethod(@"var t = $$)c"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeTypeParameter()
             => VerifyFalse(@"class CL<$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeTypeParameterList()
             => VerifyFalse(@"class CL<T, $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void CastExpressionTypePart()
             => VerifyTrue(AddInsideMethod(@"var t = ($$)c"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ObjectCreationExpression()
             => VerifyTrue(AddInsideMethod(@"var t = new $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ArrayCreationExpression()
             => VerifyTrue(AddInsideMethod(@"var t = new $$ ["));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void StackAllocArrayCreationExpression()
             => VerifyTrue(AddInsideMethod(@"var t = stackalloc $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void FromClauseTypeOptPart()
             => VerifyTrue(AddInsideMethod(@"var t = from $$ c"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void JoinClause()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C join $$ j"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void DeclarationStatement()
             => VerifyTrue(AddInsideMethod(@"$$ i ="));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void VariableDeclaration()
             => VerifyTrue(AddInsideMethod(@"fixed($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ForEachStatement()
             => VerifyTrue(AddInsideMethod(@"foreach($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ForEachStatementNoToken()
             => VerifyFalse(AddInsideMethod(@"foreach $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void CatchDeclaration()
             => VerifyTrue(AddInsideMethod(@"try {} catch($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void FieldDeclaration()
         {
             VerifyTrue(@"class CL {
     $$ i");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void EventFieldDeclaration()
         {
             VerifyTrue(@"class CL {
     event $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ConversionOperatorDeclaration()
         {
             VerifyTrue(@"class CL {
     explicit operator $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ConversionOperatorDeclarationNoToken()
         {
             VerifyFalse(@"class CL {
     explicit $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void PropertyDeclaration()
         {
             VerifyTrue(@"class CL {
     $$ Prop {");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void EventDeclaration()
         {
             VerifyTrue(@"class CL {
     event $$ Event {");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void IndexerDeclaration()
         {
             VerifyTrue(@"class CL {
     $$ this");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Parameter()
         {
             VerifyTrue(@"class CL {
     void Method($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ArrayType()
         {
             VerifyTrue(@"class CL {
     $$ [");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void PointerType()
         {
             VerifyTrue(@"class CL {
     $$ *");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void NullableType()
         {
             VerifyTrue(@"class CL {
     $$ ?");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void DelegateDeclaration()
         {
             VerifyTrue(@"class CL {
     delegate $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MethodDeclaration()
         {
             VerifyTrue(@"class CL {
     $$ M(");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void OperatorDeclaration()
         {
             VerifyTrue(@"class CL {
     $$ operator");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ParenthesizedExpression()
             => VerifyTrue(AddInsideMethod(@"($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void InvocationExpression()
             => VerifyTrue(AddInsideMethod(@"$$("));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ElementAccessExpression()
             => VerifyTrue(AddInsideMethod(@"$$["));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void Argument()
             => VerifyTrue(AddInsideMethod(@"i[$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void CastExpressionExpressionPart()
             => VerifyTrue(AddInsideMethod(@"(c)$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void FromClauseInPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void LetClauseExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C let n = $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void OrderingExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C orderby $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void SelectClauseExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C select $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ExpressionStatement()
             => VerifyTrue(AddInsideMethod(@"$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ReturnStatement()
             => VerifyTrue(AddInsideMethod(@"return $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ThrowStatement()
             => VerifyTrue(AddInsideMethod(@"throw $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void YieldReturnStatement()
             => VerifyTrue(AddInsideMethod(@"yield return $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ForEachStatementExpressionPart()
             => VerifyTrue(AddInsideMethod(@"foreach(T t in $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void UsingStatementExpressionPart()
             => VerifyTrue(AddInsideMethod(@"using($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void LockStatement()
             => VerifyTrue(AddInsideMethod(@"lock($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void EqualsValueClause()
             => VerifyTrue(AddInsideMethod(@"var i = $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ForStatementInitializersPart()
             => VerifyTrue(AddInsideMethod(@"for($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ForStatementConditionOptPart()
             => VerifyTrue(AddInsideMethod(@"for(i=0;$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ForStatementIncrementorsPart()
             => VerifyTrue(AddInsideMethod(@"for(i=0;i>10;$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void DoStatementConditionPart()
             => VerifyTrue(AddInsideMethod(@"do {} while($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void WhileStatementConditionPart()
             => VerifyTrue(AddInsideMethod(@"while($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ArrayRankSpecifierSizesPart()
             => VerifyTrue(AddInsideMethod(@"int [$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void PrefixUnaryExpression()
             => VerifyTrue(AddInsideMethod(@"+$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void PostfixUnaryExpression()
             => VerifyTrue(AddInsideMethod(@"$$++"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void BinaryExpressionLeftPart()
             => VerifyTrue(AddInsideMethod(@"$$ + 1"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void BinaryExpressionRightPart()
             => VerifyTrue(AddInsideMethod(@"1 + $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AssignmentExpressionLeftPart()
             => VerifyTrue(AddInsideMethod(@"$$ = 1"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AssignmentExpressionRightPart()
             => VerifyTrue(AddInsideMethod(@"1 = $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ConditionalExpressionConditionPart()
             => VerifyTrue(AddInsideMethod(@"$$? 1:"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ConditionalExpressionWhenTruePart()
             => VerifyTrue(AddInsideMethod(@"true? $$:"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ConditionalExpressionWhenFalsePart()
             => VerifyTrue(AddInsideMethod(@"true? 1:$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void JoinClauseInExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C join p in $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void JoinClauseLeftExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C join p in P on $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void JoinClauseRightExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C join p in P on id equals $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void WhereClauseConditionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C where $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void GroupClauseGroupExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C group $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void GroupClauseByExpressionPart()
             => VerifyTrue(AddInsideMethod(@"var t = from c in C group g by $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void IfStatement()
             => VerifyTrue(AddInsideMethod(@"if ($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void SwitchStatement()
             => VerifyTrue(AddInsideMethod(@"switch($$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void SwitchLabelCase()
         {
             VerifyTrue(AddInsideMethod(@"switch(i)
@@ -470,59 +471,59 @@ $$");
         case $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void InitializerExpression()
             => VerifyTrue(AddInsideMethod(@"var t = new [] { $$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeParameterConstraintClause()
             => VerifyTrue(@"class CL<T> where T : $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeParameterConstraintClauseList()
             => VerifyTrue(@"class CL<T> where T : A, $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void TypeParameterConstraintClauseAnotherWhere()
             => VerifyFalse(@"class CL<T> where T : A where$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void BaseList1()
             => VerifyTrue(@"class CL : $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void BaseList2()
             => VerifyTrue(@"class CL : B, $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void BaseListWhere()
             => VerifyFalse(@"class CL<T> : B where$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AliasedName()
             => VerifyFalse(AddInsideMethod(@"global::$$"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ConstructorInitializer()
             => VerifyFalse(@"class C { C() : $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ExplicitInterfaceImplementationGeneric1()
             => VerifyFalse(@"class C { void IGoo<$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ExplicitInterfaceImplementationGenericList1()
             => VerifyFalse(@"class C { void IGoo<T,$$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ExplicitInterfaceImplementationGeneric2()
             => VerifyTrue(@"class C { void IGoo<$$>.Method(");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void ExplicitInterfaceImplementationGenericList2()
             => VerifyTrue(@"class C { void IGoo<T,$$>.Method(");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void MemberDeclarationInScript()
             => VerifyOnlyInScript(@"private $$");
     }

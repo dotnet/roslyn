@@ -5,29 +5,39 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
-    <ExportLanguageService(GetType(ITodoCommentDataService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicTodoCommentService
-        Inherits AbstractTodoCommentService
+    <ExportLanguageServiceFactory(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicTodoCommentServiceFactory
+        Implements ILanguageServiceFactory
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicTodoCommentService()
+        End Function
+
+    End Class
+
+    Friend Class VisualBasicTodoCommentService
+        Inherits AbstractTodoCommentService
+
         Protected Overrides Sub AppendTodoComments(
                 commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
                 document As SyntacticDocument,
                 trivia As SyntaxTrivia,
-                todoList As ArrayBuilder(Of TodoCommentData))
+                todoList As ArrayBuilder(Of TodoComment))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
                 Return
             End If
 
@@ -51,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             ' 3 for REM
             Dim index = GetFirstCharacterIndex(message)
             If index >= message.Length OrElse
-                       index > message.Length - "REM".Length Then
+                       index > message.Length - 3 Then
                 Return index
             End If
 

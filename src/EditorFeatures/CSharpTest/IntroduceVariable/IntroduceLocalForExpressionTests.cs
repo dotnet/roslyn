@@ -17,12 +17,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
     public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpIntroduceLocalForExpressionCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_NoSemicolon()
         {
             await TestInRegularAndScriptAsync(
@@ -48,7 +49,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_NoSemicolon_BlankLineAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -76,7 +77,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_NoSemicolon_SelectExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -102,7 +103,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task IntroduceLocal_Inside_Expression()
         {
@@ -129,7 +130,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_Semicolon()
         {
             await TestInRegularAndScriptAsync(
@@ -155,7 +156,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_Semicolon_BlankLineAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -183,7 +184,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_Semicolon_SelectExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -209,7 +210,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_Semicolon_SelectStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -235,7 +236,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task MissingOnAssignmentExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -252,7 +253,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_Space()
         {
             await TestInRegularAndScriptAsync(
@@ -278,7 +279,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_LeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -306,7 +307,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_PreferVar()
         {
             await TestInRegularAndScriptAsync(
@@ -336,7 +337,7 @@ class C
     });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task MissingOnVoidCall()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -352,7 +353,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task MissingOnDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -368,7 +369,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [Fact]
         public async Task IntroduceLocal_ArithmeticExpression()
         {
             await TestInRegularAndScriptAsync(

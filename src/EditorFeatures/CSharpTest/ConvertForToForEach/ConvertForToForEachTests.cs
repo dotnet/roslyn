@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
     public class ConvertForToForEachTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
             };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestArray1()
         {
             await TestInRegularAndScript1Async(
@@ -63,7 +64,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWarnIfCrossesFunctionBoundary()
         {
             await TestInRegularAndScript1Async(
@@ -99,7 +100,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWarnIfCollectionPotentiallyMutated1()
         {
             await TestInRegularAndScript1Async(
@@ -133,7 +134,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWarnIfCollectionPotentiallyMutated2()
         {
             await TestInRegularAndScript1Async(
@@ -167,7 +168,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestNoWarnIfCollectionPropertyAccess()
         {
             await TestInRegularAndScript1Async(
@@ -201,7 +202,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestNoWarnIfDoesNotCrossFunctionBoundary()
         {
             await TestInRegularAndScript1Async(
@@ -237,7 +238,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMultipleReferences()
         {
             await TestInRegularAndScript1Async(
@@ -269,7 +270,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestEmbeddedStatement()
         {
             await TestInRegularAndScript1Async(
@@ -295,7 +296,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestPostIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -325,7 +326,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestArrayPlusEqualsIncrementor()
         {
             await TestInRegularAndScript1Async(
@@ -356,7 +357,7 @@ class C
         }
 
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestBeforeKeyword()
         {
             await TestInRegularAndScript1Async(
@@ -386,7 +387,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingAfterOpenParen()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -405,7 +406,7 @@ class C
         }
 
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestInParentheses()
         {
             await TestInRegularAndScript1Async(
@@ -435,7 +436,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingBeforeCloseParen()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -454,7 +455,7 @@ class C
         }
 
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestInParentheses2()
         {
             await TestInRegularAndScript1Async(
@@ -484,7 +485,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestAtEndOfFor()
         {
             await TestInRegularAndScript1Async(
@@ -514,7 +515,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestForSelected()
         {
             await TestInRegularAndScript1Async(
@@ -544,7 +545,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestBeforeOpenParen()
         {
             await TestInRegularAndScript1Async(
@@ -574,7 +575,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestAfterCloseParen()
         {
             await TestInRegularAndScript1Async(
@@ -604,7 +605,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingWithoutIncrementor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -622,7 +623,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingWithoutIncorrectIncrementor1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -640,7 +641,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingWithoutIncorrectIncrementor2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -658,7 +659,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingWithoutCondition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -676,7 +677,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingWithIncorrectCondition1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -694,7 +695,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingWithIncorrectCondition2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -712,7 +713,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWithoutInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -730,7 +731,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWithInitializerOfVariableOutsideLoop()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -749,7 +750,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWithUninitializedVariable()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -767,7 +768,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestNotStartingAtZero()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -785,7 +786,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWithMultipleVariables()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -803,7 +804,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestList1()
         {
             await TestInRegularAndScript1Async(
@@ -835,7 +836,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestChooseNameFromDeclarationStatement()
         {
             await TestInRegularAndScript1Async(
@@ -868,7 +869,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestIgnoreFormattingForReferences()
         {
             await TestInRegularAndScript1Async(
@@ -901,7 +902,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestChooseNameFromDeclarationStatement_PreserveComments()
         {
             await TestInRegularAndScript1Async(
@@ -938,7 +939,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestChooseNameFromDeclarationStatement_PreserveDirectives()
         {
             await TestInRegularAndScript1Async(
@@ -979,7 +980,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingIfVariableUsedNotForIndexing()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -997,7 +998,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMissingIfVariableUsedForIndexingNonCollection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1015,7 +1016,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestWarningIfCollectionWrittenTo()
         {
             await TestInRegularAndScript1Async(
@@ -1045,7 +1046,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task UseVarIfPreferred1()
         {
             await TestInRegularAndScriptAsync(
@@ -1075,7 +1076,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestDifferentIndexerAndEnumeratorType()
         {
             await TestInRegularAndScriptAsync(
@@ -1125,7 +1126,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestSameIndexerAndEnumeratorType()
         {
             await TestInRegularAndScriptAsync(
@@ -1175,7 +1176,7 @@ class C
 }", options: ImplicitTypeEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -1209,7 +1210,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestNotWithDeconstruction()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1227,7 +1228,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMultidimensionalArray1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1245,7 +1246,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestMultidimensionalArray2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1263,7 +1264,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestJaggedArray1()
         {
             await TestInRegularAndScript1Async(
@@ -1293,7 +1294,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestJaggedArray2()
         {
             await TestInRegularAndScript1Async(
@@ -1323,7 +1324,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestJaggedArray3()
         {
             await TestInRegularAndScript1Async(
@@ -1360,7 +1361,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestJaggedArray4()
         {
             await TestInRegularAndScript1Async(
@@ -1396,7 +1397,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestJaggedArray5()
         {
             await TestInRegularAndScript1Async(
@@ -1432,7 +1433,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestJaggedArray6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1450,7 +1451,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestDoesNotUseLocalFunctionName()
         {
             await TestInRegularAndScript1Async(
@@ -1484,7 +1485,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestUsesLocalFunctionParameterName()
         {
             await TestInRegularAndScript1Async(
@@ -1522,7 +1523,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestDoesNotUseLambdaParameterWithCSharpLessThan8()
         {
             await TestInRegularAndScript1Async(
@@ -1556,7 +1557,7 @@ class C
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestUsesLambdaParameterNameInCSharp8()
         {
             await TestInRegularAndScript1Async(
@@ -1590,7 +1591,7 @@ class C
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        [Fact]
         public async Task TestNotWhenIteratingDifferentLists()
         {
             await TestMissingAsync(

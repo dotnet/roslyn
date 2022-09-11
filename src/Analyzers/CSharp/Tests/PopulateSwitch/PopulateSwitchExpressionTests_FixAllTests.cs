@@ -9,10 +9,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public partial class PopulateSwitchExpressionTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
             var input = @"
@@ -165,7 +165,6 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
             var input = @"
@@ -306,7 +305,6 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
             var input = @"

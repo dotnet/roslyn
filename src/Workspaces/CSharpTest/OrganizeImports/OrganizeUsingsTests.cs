@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -11,12 +12,14 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Organizing)]
     public class OrganizeUsingsTests
     {
         protected static async Task CheckAsync(
@@ -42,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
             Assert.Equal(final.ReplaceLineEndings(endOfLine ?? Environment.NewLine), newRoot.ToFullString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task EmptyFile()
             => await CheckAsync(string.Empty, string.Empty);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task SingleUsingStatement()
         {
             var initial = @"using A;";
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task AliasesAtBottom()
         {
             var initial =
@@ -73,7 +76,7 @@ using D = E;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task UsingStaticsBetweenUsingsAndAliases()
         {
             var initial =
@@ -98,7 +101,7 @@ using D = E;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task NestedStatements()
         {
             var initial =
@@ -183,7 +186,7 @@ namespace N3
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task FileScopedNamespace()
         {
             var initial =
@@ -208,7 +211,7 @@ using D;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task SpecialCaseSystem()
         {
             var initial =
@@ -226,7 +229,7 @@ using M2;
             await CheckAsync(initial, final, placeSystemNamespaceFirst: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task SpecialCaseSystemWithUsingStatic()
         {
             var initial =
@@ -248,7 +251,7 @@ using static Microsoft.Win32.Registry;
             await CheckAsync(initial, final, placeSystemNamespaceFirst: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotSpecialCaseSystem()
         {
             var initial =
@@ -267,7 +270,7 @@ using System.Linq;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotSpecialCaseSystemWithUsingStatics()
         {
             var initial =
@@ -288,7 +291,7 @@ using static System.BitConverter;";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task IndentationAfterSorting()
         {
             var initial =
@@ -322,7 +325,7 @@ namespace X.Y.Z { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotTouchCommentsAtBeginningOfFile1()
         {
             var initial =
@@ -348,7 +351,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotTouchCommentsAtBeginningOfFile2()
         {
             var initial =
@@ -374,7 +377,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotTouchCommentsAtBeginningOfFile3()
         {
             var initial =
@@ -400,7 +403,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
         public async Task DoNotTouchCommentsAtBeginningOfFile4()
         {
@@ -427,7 +430,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
         public async Task DoNotTouchCommentsAtBeginningOfFile5()
         {
@@ -457,7 +460,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoTouchCommentsAtBeginningOfFile1()
         {
             var initial =
@@ -482,7 +485,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoTouchCommentsAtBeginningOfFile2()
         {
             var initial =
@@ -507,7 +510,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoTouchCommentsAtBeginningOfFile3()
         {
             var initial =
@@ -532,7 +535,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task CommentsNotAtTheStartOfTheFile1()
         {
             var initial =
@@ -557,7 +560,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task CommentsNotAtTheStartOfTheFile2()
         {
             var initial =
@@ -583,7 +586,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotSortIfEndIfBlocks()
         {
             var initial =
@@ -604,7 +607,7 @@ namespace D { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task ExternAliases()
         {
             var initial =
@@ -684,7 +687,7 @@ namespace C
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DuplicateUsings()
         {
             var initial =
@@ -696,7 +699,7 @@ using A;";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task InlineComments()
         {
             var initial =
@@ -716,7 +719,7 @@ using A;";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task AllOnOneLine()
         {
             var initial =
@@ -730,7 +733,7 @@ using C; ";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task InsideRegionBlock()
         {
             var initial =
@@ -757,7 +760,7 @@ class Class1
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task NestedRegionBlock()
         {
             var initial =
@@ -772,7 +775,7 @@ using B;";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task MultipleRegionBlocks()
         {
             var initial =
@@ -789,7 +792,7 @@ using B;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task InterleavedNewlines()
         {
             var initial =
@@ -811,7 +814,7 @@ class D { }";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task InsideIfEndIfBlock()
         {
             var initial =
@@ -831,7 +834,7 @@ using C;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task IfEndIfBlockAbove()
         {
             var initial =
@@ -848,7 +851,7 @@ using E;";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task IfEndIfBlockMiddle()
         {
             var initial =
@@ -868,7 +871,7 @@ using G;";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task IfEndIfBlockBelow()
         {
             var initial =
@@ -885,7 +888,7 @@ using F;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task Korean()
         {
             var initial =
@@ -924,7 +927,7 @@ using 하;
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotSpecialCaseSystem1()
         {
             var initial =
@@ -953,7 +956,7 @@ using SystemZ;
             await CheckAsync(initial, final, placeSystemNamespaceFirst: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task DoNotSpecialCaseSystem2()
         {
             var initial =
@@ -996,7 +999,7 @@ using Z = System.Int32;
             await CheckAsync(initial, final, placeSystemNamespaceFirst: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task CaseSensitivity1()
         {
             var initial =
@@ -1038,13 +1041,44 @@ using bbb;
 using Bbb;
 using cc;
 using cC;
-using CC;
+using CC;";
 
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
+            string sortedKana;
+            if (GlobalizationUtilities.ICUMode())
+            {
+                sortedKana =
+@"using あ;
+using ｱ;
+using ああ;
+using あｱ;
+using ｱあ;
+using ｱｱ;
+using あア;
+using ｱア;
+using ア;
+using アあ;
+using アｱ;
+using アア;";
+            }
+            else
+            {
+                sortedKana =
+@"using ア;
+using ｱ;
+using あ;
+using アア;
+using アｱ;
+using ｱア;
+using ｱｱ;
+using アあ;
+using ｱあ;
+using あア;
+using あｱ;
+using ああ;";
+            }
 
             var final =
-@"using a;
+@$"using a;
 using A;
 using aa;
 using aA;
@@ -1071,25 +1105,12 @@ using cC;
 using cC;
 using Cc;
 using CC;
-using ア;
-using ｱ;
-using あ;
-using アア;
-using アｱ;
-using ｱア;
-using ｱｱ;
-using アあ;
-using ｱあ;
-using あア;
-using あｱ;
-using ああ;
-
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
+{sortedKana}
+";
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task CaseSensitivity2()
         {
             var initial =
@@ -1106,7 +1127,26 @@ using ｱあ;
 using ｱア;
 using ｱｱ;";
 
-            var final =
+            if (GlobalizationUtilities.ICUMode())
+            {
+                await CheckAsync(initial,
+@"using あ;
+using ｱ;
+using ああ;
+using あｱ;
+using ｱあ;
+using ｱｱ;
+using あア;
+using ｱア;
+using ア;
+using アあ;
+using アｱ;
+using アア;
+");
+            }
+            else
+            {
+                await CheckAsync(initial,
 @"using ア;
 using ｱ;
 using あ;
@@ -1119,13 +1159,12 @@ using ｱあ;
 using あア;
 using あｱ;
 using ああ;
-";
-
-            await CheckAsync(initial, final);
+");
+            }
         }
 
         [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task TestGrouping()
         {
             var initial =
@@ -1162,7 +1201,7 @@ using IntList = System.Collections.Generic.List<int>;
         }
 
         [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact]
         public async Task TestGrouping2()
         {
             // Make sure we don't insert extra newlines if they're already there.
@@ -1204,7 +1243,7 @@ using IntList = System.Collections.Generic.List<int>;
         }
 
         [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/19306")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Theory]
         [InlineData("\n")]
         [InlineData("\r\n")]
         public async Task TestGrouping3(string endOfLine)
