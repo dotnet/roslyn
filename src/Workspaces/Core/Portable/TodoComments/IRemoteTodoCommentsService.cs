@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         ValueTask ComputeTodoCommentsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
         ValueTask ReanalyzeAsync(CancellationToken cancellationToken);
-
-        ValueTask<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteTodoCommentsDiscoveryService)), Shared]

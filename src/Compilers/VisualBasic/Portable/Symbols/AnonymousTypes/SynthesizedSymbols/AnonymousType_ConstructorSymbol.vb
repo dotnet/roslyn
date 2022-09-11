@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeConstructorSymbol
             Inherits SynthesizedConstructorBase
 
-            Private _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
             Public Sub New(container As AnonymousTypeTemplateSymbol)
                 MyBase.New(VisualBasicSyntaxTree.DummyReference, container, False, Nothing, Nothing)

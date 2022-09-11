@@ -15,12 +15,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
             => typeof(TupleConstructionSignatureHelpProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvocationAfterOpenParen()
         {
             var markup = @"
@@ -35,7 +36,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvocationWithNullableReferenceTypes()
         {
             var markup = @"
@@ -51,7 +52,7 @@ class C
         }
 
         [WorkItem(655607, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestMissingTupleElement()
         {
             var markup = @"
@@ -69,7 +70,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvocationAfterOpenParen2()
         {
             var markup = @"
@@ -84,7 +85,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvocationAfterComma1()
         {
             var markup = @"
@@ -99,7 +100,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvocationAfterComma2()
         {
             var markup = @"
@@ -114,7 +115,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task ParameterIndexWithNameTyped()
         {
             var markup = @"
@@ -133,7 +134,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14277"), Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14277")]
         public async Task NestedTuple()
         {
             var markup = @"
@@ -148,7 +149,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task NestedTupleWhenNotInferred()
         {
             var markup = @"
@@ -163,7 +164,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task NestedTupleWhenNotInferred2()
         {
             var markup = @"
@@ -178,7 +179,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task NestedTupleWhenNotInferred3()
         {
             var markup = @"
@@ -193,7 +194,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task NestedTupleWhenNotInferred4()
         {
             var markup = @"
@@ -208,7 +209,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task MultipleOverloads()
         {
             var markup = @"
@@ -231,7 +232,7 @@ class Program
         }
 
         [WorkItem(14793, "https://github.com/dotnet/roslyn/issues/14793")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DoNotCrashInLinkedFile()
         {
             var markup = @"<Workspace>

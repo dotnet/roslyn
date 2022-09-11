@@ -11,12 +11,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(ExplicitInterfaceMemberCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_01()
         {
             var markup = @"
@@ -43,7 +44,7 @@ class Bar : IGoo
             await VerifyItemExistsAsync(markup, "With_Underscore", displayTextSuffix: "()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_02()
         {
             var markup = @"
@@ -64,7 +65,7 @@ interface IBar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_03()
         {
             var markup = @"
@@ -85,7 +86,7 @@ class Bar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitInterfaceMember_04()
         {
             var markup = @"
@@ -107,7 +108,7 @@ interface IBar : IGoo
         }
 
         [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitOnNotParen()
         {
             var markup = @"
@@ -136,7 +137,7 @@ class Bar : IGoo
         }
 
         [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitOnParen()
         {
             var markup = @"
@@ -164,7 +165,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
         public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
         {
@@ -195,7 +196,7 @@ class Bar : I2
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
         public async Task ExplicitInterfaceMemberCompletionDoesNotContainAccessors()
         {
@@ -222,7 +223,7 @@ class Bar : I1
             await VerifyItemExistsAsync(markup, "TestEvent");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotStaticMember_01()
         {
             var markup = @"
@@ -241,7 +242,7 @@ class Bar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotStaticMember_02()
         {
             var markup = @"
@@ -260,7 +261,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotSealedMember_01()
         {
             var markup = @"
@@ -279,7 +280,7 @@ class Bar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotSealedMember_02()
         {
             var markup = @"
@@ -298,7 +299,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotNestedType_01()
         {
             var markup = @"
@@ -317,7 +318,7 @@ class Bar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotNestedType_02()
         {
             var markup = @"
@@ -336,7 +337,7 @@ interface IBar : IGoo
             await VerifyItemIsAbsentAsync(markup, "Goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_01()
         {
@@ -372,7 +373,7 @@ public interface IGoo
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_02()
         {
@@ -408,7 +409,7 @@ public interface IGoo
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Generic_Tab()
         {
             var markup = @"
@@ -436,7 +437,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Generic_OpenBrace()
         {
             var markup = @"
@@ -464,7 +465,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Method_Tab()
         {
             var markup = @"
@@ -492,7 +493,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Method_OpenBrace()
         {
             var markup = @"
@@ -520,7 +521,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Indexer_Tab()
         {
             var markup = @"
@@ -548,7 +549,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VerifySignatureCommit_Indexer_OpenBrace()
         {
             var markup = @"
@@ -576,7 +577,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("ref")]
         [InlineData("in")]
         [InlineData("out")]
@@ -609,7 +610,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember()
         {
@@ -640,7 +641,7 @@ class Test2 : I2<Test2>
             await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember_TrueOperator()
         {
@@ -673,7 +674,7 @@ class C : I<C>
             await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
         {
@@ -704,7 +705,7 @@ class C : I<C>
             await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
         {
@@ -735,7 +736,7 @@ class C : I<C>
             await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestWithParamsParameter()
         {
             var markup = @"
@@ -765,7 +766,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestWithNullable()
         {
             var markup = @"
@@ -799,7 +800,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, "M<T>(T? x)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestEscapeIdentifier()
         {
             var markup = @"
@@ -829,7 +830,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestEscapeIdentifier2()
         {
             var markup = @"
@@ -859,7 +860,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, "M<@class>()", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestParameterWithDefaultValue()
         {
             var markup = @"
@@ -889,7 +890,7 @@ class C : I
             await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
         public async Task TestStaticAbstractCheckedUnaryOperator()
         {
@@ -924,7 +925,7 @@ class C : I1<C>
             await VerifyProviderCommitAsync(markup, "operator checked -(C x)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
         public async Task TestStaticAbstractCheckedBinaryOperator()
         {
@@ -959,7 +960,7 @@ class C : I1<C>
             await VerifyProviderCommitAsync(markup, "operator checked +(C x, C y)", expected, '\t');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(60215, "https://github.com/dotnet/roslyn/issues/60215")]
         public async Task TestStaticAbstractCheckedCastOperator()
         {

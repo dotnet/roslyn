@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public CSharpAsAndNullCheckTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAsAndNullCheckDiagnosticAnalyzer(), new CSharpAsAndNullCheckCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Theory]
         [InlineData("x != null", "o is string x")]
         [InlineData("null != x", "o is string x")]
         [InlineData("(object)x != null", "o is string x")]
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             await TestStatement($"return {input};", $"return {output};", version);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Theory]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
         [InlineData("(x = o as string) is object", "o is string x")]
@@ -81,7 +82,7 @@ $@"class C
 }}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(version)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInCSharp6()
         {
             await TestMissingAsync(
@@ -97,7 +98,7 @@ $@"class C
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInWrongName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -113,7 +114,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestInSwitchSection()
         {
             await TestInRegularAndScript1Async(
@@ -147,7 +148,7 @@ $@"class C
         }
 
         [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestRemoveNewLinesInSwitchStatement()
         {
             await TestInRegularAndScript1Async(
@@ -183,7 +184,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnNonDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -199,7 +200,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         [WorkItem(25237, "https://github.com/dotnet/roslyn/issues/25237")]
         public async Task TestMissingOnReturnStatement()
         {
@@ -213,7 +214,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnIsExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -229,7 +230,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckComplexExpression1()
         {
             await TestInRegularAndScript1Async(
@@ -254,7 +255,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestInlineTypeCheckWithElse()
         {
             await TestInRegularAndScript1Async(
@@ -285,7 +286,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments1()
         {
             await TestInRegularAndScript1Async(
@@ -312,7 +313,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments2()
         {
             await TestInRegularAndScript1Async(
@@ -338,7 +339,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComments3()
         {
             await TestInRegularAndScript1Async(
@@ -367,7 +368,7 @@ $@"class C
         }
 
         [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestRemoveNewLines()
         {
             await TestInRegularAndScript1Async(
@@ -396,7 +397,7 @@ $@"class C
         }
 
         [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
         {
             await TestInRegularAndScript1Async(
@@ -425,7 +426,7 @@ $@"class C
         }
 
         [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestRemoveNewLines2()
         {
             await TestInRegularAndScript1Async(
@@ -456,7 +457,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckComplexCondition1()
         {
             await TestInRegularAndScript1Async(
@@ -481,7 +482,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckComplexCondition2()
         {
             await TestInRegularAndScript1Async(
@@ -506,7 +507,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task InlineTypeCheckComplexCondition3()
         {
             await TestInRegularAndScript1Async(
@@ -531,7 +532,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -550,7 +551,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -568,7 +569,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment3()
         {
             await TestInRegularAndScript1Async(
@@ -601,7 +602,7 @@ $@"class C
         }
 
         [WorkItem(21097, "https://github.com/dotnet/roslyn/issues/21097")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -625,7 +626,7 @@ $@"class C
         }
 
         [WorkItem(24286, "https://github.com/dotnet/roslyn/issues/24286")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -642,7 +643,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -662,7 +663,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -681,7 +682,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         [WorkItem(28821, "https://github.com/dotnet/roslyn/issues/28821")]
         public async Task TestDefiniteAssignment8()
         {
@@ -707,7 +708,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         [WorkItem(28866, "https://github.com/dotnet/roslyn/issues/28866")]
         public async Task TestWrittenExpressionBeforeNullCheck()
         {
@@ -731,7 +732,7 @@ $@"class C
         }
 
         [WorkItem(15957, "https://github.com/dotnet/roslyn/issues/15957")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -765,7 +766,7 @@ $@"class C
         }
 
         [WorkItem(17129, "https://github.com/dotnet/roslyn/issues/17129")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await TestInRegularAndScript1Async(
@@ -809,7 +810,7 @@ namespace N
         }
 
         [WorkItem(17122, "https://github.com/dotnet/roslyn/issues/17122")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnNullableType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -830,7 +831,7 @@ namespace N
         }
 
         [WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingWhenTypesDoNotMatch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -862,7 +863,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingOnWhileNoInline()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -878,7 +879,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestWhileDefiniteAssignment1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -896,7 +897,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestWhileDefiniteAssignment2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -914,7 +915,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestWhileDefiniteAssignment3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -931,7 +932,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestWhileDefiniteAssignment4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -949,7 +950,7 @@ public static class C
         }
 
         [WorkItem(23504, "https://github.com/dotnet/roslyn/issues/23504")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task DoNotChangeOriginalFormatting1()
         {
             await TestInRegularAndScript1Async(
@@ -979,7 +980,7 @@ public static class C
         }
 
         [WorkItem(23504, "https://github.com/dotnet/roslyn/issues/23504")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task DoNotChangeOriginalFormatting2()
         {
             await TestInRegularAndScript1Async(
@@ -1005,7 +1006,7 @@ public static class C
         }
 
         [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingWithDynamic()
         {
             await TestMissingAsync(
@@ -1022,7 +1023,7 @@ public static class C
         }
 
         [WorkItem(21551, "https://github.com/dotnet/roslyn/issues/21551")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestOverloadedUserOperator()
         {
             await TestMissingAsync(
@@ -1041,7 +1042,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNegativeDefiniteAssignment1()
         {
             await TestInRegularAndScript1Async(
@@ -1064,7 +1065,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNegativeDefiniteAssignment2()
         {
             await TestInRegularAndScript1Async(
@@ -1099,7 +1100,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
         public async Task TestEmbeddedStatement1()
         {
@@ -1137,7 +1138,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
         public async Task TestEmbeddedStatement2()
         {
@@ -1160,7 +1161,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestUseBeforeDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1184,7 +1185,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestPossiblyUnassigned()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1210,7 +1211,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestOutOfScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1234,7 +1235,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDeclarationOnOuterBlock()
         {
             await TestInRegularAndScript1Async(
@@ -1269,7 +1270,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestConditionalExpression()
         {
             await TestInRegularAndScript1Async(
@@ -1290,7 +1291,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestConditionalExpression_OppositeBranch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1304,7 +1305,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_NoInlineTypeCheck()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1318,7 +1319,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_InlineTypeCheck()
         {
             await TestInRegularAndScript1Async(
@@ -1339,7 +1340,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_InScope()
         {
             await TestInRegularAndScript1Async(
@@ -1366,7 +1367,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_NotAssignedBeforeAccess()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1384,7 +1385,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_AssignedBeforeAccess()
         {
             await TestInRegularAndScript1Async(
@@ -1415,7 +1416,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_MultipleDeclarators()
         {
             await TestInRegularAndScript1Async(
@@ -1443,7 +1444,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_UseBeforeDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1460,7 +1461,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestForStatement_Initializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1477,7 +1478,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestLocalFunction()
         {
             await TestInRegularAndScript1Async(
@@ -1498,7 +1499,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestLocalFunction_UseOutOfScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1513,7 +1514,7 @@ public static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestExpressionLambda()
         {
             await TestInRegularAndScript1Async(
@@ -1534,7 +1535,7 @@ public static class C
 }", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestExpressionLambda_UseOutOfScope()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1550,7 +1551,7 @@ public static class C
         }
 
         [WorkItem(31388, "https://github.com/dotnet/roslyn/issues/31388")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestUseBetweenAssignmentAndIfCondition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1571,7 +1572,7 @@ public static class C
         }
 
         [WorkItem(40007, "https://github.com/dotnet/roslyn/issues/40007")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestSpaceAfterGenericType()
         {
             await TestInRegularAndScript1Async(
@@ -1611,7 +1612,7 @@ class Program
         }
 
         [WorkItem(45596, "https://github.com/dotnet/roslyn/issues/45596")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInUsingDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1628,7 +1629,7 @@ class Program
         }
 
         [WorkItem(45596, "https://github.com/dotnet/roslyn/issues/45596")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestMissingInUsingStatement()
         {
             await TestMissingInRegularAndScriptAsync(

@@ -27,6 +27,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public class DiagnosticsSquiggleTaggerProviderTests
     {
         private static readonly TestComposition s_compositionWithMockDiagnosticService =
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 .AddExcludedPartTypes(typeof(IDiagnosticService), typeof(IDiagnosticAnalyzerService))
                 .AddParts(typeof(MockDiagnosticService), typeof(MockDiagnosticAnalyzerService));
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact]
         public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.True(spans.First().Span.Contains(new Span(0, 1)));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact]
         public async Task MultipleTaggersAndDispose()
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(spans.IsEmpty());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact]
         public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);

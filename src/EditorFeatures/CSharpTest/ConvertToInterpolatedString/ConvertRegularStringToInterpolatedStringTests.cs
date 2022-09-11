@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
     public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ConvertRegularStringToInterpolatedStringRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMissingOnRegularStringWithNoBraces()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOnRegularStringWithBraces()
         {
             await TestInRegularAndScriptAsync(
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOnRegularStringWithBracesAndEscapedCharacters()
         {
             await TestInRegularAndScriptAsync(
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMissingOnInterpolatedString()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOnVerbatimStringWithBraces()
         {
             await TestInRegularAndScriptAsync(
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOnVerbatimStringWithBracesAndEscapedQuotes()
         {
             await TestInRegularAndScriptAsync(
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         }
 
         [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMissingOnRegularStringWithBracesAssignedToConstBeforeCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         }
 
         [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOnRegularStringWithBracesAssignedToConstForCSharp10AndNewer()
         {
             await TestInRegularAndScriptAsync(
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMissingOnUnterminatedStringWithBraces()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         }
 
         [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMissingOnAttributeStringParameterWithBracesBeforeCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -191,7 +192,7 @@ public class C
         }
 
         [WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestOnAttributeStringParameterWithBracesForCSharp10AndNewer()
         {
             await TestInRegularAndScriptAsync(
@@ -209,7 +210,7 @@ public class C
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [Fact]
         public async Task TestMissingOnRegularStringWithBracesAndCursorOutOfBounds()
         {
             await TestMissingInRegularAndScriptAsync(

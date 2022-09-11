@@ -21,10 +21,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     using static CSharpHelpers;
 
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class CSharpReferenceTests
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task AddRemoveProjectAndMetadataReference_CPS()
         {
             using var environment = new TestEnvironment();
@@ -90,7 +90,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task RemoveProjectConvertsProjectReferencesBack()
         {
             using var environment = new TestEnvironment();
@@ -112,7 +111,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [WpfFact]
         [WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
         [WorkItem(727173, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/727173")]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
         {
             using var environment = new TestEnvironment(typeof(NoCompilationLanguageService));
@@ -129,7 +127,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task AddRemoveAnalyzerReference_CPS()
         {
             using var environment = new TestEnvironment();

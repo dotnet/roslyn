@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AlwaysVisibleAtAnyLevelItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -83,7 +84,7 @@ public class goo
 }", "inheritdoc", "see", "seealso", "![CDATA[", "!--");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AlwaysVisibleAtAnyLevelItems2()
         {
             await VerifyItemsExistAsync(@"
@@ -94,7 +95,7 @@ public class goo
 }", "inheritdoc", "see", "seealso", "![CDATA[", "!--");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AlwaysVisibleNotTopLevelItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -105,7 +106,7 @@ public class goo
 }", "c", "code", "list", "para");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AlwaysVisibleNotTopLevelItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -116,7 +117,7 @@ public class goo
 }", "c", "code", "list", "para", "paramref", "typeparamref");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AlwaysVisibleTopLevelOnlyItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -127,7 +128,7 @@ public class goo
 }", "exception", "include", "permission");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AlwaysVisibleTopLevelOnlyItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -138,7 +139,7 @@ public class goo
 }", "exception", "include", "permission");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TopLevelSingleUseItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -149,7 +150,7 @@ public class goo
 }", "example", "remarks", "summary");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TopLevelSingleUseItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -160,7 +161,7 @@ public class goo
 }", "example", "remarks", "summary");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TopLevelSingleUseItems3()
         {
             await VerifyItemsAbsentAsync(@"
@@ -174,7 +175,7 @@ public class goo
 }", "example", "remarks", "summary");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OnlyInListItems()
         {
             await VerifyItemsAbsentAsync(@"
@@ -188,7 +189,7 @@ public class goo
 }", "listheader", "item", "term", "description");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OnlyInListItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -200,7 +201,7 @@ public class goo
 }", "listheader", "item", "term", "description");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OnlyInListItems3()
         {
             await VerifyItemsExistAsync(@"
@@ -212,7 +213,7 @@ public class goo
 }", "listheader", "item", "term", "description");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OnlyInListItems4()
         {
             await VerifyItemsExistAsync(@"
@@ -224,7 +225,7 @@ public class goo
 }", "listheader", "item", "term", "description");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ListHeaderItems()
         {
             await VerifyItemsExistAsync(@"
@@ -240,7 +241,7 @@ public class goo
 }", "term", "description");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VoidMethodDeclarationItems()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -252,7 +253,7 @@ public class goo
 }", "returns");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MethodReturns()
         {
             await VerifyItemExistsAsync(@"
@@ -265,7 +266,7 @@ public class goo
         }
 
         [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadWritePropertyNoReturns()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -278,7 +279,7 @@ public class goo
         }
 
         [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadWritePropertyValue()
         {
             await VerifyItemExistsAsync(@"
@@ -291,7 +292,7 @@ public class goo
         }
 
         [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadOnlyPropertyNoReturns()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -304,7 +305,7 @@ public class goo
         }
 
         [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadOnlyPropertyValue()
         {
             await VerifyItemExistsAsync(@"
@@ -317,7 +318,7 @@ public class goo
         }
 
         [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WriteOnlyPropertyNoReturns()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -330,7 +331,7 @@ public class goo
         }
 
         [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task WriteOnlyPropertyValue()
         {
             await VerifyItemExistsAsync(@"
@@ -342,7 +343,7 @@ public class goo
 }", "value");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MethodParamTypeParam()
         {
             var text = @"
@@ -357,7 +358,7 @@ public class goo<TGoo>
             await VerifyItemsAbsentAsync(text, "typeparam name=\"TGoo\"");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task IndexerParamTypeParam()
         {
             await VerifyItemsExistAsync(@"
@@ -370,7 +371,7 @@ public class goo<T>
         }
 
         [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task MethodParamRefName()
         {
             var text = @"
@@ -392,7 +393,7 @@ public class Outer<TOuter>
                 "paramref name=\"green\"");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ClassTypeParamRefName()
         {
             await VerifyItemsExistAsync(@"
@@ -405,7 +406,7 @@ public class goo<T>
 }", "typeparamref name=\"T\"");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ClassTypeParam()
         {
             await VerifyItemsExistAsync(@"
@@ -417,7 +418,7 @@ public class goo<T>
         }
 
         [WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TagsAfterSameLineClosedTag()
         {
             var text = @"/// <summary>
@@ -430,7 +431,7 @@ public class goo<T>
         }
 
         [WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task EnumMember()
         {
             var text = @"public enum z
@@ -447,7 +448,7 @@ public class goo<T>
         }
 
         [WorkItem(954679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CompletionList()
         {
             await VerifyItemExistsAsync(@"
@@ -459,7 +460,7 @@ public class goo
 
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParamRefNames()
         {
             // Local functions do not support documentation comments
@@ -475,7 +476,7 @@ static void Main(string[] args)
 
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParamRefNames_Interactive()
         {
             await VerifyItemExistsAsync(@"
@@ -488,7 +489,7 @@ static void Main(string[] args)
 ", "args", sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute()
         {
@@ -501,7 +502,7 @@ static void Goo(string str)
 ", "str", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute_Interactive()
         {
@@ -513,7 +514,7 @@ static void Goo(string str)
 ", "str", sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
         public async Task DelegateParams()
         {
@@ -524,7 +525,7 @@ delegate void D(object o);
         }
 
         [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TypeParamRefNamesInEmptyAttribute()
         {
             var text = @"
@@ -543,7 +544,7 @@ public class Outer<TOuter>
         }
 
         [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TypeParamRefNamesPartiallyTyped()
         {
             var text = @"
@@ -561,7 +562,7 @@ public class Outer<TOuter>
             await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TypeParamNamesInEmptyAttribute()
         {
             var text = @"
@@ -578,7 +579,7 @@ public class Outer<TOuter>
             await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TypeParamNamesInWrongScope()
         {
             var text = @"
@@ -597,7 +598,7 @@ public class Outer<TOuter>
             await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TypeParamNamesPartiallyTyped()
         {
             var text = @"
@@ -615,7 +616,7 @@ public class Outer<TOuter>
         }
 
         [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PartialTagCompletion()
         {
             await VerifyItemsExistAsync(@"
@@ -627,7 +628,7 @@ public class goo
         }
 
         [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PartialTagCompletionNestedTags()
         {
             await VerifyItemsExistAsync(@"
@@ -641,7 +642,7 @@ public class goo
         }
 
         [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TypeParamAtTopLevelOnly()
         {
             await VerifyItemsAbsentAsync(@"
@@ -654,7 +655,7 @@ public class Goo<T>
         }
 
         [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParamAtTopLevelOnly()
         {
             await VerifyItemsAbsentAsync(@"
@@ -666,7 +667,7 @@ static void Goo(string str)
 }", "param name=\"str\"");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ListAttributeNames()
         {
             await VerifyItemsExistAsync(@"
@@ -681,7 +682,7 @@ class C
 }", "type");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ListTypeAttributeValue()
         {
             await VerifyItemsExistAsync(@"
@@ -698,7 +699,7 @@ class C
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
         [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SeeAttributeNames()
         {
             await VerifyItemsExistAsync(@"
@@ -714,7 +715,7 @@ class C
         }
 
         [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SeeAlsoAttributeNames()
         {
             await VerifyItemsExistAsync(@"
@@ -730,7 +731,7 @@ class C
         }
 
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LangwordCompletionInPlainText()
         {
             await VerifyItemsExistAsync(@"
@@ -746,7 +747,7 @@ class C
         }
 
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LangwordCompletionAfterAngleBracket1()
         {
             await VerifyItemsAbsentAsync(@"
@@ -762,7 +763,7 @@ class C
         }
 
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LangwordCompletionAfterAngleBracket2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -778,7 +779,7 @@ class C
         }
 
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LangwordCompletionAfterAngleBracket3()
         {
             await VerifyItemsExistAsync(@"
@@ -794,7 +795,7 @@ class C
         }
 
         [WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SeeLangwordAttributeValue()
         {
             await VerifyItemsExistAsync(@"
@@ -809,7 +810,7 @@ class C
 }", "null", "true", "false", "await");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InheritdocAttributes1()
         {
             await VerifyItemsExistAsync(@"
@@ -824,7 +825,7 @@ class C
 }", "cref", "path");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InheritdocAttributes2()
         {
             await VerifyItemsExistAsync(@"
@@ -838,7 +839,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterTagNameInIncompleteTag()
         {
             var text = @"
@@ -853,7 +854,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterTagNameInElementStartTag()
         {
             var text = @"
@@ -867,7 +868,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterTagNameInEmptyElement()
         {
             var text = @"
@@ -881,7 +882,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterTagNamePartiallyTyped()
         {
             var text = @"
@@ -895,7 +896,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterSpecialCrefAttribute()
         {
             var text = @"
@@ -911,7 +912,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterSpecialNameAttribute()
         {
             var text = @"
@@ -927,7 +928,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameAfterTextAttribute()
         {
             var text = @"
@@ -943,7 +944,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameInWrongTagTypeEmptyElement()
         {
             var text = @"
@@ -959,7 +960,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeNameInWrongTagTypeElementStartTag()
         {
             var text = @"
@@ -975,7 +976,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeValueOnQuote()
         {
             var text = @"
@@ -992,7 +993,7 @@ class C
         }
 
         [WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TermAndDescriptionInsideItem()
         {
             var text = @"
@@ -1014,7 +1015,7 @@ class C
         }
 
         [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task RecordParam()
         {
             await VerifyItemsExistAsync(@"
@@ -1024,7 +1025,7 @@ public record Goo<T>(string MyParameter);
         }
 
         [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task RecordParamRef()
         {
             await VerifyItemsExistAsync(@"

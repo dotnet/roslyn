@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
     public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 
         private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithSameName()
         {
             await TestInRegularAndScript1Async(
@@ -49,7 +50,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestEndOfParameter1()
         {
             await TestInRegularAndScript1Async(
@@ -74,7 +75,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestEndOfParameter2()
         {
             await TestInRegularAndScript1Async(
@@ -99,7 +100,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithUnderscoreName()
         {
             await TestInRegularAndScript1Async(
@@ -124,7 +125,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeWritableProperty()
         {
             await TestInRegularAndScript1Async(
@@ -149,7 +150,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithDifferentName()
         {
             await TestInRegularAndScriptAsync(
@@ -176,7 +177,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeNonWritableProperty()
         {
             await TestInRegularAndScript1Async(
@@ -203,7 +204,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeDoesNotUsePropertyWithUnrelatedName()
         {
             await TestInRegularAndScriptAsync(
@@ -229,7 +230,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithWrongType1()
         {
             await TestInRegularAndScript1Async(
@@ -256,7 +257,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithWrongType2()
         {
             await TestInRegularAndScript1Async(
@@ -282,7 +283,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithConvertibleType()
         {
             await TestInRegularAndScriptAsync(
@@ -307,7 +308,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestWhenAlreadyInitialized1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -324,7 +325,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestWhenAlreadyInitialized2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -341,7 +342,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestWhenAlreadyInitialized3()
         {
             await TestInRegularAndScript1Async(
@@ -371,7 +372,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation1()
         {
             await TestInRegularAndScript1Async(
@@ -400,7 +401,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation2()
         {
             await TestInRegularAndScript1Async(
@@ -429,7 +430,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation3()
         {
             await TestInRegularAndScript1Async(
@@ -457,7 +458,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotInMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -472,7 +473,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation4()
         {
             await TestInRegularAndScript1Async(
@@ -499,7 +500,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation5()
         {
             await TestInRegularAndScript1Async(
@@ -526,7 +527,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation6()
         {
             await TestInRegularAndScript1Async(
@@ -554,7 +555,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertionLocation7()
         {
             await TestInRegularAndScript1Async(
@@ -583,7 +584,7 @@ class C
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNoBlock()
         {
             await TestInRegularAndScript1Async(
@@ -607,7 +608,7 @@ class C
         }
 
         [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeFieldWithParameterNameSelected1()
         {
             await TestInRegularAndScript1Async(
@@ -633,7 +634,7 @@ class C
         }
 
         [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeField_ParameterNameSelected2()
         {
             await TestInRegularAndScript1Async(
@@ -658,7 +659,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault()
         {
             await TestInRegularAndScript1Async(
@@ -685,7 +686,7 @@ class C
 }", index: 0, parameters: OmitIfDefault_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeClassProperty_RequiredAccessibilityNever()
         {
             await TestInRegularAndScript1Async(
@@ -712,7 +713,7 @@ class C
 }", index: 0, parameters: Never_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeClassProperty_RequiredAccessibilityAlways()
         {
             await TestInRegularAndScript1Async(
@@ -739,7 +740,7 @@ class C
 }", index: 0, parameters: Always_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeClassField_RequiredAccessibilityOmitIfDefault()
         {
             await TestInRegularAndScript1Async(
@@ -765,7 +766,7 @@ class C
 }", index: 1, parameters: OmitIfDefault_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeClassField_RequiredAccessibilityNever()
         {
             await TestInRegularAndScript1Async(
@@ -791,7 +792,7 @@ class C
 }", index: 1, parameters: Never_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeClassField_RequiredAccessibilityAlways()
         {
             await TestInRegularAndScript1Async(
@@ -817,7 +818,7 @@ class C
 }", index: 1, parameters: Always_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault()
         {
             await TestInRegularAndScript1Async(
@@ -840,7 +841,7 @@ struct S
 }", index: 0, parameters: OmitIfDefault_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeStructProperty_RequiredAccessibilityNever()
         {
             await TestInRegularAndScript1Async(
@@ -863,7 +864,7 @@ struct S
 }", index: 0, parameters: Never_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeStructProperty_RequiredAccessibilityAlways()
         {
             await TestInRegularAndScript1Async(
@@ -886,7 +887,7 @@ struct S
 }", index: 0, parameters: Always_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeStructField_RequiredAccessibilityOmitIfDefault()
         {
             await TestInRegularAndScript1Async(
@@ -909,7 +910,7 @@ struct S
 }", index: 1, parameters: OmitIfDefault_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeStructField_RequiredAccessibilityNever()
         {
             await TestInRegularAndScript1Async(
@@ -932,7 +933,7 @@ struct S
 }", index: 1, parameters: Never_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInitializeStructField_RequiredAccessibilityAlways()
         {
             await TestInRegularAndScript1Async(
@@ -955,7 +956,7 @@ struct S
 }", index: 1, parameters: Always_Warning);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNoParameterNamingStyle_CreateAndInitField()
         {
             await TestInRegularAndScript1Async(
@@ -978,7 +979,7 @@ class C
 }", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonParameterNamingStyle_CreateAndInitField()
         {
             await TestInRegularAndScript1Async(
@@ -1001,7 +1002,7 @@ class C
 }", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSpecifiedParameterNamingStyle_CreateAndInitField()
         {
             await TestInRegularAndScript1Async(
@@ -1024,7 +1025,7 @@ class C
 }", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitField()
         {
             await TestInRegularAndScript1Async(
@@ -1047,7 +1048,7 @@ class C
 }", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitField()
         {
             await TestInRegularAndScript1Async(
@@ -1070,7 +1071,7 @@ class C
 }", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNoParameterNamingStyle_CreateAndInitProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1093,7 +1094,7 @@ class C
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonParameterNamingStyle_CreateAndInitProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1116,7 +1117,7 @@ class C
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSpecifiedParameterNamingStyle_CreateAndInitProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1139,7 +1140,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1162,7 +1163,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1185,7 +1186,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNoParameterNamingStyle_InitializeField()
         {
             await TestInRegularAndScript1Async(
@@ -1210,7 +1211,7 @@ class C
 }", index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonParameterNamingStyle_InitializeField()
         {
             await TestInRegularAndScript1Async(
@@ -1235,7 +1236,7 @@ class C
 }", index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSpecifiedParameterNamingStyle_InitializeField()
         {
             await TestInRegularAndScript1Async(
@@ -1260,7 +1261,7 @@ class C
 }", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeField()
         {
             await TestInRegularAndScript1Async(
@@ -1285,7 +1286,7 @@ class C
 }", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeField()
         {
             await TestInRegularAndScript1Async(
@@ -1310,7 +1311,7 @@ class C
 }", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNoParameterNamingStyle_InitializeProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1335,7 +1336,7 @@ class C
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonParameterNamingStyle_InitializeProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1360,7 +1361,7 @@ class C
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSpecifiedParameterNamingStyle_InitializeProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1385,7 +1386,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1410,7 +1411,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCommonAndSpecifiedParameterNamingStyle2_InitializeProperty()
         {
             await TestInRegularAndScript1Async(
@@ -1435,7 +1436,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestBaseNameEmpty()
         {
             await TestMissingAsync(
@@ -1450,7 +1451,7 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSomeBaseNamesEmpty()
         {
             // Currently, this case does not offer a refactoring because selecting multiple parameters 
@@ -1470,7 +1471,7 @@ class C
         private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
         private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCreateFieldWithTopLevelNullability()
         {
             await TestInRegularAndScript1Async(
@@ -1495,7 +1496,7 @@ class C
 }", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCreatePropertyWithTopLevelNullability()
         {
             await TestInRegularAndScript1Async(
@@ -1521,7 +1522,7 @@ class C
         }
 
         [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSingleLineBlock_BraceOnNextLine()
         {
             await TestInRegularAndScript1Async(
@@ -1543,7 +1544,7 @@ class C
         }
 
         [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSingleLineBlock_BraceOnSameLine()
         {
             await TestInRegularAndScriptAsync(
@@ -1564,7 +1565,7 @@ class C
         }
 
         [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -1593,7 +1594,7 @@ class C
         }
 
         [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -1622,7 +1623,7 @@ class C
         }
 
         [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingInArgList()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1641,7 +1642,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingFields1()
         {
             await TestInRegularAndScript1Async(
@@ -1669,7 +1670,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingFields2()
         {
             await TestInRegularAndScript1Async(
@@ -1700,7 +1701,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingFields3()
         {
             await TestInRegularAndScript1Async(
@@ -1731,7 +1732,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingFields4()
         {
             await TestInRegularAndScript1Async(
@@ -1762,7 +1763,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingProperties1()
         {
             await TestInRegularAndScript1Async(
@@ -1790,7 +1791,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingProperties2()
         {
             await TestInRegularAndScript1Async(
@@ -1822,7 +1823,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingProperties3()
         {
             await TestInRegularAndScript1Async(
@@ -1854,7 +1855,7 @@ class C
         }
 
         [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestGenerateRemainingProperties4()
         {
             await TestInRegularAndScript1Async(
@@ -1886,7 +1887,7 @@ class C
         }
 
         [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWhenTypeNotInCompilation()
         {
             await TestMissingInRegularAndScriptAsync(

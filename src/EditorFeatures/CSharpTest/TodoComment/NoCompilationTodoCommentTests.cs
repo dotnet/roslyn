@@ -13,10 +13,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -27,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     [UseExportProvider]
     public class NoCompilationTodoCommentTests : AbstractTodoCommentTests
     {
-        protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
+        protected override TestWorkspace CreateWorkspace(string codeWithMarker)
         {
             var workspace = TestWorkspace.CreateWorkspace(XElement.Parse(
 $@"<Workspace>
     <Project Language=""NoCompilation"">
         <Document>{codeWithMarker}</Document>
     </Project>
-</Workspace>"), composition: composition.AddParts(
+</Workspace>"), composition: EditorTestCompositions.EditorFeatures.AddParts(
                 typeof(NoCompilationContentTypeDefinitions),
                 typeof(NoCompilationContentTypeLanguageService),
                 typeof(NoCompilationTodoCommentService)));
@@ -42,18 +40,18 @@ $@"<Workspace>
             return workspace;
         }
 
-        [Theory, CombinatorialData, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-        public async Task TodoCommentInNoCompilationProject(TestHost host)
+        [Fact, WorkItem(1192024, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
+        public async Task TodoCommentInNoCompilationProject()
         {
             var code = @"(* [|Message|] *)";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
     }
 
     [PartNotDiscoverable]
-    [ExportLanguageService(typeof(ITodoCommentDataService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTodoCommentService : ITodoCommentDataService
+    [ExportLanguageService(typeof(ITodoCommentService), language: NoCompilationConstants.LanguageName), Shared]
+    internal class NoCompilationTodoCommentService : ITodoCommentService
     {
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,12 +59,9 @@ $@"<Workspace>
         {
         }
 
-        public Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create(new TodoCommentData(
-                commentDescriptors.First().Priority,
-                "Message",
-                document.Id,
-                span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
-                mappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
+        public Task<ImmutableArray<CodeAnalysis.TodoComments.TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray.Create(new CodeAnalysis.TodoComments.TodoComment(commentDescriptors.First(), "Message", 3)));
+        }
     }
 }

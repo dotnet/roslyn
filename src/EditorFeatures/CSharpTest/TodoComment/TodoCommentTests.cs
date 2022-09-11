@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
 using Xunit;
@@ -14,123 +15,123 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     [UseExportProvider]
     public class TodoCommentTests : AbstractTodoCommentTests
     {
-        protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
-            => TestWorkspace.CreateCSharp(codeWithMarker, composition: composition);
+        protected override TestWorkspace CreateWorkspace(string codeWithMarker)
+            => TestWorkspace.CreateCSharp(codeWithMarker);
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Colon(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Colon()
         {
             var code = @"// [|TODO:test|]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Space(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Space()
         {
             var code = @"// [|TODO test|]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Underscore(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Underscore()
         {
             var code = @"// TODO_test";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Number(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Number()
         {
             var code = @"// TODO1 test";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Quote(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Quote()
         {
             var code = @"// ""TODO test""";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Middle(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Middle()
         {
             var code = @"// Hello TODO test";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Document(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Document()
         {
             var code = @"///    [|TODO test|]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Preprocessor1(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Preprocessor1()
         {
             var code = @"#if DEBUG // [|TODO test|]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Preprocessor2(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Preprocessor2()
         {
             var code = @"#if DEBUG ///    [|TODO test|]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_Region(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_Region()
         {
             var code = @"#region // TODO test";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_EndRegion(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_EndRegion()
         {
             var code = @"#endregion // [|TODO test|]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SingleLineTodoComment_TrailingSpan(TestHost host)
+        [Fact]
+        public async Task SingleLineTodoComment_TrailingSpan()
         {
             var code = @"// [|TODO test                        |]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task MultilineTodoComment_Singleline(TestHost host)
+        [Fact]
+        public async Task MultilineTodoComment_Singleline()
         {
             var code = @"/* [|TODO: hello    |]*/";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task MultilineTodoComment_Singleline_Document(TestHost host)
+        [Fact]
+        public async Task MultilineTodoComment_Singleline_Document()
         {
             var code = @"/** [|TODO: hello    |]*/";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task MultilineTodoComment_Multiline(TestHost host)
+        [Fact]
+        public async Task MultilineTodoComment_Multiline()
         {
             var code = @"
 /* [|TODO: hello    |]
@@ -139,11 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     * [|TODO: hello    |]
     [|TODO: hello    |]*/";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task MultilineTodoComment_Multiline_DocComment(TestHost host)
+        [Fact]
+        public async Task MultilineTodoComment_Multiline_DocComment()
         {
             var code = @"
 /** [|TODO: hello    |]
@@ -152,11 +153,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     * [|TODO: hello    |]
     [|TODO: hello    |]*/";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SinglelineDocumentComment_Multiline(TestHost host)
+        [Fact]
+        public async Task SinglelineDocumentComment_Multiline()
         {
             var code = @"
         /// <summary>
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
         /// </summary>
         ///         [|UNDONE: test2             |]";
 
-            await TestAsync(code, host);
+            await TestAsync(code);
         }
     }
 }
