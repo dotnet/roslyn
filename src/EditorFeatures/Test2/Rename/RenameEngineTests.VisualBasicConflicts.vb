@@ -16,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 _outputHelper = outputHelper
             End Sub
 
-            <WpfTheory>
-            <WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
+            <WpfTheory, WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
             <WorkItem(773543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773543")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithRollBacksInsideLambdas_2(host As RenameTestHost)
@@ -44,8 +43,7 @@ End Class
                 End Using
             End Sub
 
-            <WpfTheory>
-            <WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
+            <WpfTheory, WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
             <WorkItem(773534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773534")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithRollBacksInsideLambdas(host As RenameTestHost)
@@ -75,8 +73,7 @@ End Class
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(857937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/857937")>
+            <Theory, WorkItem(857937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/857937")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub HandleInvocationExpressions(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
@@ -95,8 +92,7 @@ End Module
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(773435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773435")>
+            <Theory, WorkItem(773435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773435")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithInvocationOnDelegateInstance(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
@@ -1532,8 +1528,7 @@ End Module
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(543021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543021")>
+            <Theory, WorkItem(543021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543021")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ShouldNotCascadeToExplicitlyImplementedInterfaceMethodOfDifferentName(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
@@ -1557,8 +1552,7 @@ End Structure
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(543021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543021")>
+            <Theory, WorkItem(543021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543021")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ShouldNotCascadeToImplementingMethodOfDifferentName(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,

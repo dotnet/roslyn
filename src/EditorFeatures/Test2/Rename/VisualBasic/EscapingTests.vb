@@ -184,8 +184,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
+        <Theory, WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingPropertyToMid(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -210,8 +209,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
+        <Theory, WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingPropertyToStrangelyCasedMid(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -236,8 +234,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
+        <Theory, WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -263,8 +260,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
+        <Theory, WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

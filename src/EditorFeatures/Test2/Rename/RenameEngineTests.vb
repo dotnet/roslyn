@@ -6920,8 +6920,7 @@ class C
         End Sub
 #End Region
 
-        <WpfTheory>
-        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <WpfTheory, WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub HandleProjectsWithoutCompilations(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

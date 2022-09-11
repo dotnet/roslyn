@@ -110,8 +110,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(539636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539636")>
+        <Theory, WorkItem(539636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539636")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub QualifyConflictingMethodInvocation(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

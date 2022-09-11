@@ -115,8 +115,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543245")>
+        <Theory, WorkItem(543245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543245")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoLocals(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -138,8 +137,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543245")>
+        <Theory, WorkItem(543245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543245")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLocalAndParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -160,8 +158,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(545859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545859")>
+        <Theory, WorkItem(545859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545859")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenQueryVariableAndParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -182,8 +179,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(545859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545859")>
+        <Theory, WorkItem(545859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545859")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoQueryVariables(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -205,8 +201,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
+        <Theory, WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLambdaParametersInsideMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -229,8 +224,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
+        <Theory, WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLambdaParametersInFieldInitializer(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -251,8 +245,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
+        <Theory, WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLambdaParameterAndField(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -272,8 +265,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <Theory, WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabels(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -298,8 +290,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
+        <Theory, WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenMethodsDifferingByByRef(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -322,8 +313,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
+        <Theory, WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenMethodsDifferingByOptional(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -346,8 +336,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
+        <Theory, WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenMethodsDifferingByArity(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -369,8 +358,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(546902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546902")>
+        <Theory, WorkItem(546902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546902")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitlyDeclaredLocalAndNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -393,8 +381,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529556")>
+        <Theory, WorkItem(529556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529556")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitlyDeclaredLocalAndAndGlobalFunction(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -422,8 +409,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(542217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542217")>
+        <Theory, WorkItem(542217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542217")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenAliases(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -449,8 +435,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530125")>
+        <Theory, WorkItem(530125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530125")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitVariableAndClass(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -477,8 +462,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530038")>
+        <Theory, WorkItem(530038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530038")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedAlias(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -508,8 +492,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
+        <Theory, WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -534,8 +517,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
+        <Theory, WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -586,8 +568,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
+        <Theory, WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -612,8 +593,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198"), WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
+        <Theory, WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198"), WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -632,8 +612,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(528706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528706")>
+        <Theory, WorkItem(528706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528706")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableNotBindingToTypeAnyMore(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -663,8 +642,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
+        <Theory, WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -696,8 +674,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
+        <Theory, WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -729,8 +706,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
+        <Theory, WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -764,8 +740,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
+        <Theory, WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_4(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -797,8 +772,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
+        <Theory, WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -830,8 +804,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
+        <Theory, WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -919,8 +892,7 @@ End Namespace
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInTypeDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -937,8 +909,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInMethodDeclaration_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -957,8 +928,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInMethodDeclaration_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -977,8 +947,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParameterAndMember_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -997,8 +966,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParameterAndMember_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1016,8 +984,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(658437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658437")>
+        <Theory, WorkItem(658437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658437")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenEscapedForEachControlVariableAndQueryRangeVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
