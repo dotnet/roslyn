@@ -90,8 +90,7 @@ End Class
             End Function)
     End Function
 
-    <WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")>
-    <Fact>
+    <Fact, WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")>
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
         Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
         analyzer.ThrowOn(GetType(DiagnosticAnalyzer).GetProperties().Single().Name)

@@ -38,8 +38,7 @@ Class Goo
 End Class</File>, {"Global"})
         End Sub
 
-        <WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
-        <Fact>
+        <Fact, WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileAtStartOfMalformedAttributeTest()
             VerifyRecommendationsContain(<File><![CDATA[<|Assembly: AssemblyDelaySignAttribute(True)&gt;]]></File>,

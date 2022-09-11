@@ -46,8 +46,7 @@ End Class
 |</File>, "Option")
         End Sub
 
-        <WorkItem(543008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543008")>
-        <Fact>
+        <Fact, WorkItem(543008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543008")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterRegionKeywordTest()
             VerifyRecommendationsMissing(<File>

@@ -554,8 +554,7 @@ Namespace NS
 End Namespace", testHost)
         End Function
 
-        <WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
-        <Fact>
+        <Fact, WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         Public Async Function TestCodeIssueCountInExistingUsing() As Task
             Await TestActionCountAsync(
 "Imports System.Collections.Generic
@@ -836,8 +835,7 @@ Class Program
 End Class", testHost)
         End Function
 
-        <WorkItem(543107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
-        <Fact>
+        <Fact, WorkItem(543107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
         Public Async Function TestNoCrashOnMissingLeftSide() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1212,8 +1210,7 @@ Namespace NS3
 End Namespace", testHost)
         End Function
 
-        <WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
-        <Fact>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref() As Task
             Dim initialText As String = "''' <summary>
 ''' This is just like <see cref=[|""INotifyPropertyChanged""|]/>, but this one is mine.
@@ -1233,8 +1230,7 @@ End Interface"
                 parseOptions:=options)
         End Function
 
-        <WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
-        <Fact>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref2() As Task
             Dim initialText As String = "''' <summary>
 ''' This is just like <see cref=[|""INotifyPropertyChanged.PropertyChanged""|]/>, but this one is mine.
@@ -1254,8 +1250,7 @@ End Interface"
                 parseOptions:=options)
         End Function
 
-        <WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
-        <Fact>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref3() As Task
             Dim initialText =
 "
@@ -1310,8 +1305,7 @@ End Module
                 parseOptions:=options)
         End Function
 
-        <WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
-        <Fact>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref4() As Task
             Dim initialText =
 "
@@ -1369,8 +1363,7 @@ End Module
                 parseOptions:=options)
         End Function
 
-        <WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
-        <Fact>
+        <Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         Public Async Function TestAddImportForCref5() As Task
             Dim initialText =
 "
@@ -1897,8 +1890,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod() As Task
             Await TestAsync(
 "Imports System
@@ -1940,8 +1932,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod2() As Task
             Await TestAsync(
 "Imports System
@@ -1983,8 +1974,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod3() As Task
             Await TestAsync(
 "Imports System
@@ -2026,8 +2016,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod4() As Task
             Await TestAsync(
 "Imports System
@@ -2069,8 +2058,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod5() As Task
             Await TestAsync(
 "Imports System
@@ -2112,8 +2100,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod6() As Task
             Await TestAsync(
 "Imports System
@@ -2169,8 +2156,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
-        <Fact>
+        <Fact, WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         Public Async Function TestAddImportForAddExtensionMethod7() As Task
             Await TestAsync(
 "Imports System
@@ -2513,8 +2499,7 @@ Namespace T
 End Namespace", TestHost.InProcess)
         End Function
 
-        <WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
-        <Fact>
+        <Fact, WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
         Public Async Function TestImportIncompleteSub2() As Task
             Await TestAsync(
 "Imports System

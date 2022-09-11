@@ -2880,8 +2880,7 @@ End Class</Text>.Value
         End Function
 
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
-        <WorkItem(530595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530595")>
-        <Fact>
+        <Fact, WorkItem(530595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530595")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableBeforeImplicitDeclaration() As Task
             Dim text = <Text>
