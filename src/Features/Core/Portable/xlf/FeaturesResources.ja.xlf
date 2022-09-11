@@ -4022,7 +4022,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Available">
         <source>Available</source>
-        <target state="translated">空き領域</target>
+        <target state="translated">利用可能</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
