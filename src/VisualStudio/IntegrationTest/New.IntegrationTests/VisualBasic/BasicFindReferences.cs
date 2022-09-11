@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 {
+    [Trait(Traits.Feature, Traits.Features.FindReferences)]
     public class BasicFindReferences : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         {
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [IdeFact]
         public async Task FindReferencesToLocals()
         {
             await SetUpEditorAsync(@"
@@ -58,7 +59,7 @@ End Class
                 });
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [IdeFact]
         public async Task FindReferencesToSharedField()
         {
             await SetUpEditorAsync(@"

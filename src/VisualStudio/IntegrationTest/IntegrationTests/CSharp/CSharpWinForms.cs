@@ -17,6 +17,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.WinForms)]
     public class CSharpWinForms : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -26,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -39,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -52,7 +53,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -79,7 +80,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -105,7 +106,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }", codeFileActualText);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55703"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55703")]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -128,7 +129,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -144,7 +145,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.GooHandler);", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -159,7 +160,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);

@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class ObjectCreationExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 
         #region "Regular tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutParameters()
         {
             var markup = @"
@@ -40,7 +41,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestImplicitInvocationWithoutParameters()
         {
             var markup = @"
@@ -64,7 +65,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutParametersMethodXmlComments()
         {
             var markup = @"
@@ -86,7 +87,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersOn1()
         {
             var markup = @"
@@ -106,7 +107,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestImplicitInvocationWithParametersOn1()
         {
             var markup = @"
@@ -126,7 +127,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersXmlCommentsOn1()
         {
             var markup = @"
@@ -151,7 +152,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersOn2()
         {
             var markup = @"
@@ -170,7 +171,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersXmlComentsOn2()
         {
             var markup = @"
@@ -194,7 +195,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickFirst()
         {
@@ -218,7 +219,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task PickCorrectOverload_PickFirst_ImplicitObjectCreation()
         {
             var markup = @"
@@ -241,7 +242,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickSecond()
         {
@@ -265,7 +266,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task PickCorrectOverload_PickSecond_ImplicitObjectCreation()
         {
             var markup = @"
@@ -288,7 +289,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"
@@ -306,7 +307,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutClosingParenWithParameters()
         {
             var markup = @"
@@ -326,7 +327,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutClosingParenWithParametersOn2()
         {
             var markup = @"
@@ -346,7 +347,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnLambda()
         {
             var markup = @"
@@ -370,7 +371,7 @@ class C
 
         #region "Current Parameter Name"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestCurrentParameterName()
         {
             var markup = @"
@@ -393,7 +394,7 @@ class C
 
         #region "Trigger tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnTriggerParens()
         {
             var markup = @"
@@ -411,7 +412,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -433,7 +434,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestNoInvocationOnSpace()
         {
             var markup = @"
@@ -453,7 +454,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = { ',', '(' };
@@ -466,7 +467,7 @@ class C
         #region "EditorBrowsable tests"
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task EditorBrowsable_Constructor_BrowsableAlways()
         {
             var markup = @"
@@ -499,7 +500,7 @@ public class Goo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task EditorBrowsable_Constructor_BrowsableNever()
         {
             var markup = @"
@@ -532,7 +533,7 @@ public class Goo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task EditorBrowsable_Constructor_BrowsableAdvanced()
         {
             var markup = @"
@@ -573,7 +574,7 @@ public class Goo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task EditorBrowsable_Constructor_BrowsableMixed()
         {
             var markup = @"
@@ -614,7 +615,7 @@ public class Goo
 
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -643,7 +644,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -680,7 +681,7 @@ class C
         }
 
         [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -690,7 +691,7 @@ class C
         }
 
         [WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestSigHelpInIncorrectObjectCreationExpression()
         {
             var markup = @"
@@ -705,7 +706,7 @@ class C
             await TestAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss1()
         {
             var markup = @"
@@ -725,7 +726,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss2()
         {
             var markup = @"
@@ -745,7 +746,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss3()
         {
             var markup = @"
@@ -765,7 +766,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss4()
         {
             var markup = @"
@@ -799,7 +800,6 @@ class C
         [InlineData("$$, ", 0, 0)]
         [InlineData(",$$", 1, 0)]
         [InlineData("$$, s: string.Empty", 0, 0)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
         {
@@ -829,7 +829,6 @@ class Program
         [InlineData("s2: string.Empty$$", 1)]
         [InlineData("s2: string.Empty$$,", 1)]
         [InlineData("s2: string.Empty,$$", 0)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete_WithNames(string arguments, int expectedParameterIndex)
         {

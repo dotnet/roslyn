@@ -21,16 +21,17 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public class DiagnosticDataTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText()
         {
             var code = "";
             await VerifyTextSpanAsync(code, 10, 10, 20, 20, new TextSpan(0, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText1()
         {
             var code = @"
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 30, 30, 40, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText2()
         {
             var code = @"
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, -1, 30, 40, 40, new TextSpan(0, code.Length));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText3()
         {
             var code = @"
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, -1, 30, -1, 40, new TextSpan(0, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText4()
         {
             var code = @"
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, -1, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText5()
         {
             var code = @"
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, 1, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText6()
         {
             var code = @"
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, 2, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText7()
         {
             var code = @"
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 0, 1, 2, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_GetText8()
         {
             var code = @"
@@ -133,7 +134,7 @@ namespace B
             Assert.Equal(span, actual);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         [WorkItem(46377, "https://github.com/dotnet/roslyn/issues/46377")]
         public async Task DiagnosticData_ExternalAdditionalLocationIsPreserved()
         {
@@ -176,7 +177,7 @@ namespace B
             Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task DiagnosticData_SourceGeneratedDocumentLocationIsPreserved()
         {
             var content = @"

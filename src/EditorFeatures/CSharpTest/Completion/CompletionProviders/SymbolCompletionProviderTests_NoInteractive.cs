@@ -22,6 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -41,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task IsCommitCharacterTest()
             => await VerifyCommonCommitCharactersAsync("class C { void M() { System.Console.$$", textTypedSoFar: "");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void IsTextualTriggerCharacterTest()
         {
             TestCommonIsTextualTriggerCharacter();
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false, showCompletionInArgumentLists: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SendEnterThroughToEditorTest()
         {
             await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
@@ -65,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task GlobalStatement1()
             => await VerifyItemExistsAsync(@"System.Console.$$", @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task GlobalStatement2()
         {
@@ -78,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation3()
             => await VerifyItemIsAbsentAsync(@"using System.Console.$$", @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation4()
         {
             await VerifyItemIsAbsentAsync(@"class C {
@@ -91,7 +92,7 @@ System.Console.$$
 #endif", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation5()
         {
             await VerifyItemIsAbsentAsync(@"class C {
@@ -100,7 +101,7 @@ System.Console.$$
 #endif", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation6()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -109,7 +110,7 @@ class C {
 // Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation7()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -118,7 +119,7 @@ class C {
 /*  Console.$$   */", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation8()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -127,7 +128,7 @@ class C {
 /// Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation9()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -140,7 +141,7 @@ class C {
 }", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation10()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -151,15 +152,15 @@ class C {
         /**  Console.$$   */", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation11()
             => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"Console.$$")), @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation12()
             => await VerifyItemIsAbsentAsync(@"[assembly: System.Console.$$]", @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation13()
         {
             var content = @"[Console.$$]
@@ -168,11 +169,11 @@ class CL {}";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation14()
             => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation15()
         {
             var content = @"class CL {
@@ -182,11 +183,11 @@ class CL {}";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation16()
             => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<Console.$$"), @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation17()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -199,7 +200,7 @@ class Program {
 }", @"Main");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation18()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -213,7 +214,7 @@ class Program {
 }", @"Main");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InvalidLocation19()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -226,7 +227,7 @@ class Program {
 }", @"SByte");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InsideMethodBody()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -237,11 +238,11 @@ class C {
         Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task UsingDirectiveGlobal()
             => await VerifyItemExistsAsync(@"using global::$$;", @"System");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InsideAccessor()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -254,7 +255,7 @@ class C {
             Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task FieldInitializer()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -263,7 +264,7 @@ class C {
     int i = Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task FieldInitializer2()
         {
             await VerifyItemExistsAsync(@"
@@ -271,7 +272,7 @@ class C {
     object i = $$", @"System");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ImportedProperty()
         {
             await VerifyItemExistsAsync(@"using System.Collections.Generic;
@@ -282,7 +283,7 @@ class C {
        new List<string>().$$", @"Capacity");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task FieldInitializerWithProperty()
         {
             await VerifyItemExistsAsync(@"using System.Collections.Generic;
@@ -290,7 +291,7 @@ class C {
     int i =  new List<string>().$$", @"Count");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task StaticMethods()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -302,11 +303,11 @@ class C {
 ", @"Method");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task EndOfFile()
             => await VerifyItemExistsAsync(@"static class E { public static void Method() { E.$$", @"Method");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task InheritedStaticFields()
         {
             var code = @"class A { public static int X; }
@@ -318,7 +319,7 @@ class C { void M() { B.$$ } }
         }
 
         [WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestDescriptionWhenDocumentLengthChanges()
         {
             var code = @"using System;

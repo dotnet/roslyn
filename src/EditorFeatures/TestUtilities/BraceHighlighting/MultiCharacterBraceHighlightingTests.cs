@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 {
+    [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
     public class MultiCharacterBraceHighlightingTests : AbstractBraceHighlightingTests
     {
         protected override TestWorkspace CreateWorkspace(string markup, ParseOptions options)
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotOnBrace()
         {
             await TestBraceHighlightingAsync(
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestOnLeftOfStartBrace()
         {
             await TestBraceHighlightingAsync(
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestInsideStartBrace()
         {
             await TestBraceHighlightingAsync(
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotOnRightOfStartBrace()
         {
             await TestBraceHighlightingAsync(
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotOnLeftOfCloseBrace()
         {
             await TestBraceHighlightingAsync(
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestInsideCloseBrace()
         {
             await TestBraceHighlightingAsync(
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestOnRightOfCloseBrace()
         {
             await TestBraceHighlightingAsync(
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotAfterBrace()
         {
             await TestBraceHighlightingAsync(
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotOnBrace2()
         {
             await TestBraceHighlightingAsync(
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestOnLeftOfStartBrace2()
         {
             await TestBraceHighlightingAsync(
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestInsideStartBrace2()
         {
             await TestBraceHighlightingAsync(
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotOnRightOfStartBrace2()
         {
             await TestBraceHighlightingAsync(
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotOnLeftOfCloseBrace2()
         {
             await TestBraceHighlightingAsync(
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestInsideCloseBrace3()
         {
             await TestBraceHighlightingAsync(
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestOnRightOfCloseBrace2()
         {
             await TestBraceHighlightingAsync(
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestInSecondBracePair()
         {
             await TestBraceHighlightingAsync(
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotAfterSecondBracePairStart()
         {
             await TestBraceHighlightingAsync(
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotBeforeSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestInSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestAtSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         }
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact]
         public async Task TestNotAfterSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(

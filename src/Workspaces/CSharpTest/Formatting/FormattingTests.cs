@@ -19,13 +19,14 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingTests : CSharpFormattingTestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format1()
             => await AssertFormatAsync("namespace A { }", "namespace A{}");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format2()
         {
             var content = @"class A {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format3()
         {
             var content = @"class A
@@ -52,7 +53,7 @@ int             i               =               20          ;           }";
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format4()
         {
             var content = @"class A
@@ -70,7 +71,7 @@ int             i               =               20          ;           int     
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format5()
         {
             var content = @"class A
@@ -93,7 +94,7 @@ int             i               =               20          ;           int     
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format6()
         {
             var content = @"class A
@@ -116,7 +117,7 @@ A           a               =               new             A                   
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format7()
         {
             var content = @"class A
@@ -132,7 +133,7 @@ A           a               =               new             A                   
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format8()
         {
             var content = @"class A
@@ -164,7 +165,7 @@ void Method()
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format9()
         {
             var content = @"class A
@@ -186,7 +187,7 @@ void Method()
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Format10()
         {
             var content = @"class A
@@ -205,7 +206,7 @@ where           i       >       10          select      i           ;
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ObjectInitializer()
         {
             await AssertFormatAsync(@"public class C
@@ -237,7 +238,7 @@ where           i       >       10          select      i           ;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AnonymousType()
         {
             await AssertFormatAsync(@"class C
@@ -271,7 +272,7 @@ where           i       >       10          select      i           ;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task MultilineLambda()
         {
             await AssertFormatAsync(@"class C
@@ -305,7 +306,7 @@ System.Func<int, int> ret2 = y =>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AnonymousMethod()
         {
             await AssertFormatAsync(@"class C
@@ -329,7 +330,7 @@ System.Func<int, int> ret2 = y =>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen1()
         {
             await AssertFormatAsync(@"namespace Namespace1
@@ -396,7 +397,7 @@ static void Method(int i, string s, bool b)
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen2()
         {
             await AssertFormatAsync(@"namespace MyNamespace
@@ -692,7 +693,7 @@ public void Method<T,R>(T t)
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen3()
         {
             await AssertFormatAsync(@"namespace Namespace1
@@ -716,7 +717,7 @@ Program p=new Program();
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen4()
         {
             await AssertFormatAsync(@"class Class1
@@ -736,7 +737,7 @@ Program p=new Program();
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen5()
         {
             await AssertFormatAsync(@"class Class1
@@ -760,7 +761,7 @@ int i = 0;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen6()
         {
             await AssertFormatAsync(@"namespace Namespace1
@@ -782,7 +783,7 @@ class InnerClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen7()
         {
             await AssertFormatAsync(@"class Class1
@@ -818,7 +819,7 @@ i = 2 * i;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Scen8()
         {
             await AssertFormatAsync(@"class Class1
@@ -836,7 +837,7 @@ i = 2 * i;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentStatementsInMethod()
         {
             await AssertFormatAsync(@"class C
@@ -858,7 +859,7 @@ i = 2 * i;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentFieldsInClass()
         {
             await AssertFormatAsync(@"class C
@@ -874,7 +875,7 @@ i = 2 * i;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentUserDefaultSettingTest()
         {
             await AssertFormatAsync(@"class Class2
@@ -955,7 +956,7 @@ label3:
         }
 
         [WorkItem(766133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766133")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -996,7 +997,7 @@ class D
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task RemoveSpacingAroundBinaryOperatorsShouldMakeAtLeastOneSpaceForIsAndAsKeywords()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1027,7 +1028,7 @@ class D
         }
 
         [WorkItem(772298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772298")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1060,7 +1061,7 @@ class D
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentUserSettingNonDefaultTest()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1151,7 +1152,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentSwitch_IndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1191,7 +1192,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentSwitch_IndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1231,7 +1232,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentSwitch_NoIndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1271,7 +1272,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IndentSwitch_NoIndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1311,7 +1312,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NoIndentSwitch_IndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1351,7 +1352,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NoIndentSwitch_IndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1391,7 +1392,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NoIndentSwitch_NoIndentCase_IndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1431,7 +1432,7 @@ l:
         }
 
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NoIndentSwitch_NoIndentCase_NoIndentWhenBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1470,7 +1471,7 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestWrappingDefault()
         {
             await AssertFormatAsync(@"class Class5
@@ -1510,7 +1511,7 @@ l:
     }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestWrappingNonDefault_FormatBlock()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1581,7 +1582,7 @@ class goo
 class goo{int x = 0;}", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestWrappingNonDefault_FormatStatmtMethDecl()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1648,7 +1649,7 @@ class goo
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestWrappingNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1731,7 +1732,7 @@ class goo{int x = 0;}", false, changingOptions);
         }
 
         [WorkItem(991480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestLeaveStatementMethodDeclarationSameLineNotAffectingForStatement()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1755,7 +1756,7 @@ class goo{int x = 0;}", false, changingOptions);
         }
 
         [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewLineForOpenBracesDefault()
         {
             await AssertFormatAsync(@"class f00
@@ -1888,7 +1889,7 @@ public class goo : System.Object
 
         [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
         [WorkItem(8808, "https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewLineForOpenBracesNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -2021,7 +2022,7 @@ public class goo : System.Object
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewLineForKeywordDefault()
         {
             await AssertFormatAsync(@"class c
@@ -2078,7 +2079,7 @@ if (a > b)
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewLineForKeywordNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -2143,7 +2144,7 @@ else
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(33458, "https://github.com/dotnet/roslyn/issues/33458")]
         public async Task NoNewLineForElseChecksBraceOwner()
         {
@@ -2177,7 +2178,7 @@ else
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewLineForExpressionDefault()
         {
             await AssertFormatAsync(@"class f00
@@ -2244,7 +2245,7 @@ MyObject obj = new MyObject {       X1 = 0,        Y1 = 1, X2 = 2,       Y2 = 3 
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewLineForExpressionNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -2310,7 +2311,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Enums_Bug2586()
         {
             await AssertFormatAsync(@"enum E
@@ -2326,11 +2327,11 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontInsertLineBreaksInSingleLineEnum()
             => await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AlreadyFormattedSwitchIsNotFormatted_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2356,7 +2357,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task BreaksAreAlignedInSwitchCasesFormatted_Bug2587()
         {
             await AssertFormatAsync(@"class C
@@ -2382,7 +2383,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task BreaksAndBracesAreAlignedInSwitchCasesWithBracesFormatted_Bug2587()
         {
             await AssertFormatAsync(@"class C
@@ -2412,7 +2413,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LineBreaksAreNotInsertedForSwitchCasesOnASingleLine1()
         {
             await AssertFormatAsync(@"class C
@@ -2438,7 +2439,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LineBreaksAreNotInsertedForSwitchCasesOnASingleLine2()
         {
             await AssertFormatAsync(@"class C
@@ -2464,7 +2465,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatLabelAndGoto1_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2484,7 +2485,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatLabelAndGoto2_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2506,7 +2507,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatNestedLabelAndGoto1_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2532,7 +2533,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatNestedLabelAndGoto2_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2560,7 +2561,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AlreadyFormattedGotoLabelIsNotFormatted1_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2580,7 +2581,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AlreadyFormattedGotoLabelIsNotFormatted2_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2598,7 +2599,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AlreadyFormattedGotoLabelIsNotFormatted3_Bug2588()
         {
             await AssertFormatAsync(@"class C
@@ -2620,7 +2621,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontAddLineBreakBeforeWhere1_Bug2582()
         {
             await AssertFormatAsync(@"class C
@@ -2636,7 +2637,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontAddLineBreakBeforeWhere2_Bug2582()
         {
             await AssertFormatAsync(@"class C<T> where T : I
@@ -2646,7 +2647,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontAddSpaceAfterUnaryMinus()
         {
             await AssertFormatAsync(@"class C
@@ -2664,7 +2665,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontAddSpaceAfterUnaryPlus()
         {
             await AssertFormatAsync(@"class C
@@ -2682,7 +2683,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceAfterIncrement()
         {
@@ -2696,7 +2697,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceBeforeIncrement()
         {
@@ -2710,7 +2711,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceAfterDecrement()
         {
@@ -2724,7 +2725,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(545909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
         public async Task DontAddSpaceBeforeDecrement()
         {
@@ -2738,7 +2739,7 @@ goto Goo;
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Anchoring()
         {
             await AssertFormatAsync(@"class C
@@ -2760,7 +2761,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Exclamation()
         {
             await AssertFormatAsync(@"class C
@@ -2778,7 +2779,7 @@ goto Goo;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task StartAndEndTrivia()
         {
             await AssertFormatAsync(@"
@@ -2800,7 +2801,7 @@ class C { }
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FirstTriviaAndAnchoring1()
         {
             await AssertFormatAsync(@"
@@ -2837,7 +2838,7 @@ namespace N {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FirstTriviaAndAnchoring2()
         {
             await AssertFormatAsync(@"
@@ -2869,7 +2870,7 @@ namespace N {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FirstTriviaAndAnchoring3()
         {
             await AssertFormatAsync(@"
@@ -2898,7 +2899,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Base1()
         {
             await AssertFormatAsync(@"class C
@@ -2914,7 +2915,7 @@ class C
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task This1()
         {
             await AssertFormatAsync(@"class C
@@ -2934,7 +2935,7 @@ class C
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task QueryExpression1()
         {
             await AssertFormatAsync(@"class C
@@ -2954,7 +2955,7 @@ class C
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task QueryExpression2()
         {
             await AssertFormatAsync(@"class C
@@ -2978,7 +2979,7 @@ class C
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task QueryExpression3()
         {
             await AssertFormatAsync(@"class C
@@ -3008,7 +3009,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task QueryExpression4()
         {
             await AssertFormatAsync(@"class C
@@ -3034,7 +3035,7 @@ class C
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label1()
         {
             await AssertFormatAsync(@"class C
@@ -3052,7 +3053,7 @@ class C
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label2()
         {
             await AssertFormatAsync(@"class C
@@ -3072,7 +3073,7 @@ int             x               =               1               ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label3()
         {
             await AssertFormatAsync(@"class C
@@ -3094,7 +3095,7 @@ int         i           =           10                  ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label4()
         {
             await AssertFormatAsync(@"class C
@@ -3116,7 +3117,7 @@ int             x               =               1               ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label5()
         {
             await AssertFormatAsync(@"class C
@@ -3136,7 +3137,7 @@ int             x               =               1               ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label6()
         {
             await AssertFormatAsync(@"class C
@@ -3158,7 +3159,7 @@ int         i           =           10                  ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label7()
         {
             await AssertFormatAsync(@"class C
@@ -3182,7 +3183,7 @@ int         i           =           10                  ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Label8()
         {
             await AssertFormatAsync(@"class C
@@ -3204,7 +3205,7 @@ int         i           =           10                  ;
     }           ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AutoProperty()
         {
             await AssertFormatAsync(@"class Class
@@ -3218,7 +3219,7 @@ int         i           =           10                  ;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NormalPropertyGet()
         {
             await AssertFormatAsync(@"class Class
@@ -3244,7 +3245,7 @@ int         i           =           10                  ;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NormalPropertyBoth()
         {
             await AssertFormatAsync(@"class Class
@@ -3278,7 +3279,7 @@ int         i           =           10                  ;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ErrorHandling1()
         {
             await AssertFormatAsync(@"class C
@@ -3297,7 +3298,7 @@ int         i           =           10                  ;
         }
 
         [WorkItem(537763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537763")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NullableType()
         {
             await AssertFormatAsync(@"class Program
@@ -3316,7 +3317,7 @@ int         i           =           10                  ;
         }
 
         [WorkItem(537766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537766")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SuppressWrappingOnBraces()
         {
             await AssertFormatAsync(@"class Class1
@@ -3327,7 +3328,7 @@ int         i           =           10                  ;
         }
 
         [WorkItem(537824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537824")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DoWhile()
         {
             await AssertFormatAsync(@"public class Class1
@@ -3352,7 +3353,7 @@ int         i           =           10                  ;
         }
 
         [WorkItem(537774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537774")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SuppressWrappingBug()
         {
             await AssertFormatAsync(@"class Class1
@@ -3372,7 +3373,7 @@ int         i           =           10                  ;
         }
 
         [WorkItem(537768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537768")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task PreserveLineForAttribute()
         {
             await AssertFormatAsync(@"class Class1
@@ -3393,7 +3394,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537878")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NoFormattingOnMissingTokens()
         {
             await AssertFormatAsync(@"namespace ClassLibrary1
@@ -3420,7 +3421,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537783")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task UnaryExpression()
         {
             await AssertFormatAsync(@"class Program
@@ -3443,7 +3444,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Pointer()
         {
             await AssertFormatAsync(@"class Program
@@ -3464,7 +3465,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(50723, "https://github.com/dotnet/roslyn/issues/50723")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TuplePointer()
         {
             var properlyFormattedCode = @"public unsafe static class Program
@@ -3480,7 +3481,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Tild()
         {
             await AssertFormatAsync(@"class Program
@@ -3503,7 +3504,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ArrayInitializer1()
         {
             await AssertFormatAsync(@"class Program
@@ -3528,7 +3529,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ArrayInitializer2()
         {
             await AssertFormatAsync(@"class Program
@@ -3553,7 +3554,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ImplicitArrayInitializer()
         {
             await AssertFormatAsync(@"class Program
@@ -3578,7 +3579,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task CollectionInitializer()
         {
             await AssertFormatAsync(@"class Program
@@ -3603,7 +3604,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537916")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task AddressOfOperator()
         {
             await AssertFormatAsync(@"unsafe class Class1
@@ -3626,7 +3627,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(537885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DereferenceOperator()
         {
             await AssertFormatAsync(@"unsafe class Class1
@@ -3651,14 +3652,14 @@ static void Main(string[] args)
         }
 
         [WorkItem(537905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537905")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Namespaces()
         {
             await AssertFormatAsync(@"using System;
 using System.Data;", @"using System; using System.Data;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NamespaceDeclaration()
         {
             await AssertFormatAsync(@"namespace N
@@ -3669,7 +3670,7 @@ using System.Data;", @"using System; using System.Data;");
         }
 
         [WorkItem(537902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537902")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DoWhile1()
         {
             await AssertFormatAsync(@"class Program
@@ -3689,7 +3690,7 @@ using System.Data;", @"using System; using System.Data;");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NewConstraint()
         {
             await AssertFormatAsync(@"class Program
@@ -3705,7 +3706,7 @@ using System.Data;", @"using System; using System.Data;");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task UnaryExpressionWithInitializer()
         {
             await AssertFormatAsync(@"using System;
@@ -3737,7 +3738,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Attributes1()
         {
             await AssertFormatAsync(@"class Program
@@ -3749,7 +3750,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Attributes2()
         {
             await AssertFormatAsync(@"class Program
@@ -3764,7 +3765,7 @@ public       void       Method      (       )           {           }
         }
 
         [WorkItem(538288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538288")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ColonColon1()
         {
             await AssertFormatAsync(@"class Program
@@ -3782,7 +3783,7 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task BugFix3939()
         {
             await AssertFormatAsync(@"using
@@ -3795,12 +3796,12 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Tab1()
             => await AssertFormatAsync(@"using System;", @"			using System;");
 
         [WorkItem(538329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538329")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SuppressLinkBreakInIfElseStatement()
         {
             await AssertFormatAsync(@"class Program
@@ -3823,7 +3824,7 @@ public       void       Method      (       )           {
         }
 
         [WorkItem(538464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538464")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task BugFix4087()
         {
             await AssertFormatAsync(@"class Program
@@ -3843,7 +3844,6 @@ public       void       Method      (       )           {
 
         [Fact]
         [WorkItem(538511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538511")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task AttributeTargetSpecifier()
         {
             var code = @"public class Class1
@@ -3867,7 +3867,6 @@ public       void       Method      (       )           {
 
         [Fact]
         [WorkItem(538635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538635")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Finalizer()
         {
             var code = @"public class Class1
@@ -3885,7 +3884,6 @@ public       void       Method      (       )           {
 
         [Fact]
         [WorkItem(538743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538743")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4442()
         {
             var code = @"class Program
@@ -3903,7 +3901,6 @@ public       void       Method      (       )           {
 
         [Fact]
         [WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4328()
         {
             var code = @"class Program
@@ -3925,7 +3922,6 @@ public       void       Method      (       )           {
 
         [Fact]
         [WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4515()
         {
             var code = @"class Program
@@ -3950,7 +3946,6 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task CastExpressionTest()
         {
             var code = @"class Program
@@ -3971,7 +3966,6 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NamedParameter()
         {
             var code = @"class Program
@@ -3993,7 +3987,6 @@ public       void       Method      (       )           {
 
         [WorkItem(539259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539259")]
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5143()
         {
             var code = @"class Program
@@ -4017,7 +4010,6 @@ public       void       Method      (       )           {
 
         [WorkItem(539338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539338")]
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5251()
         {
             var code = @"class Program
@@ -4033,7 +4025,6 @@ public       void       Method      (       )           {
 
         [WorkItem(539358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")]
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5277()
         {
             var code = @"
@@ -4049,7 +4040,6 @@ public       void       Method      (       )           {
 
         [WorkItem(539542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539542")]
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5544()
         {
             var code = @"
@@ -4077,7 +4067,6 @@ class Program
 
         [WorkItem(539587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539587")]
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5602()
         {
             var code = @"    class Bug
@@ -4099,7 +4088,6 @@ class Program
 
         [WorkItem(539616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")]
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5637()
         {
             var code = @"class Bug
@@ -4120,7 +4108,6 @@ class Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task GenericType()
         {
             var code = @"class Bug<T>
@@ -4140,7 +4127,6 @@ class Program
 
         [Fact]
         [WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5978()
         {
             var code = @"class Program
@@ -4186,7 +4172,6 @@ System.Console.WriteLine(""a"");
 
         [Fact]
         [WorkItem(539878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539878")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5979()
         {
             var code = @"delegate int del(int i);
@@ -4218,7 +4203,6 @@ class Program
 
         [Fact]
         [WorkItem(539891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539891")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix5993()
         {
             var code = @"public class MyClass
@@ -4248,7 +4232,6 @@ class Program
 
         [Fact]
         [WorkItem(540315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540315")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix6536()
         {
             var code = @"public class MyClass
@@ -4270,7 +4253,6 @@ class Program
 
         [Fact]
         [WorkItem(540801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540801")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix7211()
         {
             var code = @"class Program
@@ -4299,7 +4281,6 @@ class Program
 
         [Fact]
         [WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix7564_1()
         {
             var code = @"class Program
@@ -4328,7 +4309,6 @@ class Program
 
         [Fact]
         [WorkItem(541035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541035")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix7564_2()
         {
             var code = @"class Program
@@ -4357,7 +4337,6 @@ class Program
 
         [Fact]
         [WorkItem(8385, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NullCoalescingOperator()
         {
             var code = @"class C
@@ -4380,7 +4359,6 @@ class Program
 
         [Fact]
         [WorkItem(541925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541925")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryContinuation()
         {
             var code = @"using System.Linq;
@@ -4410,7 +4388,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryContinuation2()
         {
             var code = @"using System.Linq;
@@ -4436,7 +4413,6 @@ class C
 
         [Fact]
         [WorkItem(542305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542305")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task AttributeFormatting1()
         {
             var code = @"class Program
@@ -4457,7 +4433,6 @@ class C
 
         [Fact]
         [WorkItem(542304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542304")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task CloseBracesInArgumentList()
         {
             var code = @"class Program
@@ -4492,7 +4467,6 @@ class C
 
         [Fact]
         [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task MissingTokens()
         {
             var code = @"using System;
@@ -4520,7 +4494,6 @@ class innerClass
 
         [Fact]
         [WorkItem(542199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542199")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ColumnOfVeryFirstToken()
         {
             var code = @"			       W   )b";
@@ -4532,7 +4505,6 @@ class innerClass
 
         [Fact]
         [WorkItem(542718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542718")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmptySuppressionSpan()
         {
             var code = @"enum E
@@ -4550,7 +4522,6 @@ class innerClass
 
         [Fact]
         [WorkItem(542790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542790")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task LabelInSwitch()
         {
             var code = @"class test
@@ -4592,7 +4563,6 @@ class innerClass
 
         [Fact]
         [WorkItem(543112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatArbitaryNode()
         {
             var expected = @"public int Prop
@@ -4635,7 +4605,6 @@ class innerClass
 
         [Fact]
         [WorkItem(543140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task OmittedTypeArgument()
         {
             var code = @"using System;
@@ -4667,7 +4636,6 @@ class Program
 
         [Fact]
         [WorkItem(543131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543131")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TryAfterLabel()
         {
             var code = @"using System;
@@ -4706,7 +4674,6 @@ class Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryContinuation1()
         {
             var code = @"using System.Linq;
@@ -4745,7 +4712,6 @@ class Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestCSharpFormattingSpacingOptions()
         {
             var text =
@@ -4813,7 +4779,6 @@ class goo : System.Object
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingFixInTokenBasedForIfAndSwitchCase()
         {
             var code = @"class Class5{
@@ -4844,7 +4809,6 @@ case 1: break; case 2: break; default: break;}
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInDeconstruction()
         {
             var code = @"class Class5{
@@ -4865,7 +4829,6 @@ var(x,y)=(1,2);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInNullableTuple()
         {
             var code = @"class Class5
@@ -4887,7 +4850,6 @@ var(x,y)=(1,2);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleArrayCreation()
         {
             var code = @"class C
@@ -4909,7 +4871,6 @@ var(x,y)=(1,2);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleArrayCreation2()
         {
             var code = @"class C
@@ -4931,7 +4892,6 @@ var(x,y)=(1,2);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInImplicitObjectCreation()
         {
             var code = @"class C
@@ -4953,7 +4913,6 @@ var(x,y)=(1,2);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional()
         {
             var code = @"class C
@@ -4969,7 +4928,6 @@ var(x,y)=(1,2);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Singleline()
         {
             var code = @"class C
@@ -4989,7 +4947,6 @@ _ = this is  ( 1 , 2 )  ; }
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline()
         {
             var code = @"class C
@@ -5012,7 +4969,6 @@ _ = this is  ( 1 ,
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline2()
         {
             var code = @"class C
@@ -5035,7 +4991,6 @@ _ = this is  ( 1 ,
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline3()
         {
             var code = @"class C
@@ -5060,7 +5015,6 @@ _ = this is
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional_Multiline4()
         {
             var code = @"class C
@@ -5083,7 +5037,6 @@ _ = this is
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Singleline()
         {
             var code = @"class C
@@ -5099,7 +5052,6 @@ _ = this is
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Multiline()
         {
             var code = @"class C
@@ -5128,7 +5080,6 @@ P2 : 2
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Multiline2()
         {
             var code = @"class C
@@ -5156,7 +5107,6 @@ P2 : 2
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Properties_Multiline3()
         {
             var code = @"class C
@@ -5184,7 +5134,6 @@ P2 : 2, P3: 3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_NoSpaceBetweenTypeAndPositionalSubpattern()
         {
@@ -5205,7 +5154,6 @@ _ = this is  C( 1 , 2 ){}  ; }
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceBetweenTypeAndPositionalSubpattern()
         {
@@ -5229,7 +5177,6 @@ _ = this is  C( 1 , 2 ){}  ; }
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceInsidePositionalSubpatternParentheses()
         {
@@ -5255,7 +5202,6 @@ _ = this is  C(  ){}  ; }
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceInsideEmptyPositionalSubpatternParentheses()
         {
@@ -5281,7 +5227,6 @@ _ = this is  C(  ){}  ; }
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(34683, "https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
@@ -5300,7 +5245,6 @@ _ = this is  C(  ){}  ; }
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPropertyPattern_MultilineAndEmpty()
         {
             var code = @"class C
@@ -5324,7 +5268,6 @@ _ = this is
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_IndentArms()
         {
             var code = @"class C
@@ -5356,7 +5299,6 @@ _ => false
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPropertyPattern_FollowedByInvocation()
         {
             var code = @"class C
@@ -5379,7 +5321,6 @@ M();
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPositionalPattern_FollowedByInvocation()
         {
             var code = @"class C
@@ -5402,7 +5343,6 @@ M();
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPositionalPattern_FollowedByScope()
         {
             var code = @"class C
@@ -5429,7 +5369,6 @@ _ = this is (1, 2)
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_MultilineAndNoArms()
         {
             var code = @"class C
@@ -5453,7 +5392,6 @@ _ = this switch
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_ExpressionAnchoredToArm()
         {
             var code = @"class C
@@ -5491,7 +5429,6 @@ _
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_NoSpaceBeforeColonInArm()
         {
             var code = @"class C
@@ -5529,7 +5466,6 @@ _
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_ArmCommaWantsNewline()
         {
             var code = @"class C
@@ -5560,7 +5496,6 @@ _ = this switch
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchExpression_ArmCommaPreservesLines()
         {
             var code = @"class C
@@ -5592,7 +5527,7 @@ _ = this switch
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(33839, "https://github.com/dotnet/roslyn/issues/33839")]
         public async Task FormatSwitchExpression_ExpressionBody()
         {
@@ -5623,7 +5558,6 @@ public class Test
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern()
         {
             var code = @"class C
@@ -5652,7 +5586,6 @@ public class Test
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern_Singleline()
         {
             var code = @"class C
@@ -5680,7 +5613,6 @@ public class Test
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern_Singleline2()
         {
             var code = @"class C
@@ -5710,7 +5642,6 @@ public class Test
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
@@ -5726,7 +5657,6 @@ public class Test
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInNestedDeconstruction()
         {
             var code = @"class Class5{
@@ -5747,7 +5677,6 @@ void bar()
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInSuppressNullableWarningExpression()
         {
             var code =
@@ -5778,7 +5707,6 @@ void bar()
 
         [Fact]
         [WorkItem(545335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545335")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task PreprocessorOnSameLine()
         {
             var code = @"class C
@@ -5799,7 +5727,6 @@ void bar()
 
         [Fact]
         [WorkItem(545626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545626")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ArraysInAttributes()
         {
             var code = @"[A(X = new int[] { 1 })]
@@ -5819,7 +5746,6 @@ public class A : Attribute
 
         [Fact]
         [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoNewLineAfterBraceInExpression()
         {
             var code = @"public class A
@@ -5847,7 +5773,6 @@ public class A : Attribute
 
         [Fact]
         [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentForNestedUsingWithoutBraces()
         {
             var code = @"class C
@@ -5879,7 +5804,6 @@ using (null)
 
         [Fact]
         [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentForNestedUsingWithoutBraces2()
         {
             var code = @"class C
@@ -5913,7 +5837,6 @@ using (null)
 
         [Fact]
         [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentForNestedUsingWithoutBraces3()
         {
             var code = @"class C
@@ -5947,7 +5870,6 @@ using (null)
 
         [Fact]
         [WorkItem(546678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546678")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task UnicodeWhitespace()
         {
             var code = "\u001A";
@@ -5957,7 +5879,6 @@ using (null)
 
         [Fact]
         [WorkItem(17431, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoElasticRuleOnRegularFile()
         {
             var code = @"class Consumer
@@ -5979,7 +5900,6 @@ using (null)
 
         [Fact]
         [WorkItem(584599, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task CaseSection()
         {
             var code = @"class C
@@ -6025,7 +5945,6 @@ using (null)
 
         [Fact]
         [WorkItem(553654, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_553654_LabelStatementIndenting()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -6061,7 +5980,6 @@ goo:
 
         [Fact]
         [WorkItem(707064, "DevDiv_Projects/Roslyn")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_707064_SpaceAfterSecondSemiColonInFor()
         {
             var code = @"class Program
@@ -6088,7 +6006,6 @@ goo:
 
         [Fact]
         [WorkItem(772313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772313")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_772313_ReturnKeywordBeforeQueryClauseDoesNotTriggerNewLineOnFormat()
         {
             var code = @"class C
@@ -6113,7 +6030,6 @@ goo:
 
         [Fact]
         [WorkItem(772304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772304")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_772313_PreserveMethodParameterIndentWhenAttributePresent()
         {
             var code = @"class C
@@ -6176,7 +6092,6 @@ class C
 
         [Fact]
         [WorkItem(776513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776513")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_776513_CheckBraceIfNotMissingBeforeApplyingOperationForBracedBlocks()
         {
             var code = @"var alwaysTriggerList = new[]
@@ -6188,7 +6103,7 @@ class C
         }
 
         [WorkItem(769342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ShouldFormatDocCommentWithIndentSameAsTabSizeWithUseTabTrue()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -6213,7 +6128,7 @@ class C
         }
 
         [WorkItem(797278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797278")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestSpacingOptionAroundControlFlow()
         {
             const string code = @"
@@ -6306,7 +6221,7 @@ class Program
 
         [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
         [WorkItem(37031, "https://github.com/dotnet/roslyn/issues/37031")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
             var code = @"
@@ -6394,7 +6309,7 @@ class Program
         }
 
         [WorkItem(766212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766212")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestOptionForSpacingAroundCommas()
         {
             var code = @"
@@ -6444,7 +6359,6 @@ class Program
 
         [Fact]
         [WorkItem(772308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772308")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_772308_SeparateSuppressionForEachCaseLabelEvenIfEmpty()
         {
             var code = @"
@@ -6485,7 +6399,6 @@ class C
 
         [Fact]
         [WorkItem(844913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844913")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryExpressionInExpression()
         {
             var code = @"
@@ -6543,7 +6456,6 @@ class C
 
         [Fact]
         [WorkItem(843479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843479")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmbeddedStatementElse()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -6580,7 +6492,6 @@ class C
 
         [Fact]
         [WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task LineCommentAtTheEndOfLine()
         {
             var code = @"
@@ -6617,7 +6528,6 @@ class Program
 
         [Fact]
         [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BlockCommentAtTheEndOfLine1()
         {
             var code = @"
@@ -6654,7 +6564,6 @@ class Program
 
         [Fact]
         [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BlockCommentAtTheEndOfLine2()
         {
             var code = @"
@@ -6691,7 +6600,6 @@ class Program
 
         [Fact]
         [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BlockCommentAtBeginningOfLine()
         {
             var code = @"
@@ -6711,7 +6619,6 @@ class Program
 
         [Fact]
         [WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestTab()
         {
             var code = @"
@@ -6782,7 +6689,7 @@ class Program
             await AssertFormatAsync(expected, expected, changedOptionSet: optionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LeaveBlockSingleLine_False()
         {
             var code = @"
@@ -6801,7 +6708,7 @@ namespace N
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LeaveBlockSingleLine_False2()
         {
             var code = @"
@@ -6819,7 +6726,7 @@ class C
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LeaveStatementMethodDeclarationSameLine_False()
         {
             var code = @"
@@ -6845,7 +6752,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0000()
         {
             var code = @"
@@ -6876,7 +6783,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0001()
         {
             var code = @"
@@ -6907,7 +6814,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0010()
         {
             var code = @"
@@ -6938,7 +6845,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0011()
         {
             var code = @"
@@ -6969,7 +6876,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0100()
         {
             var code = @"
@@ -7000,7 +6907,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0101()
         {
             var code = @"
@@ -7031,7 +6938,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0110()
         {
             var code = @"
@@ -7062,7 +6969,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0111()
         {
             var code = @"
@@ -7093,7 +7000,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1000()
         {
             var code = @"
@@ -7124,7 +7031,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1001()
         {
             var code = @"
@@ -7155,7 +7062,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1010()
         {
             var code = @"
@@ -7186,7 +7093,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1011()
         {
             var code = @"
@@ -7217,7 +7124,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1100()
         {
             var code = @"
@@ -7248,7 +7155,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1101()
         {
             var code = @"
@@ -7279,7 +7186,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1110()
         {
             var code = @"
@@ -7310,7 +7217,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1111()
         {
             var code = @"
@@ -7342,7 +7249,7 @@ class Program
         }
 
         [WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceBeforeCommasInLocalFunctionParameters()
         {
             var code = @"
@@ -7374,7 +7281,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ArrayDeclarationShouldFollowEmptySquareBrackets()
         {
             const string code = @"
@@ -7397,7 +7304,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SquareBracesBefore_True()
         {
             var code = @"
@@ -7416,7 +7323,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SquareBracesAndValue_True()
         {
             var code = @"
@@ -7436,7 +7343,7 @@ class Program
         }
 
         [WorkItem(917351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917351")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestLockStatement()
         {
             var code = @"
@@ -7471,7 +7378,7 @@ class Program
         }
 
         [WorkItem(962416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962416")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestCheckedAndUncheckedStatement()
         {
             var code = @"
@@ -7511,7 +7418,7 @@ class Program
         }
 
         [WorkItem(953535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953535")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ConditionalMemberAccess()
         {
             var code = @"
@@ -7554,7 +7461,7 @@ class Program
         }
 
         [WorkItem(924172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924172")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task IgnoreSpacesInDeclarationStatementEnabled()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -7582,7 +7489,7 @@ class Program
         }
 
         [WorkItem(899492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899492")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task CommentIsLeadingTriviaOfStatementNotLabel()
         {
             var code = @"
@@ -7612,7 +7519,7 @@ class C
         }
 
         [WorkItem(991547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991547")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontWrappingTryCatchFinallyIfOnSingleLine()
         {
             var code = @"
@@ -7639,7 +7546,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings1()
         {
             var code = @"
@@ -7665,7 +7572,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings2()
         {
             var code = @"
@@ -7693,7 +7600,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings3()
         {
             var code = @"
@@ -7719,7 +7626,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedRawStrings3()
         {
             var code = @"
@@ -7745,7 +7652,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings4()
         {
             var code = @"
@@ -7773,7 +7680,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings5()
         {
             var code = @"
@@ -7799,7 +7706,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings6()
         {
             var code = @"
@@ -7827,7 +7734,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings7()
         {
             var code = @"
@@ -7853,7 +7760,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings8()
         {
             var code = @"
@@ -7881,7 +7788,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings9()
         {
             var code = @"
@@ -7907,7 +7814,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings10()
         {
             var code = @"
@@ -7931,7 +7838,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedRawStrings10()
         {
             var code = @"
@@ -7955,7 +7862,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
         public async Task InterpolatedStrings11()
         {
@@ -7986,7 +7893,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
         public async Task InterpolatedStrings12()
         {
@@ -8013,7 +7920,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
         public async Task InterpolatedStrings13()
         {
@@ -8040,7 +7947,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings14()
         {
             var code = @"
@@ -8064,7 +7971,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings15()
         {
             var code = @"
@@ -8088,7 +7995,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task InterpolatedStrings16()
         {
             var code = @"
@@ -8114,7 +8021,7 @@ class C
 
         [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ReconstructWhitespaceStringUsingTabs_SingleLineComment()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8140,7 +8047,7 @@ class Program
         [WorkItem(961559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/961559")]
         [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ReconstructWhitespaceStringUsingTabs_MultiLineComment()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8164,7 +8071,7 @@ class Program
         }
 
         [WorkItem(1100920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100920")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task NoLineOperationAroundInterpolationSyntax()
         {
             await AssertFormatAsync(@"class Program
@@ -8183,7 +8090,7 @@ class Program
         }
 
         [WorkItem(62, "https://github.com/dotnet/roslyn/issues/62")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpaceAfterWhenInExceptionFilter()
         {
             const string expected = @"class C
@@ -8225,7 +8132,7 @@ class Program
 
         [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         [WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8256,7 +8163,7 @@ class Program
 
         [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         [WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8287,7 +8194,7 @@ class Program
 
         [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         [WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatHashsToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8319,7 +8226,7 @@ class Program
         }
 
         [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
@@ -8327,7 +8234,7 @@ class Program
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpacingRulesAroundMethodCallAndParenthesisAppliedInAttributeNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -8352,7 +8259,7 @@ class Program
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpacingRulesAroundMethodCallAndParenthesisAppliedInAttribute()
         {
             var code = @"[Obsolete(""Test""), Obsolete()]
@@ -8404,7 +8311,7 @@ class Program
         }
 
         [WorkItem(1298, "https://github.com/dotnet/roslyn/issues/1298")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontforceAccessorsToNewLineWithPropertyInitializers()
         {
             var code = @"using System.Collections.Generic;
@@ -8434,7 +8341,7 @@ public class ExcludeValidation
         }
 
         [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontFormatAutoPropertyInitializerIfNotDifferentLine()
         {
             var code = @"class Program
@@ -8448,7 +8355,7 @@ public class ExcludeValidation
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpacingForForStatementInfiniteLoop()
         {
             var code = @"
@@ -8474,7 +8381,7 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpacingForForStatementInfiniteLoopWithNoSpaces()
         {
             var code = @"
@@ -8505,7 +8412,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpacingForForStatementInfiniteLoopWithSpacesBefore()
         {
             var code = @"
@@ -8537,7 +8444,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SpacingForForStatementInfiniteLoopWithSpacesBeforeAndAfter()
         {
             var code = @"
@@ -8570,7 +8477,7 @@ class Program
 
         [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
         [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task VerifySpacingAfterMethodDeclarationName_Default()
         {
             var code = @"class Program<T>
@@ -8592,7 +8499,7 @@ class Program
 
         [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
         [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task VerifySpacingAfterMethodDeclarationName_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -8617,7 +8524,7 @@ class Program
         }
 
         [WorkItem(939, "https://github.com/dotnet/roslyn/issues/939")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontFormatInsideArrayInitializers()
         {
             var code = @"class Program
@@ -8646,7 +8553,7 @@ class Program
 
         [WorkItem(1184285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1184285")]
         [WorkItem(4280, "https://github.com/dotnet/roslyn/issues/4280")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatDictionaryInitializers()
         {
             var code = @"class Program
@@ -8667,7 +8574,7 @@ class Program
         }
 
         [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SwitchSectionHonorsNewLineForBracesinControlBlockOption_Default()
         {
             var code = @"class Program
@@ -8702,7 +8609,7 @@ class Program
         }
 
         [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SwitchSectionHonorsNewLineForBracesinControlBlockOption_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -8742,7 +8649,7 @@ class Program
         }
 
         [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8763,7 +8670,7 @@ class Program
         }
 
         [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormattingCodeWithMissingTokensShouldRespectFormatTabsOption2()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8786,7 +8693,7 @@ class Program
         }
 
         [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormattingCodeWithBrokenLocalDeclarationShouldRespectFormatTabsOption()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8826,7 +8733,7 @@ class Program
         }
 
         [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormattingCodeWithBrokenInterpolatedStringShouldRespectFormatTabsOption()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8848,7 +8755,7 @@ class Program
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
         [WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
         public async Task NewLinesForBracesInPropertiesTest()
@@ -8887,7 +8794,7 @@ class Program
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
         [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
         public async Task NewLinesForBracesInAccessorsTest()
@@ -8926,7 +8833,7 @@ class Program
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
         [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
         public async Task NewLinesForBracesInPropertiesAndAccessorsTest()
@@ -8965,7 +8872,7 @@ class Program
 }", false, changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(111079, "devdiv.visualstudio.com")]
         public async Task TestThrowInIfOnSingleLine()
         {
@@ -8983,7 +8890,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
         public async Task SingleLinePropertiesPreservedWithLeaveStatementsAndMembersOnSingleLineFalse()
         {
@@ -9004,7 +8911,7 @@ class C
 }", changedOptionSet: changedOptionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
         public async Task KeepAccessorWithAttributeOnSingleLine()
         {
@@ -9027,7 +8934,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
         public async Task KeepConstructorBodyInSameLineAsBaseConstructorInitializer()
         {
@@ -9043,7 +8950,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
         public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializer()
         {
@@ -9059,7 +8966,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
         public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializerAdjustSpace()
         {
@@ -9082,7 +8989,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
         public async Task OneSpaceBetweenAccessorsAndAttributes()
         {
@@ -9097,7 +9004,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
         public async Task FormatEmbeddedStatementInsideLockStatement()
         {
@@ -9120,7 +9027,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
         public async Task FormatEmbeddedStatementInsideLockStatementDifferentLine()
         {
@@ -9145,7 +9052,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task PropertyDeclarationSimple()
         {
             var expected = @"if (o is Point p)";
@@ -9154,7 +9061,7 @@ class C
             await AssertFormatBodyAsync(expected, @"if (o is Point p  )");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task PropertyDeclarationTypeOnNewLine()
         {
             var expected = @"
@@ -9174,7 +9081,7 @@ var y = o   is
 Point     p    ;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task CasePatternDeclarationSimple()
         {
             var expected = @"
@@ -9197,7 +9104,7 @@ switch (o)
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
         public async Task FormatNullableArray()
         {
@@ -9209,7 +9116,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
         public async Task FormatConditionalWithArrayAccess()
         {
@@ -9254,7 +9161,7 @@ class C
             return AssertFormatAsync(expected, input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatElseBlockBracesOnDifferentLineToNewLines()
         {
@@ -9284,7 +9191,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_1()
         {
@@ -9302,7 +9209,7 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(11572, "https://github.com/dotnet/roslyn/issues/11572")]
         public async Task FormatAttributeOnSameLineAsField()
         {
@@ -9318,7 +9225,7 @@ class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
         public async Task FormatMultipleAttributeOnSameLineAsField1()
         {
@@ -9338,7 +9245,7 @@ class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
         public async Task FormatMultipleAttributesOnSameLineAsField2()
         {
@@ -9357,7 +9264,7 @@ class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
         public async Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
         {
@@ -9376,7 +9283,7 @@ class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
         public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
         {
@@ -9395,12 +9302,12 @@ class C
             await AssertFormatAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
             => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatIndexExpression()
         {
             await AssertFormatAsync(@"
@@ -9422,7 +9329,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatRangeExpression_NoOperands()
         {
             await AssertFormatAsync(@"
@@ -9444,7 +9351,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatRangeExpression_RightOperand()
         {
             await AssertFormatAsync(@"
@@ -9466,7 +9373,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatRangeExpression_LeftOperand()
         {
             await AssertFormatAsync(@"
@@ -9488,7 +9395,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatRangeExpression_BothOperands()
         {
             await AssertFormatAsync(@"
@@ -9510,7 +9417,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
         public async Task FormatCommaAfterCloseBrace_CommaRemainIntheSameLine()
         {
@@ -9541,7 +9448,7 @@ public class Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
         public async Task FormatCommaAfterCloseBrace_SpaceSurroundWillBeRemoved()
         {
@@ -9572,7 +9479,7 @@ public class Test
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Theory]
         [WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
         [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
         [CombinatorialData]
@@ -9598,7 +9505,7 @@ public unsafe class Test
                 changedOptionSet: changedOptionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
         public async Task SpaceAroundDeclaration()
         {
@@ -9625,7 +9532,7 @@ class Program
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
         public async Task SpaceAroundDeclarationAndPreserveSingleLine()
         {
@@ -9653,7 +9560,7 @@ class Program
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task ClassConstraint()
         {
             await AssertFormatAsync(
@@ -9669,7 +9576,7 @@ class Program<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SingleLinePropertyPattern1()
         {
             await AssertFormatAsync(
@@ -9699,7 +9606,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task SingleLinePropertyPattern2()
         {
             await AssertFormatAsync(
@@ -9723,7 +9630,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
         public async Task SpaceAroundEnumMemberDeclarationIgnored()
         {
@@ -9746,7 +9653,7 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
         public async Task SpaceAroundEnumMemberDeclarationSingle()
         {
@@ -9769,7 +9676,7 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(38895, "https://github.com/dotnet/roslyn/issues/38895")]
         public async Task FormattingNbsp()
         {
@@ -9793,7 +9700,6 @@ class C
         }
 
         [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentationForMultilineWith()
         {
             var code = @"record C(int X)
@@ -9821,7 +9727,6 @@ X = 1
         }
 
         [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentationForMultilineWith_ArrowBody()
         {
             var code = @"record C(int X)
@@ -9845,7 +9750,6 @@ X = 1
         }
 
         [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentationForMultilineWith_ArrowBody_WithTrailingComma()
         {
             var code = @"record C(int X)
@@ -9869,7 +9773,6 @@ X = 1,
         }
 
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingAfterAttribute()
         {
             var code = @"class C
@@ -9889,7 +9792,6 @@ X = 1,
         }
 
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingAfterAttribute_Multiple()
         {
             var code = @"class C
@@ -9909,7 +9811,6 @@ X = 1,
         }
 
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingAfterAttribute_Multiple2()
         {
             var code = @"class C
@@ -9929,7 +9830,6 @@ X = 1,
         }
 
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingAfterAttribute_MultipleOnDeclaration()
         {
             var code = @"class C
@@ -9951,7 +9851,6 @@ X = 1,
         }
 
         [Fact, WorkItem(47442, "https://github.com/dotnet/roslyn/issues/47442")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentImplicitObjectCreationInitializer()
         {
             var code = @"
@@ -9988,7 +9887,7 @@ class C
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
         public async Task NewLinesForBraces_SwitchExpression_Default()
         {
@@ -10016,7 +9915,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
         public async Task NewLinesForBraces_SwitchExpression_NonDefault()
         {
@@ -10048,7 +9947,7 @@ class A
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
         public async Task NewLinesForBraces_RecordWithInitializer_Default()
         {
@@ -10078,7 +9977,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
         public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
         {
@@ -10113,7 +10012,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoSpacesInPropertyPatterns()
         {
             var code = @"class C
@@ -10136,7 +10034,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoSpacesInExtendedPropertyPatterns()
         {
             var code = @"class C
@@ -10160,7 +10057,7 @@ class C
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_Default()
         {
@@ -10192,7 +10089,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_NonDefault()
         {
@@ -10228,7 +10125,7 @@ class A
 }", changedOptionSet: changingOptions);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Theory, CombinatorialData]
         [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)
         {
@@ -10249,7 +10146,7 @@ class A
             await AssertFormatAsync(code, code, changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task RecordClass()
         {
             await AssertFormatAsync(
@@ -10261,7 +10158,7 @@ record  class  R(int X);
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task RecordStruct()
         {
             await AssertFormatAsync(
@@ -10274,7 +10171,6 @@ record  struct  R(int X);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatListPattern()
         {
             var code = @"
@@ -10330,7 +10226,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatListPattern_Parentheses()
         {
             var code = @"
@@ -10386,7 +10281,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatListPattern_TrailingComma()
         {
             var code = @"
@@ -10442,7 +10336,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatListPattern_WithNewline()
         {
             var code = @"
@@ -10506,7 +10399,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSlicePattern()
         {
             var code = @"class C
@@ -10526,7 +10418,6 @@ _ = this is[ 0,.. var  rest ];
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSlicePattern_NoSpace()
         {
             var code = @"class C
@@ -10546,7 +10437,6 @@ _ = this is[ 0,..var  rest ];
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSlicePatternWithAnd()
         {
             var code = @"class C
@@ -10566,7 +10456,6 @@ _ = this is[ 0,.. {Count: >0} and var  rest ];
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatLengthAndListPattern()
         {
             var code = @"class C
@@ -10585,7 +10474,7 @@ _ = this is{Count:>0 and var x}and[ 1,2,3 ];
             await AssertFormatAsync(expectedCode, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LambdaReturnType_01()
         {
             await AssertFormatAsync(
@@ -10599,7 +10488,7 @@ _ = this is{Count:>0 and var x}and[ 1,2,3 ];
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LambdaReturnType_02()
         {
             await AssertFormatAsync(
@@ -10613,7 +10502,7 @@ _ = this is{Count:>0 and var x}and[ 1,2,3 ];
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LambdaReturnType_03()
         {
             await AssertFormatAsync(
@@ -10627,7 +10516,7 @@ _ = this is{Count:>0 and var x}and[ 1,2,3 ];
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LambdaReturnType_04()
         {
             await AssertFormatAsync(
@@ -10641,7 +10530,7 @@ _ = this is{Count:>0 and var x}and[ 1,2,3 ];
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task LineSpanDirective()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -10662,7 +10551,7 @@ _ = this is{Count:>0 and var x}and[ 1,2,3 ];
 }", changedOptionSet: optionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FileScopedNamespace()
         {
             await AssertFormatAsync(
@@ -10678,7 +10567,7 @@ namespace NS;
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInImplicitObjectCreation()
         {
@@ -10702,7 +10591,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInTupleArrayCreation()
         {
@@ -10726,7 +10615,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInArrayCreation()
         {
@@ -10750,7 +10639,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInImplicitArrayCreation()
         {
@@ -10774,7 +10663,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewInConstructorConstraint()
         {
@@ -10796,7 +10685,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewMethodOverloadWithTupleReturnType()
         {
@@ -10815,7 +10704,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewPropertyWithTupleReturnType()
         {
@@ -10834,7 +10723,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewIndexerWithTupleReturnType()
         {
@@ -10853,7 +10742,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambda()
         {
@@ -10866,7 +10755,7 @@ var f =  [Attribute] () => { };
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambda_TwoAttributes()
         {
@@ -10879,7 +10768,7 @@ var f =  [Attribute]  [Attribute2] () => { };
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnMethod_TwoAttributes()
         {
@@ -10896,7 +10785,7 @@ void M()
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnTypeParameter_TwoAttributes()
         {
@@ -10909,7 +10798,7 @@ class C<  [Attribute]  [Attribute2]  T  > { }
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
         {
@@ -10928,7 +10817,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnParameter_TwoAttributes()
         {
@@ -10947,7 +10836,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambdaWithExplicitType()
         {
@@ -10960,7 +10849,7 @@ var f =  [Attribute] int () => 1;
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambdaInInvocation()
         {
@@ -10973,7 +10862,7 @@ f( [Attribute] () => { });
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatRawStringInterpolation()
         {
             await AssertFormatAsync(
@@ -10985,7 +10874,7 @@ var s = $""""""{s}""""""
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatRawStringInterpolation2()
         {
             await AssertFormatAsync(

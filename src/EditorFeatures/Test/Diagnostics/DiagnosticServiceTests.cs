@@ -17,6 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public class DiagnosticServiceTests
     {
         private static DiagnosticService GetDiagnosticService(TestWorkspace workspace)
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return diagnosticService;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task TestGetDiagnostics1()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(diagnostic, data4.Single());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task TestGetDiagnostics2()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(1, data5.Count());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact]
         public async Task TestCleared()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);

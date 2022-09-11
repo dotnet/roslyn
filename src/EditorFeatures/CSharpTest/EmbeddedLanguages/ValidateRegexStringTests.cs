@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
+    [Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
     public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public ValidateRegexStringTests(ITestOutputHelper logger)
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         private OptionsCollection OptionOn()
             => Option(IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        [Fact]
         public async Task TestWarning1()
         {
             await TestDiagnosticInfoAsync(@"
@@ -47,7 +48,7 @@ class Program
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        [Fact]
         public async Task TestWarning2()
         {
             await TestDiagnosticInfoAsync(@"
@@ -66,7 +67,7 @@ class Program
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        [Fact]
         public async Task TestWarningMissing1()
         {
             await TestDiagnosticMissingAsync(@"

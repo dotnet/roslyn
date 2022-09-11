@@ -12,9 +12,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderLocalFunctionParametersAndArguments_OnDeclaration()
         {
             var markup = @"
@@ -46,7 +47,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderLocalFunctionParametersAndArguments_OnInvocation()
         {
             var markup = @"
@@ -78,7 +79,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters()
         {
             var markup = @"
@@ -102,7 +103,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParametersAndArguments()
         {
             var markup = @"
@@ -128,7 +129,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParametersAndArgumentsOfNestedCalls()
         {
             var markup = @"
@@ -154,7 +155,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderConstructorParametersAndArguments()
         {
             var markup = @"
@@ -205,7 +206,7 @@ class MyClass
         }
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderConstructorParametersAndArguments_ImplicitObjectCreation()
         {
             var markup = @"
@@ -255,7 +256,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderAttributeConstructorParametersAndArguments()
         {
             var markup = @"
@@ -287,7 +288,7 @@ class MyAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderExtensionMethodParametersAndArguments_StaticCall()
         {
             var markup = @"
@@ -326,7 +327,7 @@ public static class CExt
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderExtensionMethodParametersAndArguments_ExtensionCall()
         {
             var markup = @"
@@ -363,7 +364,7 @@ public static class CExt
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamsMethodParametersAndArguments_ParamsAsArray()
         {
             var markup = @"
@@ -387,7 +388,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamsMethodParametersAndArguments_ParamsExpanded()
         {
             var markup = @"
@@ -411,7 +412,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderExtensionAndParamsMethodParametersAndArguments_VariedCallsites()
         {
             var markup = @"
@@ -454,7 +455,7 @@ public static class CExt
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParametersAndArguments()
         {
             var markup = @"
@@ -492,7 +493,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {
             var markup = @"
@@ -522,7 +523,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnSameLine()
         {
             var markup = @"
@@ -548,7 +549,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_MixedLineDistribution()
         {
             var markup = @"
@@ -584,7 +585,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_MixedWithRegularComments()
         {
             var markup = @"
@@ -614,7 +615,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_MultiLineDocComments_OnSeparateLines1()
         {
             var markup = @"
@@ -646,7 +647,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_MultiLineDocComments_OnSingleLine()
         {
             var markup = @"
@@ -670,7 +671,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_IncorrectOrder_MaintainsOrder()
         {
             var markup = @"
@@ -699,7 +700,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_WrongNames_MaintainsOrder()
         {
             var markup = @"
@@ -728,7 +729,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_InsufficientTags_MaintainsOrder()
         {
             var markup = @"
@@ -755,7 +756,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_ExcessiveTags_MaintainsOrder()
         {
             var markup = @"
@@ -786,7 +787,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_OnConstructors()
         {
             var markup = @"
@@ -815,7 +816,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_OnIndexers()
         {
             var markup = @"
@@ -846,7 +847,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParametersInCrefs()
         {
             var markup = @"
@@ -872,7 +873,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType1()
         {
             var markup = @"
@@ -912,7 +913,7 @@ class D : C, I
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType2()
         {
             var markup = @"
@@ -952,7 +953,7 @@ class D : C, I
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_Record()
         {
             var markup = @"

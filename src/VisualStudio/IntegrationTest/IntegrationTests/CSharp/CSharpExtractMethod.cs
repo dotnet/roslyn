@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
     public class CSharpExtractMethod : AbstractEditorTest
     {
         private const string TestSource = @"
@@ -43,7 +44,7 @@ public class Program
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -84,7 +85,7 @@ public class Program
     }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact]
         [WorkItem(61369, "https://github.com/dotnet/roslyn/pull/61369")]
         public void ExtractMethodWithTriviaSelected()
         {
@@ -125,7 +126,7 @@ public class Program
     }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact]
         public void ExtractViaCodeAction()
         {
             VisualStudio.Editor.SetText(TestSource);

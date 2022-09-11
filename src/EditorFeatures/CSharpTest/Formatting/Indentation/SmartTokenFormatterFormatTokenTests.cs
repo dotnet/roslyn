@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
+    [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
     {
         public SmartTokenFormatterFormatTokenTests(ITestOutputHelper output) : base(output)
@@ -23,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task EmptyFile1()
         {
@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmptyFile2()
         {
             var code = @"}";
@@ -47,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace1()
         {
             var code = @"namespace NS
@@ -60,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace2()
         {
             var code = @"namespace NS
@@ -73,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace3()
         {
             var code = @"namespace NS
@@ -87,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class1()
         {
             var code = @"namespace NS
@@ -102,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class2()
         {
             var code = @"namespace NS
@@ -117,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class3()
         {
             var code = @"namespace NS
@@ -133,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method1()
         {
             var code = @"namespace NS
@@ -150,7 +142,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method2()
         {
             var code = @"namespace NS
@@ -167,7 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method3()
         {
             var code = @"namespace NS
@@ -185,7 +175,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Property1()
         {
             var code = @"namespace NS
@@ -202,7 +191,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Property2()
         {
             var code = @"namespace NS
@@ -220,7 +208,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Event1()
         {
             var code = @"namespace NS
@@ -237,7 +224,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Event2()
         {
             var code = @"namespace NS
@@ -255,7 +241,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Indexer1()
         {
             var code = @"namespace NS
@@ -272,7 +257,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Indexer2()
         {
             var code = @"namespace NS
@@ -290,7 +274,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block1()
         {
             var code = @"namespace NS
@@ -308,7 +291,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block2()
         {
             var code = @"namespace NS
@@ -326,7 +308,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block3()
         {
             var code = @"namespace NS
@@ -345,7 +326,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block4()
         {
             var code = @"namespace NS
@@ -364,7 +344,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer1()
         {
             var code = @"namespace NS
@@ -393,7 +372,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         [Fact]
         [WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer3()
         {
             var code = @"namespace NS
@@ -416,7 +394,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         [Fact]
         [WorkItem(543142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EnterWithTrailingWhitespace()
         {
             var code = @"class Class
@@ -434,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task OpenBraceWithBaseIndentation()
         {
             var markup = @"
@@ -454,7 +431,7 @@ $${
         }
 
         [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task CloseBraceWithBaseIndentation()
         {
             var markup = @"
@@ -474,7 +451,7 @@ $$}
         }
 
         [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task TestPreprocessor()
         {
             var code = @"
@@ -494,7 +471,7 @@ class C
         }
 
         [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task TestRegion()
         {
             var code = @"
@@ -514,7 +491,7 @@ class C
         }
 
         [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task TestEndRegion()
         {
             var code = @"
@@ -535,7 +512,7 @@ class C
         }
 
         [WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task TestSelect()
         {
             var code = @"
@@ -560,7 +537,7 @@ class Program
         }
 
         [WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact]
         public async Task TestWhere()
         {
             var code = @"

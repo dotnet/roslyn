@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTests
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new DisabledTextTriviaStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDisabledIf()
         {
             const string code = @"
@@ -32,7 +33,7 @@ Blah|}
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDisabledElse()
         {
             const string code = @"
@@ -48,7 +49,7 @@ Blah|}
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDisabledElIf()
         {
             const string code = @"
@@ -65,7 +66,7 @@ Blah|}
         }
 
         [WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -86,7 +87,7 @@ class P {
         }
 
         [WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
             const string code = @"
@@ -106,7 +107,7 @@ class P {
         }
 
         [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -127,7 +128,7 @@ class P {
         }
 
         [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -150,7 +151,7 @@ class P {
         }
 
         [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -173,7 +174,7 @@ class P {
         }
 
         [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
@@ -198,7 +199,7 @@ class P {
         }
 
         [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
             const string code = @"
@@ -220,7 +221,7 @@ class P {
         }
 
         [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
             const string code = @"
@@ -241,7 +242,7 @@ class P {
         }
 
         [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
             const string code = @"
@@ -271,7 +272,7 @@ class P {
         }
 
         [WorkItem(1100600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task PreprocessorDirectivesInTrailingTrivia()
         {
             const string code = @"

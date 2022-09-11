@@ -9,16 +9,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class OutKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -34,7 +35,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -42,91 +43,91 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInterfaceTypeVarianceAfterAngle()
         {
             await VerifyKeywordAsync(
 @"interface IGoo<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInterfaceTypeVarianceNotAfterOut()
         {
             await VerifyAbsenceAsync(
 @"interface IGoo<in $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInterfaceTypeVarianceAfterComma()
         {
             await VerifyKeywordAsync(
 @"interface IGoo<Goo, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInterfaceTypeVarianceAfterAttribute()
         {
             await VerifyKeywordAsync(
 @"interface IGoo<[Goo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestDelegateTypeVarianceAfterAngle()
         {
             await VerifyKeywordAsync(
 @"delegate void D<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestDelegateTypeVarianceAfterComma()
         {
             await VerifyKeywordAsync(
 @"delegate void D<Goo, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestDelegateTypeVarianceAfterAttribute()
         {
             await VerifyKeywordAsync(
 @"delegate void D<[Goo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotOutClassTypeVarianceAfterAngle()
         {
             await VerifyAbsenceAsync(
 @"class IGoo<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotOutStructTypeVarianceAfterAngle()
         {
             await VerifyAbsenceAsync(
 @"struct IGoo<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotOutBaseListAfterAngle()
         {
             await VerifyAbsenceAsync(
 @"interface IGoo : Bar<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGenericMethod()
         {
             await VerifyAbsenceAsync(
@@ -134,7 +135,7 @@ $$");
     void Goo<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterOut()
         {
             await VerifyAbsenceAsync(
@@ -142,7 +143,7 @@ $$");
     void Goo(out $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterMethodOpenParen()
         {
             await VerifyKeywordAsync(
@@ -150,7 +151,7 @@ $$");
     void Goo($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterMethodComma()
         {
             await VerifyKeywordAsync(
@@ -158,7 +159,7 @@ $$");
     void Goo(int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterMethodAttribute()
         {
             await VerifyKeywordAsync(
@@ -166,7 +167,7 @@ $$");
     void Goo(int i, [Goo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterConstructorOpenParen()
         {
             await VerifyKeywordAsync(
@@ -174,7 +175,7 @@ $$");
     public C($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterConstructorComma()
         {
             await VerifyKeywordAsync(
@@ -182,7 +183,7 @@ $$");
     public C(int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterConstructorAttribute()
         {
             await VerifyKeywordAsync(
@@ -191,7 +192,7 @@ $$");
         }
 
         [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -200,7 +201,7 @@ $$");
         }
 
         [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -209,7 +210,7 @@ $$");
         }
 
         [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -218,7 +219,7 @@ $$");
         }
 
         [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -226,28 +227,28 @@ $$");
     public C():base(5, Goo:$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterDelegateOpenParen()
         {
             await VerifyKeywordAsync(
 @"delegate void D($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterDelegateComma()
         {
             await VerifyKeywordAsync(
 @"delegate void D(int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterDelegateAttribute()
         {
             await VerifyKeywordAsync(
 @"delegate void D(int i, [Goo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestNotAfterOperator()
         {
@@ -256,7 +257,7 @@ $$");
     static int operator +($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDestructor()
         {
             await VerifyAbsenceAsync(
@@ -264,7 +265,7 @@ $$");
     ~C($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterIndexer()
         {
             await VerifyAbsenceAsync(
@@ -272,7 +273,7 @@ $$");
     int this[$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInObjectCreationAfterOpenParen()
         {
             await VerifyKeywordAsync(
@@ -281,7 +282,7 @@ $$");
       new Bar($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterRef()
         {
             await VerifyAbsenceAsync(
@@ -290,7 +291,7 @@ $$");
       new Bar(ref $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterOutParam()
         {
             await VerifyAbsenceAsync(
@@ -299,7 +300,7 @@ $$");
       new Bar(out $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInObjectCreationAfterComma()
         {
             await VerifyKeywordAsync(
@@ -308,7 +309,7 @@ $$");
       new Bar(baz, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInObjectCreationAfterSecondComma()
         {
             await VerifyKeywordAsync(
@@ -317,7 +318,7 @@ $$");
       new Bar(baz, quux, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInObjectCreationAfterSecondNamedParam()
         {
             await VerifyKeywordAsync(
@@ -326,7 +327,7 @@ $$");
       new Bar(baz: 4, quux: $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInInvocationExpression()
         {
             await VerifyKeywordAsync(
@@ -335,7 +336,7 @@ $$");
       Bar($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInInvocationAfterComma()
         {
             await VerifyKeywordAsync(
@@ -344,7 +345,7 @@ $$");
       Bar(baz, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInInvocationAfterSecondComma()
         {
             await VerifyKeywordAsync(
@@ -353,7 +354,7 @@ $$");
       Bar(baz, quux, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInInvocationAfterSecondNamedParam()
         {
             await VerifyKeywordAsync(
@@ -362,49 +363,49 @@ $$");
       Bar(baz: 4, quux: $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInLambdaDeclaration()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = ($$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInLambdaDeclaration2()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = (ref int a, $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInLambdaDeclaration3()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = (int a, $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInDelegateDeclaration()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate ($$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInDelegateDeclaration2()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate (a, $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInDelegateDeclaration3()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate (int a, $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInCrefParameterList()
         {
             var text = @"Class c
@@ -417,14 +418,14 @@ $$");
         }
 
         [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInLocalFunction()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"void F(int x, $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestExtensionMethods_FirstParameter()
         {
             await VerifyKeywordAsync(
@@ -432,7 +433,7 @@ $$");
     static void Extension($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyAbsenceAsync(
@@ -440,7 +441,7 @@ $$");
     static void Extension(this $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestExtensionMethods_SecondParameter()
         {
             await VerifyKeywordAsync(
@@ -448,7 +449,7 @@ $$");
     static void Extension(this int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword()
         {
             await VerifyAbsenceAsync(
@@ -456,7 +457,7 @@ $$");
     static void Extension(this int i, this $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInFunctionPointerTypeNoExistingModifiers()
         {
             await VerifyKeywordAsync(@"
@@ -465,7 +466,7 @@ class C
     delegate*<$$");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData("in")]
         [InlineData("out")]
         [InlineData("ref")]

@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class IndexerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(UnnamedSymbolCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedAfterDot()
         {
@@ -40,7 +41,7 @@ public class Program
 ", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedAfterDotForString()
         {
@@ -55,7 +56,7 @@ public class Program
 ", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedOnStaticAccess()
         {
@@ -75,7 +76,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedInNameOfContext()
         {
@@ -96,7 +97,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
         {
@@ -131,7 +132,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerWithTwoParametersSuggestionCommitsOpenAndClosingBraces()
         {
@@ -166,7 +167,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$",
                     "c[$$]")]
@@ -225,7 +226,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("/* Leading trivia */c.$$",
                     "/* Leading trivia */c[$$]")]
@@ -266,7 +267,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
         {
@@ -300,7 +301,7 @@ public class Program
 Returns the index i");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerOfBaseTypeIsSuggestedAfterDot()
         {
@@ -324,7 +325,7 @@ public class Program
 ", "this", displayTextSuffix: "[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerOfBaseTypeIsNotSuggestedIfNotAccessible()
         {
@@ -348,7 +349,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedOnString()
         {
@@ -364,7 +365,7 @@ public class Program
 ", "this", displayTextSuffix: "[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever()
         {
@@ -404,7 +405,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateAdvanced()
         {
@@ -456,7 +457,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever_InheritedMember()
         {
@@ -500,7 +501,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerNullForgivingOperatorHandling()
         {

@@ -17,10 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RenameTracking)]
     public class RenameTrackingTaggerProviderTests
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotOnCreation()
         {
             var code = @"
@@ -32,7 +32,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotInBlankFile()
         {
             var code = @"$$";
@@ -42,7 +41,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingTypingAtEnd()
         {
             var code = @"
@@ -55,7 +53,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingTypingAtBeginning()
         {
             var code = @"
@@ -68,7 +65,6 @@ class $$C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingTypingInMiddle()
         {
             var code = @"
@@ -81,7 +77,6 @@ class AB$$CD
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingDeleteFromEnd()
         {
             var code = @"
@@ -94,7 +89,6 @@ class ABC$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingDeleteFromBeginning()
         {
             var code = @"
@@ -107,7 +101,6 @@ class $$ABC
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingDeleteFromMiddle()
         {
             var code = @"
@@ -120,7 +113,6 @@ class AB$$C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotOnClassKeyword()
         {
             var code = @"
@@ -133,7 +125,6 @@ class$$ ABCD
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotAtMethodArgument()
         {
             var code = @"
@@ -154,7 +145,6 @@ class ABCD
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingSessionContinuesAfterViewingTag()
         {
             var code = @"
@@ -170,7 +160,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotInString()
         {
             var code = @"
@@ -187,7 +176,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingHandlesAtSignAsCSharpEscape()
         {
             var code = @"
@@ -200,7 +188,6 @@ class $$C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingHandlesSquareBracketsAsVisualBasicEscape()
         {
             var code = @"
@@ -216,7 +203,6 @@ End Class";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotOnSquareBracketsInCSharp()
         {
             var code = @"
@@ -233,7 +219,6 @@ class $$C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingHandlesUnicode()
         {
             var code = @"
@@ -246,7 +231,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingThroughKeyword()
         {
             var code = @"
@@ -265,7 +249,6 @@ class i$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingThroughIllegalStartCharacter()
         {
             var code = @"
@@ -282,7 +265,6 @@ class $$abc
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingOnBothSidesOfIdentifier()
         {
             var code = @"
@@ -299,7 +281,6 @@ class $$Def
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingThroughSameIdentifier()
         {
             var code = @"
@@ -318,7 +299,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingThroughEmptyString()
         {
             var code = @"
@@ -334,7 +314,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingThroughEmptyStringWithCaretMove()
         {
             var code = @"
@@ -352,7 +331,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotThroughEmptyStringResumeOnDifferentSpace()
         {
             var code = @"
@@ -370,7 +348,6 @@ class  C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingReplaceIdentifierSuffix()
         {
             var code = @"
@@ -384,7 +361,6 @@ class Identifi[|er|]$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingReplaceIdentifierPrefix()
         {
             var code = @"
@@ -398,7 +374,6 @@ class $$[|Ident|]ifier
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingReplaceIdentifierCompletely()
         {
             var code = @"
@@ -412,7 +387,6 @@ class [|Cat|]$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(34280, "https://github.com/dotnet/roslyn/issues/34280")]
         public async Task RenameTrackingReplaceIdentifierWithDiscard()
         {
@@ -433,7 +407,6 @@ class Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotAfterInvoke()
         {
             var code = @"
@@ -448,7 +421,6 @@ class Cat$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingInvokeAndChangeBackToOriginal()
         {
             var code = @"
@@ -466,7 +438,6 @@ class Cat$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingUndoOnceAndStartNewSession()
         {
             var code = @"
@@ -488,7 +459,6 @@ class Cat$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingUndoTwiceAndContinueSession()
         {
             var code = @"
@@ -510,7 +480,6 @@ class Cat$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingRedoAlwaysClearsState()
         {
             var code = @"
@@ -535,7 +504,6 @@ class Cat$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingUndoTwiceRedoTwiceUndoStillWorks()
         {
             var code = @"
@@ -565,7 +533,6 @@ class Cat$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingOnReference_ParameterAsArgument()
         {
             var code = @"
@@ -582,7 +549,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingOnReference_ParameterAsNamedArgument()
         {
             var code = @"
@@ -599,7 +565,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingOnReference_Namespace()
         {
             var code = @"
@@ -619,7 +584,6 @@ namespace NS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Attribute_CSharp()
         {
@@ -644,7 +608,6 @@ class CustomAttribute : Attribute
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Attribute_VB()
         {
@@ -669,7 +632,6 @@ End Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Capitalized_Attribute_VB()
         {
@@ -694,7 +656,6 @@ End Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public async Task RenameTrackingOnReference_Not_Capitalized_Attribute_VB()
         {
@@ -719,7 +680,6 @@ End Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotifiesThirdPartiesOfRenameOperation()
         {
             var code = @"
@@ -749,7 +709,6 @@ class Cats
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingHonorsThirdPartyRequestsForCancellationBeforeRename()
         {
             var code = @"
@@ -781,7 +740,6 @@ class Cat
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingAlertsAboutThirdPartyRequestsForCancellationAfterRename()
         {
             var code = @"
@@ -812,7 +770,6 @@ class Cats
         }
 
         [WpfFact, WorkItem(530469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530469")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenStartedFromTextualWordInTrivia()
         {
             var code = @"
@@ -827,7 +784,6 @@ End Module";
         }
 
         [WpfFact, WorkItem(530495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530495")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenCaseCorrectingReference()
         {
             var code = @"
@@ -844,7 +800,6 @@ End Module";
         }
 
         [WpfFact, WorkItem(599508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599508")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenNewIdentifierReferenceBinds()
         {
             var code = @"
@@ -864,7 +819,6 @@ End Module";
         }
 
         [WpfFact, WorkItem(530400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530400")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenDeclaringEnumMembers()
         {
             var code = @"
@@ -878,7 +832,6 @@ End Enum";
         }
 
         [WpfFact, WorkItem(1028072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028072")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotThrowAggregateException()
         {
             var waitForResult = false;
@@ -910,7 +863,6 @@ End Enum";
         }
 
         [WpfFact, WorkItem(1063943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotFromReferenceWithWrongNumberOfArguments()
         {
             var code = @"
@@ -928,7 +880,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task CancelRenameTracking()
         {
             var code = @"
@@ -943,7 +894,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenDeclaringEnumMembersEvenAfterCancellation()
         {
             var code = @"
@@ -961,7 +911,6 @@ End Enum";
 
         [WpfFact]
         [WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
         {
             var code = @"
@@ -981,7 +930,6 @@ class C$$
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_Nameof_FromMethodGroupReference()
         {
             var code = @"
@@ -1019,7 +967,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_Nameof_FromMethodDefinition_NoOverloads()
         {
             var code = @"
@@ -1049,7 +996,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_Nameof_FromMethodDefinition_WithOverloads()
         {
             var code = @"
@@ -1087,7 +1033,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_Nameof_FromReferenceToMetadata_NoTag()
         {
             var code = @"
@@ -1105,7 +1050,6 @@ class C
 
         [WpfFact]
         [WorkItem(762964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762964")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
         {
             var code = @"
@@ -1125,7 +1069,6 @@ class C
 
         [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CannotRenameToVarInCSharp()
         {
             var code = @"
@@ -1154,7 +1097,6 @@ class C
 
         [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CannotRenameFromVarInCSharp()
         {
             var code = @"
@@ -1173,7 +1115,6 @@ class C
 
         [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CanRenameToVarInVisualBasic()
         {
             var code = @"
@@ -1192,7 +1133,6 @@ End Class";
 
         [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_CannotRenameToDynamicInCSharp()
         {
             var code = @"
@@ -1220,7 +1160,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameImplicitTupleField()
         {
             var code = @"
@@ -1240,7 +1179,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameImplicitTupleFieldVB()
         {
             var code = @"
@@ -1259,7 +1197,6 @@ End Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameImplicitTupleFieldExtended()
         {
             var code = @"
@@ -1280,7 +1217,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameImplicitTupleFieldExtendedVB()
         {
             var code = @"
@@ -1299,7 +1235,6 @@ End Class
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleReturnDeclaration_CSharp()
         {
@@ -1320,7 +1255,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleReturnDeclaration_VB()
         {
@@ -1339,7 +1273,6 @@ End Class";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleFieldReference_CSharp()
         {
@@ -1360,7 +1293,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleFieldReference_VB()
         {
@@ -1379,7 +1311,6 @@ End Class";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleElementsInDeclarations_CSharp()
         {
@@ -1397,7 +1328,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
         public async Task RenameTrackingNotOnExplicitTupleElementsInDeclarations_VB()
         {
@@ -1413,7 +1343,6 @@ End Class";
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
         public async Task RenameTrackingNotOnWellKnownValueTupleType()
         {
@@ -1447,7 +1376,6 @@ namespace System
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
         public async Task RenameTrackingOnThingsCalledValueTupleThatAreNotTheWellKnownType()
         {
@@ -1476,7 +1404,6 @@ public struct ValueTuple&lt;T1&gt;
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingOnDeconstruct()
         {
             var code = @"
@@ -1494,7 +1421,6 @@ class C
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_UnmanagedConstraint_Keyword()
         {
             var code = @"
@@ -1506,7 +1432,6 @@ class C&lt;T&gt; where T : $$unmanaged
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_UnmanagedConstraint_Type()
         {
             var code = @"
