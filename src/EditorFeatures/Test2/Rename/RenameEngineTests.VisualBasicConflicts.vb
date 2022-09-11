@@ -503,7 +503,7 @@ End Class
             End Sub
 
             <WorkItem(725934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/725934"), WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory()>
+            <Theory>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_Me(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,

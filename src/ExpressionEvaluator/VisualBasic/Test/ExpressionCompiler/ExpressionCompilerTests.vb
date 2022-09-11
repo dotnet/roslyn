@@ -2429,7 +2429,7 @@ End Class"
         ''' Unnamed temporaries at the end of the local
         ''' signature should be preserved.
         ''' </summary>
-        <Fact()>
+        <Fact>
         Public Sub TrailingUnnamedTemporaries()
             Const source =
 "Class C

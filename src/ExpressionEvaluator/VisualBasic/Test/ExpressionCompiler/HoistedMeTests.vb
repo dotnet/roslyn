@@ -88,7 +88,7 @@ End Class
             VerifyNoMe(source, "C._Closure$__._Lambda$__1-0")
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InstanceLambda_NoCapturingExceptThis()
             Const source = "
 Class C
@@ -160,7 +160,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InstanceLambda_CapturedMe_DisplayClass()
             Const source = "
 Class C
@@ -184,7 +184,7 @@ End Class
             VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C", expectedIL)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InstanceLambda_CapturedMe_NoDisplayClass()
             Const source = "
 Class C
@@ -258,7 +258,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C(Of T)", expectedIL)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InstanceLambda_Generic()
             Const source = "
 Class C(Of T)
@@ -343,7 +343,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InstanceLambda_ExplicitInterfaceImplementation()
             Const source = "
 Interface I
@@ -398,7 +398,7 @@ End Module
             VerifyNoMe(source, "M.VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SharedLambda()
             Const source = "
 Module M
@@ -440,7 +440,7 @@ End Module
             VerifyNoMe(source, "M.VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ExtensionLambda()
             Const source = "
 Module M

@@ -1347,7 +1347,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Iterator_StaticMethod_Generic()
             Const source = "
 Imports System.Collections.Generic

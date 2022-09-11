@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 VisualBasicObjectFormatter.Instance)
         End Function
 
-        <Fact()>
+        <Fact>
         Public Sub TestPrint()
             Dim runner = CreateRunner(input:="? 10")
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestImportArgument()
             Dim runner = CreateRunner(args:={"/Imports:<xmlns:xmlNamespacePrefix='xmlNamespaceName'>"})
 
@@ -108,7 +108,7 @@ End Class", "1").EmitToArray())
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestReferenceDirectiveWhenReferenceMissing()
             Dim runner = CreateRunner(args:={}, input:="#r ""://invalidfilepath""")
 
@@ -122,7 +122,7 @@ End Class", "1").EmitToArray())
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture1()
             ' Save the current thread culture as it is changed in the test.
@@ -155,7 +155,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
             End Try
         End Sub
 
-        <Fact()>
+        <Fact>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture2()
             ' Save the current thread culture as it is changed in the test.

@@ -1157,7 +1157,7 @@ class B
                 End Using
             End Sub
 
-            <Theory()>
+            <Theory>
             <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542103")>
@@ -1672,7 +1672,7 @@ namespace N
             End Using
         End Sub
 
-        <Theory()>
+        <Theory>
         <WorkItem(535066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535066")>
         <WorkItem(531433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531433")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
