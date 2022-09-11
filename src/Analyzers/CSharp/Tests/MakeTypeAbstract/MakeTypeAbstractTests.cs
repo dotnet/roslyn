@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
     public class MakeTypeAbstractTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public MakeTypeAbstractTests(ITestOutputHelper logger)
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeTypeAbstractCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestMethod()
         {
             await TestInRegularAndScript1Async(
@@ -42,7 +43,7 @@ public abstract class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestMethodEnclosingClassWithoutAccessibility()
         {
             await TestInRegularAndScript1Async(
@@ -58,7 +59,7 @@ abstract class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestMethodEnclosingClassDocumentationComment()
         {
             await TestInRegularAndScript1Async(
@@ -80,7 +81,7 @@ public abstract class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestPropertyGetter()
         {
             await TestInRegularAndScript1Async(
@@ -96,7 +97,7 @@ public abstract class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestPropertySetter()
         {
             await TestInRegularAndScript1Async(
@@ -112,7 +113,7 @@ public abstract class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestIndexerGetter()
         {
             await TestInRegularAndScript1Async(
@@ -128,7 +129,7 @@ public abstract class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestIndexerSetter()
         {
             await TestInRegularAndScript1Async(
@@ -145,7 +146,7 @@ public abstract class Goo
         }
 
         [WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(
@@ -169,7 +170,7 @@ public partial class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestEventAdd()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -180,7 +181,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestEventRemove()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -191,7 +192,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestMethodWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -202,7 +203,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestPropertyGetterWithArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -213,7 +214,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestPropertyGetterWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -227,7 +228,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestStructNestedInClass()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -241,7 +242,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestMethodEnclosingClassStatic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -252,7 +253,7 @@ public static class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestRecord()
         {
             await TestInRegularAndScript1Async(
@@ -268,7 +269,7 @@ public abstract record Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestRecordClass()
         {
             await TestInRegularAndScript1Async(
@@ -284,7 +285,7 @@ public abstract record class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task TestRecordStruct()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -294,7 +295,7 @@ public record struct Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        [Fact]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(

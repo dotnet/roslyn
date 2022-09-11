@@ -34,9 +34,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
     public class ErrorSquiggleProducerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
         {
             var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForWarning()
         {
             var spans = await GetTagSpansAsync("class C { long x = 5l; }");
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
@@ -195,14 +196,14 @@ class Program
             Assert.Equal(5, fourth.Span.Length);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorDoesNotCrashPastEOF()
         {
             var spans = await GetTagSpansAsync("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task SemanticErrorReported()
         {
             using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
@@ -226,7 +227,7 @@ class Program
             ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
@@ -252,7 +253,7 @@ class Program
             Assert.True(spans.Count == 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
@@ -279,7 +280,7 @@ class Program
             Assert.True(spans.Count == 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
@@ -310,7 +311,7 @@ class Program
             Assert.Equal(1, first.Span.Span.Length);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =

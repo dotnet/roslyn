@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
     public class GenerateConstructorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public GenerateConstructorTests(ITestOutputHelper logger)
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 
         private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithSimpleArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
         }
 
         [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithSimpleArgument_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithSimpleArgument_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithSimpleArgument_UseExpressionBody1()
         {
             await TestInRegularAndScriptAsync(
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
         public async Task TestWithNoArgs()
         {
             var input =
@@ -170,7 +171,7 @@ input,
 }");
         }
 
-        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
         public async Task TestWithNamedArg()
         {
             await TestInRegularAndScriptAsync(
@@ -197,7 +198,7 @@ input,
 }");
         }
 
-        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
         public async Task TestWithExistingField1()
         {
             const string input =
@@ -235,7 +236,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField2()
         {
             await TestInRegularAndScriptAsync(
@@ -272,7 +273,7 @@ class D
         }
 
         [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField2_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -309,7 +310,7 @@ class D
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField2_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -343,7 +344,7 @@ class D
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField3()
         {
             await TestInRegularAndScriptAsync(
@@ -385,7 +386,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField4()
         {
             await TestInRegularAndScriptAsync(
@@ -430,7 +431,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField5()
         {
             await TestInRegularAndScriptAsync(
@@ -466,7 +467,7 @@ class D
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField5WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -503,7 +504,7 @@ class D
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField6()
         {
             await TestInRegularAndScriptAsync(
@@ -548,7 +549,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField7()
         {
             await TestInRegularAndScriptAsync(
@@ -591,7 +592,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField7WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -635,7 +636,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField8()
         {
             await TestInRegularAndScriptAsync(
@@ -680,7 +681,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingField9()
         {
             await TestInRegularAndScriptAsync(
@@ -726,7 +727,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty1()
         {
             await TestInRegularAndScriptAsync(
@@ -762,7 +763,7 @@ class D
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty1WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -799,7 +800,7 @@ class D
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty2()
         {
             await TestInRegularAndScriptAsync(
@@ -844,7 +845,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty3()
         {
             await TestInRegularAndScriptAsync(
@@ -887,7 +888,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty3WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -931,7 +932,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty4()
         {
             await TestInRegularAndScriptAsync(
@@ -974,7 +975,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty4WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -1018,7 +1019,7 @@ class D : B
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithExistingProperty5()
         {
             await TestInRegularAndScriptAsync(
@@ -1062,7 +1063,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithOutParam()
         {
             await TestInRegularAndScriptAsync(
@@ -1094,7 +1095,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithBaseDelegatingConstructor1()
         {
             const string input =
@@ -1143,7 +1144,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithBaseDelegatingConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -1192,7 +1193,7 @@ class D : B
         }
 
         [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithBaseDelegatingConstructor2_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -1240,7 +1241,7 @@ class D : B
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithBaseDelegatingConstructor2_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -1285,7 +1286,7 @@ class D : B
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestStructInLocalInitializerWithSystemType()
         {
             await TestInRegularAndScriptAsync(
@@ -1315,7 +1316,7 @@ struct S
         }
 
         [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestEscapedName()
         {
             await TestInRegularAndScriptAsync(
@@ -1343,7 +1344,7 @@ struct S
         }
 
         [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestEscapedKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -1370,7 +1371,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestIsSymbolAccessibleWithInternalField()
         {
             await TestInRegularAndScriptAsync(
@@ -1409,7 +1410,7 @@ class Derived : Base
         }
 
         [WorkItem(539548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539548")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestFormatting()
         {
             await TestInRegularAndScriptAsync(
@@ -1437,7 +1438,7 @@ class Derived : Base
         }
 
         [WorkItem(5864, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestNotOnStructConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1451,7 +1452,7 @@ class Derived : Base
         }
 
         [WorkItem(539787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539787")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateIntoCorrectPart()
         {
             await TestInRegularAndScriptAsync(
@@ -1486,7 +1487,7 @@ partial class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateToSmallerConstructor1()
         {
             await TestInRegularAndScriptAsync(
@@ -1539,7 +1540,7 @@ class Delta
         }
 
         [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateToSmallerConstructor1_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -1592,7 +1593,7 @@ class Delta
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateToSmallerConstructor1_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -1642,7 +1643,7 @@ class Delta
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateToSmallerConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -1694,7 +1695,7 @@ class Delta
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateToSmallerConstructor3()
         {
             await TestInRegularAndScriptAsync(
@@ -1754,7 +1755,7 @@ class Delta : Base
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateToSmallerConstructor4()
         {
             await TestInRegularAndScriptAsync(
@@ -1806,7 +1807,7 @@ class Delta
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFromThisInitializer1()
         {
             await TestInRegularAndScriptAsync(
@@ -1832,7 +1833,7 @@ class Delta
         }
 
         [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFromThisInitializer1_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -1857,7 +1858,7 @@ class Delta
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFromThisInitializer1_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -1879,7 +1880,7 @@ class Delta
 }", index: 2);
         }
 
-        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
         public async Task TestGenerateFromThisInitializer2()
         {
             await TestInRegularAndScriptAsync(
@@ -1901,7 +1902,7 @@ class Delta
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFromBaseInitializer1()
         {
             await TestInRegularAndScriptAsync(
@@ -1933,7 +1934,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFromBaseInitializer2()
         {
             await TestInRegularAndScriptAsync(
@@ -1967,7 +1968,7 @@ class B
         }
 
         [WorkItem(539969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539969")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestNotOnExistingConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1988,7 +1989,7 @@ class A
         }
 
         [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestUnavailableTypeParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -2025,7 +2026,7 @@ internal class A
         }
 
         [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestUnavailableTypeParameters_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -2062,7 +2063,7 @@ internal class A
         }
 
         [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestUnavailableTypeParameters_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -2094,7 +2095,7 @@ internal class A
         }
 
         [WorkItem(541020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541020")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateCallToDefaultConstructorInStruct()
         {
             await TestInRegularAndScriptAsync(
@@ -2141,7 +2142,7 @@ struct Apartment
         }
 
         [WorkItem(541121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541121")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestReadonlyFieldDelegation()
         {
             await TestInRegularAndScriptAsync(
@@ -2172,7 +2173,7 @@ struct Apartment
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestNoGenerationIntoEntirelyHiddenType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2191,7 +2192,7 @@ class D
 #line default");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestNestedConstructorCall()
         {
             await TestInRegularAndScriptAsync(
@@ -2236,7 +2237,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -2271,7 +2272,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithArgument_WithProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -2306,7 +2307,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithArgument_NoMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -2338,7 +2339,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithMultipleArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -2377,7 +2378,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithNamedArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -2416,7 +2417,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithAdditionalConstructors()
         {
             await TestInRegularAndScriptAsync(
@@ -2465,7 +2466,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithOverloading()
         {
             await TestInRegularAndScriptAsync(
@@ -2512,7 +2513,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithOverloadingMultipleParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -2565,7 +2566,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithAllValidParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -2630,7 +2631,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithDelegation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2650,7 +2651,7 @@ class D
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributesWithLambda()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2668,7 +2669,7 @@ class D
         }
 
         [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestConstructorGenerationForDifferentNamedParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -2710,7 +2711,7 @@ class Program
         }
 
         [WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateInInaccessibleType()
         {
             await TestInRegularAndScriptAsync(
@@ -2751,7 +2752,7 @@ class A
         }
 
         [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateConstructorInIncompleteLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -2785,7 +2786,7 @@ class C
         }
 
         [WorkItem(5274, "https://github.com/dotnet/roslyn/issues/5274")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateIntoDerivedClassWithAbstractBase()
         {
             await TestInRegularAndScriptAsync(
@@ -2839,7 +2840,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateWithIncorrectConstructorArguments_Crash()
         {
             await TestInRegularAndScriptAsync(
@@ -2883,7 +2884,7 @@ abstract class Y
         }
 
         [WorkItem(9575, "https://github.com/dotnet/roslyn/issues/9575")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestMissingOnMethodCall()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2900,7 +2901,7 @@ abstract class Y
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task Tuple()
         {
             await TestInRegularAndScriptAsync(
@@ -2929,7 +2930,7 @@ abstract class Y
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -2956,7 +2957,7 @@ abstract class Y
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleWithOneName()
         {
             await TestInRegularAndScriptAsync(
@@ -2983,7 +2984,7 @@ abstract class Y
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleAndExistingField()
         {
             await TestInRegularAndScriptAsync(
@@ -3018,7 +3019,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleWithNamesAndExistingField()
         {
             await TestInRegularAndScriptAsync(
@@ -3053,7 +3054,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleWithDifferentNamesAndExistingField()
         {
             await TestInRegularAndScriptAsync(
@@ -3088,7 +3089,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleAndDelegatingConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -3133,7 +3134,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleWithNamesAndDelegatingConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -3178,7 +3179,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TupleWithDifferentNamesAndDelegatingConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -3223,7 +3224,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
         public async Task StripUnderscoresFromParameterNames()
@@ -3267,7 +3268,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
         public async Task DoNotStripSingleUnderscore()
         {
@@ -3306,7 +3307,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
@@ -3332,7 +3333,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
         {
@@ -3358,7 +3359,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped()
         {
@@ -3384,7 +3385,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
         {
@@ -3410,7 +3411,7 @@ class D
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_CSharp6()
         {
@@ -3437,7 +3438,7 @@ class D
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
         {
@@ -3464,7 +3465,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
         {
@@ -3491,7 +3492,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
         {
@@ -3518,7 +3519,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
         public async Task Support_Readonly_Properties()
         {
@@ -3551,7 +3552,7 @@ class P {
         }
 
         [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateConstructor1()
         {
             await TestInRegularAndScriptAsync(
@@ -3579,7 +3580,7 @@ class P {
         }
 
         [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -3605,7 +3606,7 @@ class P {
         }
 
         [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateConstructor3()
         {
             await TestInRegularAndScriptAsync(
@@ -3633,7 +3634,7 @@ class P {
         }
 
         [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateConstructor4()
         {
             await TestInRegularAndScriptAsync(
@@ -3663,7 +3664,7 @@ class P {
         }
 
         [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateConstructor5()
         {
             await TestInRegularAndScriptAsync(
@@ -3694,7 +3695,7 @@ class P {
         }
 
         [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Theory]
         [InlineData("void")]
         [InlineData("int")]
         public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
@@ -3749,7 +3750,7 @@ internal class Class
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFieldNoNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -3781,7 +3782,7 @@ class Program
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFieldDefaultNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -3813,7 +3814,7 @@ class Program
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateFieldWithNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -3845,7 +3846,7 @@ class Program
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestFieldWithNamingStyleAlreadyExists()
         {
             await TestInRegularAndScriptAsync(
@@ -3879,7 +3880,7 @@ class Program
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestFieldAndParameterNamingStyles()
         {
             await TestInRegularAndScriptAsync(
@@ -3911,7 +3912,7 @@ class Program
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestAttributeArgumentWithNamingRules()
         {
             await TestInRegularAndScriptAsync(
@@ -3946,7 +3947,7 @@ class D
         }
 
         [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Theory]
         [InlineData("_s", "s")]
         [InlineData("_S", "s")]
         [InlineData("m_s", "s")]
@@ -3983,7 +3984,7 @@ class Program
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithTopLevelNullability()
         {
             await TestInRegularAndScriptAsync(
@@ -4016,7 +4017,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithNestedNullability()
         {
             await TestInRegularAndScriptAsync(
@@ -4053,7 +4054,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestWithUnsafe_Field()
         {
@@ -4081,7 +4082,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestWithUnsafe_Property()
         {
@@ -4110,7 +4111,7 @@ class C
         }
 
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithUnsafeInUnsafeClass_Field()
         {
             await TestInRegularAndScriptAsync(
@@ -4138,7 +4139,7 @@ class C
         }
 
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestWithUnsafeInUnsafeClass_Property()
         {
             await TestInRegularAndScriptAsync(
@@ -4166,7 +4167,7 @@ class C
         }
 
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestUnsafeDelegateConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -4192,7 +4193,7 @@ class C
         }
 
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestUnsafeDelegateConstructorInUnsafeClass()
         {
             await TestInRegularAndScriptAsync(
@@ -4218,7 +4219,7 @@ class C
         }
 
         [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateNameFromTypeArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -4248,7 +4249,7 @@ class C
         }
 
         [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDoNotGenerateNameFromTypeArgumentIfNotEnumerable()
         {
             await TestInRegularAndScriptAsync(
@@ -4280,7 +4281,7 @@ class C
         }
 
         [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateNameFromTypeArgumentForErrorType()
         {
             await TestInRegularAndScriptAsync(
@@ -4310,7 +4311,7 @@ class C
         }
 
         [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateNameFromTypeArgumentForTupleType()
         {
             await TestInRegularAndScriptAsync(
@@ -4340,7 +4341,7 @@ class C
         }
 
         [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateNameFromTypeArgumentInNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -4374,7 +4375,7 @@ namespace N {
         }
 
         [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateConstructorFromImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync(@"
@@ -4415,7 +4416,7 @@ namespace N
         }
 
         [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateConstructorFromImplicitObjectCreation_Properties()
         {
             await TestInRegularAndScriptAsync(@"
@@ -4456,7 +4457,7 @@ namespace N
         }
 
         [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateConstructorFromImplicitObjectCreation_NoField()
         {
             await TestInRegularAndScriptAsync(@"
@@ -4493,7 +4494,7 @@ namespace N
 }", index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateConstructorFromImplicitObjectCreation_Delegating()
         {
             await TestInRegularAndScriptAsync(
@@ -4538,7 +4539,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestGenerateConstructorFromImplicitObjectCreation_DelegatingFromParameter()
         {
             const string input =
@@ -4587,7 +4588,7 @@ class D : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateWithLambda1()
         {
             await TestInRegularAndScriptAsync(
@@ -4632,7 +4633,7 @@ class Delta
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateWithLambda2()
         {
             await TestInRegularAndScriptAsync(
@@ -4675,7 +4676,7 @@ class Delta : A
         }
 
         [WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestDelegateConstructorWithMissingType()
         {
             // CSharpProjectWithExtraType is added as a project reference to CSharpProjectGeneratingInto
@@ -4729,7 +4730,7 @@ public class C
         }
 
         [WorkItem(38822, "https://github.com/dotnet/roslyn/issues/38822")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact]
         public async Task TestMissingInLambdaWithCallToExistingConstructor()
         {
             await TestMissingInRegularAndScriptAsync(

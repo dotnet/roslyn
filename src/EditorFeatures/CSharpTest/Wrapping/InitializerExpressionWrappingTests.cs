@@ -11,12 +11,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
     public class IntializerExpressionWrappingTests : AbstractWrappingTests
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestNoWrappingSuggestions()
         {
             await TestMissingAsync(
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         [WorkItem(59624, "https://github.com/dotnet/roslyn/issues/59624")]
         public async Task TestNoWrappingSuggestions_TrailingComma()
         {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappingShortInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         [WorkItem(59624, "https://github.com/dotnet/roslyn/issues/59624")]
         public async Task TestWrappingShortInitializerExpression_TrailingComma()
         {
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappingLongIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappingMultiLineLongIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestShortInitializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestLongIntializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestListWrappingIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappedListIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestObjectWrappingIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappedObjectIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestReturnIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -413,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappedReturnIntializerExpression()
         {
             await TestAllWrappingCasesAsync(
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestClassPropertyIntializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
@@ -481,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappedClassPropertyIntializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestArgumentIntializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(
@@ -543,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [Fact]
         public async Task TestWrappedArgumentIntializerExpressionRefactorings()
         {
             await TestAllWrappingCasesAsync(

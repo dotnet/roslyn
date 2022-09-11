@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
     using VerifyCS = CSharpCodeRefactoringVerifier<
         CSharpAddParameterCheckCodeRefactoringProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
     public class AddParameterCheckTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestEmptyFile()
         {
             var code = @"[||]";
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSimpleReferenceType_AlreadyNullChecked()
         {
             var testCode = @"
@@ -53,7 +54,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSimpleReferenceType()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -81,7 +82,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSimpleReferenceType_CSharp6()
         {
             await new VerifyCS.Test
@@ -112,7 +113,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNullable()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -141,7 +142,7 @@ class C
         }
 
         [WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnOutParameter()
         {
             var code = @"
@@ -155,7 +156,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnValueType()
         {
             var code = @"
@@ -171,7 +172,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnInterfaceParameter()
         {
             var code = @"
@@ -185,7 +186,7 @@ interface I
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnNullableParameter()
         {
             var code = @"
@@ -203,7 +204,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnAbstractParameter()
         {
             var code = @"
@@ -216,7 +217,7 @@ abstract class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnExternParameter()
         {
             var code = @"
@@ -230,7 +231,6 @@ class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
@@ -254,7 +254,7 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnExtendedPartialMethodDefinition1()
         {
             var code = @"
@@ -277,7 +277,6 @@ partial class C
         }
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp8)]
         public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
@@ -301,7 +300,7 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnExtendedPartialMethodDefinition2()
         {
             var code = @"
@@ -323,7 +322,7 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnPartialMethodImplementation1()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -355,7 +354,7 @@ partial class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnExtendedPartialMethodImplementation1()
         {
             await new VerifyCS.Test
@@ -390,7 +389,7 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnPartialMethodImplementation2()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -422,7 +421,7 @@ partial class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnExtendedPartialMethodImplementation2()
         {
             await new VerifyCS.Test
@@ -457,7 +456,7 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateExistingFieldAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -487,7 +486,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableParameters()
         {
             await new VerifyCS.Test
@@ -529,7 +528,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableParametersSomeNullableReferenceTypes()
         {
             await new VerifyCS.Test
@@ -570,7 +569,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestCursorNotOnParameters()
         {
             var code = @"
@@ -585,7 +584,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableWithCursorOnNonNullable()
         {
             await new VerifyCS.Test
@@ -622,7 +621,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableNonNullable()
         {
             await new VerifyCS.Test
@@ -659,7 +658,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableStringsAndObjects()
         {
             await new VerifyCS.Test
@@ -701,7 +700,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableObjects()
         {
             await new VerifyCS.Test
@@ -743,7 +742,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMultiNullableStructs()
         {
             await new VerifyCS.Test
@@ -785,7 +784,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateExistingPropertyAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -815,7 +814,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task DoNotUseThrowExpressionBeforeCSharp7()
         {
             await new VerifyCS.Test
@@ -853,7 +852,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task RespectUseThrowExpressionOption()
         {
             await new VerifyCS.Test
@@ -894,7 +893,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateExpressionBody1()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -920,7 +919,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateExpressionBody2()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -957,7 +956,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateExpressionBody3()
         {
             await new VerifyCS.Test
@@ -1001,7 +1000,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1040,7 +1039,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateLocalFunctionExpressionBody_Void()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1079,7 +1078,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateLambdaExpressionBody_NonVoid()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1118,7 +1117,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestUpdateLambdaExpressionBody_Void()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1156,7 +1155,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertAfterExistingNullCheck1()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1191,7 +1190,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInsertBeforeExistingNullCheck1()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1226,7 +1225,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheck1()
         {
             var code = @"
@@ -1245,7 +1244,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheck2()
         {
             var code = @"
@@ -1263,7 +1262,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheck3()
         {
             var code = @"
@@ -1281,7 +1280,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheck4()
         {
             var code = @"
@@ -1299,7 +1298,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheck5()
         {
             var code = @"
@@ -1318,7 +1317,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheck6()
         {
             var code = @"
@@ -1338,7 +1337,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheckInLocalFunction()
         {
             var code = @"
@@ -1361,7 +1360,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithExistingNullCheckInLambda()
         {
             var code = @"
@@ -1377,7 +1376,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingWithoutParameterName()
         {
             var code = @"
@@ -1392,7 +1391,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInMethod()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1420,7 +1419,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInOperator()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1452,7 +1451,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnSimpleLambdaParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1487,7 +1486,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnSimpleLambdaParameter_EmptyBlock()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1520,7 +1519,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnParenthesizedLambdaParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1555,7 +1554,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnDiscardLambdaParameter1()
         {
             await new VerifyCS.Test
@@ -1593,7 +1592,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnDiscardLambdaParameter2()
         {
             var testCode = @"
@@ -1615,7 +1614,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnAnonymousMethodParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1650,7 +1649,7 @@ class C
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestOnLocalFunctionParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1684,7 +1683,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnIndexerParameter()
         {
             var code = @"
@@ -1701,7 +1700,7 @@ class C
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNotOnIndexerParameters()
         {
             var code = @"
@@ -1719,7 +1718,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSpecialStringCheck1()
         {
             await new VerifyCS.Test
@@ -1751,7 +1750,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSpecialStringCheck2()
         {
             await new VerifyCS.Test
@@ -1784,7 +1783,7 @@ class C
         }
 
         [WorkItem(51338, "https://github.com/dotnet/roslyn/issues/51338")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [UseCulture("de-DE", "de-DE")]
         public async Task TestSpecialStringCheck3()
         {
@@ -1818,7 +1817,7 @@ class C
         }
 
         [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
         {
             var code = @"
@@ -1836,7 +1835,7 @@ class C
         }
 
         [WorkItem(19174, "https://github.com/dotnet/roslyn/issues/19174")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestRespectPredefinedTypePreferences()
         {
             await new VerifyCS.Test
@@ -1873,7 +1872,7 @@ class Program
         }
 
         [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Theory]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         public async Task TestPreferNoBlock(int preferBraces)
@@ -1907,7 +1906,7 @@ class C
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestNoBlock()
         {
             await new VerifyCS.Test
@@ -1946,7 +1945,7 @@ class C
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInArrowExpression1()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1982,7 +1981,7 @@ class C
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInArrowExpression2()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -2018,7 +2017,7 @@ class C
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingInArrowExpression1()
         {
             var code = @"
@@ -2038,7 +2037,7 @@ class C
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingInArrowExpression2()
         {
             var code = @"
@@ -2062,7 +2061,7 @@ class C
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestInArrowExpression3()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -2098,7 +2097,7 @@ class C
         }
 
         [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -2127,7 +2126,7 @@ class C
         }
 
         [WorkItem(29333, "https://github.com/dotnet/roslyn/issues/29333")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestLambdaWithIncorrectNumberOfParameters()
         {
             var code = @"
@@ -2155,7 +2154,7 @@ class C
         }
 
         [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingInArgList()
         {
             var code = @"
@@ -2173,7 +2172,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")]
         public async Task TestImportSystem()
         {
@@ -2200,7 +2199,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesNone_SameLineFalse()
         {
@@ -2235,7 +2234,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineFalse()
         {
@@ -2270,7 +2269,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineFalse()
         {
@@ -2307,7 +2306,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesNone_SameLineTrue()
         {
@@ -2341,7 +2340,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineTrue()
         {
@@ -2375,7 +2374,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineTrue()
         {
@@ -2412,7 +2411,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineFalse()
         {
@@ -2449,7 +2448,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineFalse()
         {
@@ -2486,7 +2485,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineFalse()
         {
@@ -2525,7 +2524,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineTrue()
         {
@@ -2561,7 +2560,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineTrue()
         {
@@ -2597,7 +2596,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineTrue()
         {
@@ -2636,7 +2635,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
         public async Task SingleLineStatement_NullCheck_AllParameters()
         {
@@ -2675,7 +2674,7 @@ class C
         }
 
         [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingParameter1()
         {
             var source = @"
@@ -2691,7 +2690,7 @@ class C
         }
 
         [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingParameter2()
         {
             var source = @"
@@ -2707,7 +2706,7 @@ class C
         }
 
         [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingParameter3()
         {
             var source = @"
@@ -2723,7 +2722,7 @@ class C
         }
 
         [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         public async Task TestMissingParameter4()
         {
             var source = @"
@@ -2738,7 +2737,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Fact]
         [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
         public async Task TestNotInRecord()
         {
