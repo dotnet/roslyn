@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1038,13 +1040,44 @@ using bbb;
 using Bbb;
 using cc;
 using cC;
-using CC;
+using CC;";
 
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
+            string sortedKana;
+            if (GlobalizationUtilities.ICUMode())
+            {
+                sortedKana =
+@"using あ;
+using ｱ;
+using ああ;
+using あｱ;
+using ｱあ;
+using ｱｱ;
+using あア;
+using ｱア;
+using ア;
+using アあ;
+using アｱ;
+using アア;";
+            }
+            else
+            {
+                sortedKana =
+@"using ア;
+using ｱ;
+using あ;
+using アア;
+using アｱ;
+using ｱア;
+using ｱｱ;
+using アあ;
+using ｱあ;
+using あア;
+using あｱ;
+using ああ;";
+            }
 
             var final =
-@"using a;
+@$"using a;
 using A;
 using aa;
 using aA;
@@ -1071,21 +1104,8 @@ using cC;
 using cC;
 using Cc;
 using CC;
-using ア;
-using ｱ;
-using あ;
-using アア;
-using アｱ;
-using ｱア;
-using ｱｱ;
-using アあ;
-using ｱあ;
-using あア;
-using あｱ;
-using ああ;
-
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
+{sortedKana}
+";
             await CheckAsync(initial, final);
         }
 
@@ -1106,7 +1126,26 @@ using ｱあ;
 using ｱア;
 using ｱｱ;";
 
-            var final =
+            if (GlobalizationUtilities.ICUMode())
+            {
+                await CheckAsync(initial,
+@"using あ;
+using ｱ;
+using ああ;
+using あｱ;
+using ｱあ;
+using ｱｱ;
+using あア;
+using ｱア;
+using ア;
+using アあ;
+using アｱ;
+using アア;
+");
+            }
+            else
+            {
+                await CheckAsync(initial,
 @"using ア;
 using ｱ;
 using あ;
@@ -1119,9 +1158,8 @@ using ｱあ;
 using あア;
 using あｱ;
 using ああ;
-";
-
-            await CheckAsync(initial, final);
+");
+            }
         }
 
         [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
