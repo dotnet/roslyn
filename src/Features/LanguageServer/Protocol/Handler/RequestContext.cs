@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 return new RequestContext(
-                    workspace: null, solution: null, document: null, logger, clientCapabilities, serverKind, 
+                    workspace: null, solution: null, document: null, logger, clientCapabilities, serverKind,
                     documentChangeTracker, trackedDocuments, supportedLanguages, lspServices, queueCancellationToken);
             }
 
