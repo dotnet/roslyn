@@ -331,8 +331,7 @@ class a
             await VerifyBuilderAsync(markup.ToString());
         }
 
-        [WorkItem(823968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/823968")]
-        [Fact]
+        [Fact, WorkItem(823968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/823968")]
         public async Task BuilderInJoinClause()
         {
             var markup = @"using System;
@@ -351,8 +350,7 @@ class a
             await VerifyBuilderAsync(markup.ToString());
         }
 
-        [WorkItem(544290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544290")]
-        [Fact]
+        [Fact, WorkItem(544290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544290")]
         public async Task ParenthesizedLambdaArgument()
         {
             var markup = @"using System;
@@ -366,8 +364,7 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
-        [Fact]
+        [Fact, WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
         public async Task IncompleteParenthesizedLambdaArgument()
         {
             var markup = @"using System;
@@ -381,8 +378,7 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
-        [Fact]
+        [Fact, WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
         public async Task IncompleteNestedParenthesizedLambdaArgument()
         {
             var markup = @"using System;
@@ -536,8 +532,7 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
-        [Fact]
+        [Fact, WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         public async Task BuilderForLinqExpression()
         {
             var markup = @"using System;
@@ -553,8 +548,7 @@ public class Class
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
-        [Fact]
+        [Fact, WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         public async Task NotInTypeParameter()
         {
             var markup = @"using System;
@@ -570,8 +564,7 @@ public class Class
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(611477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611477")]
-        [Fact]
+        [Fact, WorkItem(611477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611477")]
         public async Task ExtensionMethodFaultTolerance()
         {
             var markup = @"using System;
@@ -617,8 +610,7 @@ namespace Outer
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(834609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834609")]
-        [Fact]
+        [Fact, WorkItem(834609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834609")]
         public async Task LambdaWithAutomaticBraceCompletion()
         {
             var markup = @"using System;
@@ -634,8 +626,7 @@ public class Class
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Fact]
+        [Fact, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         public async Task ThisConstructorInitializer()
         {
             var markup = @"using System;
@@ -646,8 +637,7 @@ class X
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Fact]
+        [Fact, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         public async Task BaseConstructorInitializer()
         {
             var markup = @"using System;
@@ -663,8 +653,7 @@ class D : B
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(887842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887842")]
-        [Fact]
+        [Fact, WorkItem(887842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887842")]
         public async Task PreprocessorExpression()
         {
             var markup = @"class C
@@ -674,8 +663,7 @@ class D : B
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(967254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967254")]
-        [Fact]
+        [Fact, WorkItem(967254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967254")]
         public async Task ImplicitArrayInitializerAfterNew()
         {
             var markup = @"using System;
@@ -690,64 +678,56 @@ class a
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task NamespaceDeclaration_Unqualified()
         {
             var markup = @"namespace $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task NamespaceDeclaration_Qualified()
         {
             var markup = @"namespace A.$$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task FileScopedNamespaceDeclaration_Unqualified()
         {
             var markup = @"namespace $$;";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task FileScopedNamespaceDeclaration_Qualified()
         {
             var markup = @"namespace A.$$;";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task PartialClassName()
         {
             var markup = @"partial class $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task PartialStructName()
         {
             var markup = @"partial struct $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact]
+        [Fact, WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public async Task PartialInterfaceName()
         {
             var markup = @"partial interface $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
-        [Fact]
+        [Fact, WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
         public async Task UnwrapParamsArray()
         {
             var markup = @"
@@ -760,8 +740,7 @@ class C {
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
-        [Fact]
+        [Fact, WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
         public async Task DoNotUnwrapRegularArray()
         {
             var markup = @"
@@ -774,8 +753,7 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(47662, "https://github.com/dotnet/roslyn/issues/47662")]
-        [Fact]
+        [Fact, WorkItem(47662, "https://github.com/dotnet/roslyn/issues/47662")]
         public async Task LambdaExpressionInImplicitObjectCreation()
         {
             var markup = @"
@@ -788,8 +766,7 @@ class C {
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
-        [Fact]
+        [Fact, WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
         public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
         {
             var markup = @"
@@ -799,8 +776,7 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
-        [Fact]
+        [Fact, WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
         public async Task NotBuilderInTypeArgument()
         {
             var markup = @"
@@ -820,8 +796,7 @@ namespace ConsoleApplication1
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(16176, "https://github.com/dotnet/roslyn/issues/16176")]
-        [Fact]
+        [Fact, WorkItem(16176, "https://github.com/dotnet/roslyn/issues/16176")]
         public async Task NotBuilderForLambdaAfterNew()
         {
             var markup = @"
@@ -831,8 +806,7 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
-        [Fact]
+        [Fact, WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
         public async Task AsyncLambda()
         {
             var markup = @"
@@ -849,8 +823,7 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
-        [Fact]
+        [Fact, WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
         public async Task AsyncLambdaAfterComma()
         {
             var markup = @"
@@ -867,8 +840,7 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod1()
         {
             var markup = @"
@@ -899,8 +871,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod2()
         {
             var markup = @"
@@ -931,8 +902,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod3()
         {
             var markup = @"
@@ -963,8 +933,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod4()
         {
             var markup = @"
@@ -995,8 +964,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod5()
         {
             var markup = @"
@@ -1027,8 +995,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod6()
         {
             var markup = @"
@@ -1059,8 +1026,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod7()
         {
             var markup = @"
@@ -1091,8 +1057,7 @@ public static class Repro
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact]
+        [Fact, WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithNonDelegateExtensionAndInstanceMethod1()
         {
             var markup = @"
@@ -1123,8 +1088,7 @@ public static class Repro
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInDeclarationPattern()
         {
             var markup = @"
@@ -1139,8 +1103,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInDeclarationPattern2()
         {
             var markup = @"
@@ -1155,8 +1118,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInRecursivePattern()
         {
             var markup = @"
@@ -1172,8 +1134,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInPropertyPattern()
         {
             var markup = @"
@@ -1189,8 +1150,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInAndPattern()
         {
             var markup = @"
@@ -1205,8 +1165,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInAndOrPattern()
         {
             var markup = @"
@@ -1221,8 +1180,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInSwitchStatement()
         {
             var markup = @"
@@ -1240,8 +1198,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInSwitchExpression()
         {
             var markup = @"
@@ -1259,8 +1216,7 @@ class C
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInNotPattern_Declaration()
         {
             var markup = @"
@@ -1275,8 +1231,7 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInNotPattern_Declaration2()
         {
             var markup = @"
@@ -1291,8 +1246,7 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInNotPattern_Recursive()
         {
             var markup = @"
@@ -1308,8 +1262,7 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInOrPattern()
         {
             var markup = @"
@@ -1324,8 +1277,7 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInAndOrPattern()
         {
             var markup = @"
@@ -1340,8 +1292,7 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInRecursiveOrPattern()
         {
             var markup = @"

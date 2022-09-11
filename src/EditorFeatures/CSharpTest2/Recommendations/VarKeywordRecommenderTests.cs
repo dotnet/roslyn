@@ -416,8 +416,7 @@ $$"));
 @"ref int x = ref $$"));
         }
 
-        [WorkItem(10170, "https://github.com/dotnet/roslyn/issues/10170")]
-        [Fact]
+        [Fact, WorkItem(10170, "https://github.com/dotnet/roslyn/issues/10170")]
         public async Task TestInPropertyPattern()
         {
             await VerifyKeywordAsync(

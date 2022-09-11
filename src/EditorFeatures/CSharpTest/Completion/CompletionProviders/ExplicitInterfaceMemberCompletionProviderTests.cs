@@ -107,8 +107,7 @@ interface IBar : IGoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
-        [Fact]
+        [Fact, WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         public async Task CommitOnNotParen()
         {
             var markup = @"
@@ -136,8 +135,7 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
         }
 
-        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
-        [Fact]
+        [Fact, WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         public async Task CommitOnParen()
         {
             var markup = @"

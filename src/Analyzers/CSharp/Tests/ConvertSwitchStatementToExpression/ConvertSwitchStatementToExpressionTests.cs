@@ -583,8 +583,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestOnMultiCaseSection_CSharp9()
         {
             var testCode = @"class Program
@@ -719,8 +718,7 @@ class Program
 }");
         }
 
-        [WorkItem(37873, "https://github.com/dotnet/roslyn/issues/37873")]
-        [Fact]
+        [Fact, WorkItem(37873, "https://github.com/dotnet/roslyn/issues/37873")]
         public async Task TestTrivia_02()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -865,8 +863,7 @@ class Program
 }");
         }
 
-        [WorkItem(37947, "https://github.com/dotnet/roslyn/issues/37947")]
-        [Fact]
+        [Fact, WorkItem(37947, "https://github.com/dotnet/roslyn/issues/37947")]
         public async Task TestMultiLabelWithDefault()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -901,8 +898,7 @@ class Program
 }");
         }
 
-        [WorkItem(37949, "https://github.com/dotnet/roslyn/issues/37949")]
-        [Fact]
+        [Fact, WorkItem(37949, "https://github.com/dotnet/roslyn/issues/37949")]
         public async Task TestMissingOnUseInNextStatement()
         {
             var code = @"using System;
@@ -924,8 +920,7 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(36876, "https://github.com/dotnet/roslyn/issues/36876")]
-        [Fact]
+        [Fact, WorkItem(36876, "https://github.com/dotnet/roslyn/issues/36876")]
         public async Task TestDeclarationInOuterScope()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1007,8 +1002,7 @@ class Program
 }");
         }
 
-        [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
-        [Fact]
+        [Fact, WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
         public async Task TestMissingFixOnDirectives()
         {
             var code = @"class Program
@@ -1038,8 +1032,7 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
-        [Fact]
+        [Fact, WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
         public async Task TestMissingFixAllOnDirectives()
         {
             var code = @"class Program
@@ -1113,8 +1106,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
-        [Fact]
+        [Fact, WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
         public async Task TestShouldNotCastNullOnNullableValueType_ReturnStatement()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1144,8 +1136,7 @@ class Program
 }");
         }
 
-        [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
-        [Fact]
+        [Fact, WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
         public async Task TestShouldNotCastNullOnNullableValueType_Assignment()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1176,8 +1167,7 @@ class Program
 }");
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_Interfaces()
         {
             var input =
@@ -1244,8 +1234,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_Interfaces2()
         {
             var input =
@@ -1312,8 +1301,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_Interfaces3()
         {
             var input =
@@ -1380,8 +1368,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_ClassInheritance()
         {
             var input =
@@ -1456,8 +1443,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_ClassInheritance2()
         {
             var input =
@@ -1524,8 +1510,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestImplicitDeclaration_ClassInheritance()
         {
             var input =
@@ -1592,8 +1577,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestImplicitDeclaration_ClassInheritance2()
         {
             var input =
@@ -1660,8 +1644,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
-        [Fact]
+        [Fact, WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
         public async Task TestExplicitDeclaration_AllCasesDefaultLiteral()
         {
             var input =
@@ -1890,8 +1873,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
-        [Fact]
+        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestNotWithRefReturns()
         {
             var code = @"using System;
@@ -1911,8 +1893,7 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
-        [Fact]
+        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestNotWithRefAssignment()
         {
             var code = @"using System;
@@ -1934,8 +1915,7 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
-        [Fact]
+        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestNotWithRefConditionalAssignment()
         {
             var code = @"using System;
@@ -1957,8 +1937,7 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
-        [Fact]
+        [Fact, WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         public async Task TestWithRefInsideConditionalAssignment()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2026,8 +2005,7 @@ return i switch
             await test.RunAsync();
         }
 
-        [WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
-        [Fact]
+        [Fact, WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
         public async Task TopLevelStatement_FollowedWithThrow()
         {
             // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'

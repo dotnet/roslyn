@@ -1140,8 +1140,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
-        [Fact]
+        [Fact, WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodInPartialClass()
         {
             var file1 = @"

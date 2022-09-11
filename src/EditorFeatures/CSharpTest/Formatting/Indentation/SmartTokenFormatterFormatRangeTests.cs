@@ -2290,8 +2290,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ClassKeyword);
         }
 
-        [WorkItem(537779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
-        [Fact]
+        [Fact, WorkItem(537779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DisappearedTokens2()
         {

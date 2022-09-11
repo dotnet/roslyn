@@ -10139,8 +10139,7 @@ class C
 }", "C");
         }
 
-        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Fact]
+        [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
@@ -10157,8 +10156,7 @@ class C
 }", "Local", "void Local()");
         }
 
-        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Fact]
+        [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
@@ -11157,8 +11155,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "DoSomething", displayTextSuffix: "<>");
         }
 
-        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
-        [Fact]
+        [Fact, WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()

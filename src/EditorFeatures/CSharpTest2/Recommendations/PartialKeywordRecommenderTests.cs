@@ -412,8 +412,7 @@ global using Bar;");
     readonly $$");
         }
 
-        [WorkItem(578075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578075")]
-        [Fact]
+        [Fact, WorkItem(578075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578075")]
         public async Task TestAfterAsync()
         {
             await VerifyKeywordAsync(@"partial class C {

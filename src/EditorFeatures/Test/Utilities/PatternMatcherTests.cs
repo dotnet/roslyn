@@ -382,13 +382,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
-        [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
-        [Fact]
+        [Fact, WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         public void MatchMultiWordPattern_LowercaseSubstring1()
             => Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
 
-        [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
-        [Fact]
+        [Fact, WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         public void MatchMultiWordPattern_LowercaseSubstring2()
         {
             var match = TryMatchMultiWordPattern("Goo[|A|]ttribute", "a");

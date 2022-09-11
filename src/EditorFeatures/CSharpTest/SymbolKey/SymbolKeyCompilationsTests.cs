@@ -476,8 +476,7 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
-        [Fact]
+        [Fact, WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void C2CIndexerSymbolChanged01()
         {
             var src1 = @"using System;

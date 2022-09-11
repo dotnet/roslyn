@@ -520,8 +520,7 @@ class C
             await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
         }
 
-        [WorkItem(31308, "https://github.com/dotnet/roslyn/issues/31308")]
-        [Fact]
+        [Fact, WorkItem(31308, "https://github.com/dotnet/roslyn/issues/31308")]
         public async Task TestUseBlockBody5()
         {
             var code = @"
@@ -580,8 +579,7 @@ class C
             await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
         }
 
-        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
-        [Fact]
+        [Fact, WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
         public async Task TestAccessorListFormatting()
         {
             var code = @"
@@ -607,8 +605,7 @@ class C
             await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
         }
 
-        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
-        [Fact]
+        [Fact, WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
         public async Task TestAccessorListFormatting_FixAll()
         {
             var code = @"
@@ -664,8 +661,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
-        [Fact]
+        [Fact, WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
         public async Task TestAccessorListFormatting_FixAll2()
         {
             var code =
@@ -724,8 +720,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
-        [Fact]
+        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
         {
             var code = @"
@@ -749,8 +744,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
-        [Fact]
+        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
         {
             var code = @"

@@ -873,8 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
-        [Fact]
+        [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
         public void FormatConstructorSignature()
         {
             var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();

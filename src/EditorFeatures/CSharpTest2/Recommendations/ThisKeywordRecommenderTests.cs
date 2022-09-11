@@ -790,8 +790,7 @@ $$");
     void $$");
         }
 
-        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
-        [Fact]
+        [Fact, WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         public async Task TestAfterType()
         {
             await VerifyAbsenceAsync(
@@ -799,8 +798,7 @@ $$");
     int $$");
         }
 
-        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
-        [Fact]
+        [Fact, WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         public async Task TestAfterTypeArray()
         {
             await VerifyAbsenceAsync(
@@ -808,8 +806,7 @@ $$");
     internal byte[] $$");
         }
 
-        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
-        [Fact]
+        [Fact, WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         public async Task TestAfterTypeArrayBeforeArguments()
         {
             await VerifyAbsenceAsync(
@@ -817,8 +814,7 @@ $$");
     internal byte[] $$[int i] { get; }");
         }
 
-        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
-        [Fact]
+        [Fact, WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         public async Task TestAfterTypeBeforeArguments()
         {
             await VerifyAbsenceAsync(
@@ -839,8 +835,7 @@ $$");
         int rowOffset = (int)(rowId - 1) * $$");
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInStaticMethod()
         {
             await VerifyAbsenceAsync(
@@ -849,8 +844,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInStaticProperty()
         {
             await VerifyAbsenceAsync(
@@ -859,8 +853,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInInstanceProperty()
         {
             await VerifyKeywordAsync(
@@ -869,8 +862,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInStaticConstructor()
         {
             await VerifyAbsenceAsync(
@@ -879,8 +871,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestInInstanceConstructor()
         {
             await VerifyKeywordAsync(
@@ -889,8 +880,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
-        [Fact]
+        [Fact, WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         public async Task TestNotInEnumMemberInitializer1()
         {
             await VerifyAbsenceAsync(
@@ -899,8 +889,7 @@ $$");
 }");
         }
 
-        [WorkItem(539334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539334")]
-        [Fact]
+        [Fact, WorkItem(539334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539334")]
         public async Task TestNotAfterPartialInType()
         {
             await VerifyAbsenceAsync(
@@ -910,8 +899,7 @@ $$");
 }");
         }
 
-        [WorkItem(540476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540476")]
-        [Fact]
+        [Fact, WorkItem(540476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540476")]
         public async Task TestNotAfterIncompleteTypeName()
         {
             await VerifyAbsenceAsync(
@@ -921,8 +909,7 @@ $$");
 }");
         }
 
-        [WorkItem(541712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541712")]
-        [Fact]
+        [Fact, WorkItem(541712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541712")]
         public async Task TestNotInStaticMethodContext()
         {
             await VerifyAbsenceAsync(
@@ -935,8 +922,7 @@ $$");
 }");
         }
 
-        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
-        [Fact]
+        [Fact, WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
             await VerifyAbsenceAsync(@"
@@ -949,8 +935,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestInExpressionBodiedMembersProperty()
         {
             await VerifyKeywordAsync(@"
@@ -963,8 +948,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestInExpressionBodiedMembersMethod()
         {
             await VerifyKeywordAsync(@"
@@ -975,8 +959,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestInExpressionBodiedMembersIndexer()
         {
             await VerifyKeywordAsync(@"
@@ -987,8 +970,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestNotInExpressionBodiedMembers_Static()
         {
             await VerifyAbsenceAsync(@"
@@ -999,8 +981,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestNotInExpressionBodiedMembersOperator()
         {
             await VerifyAbsenceAsync(@"
@@ -1011,8 +992,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestNotInExpressionBodiedMembersConversionOperator()
         {
             await VerifyAbsenceAsync(@"
@@ -1027,8 +1007,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
-        [Fact]
+        [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         public async Task TestOutsideExpressionBodiedMember()
         {
             await VerifyAbsenceAsync(@"

@@ -2418,8 +2418,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine1()
         {
             await TestInRegularAndScript1Async(
@@ -2443,8 +2442,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine2()
         {
             await TestInRegularAndScript1Async(
@@ -2468,8 +2466,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine2Async()
         {
             await TestInRegularAndScript1Async(
@@ -2493,8 +2490,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine2MultiToken()
         {
             await TestInRegularAndScript1Async(
@@ -2516,8 +2512,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
         {
             await TestInRegularAndScript1Async(
@@ -2541,8 +2536,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine3()
         {
             await TestInRegularAndScript1Async(
@@ -2566,8 +2560,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine4()
         {
             await TestInRegularAndScript1Async(
@@ -2591,8 +2584,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSimpleInitialization_SingleLine4Async()
         {
             await TestInRegularAndScript1Async(
@@ -2616,8 +2608,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestCastInitialization_SingleLine1()
         {
             await TestInRegularAndScript1Async(
@@ -2641,8 +2632,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestCastInitialization_SingleLine2()
         {
             await TestInRegularAndScript1Async(
@@ -2666,8 +2656,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestCastInitialization_SingleLine2Async()
         {
             await TestInRegularAndScript1Async(
@@ -2691,8 +2680,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestCastInitialization_SingleLine3()
         {
             await TestInRegularAndScript1Async(
@@ -2716,8 +2704,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestCastInitialization_SingleLine4()
         {
             await TestInRegularAndScript1Async(
@@ -2741,8 +2728,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestCastInitialization_SingleLine4Async()
         {
             await TestInRegularAndScript1Async(
@@ -2766,8 +2752,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSplitInitialization_SingleLine1()
         {
             await TestInRegularAndScript1Async(
@@ -2792,8 +2777,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSplitInitialization_SingleLine2()
         {
             await TestInRegularAndScript1Async(
@@ -2818,8 +2802,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSplitInitialization_SingleLine2Async()
         {
             await TestInRegularAndScript1Async(
@@ -2844,8 +2827,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSplitInitialization_SingleLine3()
         {
             await TestInRegularAndScript1Async(
@@ -2870,8 +2852,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSplitInitialization_SingleLine4()
         {
             await TestInRegularAndScript1Async(
@@ -2896,8 +2877,7 @@ class C
 }");
         }
 
-        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
-        [Fact]
+        [Fact, WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         public async Task TestSplitInitialization_SingleLine4Async()
         {
             await TestInRegularAndScript1Async(
@@ -3124,8 +3104,7 @@ class C
 }");
         }
 
-        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
-        [Fact]
+        [Fact, WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
         public async Task TestAvailableWithCastIntroducedForGenericTypeInference1()
         {
             await TestInRegularAndScript1Async(
@@ -3161,8 +3140,7 @@ class C
 }");
         }
 
-        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
-        [Fact]
+        [Fact, WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
         public async Task TestAvailableWithCastIntroducedForGenericTypeInference2()
         {
             await TestInRegularAndScript1Async(
@@ -3302,8 +3280,7 @@ class C
 }");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestNotAvailableWithInvalidDeclaration()
         {
             await TestMissingAsync(
@@ -3326,8 +3303,7 @@ class C
 ");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestNotAvailableWithInvalidDeclaration2()
         {
             await TestMissingAsync(
@@ -3350,8 +3326,7 @@ class C
 ");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestNotAvailableWithInvalidDeclaration3()
         {
             await TestMissingAsync(
@@ -3374,8 +3349,7 @@ class C
 ");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestWithInvalidUnrelatedCode()
         {
             await TestInRegularAndScript1Async(
@@ -3411,8 +3385,7 @@ class C
 }");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestWithInvalidUnrelatedCode2()
         {
             await TestInRegularAndScript1Async(
@@ -3448,8 +3421,7 @@ class C
 }");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestWithObsoleteCode()
         {
             await TestInRegularAndScript1Async(
@@ -3497,8 +3469,7 @@ class C
 }");
         }
 
-        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
-        [Fact]
+        [Fact, WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestWithDeclarationWarning()
         {
             await TestInRegularAndScript1Async(

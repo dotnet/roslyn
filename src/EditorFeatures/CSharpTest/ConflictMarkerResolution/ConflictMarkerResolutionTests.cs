@@ -534,8 +534,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_TopCommentedOut()
         {
             var source = @"
@@ -576,8 +575,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_SecondMiddleAndBottomCommentedOut()
         {
             var source = @"
@@ -616,8 +614,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeTop_TopInString()
         {
             var source = @"
@@ -649,8 +646,7 @@ a"";
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestTakeBottom_TopInString()
         {
             var source = @"
@@ -682,8 +678,7 @@ b"";
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestMissingWithMiddleMarkerAtTopOfFile()
         {
             var source = @"{|CS8300:=======|}
@@ -698,8 +693,7 @@ class X {
             }.RunAsync();
         }
 
-        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
-        [Fact]
+        [Fact, WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
         public async Task TestMissingWithMiddleMarkerAtBottomOfFile()
         {
             var source = @"{|CS8300:<<<<<<<|} working copy
@@ -729,8 +723,7 @@ class X {
             }.RunAsync();
         }
 
-        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
-        [Fact]
+        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll1()
         {
             var source = @"
@@ -782,8 +775,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
-        [Fact]
+        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll2()
         {
             var source = @"
@@ -835,8 +827,7 @@ namespace N
             }.RunAsync();
         }
 
-        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
-        [Fact]
+        [Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         public async Task TestFixAll3()
         {
             var source = @"

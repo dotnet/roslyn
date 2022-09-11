@@ -9178,8 +9178,7 @@ class C
 }");
         }
 
-        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact]
+        [Fact, WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
@@ -9221,8 +9220,7 @@ class C
 }");
         }
 
-        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact]
+        [Fact, WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern2()
         {

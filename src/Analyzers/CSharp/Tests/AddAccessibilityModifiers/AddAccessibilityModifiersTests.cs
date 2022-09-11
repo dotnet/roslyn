@@ -485,8 +485,7 @@ internal class Program
 ");
         }
 
-        [WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
-        [Fact]
+        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestAbstractMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -503,8 +502,7 @@ public abstract class TestClass
 ");
         }
 
-        [WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
-        [Fact]
+        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestOverriddenMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(@"

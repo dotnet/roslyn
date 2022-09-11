@@ -1483,8 +1483,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalizerMessage()
         {
             var code = @"class MyClass
@@ -1499,8 +1498,7 @@ class MyClass
                 .WithArguments("MyClass.P"));
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
         {
             var code = @"class MyClass
@@ -1537,8 +1535,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalizerMessage()
         {
             var code = @"class MyClass
@@ -1553,8 +1550,7 @@ class MyClass
                 .WithArguments("MyClass.this[]"));
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
         {
             var code = @"class MyClass
@@ -1639,8 +1635,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
         {
             var code = @"class MyClass
@@ -1655,8 +1650,7 @@ class MyClass
                 .WithArguments("MyClass.P"));
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
         {
             var code = @"class MyClass
@@ -1693,8 +1687,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
         {
             var code = @"class MyClass
@@ -1709,8 +1702,7 @@ class MyClass
                 .WithArguments("MyClass.this[]"));
         }
 
-        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
-        [Fact]
+        [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
         {
             var code = @"class MyClass

@@ -7277,8 +7277,7 @@ class C
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "local", CSharpFeaturesResources.local_function));
         }
 
-        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
-        [Fact]
+        [Fact, WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
         public void LocalFunction_AddToInterfaceMethod()
         {
             var src1 = @"

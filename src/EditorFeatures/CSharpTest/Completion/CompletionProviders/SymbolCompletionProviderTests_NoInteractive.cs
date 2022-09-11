@@ -316,8 +316,7 @@ class C { void M() { B.$$ } }
             await VerifyItemExistsAsync(code, "Y");
         }
 
-        [WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
-        [Fact]
+        [Fact, WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
         public async Task TestDescriptionWhenDocumentLengthChanges()
         {
             var code = @"using System;

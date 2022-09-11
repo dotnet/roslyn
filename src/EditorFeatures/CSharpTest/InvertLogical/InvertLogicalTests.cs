@@ -291,8 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsTypePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -312,8 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsTypePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -333,8 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNotTypePattern1_CSharp8()
         {
             // Note: this is not legal (since it's a 'not' pattern being used in C# 8).
@@ -356,8 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNotTypePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -377,8 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNullPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -398,8 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNullPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -419,8 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNotNullPattern1_CSharp6()
         {
             // Result is illegal (uses a constant pattern in c# 6), but the original code was illegal as well.
@@ -441,8 +434,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp6);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNotNullPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -462,8 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsNotNullPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -483,8 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsTruePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -504,8 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsTruePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -525,8 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsFalsePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -546,8 +534,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsFalsePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -567,8 +554,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -588,8 +574,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -609,8 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsOrPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -630,8 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsOrPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -651,8 +634,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsTypeWithDesignationPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -672,8 +654,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsTypeWithDesignationPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -693,8 +674,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsVarPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -714,8 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsVarPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -735,8 +714,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndWithDesignationPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -756,8 +734,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndWithDesignationPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -777,8 +754,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndWithDesignationPattern2_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -798,8 +774,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact]
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndWithDesignationPattern2_CSharp9()
         {
             await TestInRegularAndScriptAsync(

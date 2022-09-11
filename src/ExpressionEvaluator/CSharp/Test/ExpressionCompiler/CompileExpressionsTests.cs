@@ -472,8 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 });
         }
 
-        [WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")]
-        [Fact]
+        [Fact, WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")]
         public void LocalsInAsync()
         {
             var source =

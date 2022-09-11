@@ -683,8 +683,7 @@ public class C
 }");
         }
 
-        [WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
-        [Fact]
+        [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionOnNextLine()
         {
             await TestInRegularAndScript1Async(
@@ -705,8 +704,7 @@ public class C
 }");
         }
 
-        [WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
-        [Fact]
+        [Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
         public async Task TestRightExpressionSeparatedWithSeveralLines()
         {
             await TestInRegularAndScript1Async(
@@ -812,8 +810,7 @@ public class C
 }");
         }
 
-        [WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
-        [Fact]
+        [Fact, WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
         public async Task TestNotOnObjectInitializer()
         {
             await TestMissingAsync(
@@ -832,8 +829,7 @@ struct InsertionPoint
 }");
         }
 
-        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
-        [Fact]
+        [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnImplicitObjectInitializer()
         {
             await TestMissingAsync(
@@ -852,8 +848,7 @@ struct InsertionPoint
 }");
         }
 
-        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
-        [Fact]
+        [Fact, WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
         public async Task TestNotOnRecord()
         {
             await TestMissingAsync(
@@ -870,8 +865,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
-        [Fact]
+        [Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
         public async Task TestParenthesizedExpression()
         {
             await TestInRegularAndScript1Async(
@@ -891,8 +885,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -912,8 +905,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestDecrement()
         {
             await TestInRegularAndScript1Async(
@@ -933,8 +925,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestMinusIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -954,8 +945,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDouble()
         {
             await TestInRegularAndScript1Async(
@@ -975,8 +965,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementNotOnString()
         {
             await TestInRegularAndScript1Async(
@@ -996,8 +985,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementChar()
         {
             await TestInRegularAndScript1Async(
@@ -1017,8 +1005,7 @@ record InsertionPoint(int level)
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementEnum()
         {
             await TestInRegularAndScript1Async(
@@ -1040,8 +1027,7 @@ public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementDecimal()
         {
             await TestInRegularAndScript1Async(
@@ -1111,8 +1097,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         public async Task TestIncrementLoopVariable()
         {
             await TestInRegularAndScript1Async(
@@ -1136,8 +1121,7 @@ $@"public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Fact]
+        [Fact, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         public async Task TestIncrementInExpressionContext()
         {
             await TestInRegularAndScript1Async(

@@ -5028,8 +5028,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [WorkItem(34268, "https://github.com/dotnet/roslyn/issues/34268")]
-        [Fact]
+        [Fact, WorkItem(34268, "https://github.com/dotnet/roslyn/issues/34268")]
         public async Task TestPullPropertyToAbstractClassViaDialogWithMakeAbstractOption()
         {
             var testText = @"

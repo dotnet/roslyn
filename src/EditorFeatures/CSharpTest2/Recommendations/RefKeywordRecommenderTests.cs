@@ -185,8 +185,7 @@ $$");
     public C(int i, [Goo]$$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -194,8 +193,7 @@ $$");
     public C():this($$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -203,8 +201,7 @@ $$");
     public C():this(Goo:$$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -212,8 +209,7 @@ $$");
     public C():base($$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -848,8 +844,7 @@ return ref (x = $$", topLevelStatement: topLevelStatement), options: CSharp9Pars
     static void Extension($$");
         }
 
-        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
-        [Fact]
+        [Fact, WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyKeywordAsync(

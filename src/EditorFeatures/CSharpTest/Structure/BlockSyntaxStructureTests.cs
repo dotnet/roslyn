@@ -415,8 +415,7 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WorkItem(52493, "https://github.com/dotnet/roslyn/issues/")]
-        [Fact]
+        [Fact, WorkItem(52493, "https://github.com/dotnet/roslyn/issues/")]
         public async Task LocalFunctionInTopLevelStatement_AutoCollapse()
         {
             const string code = @"

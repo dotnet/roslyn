@@ -356,24 +356,21 @@ $$
 global using Bar;");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterClassTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
 @"class C<T> where T : $$");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
         {
             await VerifyAbsenceAsync(
 @"class C<T> where T : IList<$$");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
@@ -382,8 +379,7 @@ global using Bar;");
     where U : U");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
         {
             await VerifyAbsenceAsync(
@@ -392,8 +388,7 @@ global using Bar;");
     where U : U");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
@@ -402,8 +397,7 @@ global using Bar;");
       where T : $$");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
         {
             await VerifyAbsenceAsync(
@@ -412,8 +406,7 @@ global using Bar;");
       where T : IList<$$");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
             await VerifyKeywordAsync(
@@ -423,8 +416,7 @@ global using Bar;");
       where U : T");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact]
+        [Fact, WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
         {
             await VerifyAbsenceAsync(

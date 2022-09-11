@@ -896,8 +896,7 @@ class T
 }");
         }
 
-        [WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
-        [Fact]
+        [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
         public async Task TestNoCastToObjectWhenNullableEnabled()
         {
             await TestInRegularAndScriptAsync(

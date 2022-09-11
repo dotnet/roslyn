@@ -268,8 +268,7 @@ if (true)
 {");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsStartRegionMessage()
         {
             await TestAsync(
@@ -307,16 +306,14 @@ if (true)
 {endRegion}", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndHasNoQuickinfo_MissingRegionStart_1()
         {
             await TestAsync(
 @$"#end$$region", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndHasNoQuickinfo_MissingRegionStart_2()
         {
             await TestAsync(
@@ -326,8 +323,7 @@ if (true)
 #end$$region", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Nesting_1()
         {
             await TestAsync(
@@ -338,8 +334,7 @@ if (true)
 #end$$region", "#region Start1");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Nesting_2()
         {
             await TestAsync(
@@ -350,8 +345,7 @@ if (true)
 #endregion", "#region Start2");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Blocks_1()
         {
             await TestAsync(
@@ -362,8 +356,7 @@ if (true)
 #endregion", "#region Start1");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task RegionEndShowsRegionStart_Blocks_2()
         {
             await TestAsync(
@@ -374,8 +367,7 @@ if (true)
 #end$$region", "#region Start2");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfCondition_1()
         {
             await TestAsync(
@@ -384,8 +376,7 @@ if (true)
 #end$$if", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfCondition_2()
         {
             await TestAsync(
@@ -395,8 +386,7 @@ if (true)
 #end$$if", "#if DEBUG\r\n#else");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsElIfCondition()
         {
             await TestAsync(
@@ -406,8 +396,7 @@ if (true)
 #end$$if", "#if DEBUG\r\n#elif RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElseShowsIfCondition()
         {
             await TestAsync(
@@ -417,8 +406,7 @@ if (true)
 #endif", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElseShowsElIfCondition_1()
         {
             await TestAsync(
@@ -429,8 +417,7 @@ if (true)
 #endif", "#if DEBUG\r\n#elif RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElseShowsElIfCondition_2()
         {
             await TestAsync(
@@ -442,8 +429,7 @@ if (true)
 #endif", "#if DEBUG\r\n#elif RELEASE\r\n#elif DEMO");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task ElIfShowsIfCondition()
         {
             await TestAsync(
@@ -453,8 +439,7 @@ if (true)
 #endif", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_1()
         {
             await TestAsync(
@@ -465,8 +450,7 @@ if (true)
 #endif", "#if RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_2()
         {
             await TestAsync(
@@ -477,8 +461,7 @@ if (true)
 #end$$if", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_3()
         {
             await TestAsync(
@@ -490,8 +473,7 @@ if (true)
 #endif", "#if DEMO");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfShowsIfNested_4()
         {
             await TestAsync(
@@ -503,8 +485,7 @@ if (true)
 #end$$if", "#if DEBUG\r\n#elif RELEASE");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfHasNoQuickinfo_MissingIf_1()
         {
             await TestAsync(
@@ -512,8 +493,7 @@ if (true)
 #end$$if", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Fact]
+        [Fact, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         public async Task EndIfHasNoQuickinfo_MissingIf_2()
         {
             await TestAsync(

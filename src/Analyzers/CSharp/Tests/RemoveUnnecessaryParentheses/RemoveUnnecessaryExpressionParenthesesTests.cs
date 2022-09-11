@@ -554,8 +554,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(37046, "https://github.com/dotnet/roslyn/issues/37046")]
-        [Fact]
+        [Fact, WorkItem(37046, "https://github.com/dotnet/roslyn/issues/37046")]
         public async Task TestMissingForConditionalAccess2()
         {
             await TestMissingAsync(
@@ -1094,8 +1093,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact]
+        [Fact, WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         public async Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1121,8 +1119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact]
+        [Fact, WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         public async Task TestSwitchCase_WithWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1148,8 +1145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact]
+        [Fact, WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         public async Task TestWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1175,8 +1171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact]
+        [Fact, WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         public async Task TestConstantPatternExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1200,8 +1195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact]
+        [Fact, WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         public async Task TestConstantPatternExpression_RequiredForPrecedence()
         {
             await TestMissingAsync(
@@ -2148,8 +2142,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
-        [WorkItem(57768, "https://github.com/dotnet/roslyn/issues/57768")]
-        [Fact]
+        [Fact, WorkItem(57768, "https://github.com/dotnet/roslyn/issues/57768")]
         public async Task TestParensAroundPPDirective3()
         {
             await TestAsync(
@@ -2174,8 +2167,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestMissingForPreIncrement()
         {
             await TestMissingAsync(
@@ -2188,8 +2180,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestMissingForPreDecrement()
         {
             await TestMissingAsync(
@@ -2202,8 +2193,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestForPostIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -2224,8 +2214,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestForPostDecrement()
         {
             await TestInRegularAndScript1Async(
@@ -2246,8 +2235,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestForPreIncrementInLocalDeclaration()
         {
             await TestInRegularAndScript1Async(
@@ -2267,8 +2255,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestForPreIncrementInSimpleAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -2288,8 +2275,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestForPreIncrementInArgument()
         {
             await TestInRegularAndScript1Async(
@@ -2309,8 +2295,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestMissingForPreIncrementAfterAdd()
         {
             await TestMissingAsync(
@@ -2323,8 +2308,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact]
+        [Fact, WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
         public async Task TestMissingForUnaryPlusAfterAdd()
         {
             await TestMissingAsync(
@@ -2337,8 +2321,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
-        [Fact]
+        [Fact, WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
         public async Task TestMissingForConditionalRefAsLeftHandSideValue()
         {
             await TestMissingAsync(
@@ -2351,8 +2334,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
-        [Fact]
+        [Fact, WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
         public async Task TestConditionalExpressionAsRightHandSideValue()
         {
             await TestInRegularAndScript1Async(
@@ -2373,8 +2355,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(32085, "https://github.com/dotnet/roslyn/issues/32085")]
-        [Fact]
+        [Fact, WorkItem(32085, "https://github.com/dotnet/roslyn/issues/32085")]
         public async Task TestMissingForNestedConditionalExpressionInLambda()
         {
             await TestMissingAsync(
@@ -2388,8 +2369,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact]
+        [Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
         public async Task TestUnnecessaryParenthesisDiagnosticSingleLineExpression()
         {
             var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16);
@@ -2403,8 +2383,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic);
         }
 
-        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact]
+        [Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
         public async Task TestUnnecessaryParenthesisDiagnosticInMultiLineExpression()
         {
             var firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 4, 16);
@@ -2419,8 +2398,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses), firstLineParentheticalExpressionDiagnostic);
         }
 
-        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact]
+        [Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
         public async Task TestUnnecessaryParenthesisDiagnosticInNestedExpression()
         {
             var outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 4, 16);
@@ -2436,8 +2414,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses), expectedDiagnostics);
         }
 
-        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact]
+        [Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
         public async Task TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression()
         {
             var outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 4, 16);
@@ -2455,8 +2432,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses), expectedDiagnostics);
         }
 
-        [WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")]
-        [Fact]
+        [Fact, WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")]
         public async Task TestUnnecessaryParenthesisIncludesFadeLocations()
         {
             var input = @"class C
@@ -2482,8 +2458,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
             Assert.Equal("[1,2]", diagnostic.Properties[WellKnownDiagnosticTags.Unnecessary]);
         }
 
-        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39363")]
-        [Fact]
+        [Fact, WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39363")]
         public async Task TestUnnecessaryParenthesesInSwitchExpression()
         {
             await TestAsync(
@@ -2513,8 +2488,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(26311, "https://github.com/dotnet/roslyn/issues/26311")]
-        [Fact]
+        [Fact, WorkItem(26311, "https://github.com/dotnet/roslyn/issues/26311")]
         public async Task TestUnnecessaryParenthesesAroundDefaultLiteral()
         {
             await TestAsync(
@@ -2651,8 +2625,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
-        [Fact]
+        [Fact, WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
         public async Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
         {
             await TestMissingAsync(
@@ -2670,8 +2643,7 @@ public class C
 public class Goo { }");
         }
 
-        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
-        [Fact]
+        [Fact, WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
         public async Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
         {
             await TestAsync(

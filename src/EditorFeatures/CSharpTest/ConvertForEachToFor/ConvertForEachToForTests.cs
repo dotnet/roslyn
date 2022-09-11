@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
             };
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task EmptyBlockBody()
         {
             var text = @"
@@ -156,8 +155,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task Comment()
         {
             var text = @"
@@ -190,8 +188,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task Comment2()
         {
             var text = @"
@@ -342,8 +339,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task Comment7()
         {
             var text = @"
@@ -693,8 +689,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestCaretBefore()
         {
             var text = @"
@@ -726,8 +721,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestCaretAfter()
         {
             var text = @"
@@ -759,8 +753,7 @@ class Test
         }
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSelection()
         {
             var text = @"
@@ -791,8 +784,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task Field()
         {
             var text = @"
@@ -858,8 +850,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task Parameter()
         {
             var text = @"
@@ -888,8 +879,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
-        [Fact]
+        [Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task Property()
         {
             var text = @"
@@ -1789,8 +1779,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(50469, "https://github.com/dotnet/roslyn/issues/50469")]
-        [Fact]
+        [Fact, WorkItem(50469, "https://github.com/dotnet/roslyn/issues/50469")]
         public async Task PreventExplicitCastToVar()
         {
             var text = @"

@@ -159,8 +159,7 @@ class Derived : BaseClass
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestThisInvocation()
         {
             var markup = @"
@@ -178,8 +177,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestThisInvocationWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -197,8 +195,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"
@@ -216,8 +213,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestThisInvocationWithoutClosingParenWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -298,8 +294,7 @@ class Goo
 
         #region "Trigger tests"
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerParens()
         {
             var markup = @"
@@ -317,8 +312,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerParensWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -336,8 +330,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -355,8 +348,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
-        [Fact]
+        [Fact, WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")]
         public async Task TestInvocationOnTriggerCommaWithNonEmptyArgumentList()
         {
             var markup = @"
@@ -400,8 +392,7 @@ class Goo
         #endregion
 
         #region "EditorBrowsable tests"
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_ConstructorInitializer_BrowsableStateAlways()
         {
             var markup = @"
@@ -428,8 +419,7 @@ public class BaseClass
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_ConstructorInitializer_BrowsableStateNever()
         {
             var markup = @"
@@ -456,8 +446,7 @@ public class BaseClass
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_ConstructorInitializer_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -493,8 +482,7 @@ public class BaseClass
                                                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_ConstructorInitializer_BrowsableStateMixed()
         {
             var markup = @"
@@ -602,8 +590,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        [Fact]
+        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -612,8 +599,7 @@ class C
             await TestAsync(markup);
         }
 
-        [WorkItem(1082601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082601")]
-        [Fact]
+        [Fact, WorkItem(1082601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082601")]
         public async Task TestInvocationWithBadParameterList()
         {
             var markup = @"

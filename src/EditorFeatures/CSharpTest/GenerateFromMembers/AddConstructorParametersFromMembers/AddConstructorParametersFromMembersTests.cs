@@ -49,8 +49,7 @@ dotnet_naming_style.p_camel_case.required_suffix            = _End
 ";
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestAdd1()
         {
             await new VerifyCS.Test
@@ -256,8 +255,7 @@ class Program
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestAddOptional1()
         {
             await new VerifyCS.Test()
@@ -295,8 +293,7 @@ class Program
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
             // behavior change with 33603, now all constructors offered
@@ -347,8 +344,7 @@ class Program
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
             // Behavior change with #33603, now all constructors are offered
@@ -805,8 +801,7 @@ class Program
 }");
         }
 
-        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
-        [Fact]
+        [Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
         public async Task TestAddParamtersToConstructorBySelectOneMember()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -841,8 +836,7 @@ class C
 }");
         }
 
-        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
-        [Fact]
+        [Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
         public async Task TestParametersAreStillRightIfMembersAreOutOfOrder()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -875,8 +869,7 @@ class C
 }");
         }
 
-        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
-        [Fact]
+        [Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
         public async Task TestMissingIfFieldsAlreadyExistingInConstructor()
         {
             var source =
@@ -892,8 +885,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
-        [Fact]
+        [Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
         public async Task TestMissingIfPropertyAlreadyExistingInConstructor()
         {
             var source =
@@ -909,8 +901,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
-        [Fact]
+        [Fact, WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
         public async Task TestNormalProperty()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -936,8 +927,7 @@ class C
             );
         }
 
-        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
-        [Fact]
+        [Fact, WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
         public async Task TestConstructorWithNoParameters()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -964,8 +954,7 @@ class C
             );
         }
 
-        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
-        [Fact]
+        [Fact, WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
         public async Task TestDefaultConstructor()
         {
             var source =
@@ -978,8 +967,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
-        [Fact]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialSelected()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1005,8 +993,7 @@ class C
             );
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
-        [Fact]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialMultipleSelected()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1035,8 +1022,7 @@ class C
             );
         }
 
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
-        [Fact]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialMultipleSelected2()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -1064,8 +1050,7 @@ class C
             );
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_FirstofThree()
         {
             await new VerifyCS.Test
@@ -1105,8 +1090,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_SecondOfThree()
         {
             var source =
@@ -1149,8 +1133,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_ThirdOfThree()
         {
             var source =
@@ -1194,8 +1177,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_FirstOptionalOfThree()
         {
             var source =
@@ -1238,8 +1220,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_SecondOptionalOfThree()
         {
             var source =
@@ -1283,8 +1264,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_ThirdOptionalOfThree()
         {
             var source =
@@ -1327,8 +1307,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_OneMustBeOptional()
         {
             var source =
@@ -1387,8 +1366,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_OneMustBeOptional2()
         {
             var source =
@@ -1443,8 +1421,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_AllMustBeOptional()
         {
             await new VerifyCS.Test
@@ -1484,8 +1461,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact]
+        [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         public async Task TestMultipleConstructors_AllMustBeOptional2()
         {
             var source =
@@ -1528,8 +1504,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33623, "https://github.com/dotnet/roslyn/issues/33623")]
-        [Fact]
+        [Fact, WorkItem(33623, "https://github.com/dotnet/roslyn/issues/33623")]
         public async Task TestDeserializationConstructor()
         {
             var source =
@@ -1549,8 +1524,7 @@ class C : {|CS0535:ISerializable|}
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestNoFieldNamingStyle_ParameterPrefixAndSuffix()
         {
             var source =
@@ -1583,8 +1557,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestCommonFieldNamingStyle()
         {
             var source =
@@ -1617,8 +1590,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestSpecifiedFieldNamingStyle()
         {
             var source =
@@ -1651,8 +1623,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestSpecifiedAndCommonFieldNamingStyle()
         {
             var source =
@@ -1686,8 +1657,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestSpecifiedAndCommonFieldNamingStyle2()
         {
             var source =
@@ -1720,8 +1690,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestBaseNameEmpty()
         {
             var source =
@@ -1743,8 +1712,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestSomeBaseNamesAreEmpty()
         {
             var source =
@@ -1780,8 +1748,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
-        [Fact]
+        [Fact, WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
         public async Task TestManyCommonPrefixes()
         {
             var source =
@@ -1815,8 +1782,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelection1()
         {
             await new VerifyCS.Test
@@ -1852,8 +1818,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelection2()
         {
             await new VerifyCS.Test
@@ -1889,8 +1854,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelection3()
         {
             await new VerifyCS.Test
@@ -1926,8 +1890,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelection4()
         {
             await new VerifyCS.Test
@@ -1963,8 +1926,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelection5()
         {
             await new VerifyCS.Test
@@ -2000,8 +1962,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelection6()
         {
             await new VerifyCS.Test
@@ -2037,8 +1998,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMultiVar1()
         {
             await new VerifyCS.Test
@@ -2075,8 +2035,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMultiVar2()
         {
             await new VerifyCS.Test
@@ -2113,8 +2072,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMultiVar3()
         {
             await new VerifyCS.Test
@@ -2150,8 +2108,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMultiVar4()
         {
             await new VerifyCS.Test
@@ -2187,8 +2144,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMultiVar5()
         {
             await new VerifyCS.Test
@@ -2224,8 +2180,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMultiVar6()
         {
             await new VerifyCS.Test
@@ -2261,8 +2216,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMissing1()
         {
             var source =
@@ -2282,8 +2236,7 @@ class Program
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMissing2()
         {
             var source =
@@ -2302,8 +2255,7 @@ class Program
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMissing3()
         {
             var source =
@@ -2322,8 +2274,7 @@ class Program
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
-        [Fact]
+        [Fact, WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         public async Task TestNonSelectionMissing4()
         {
             var source =
@@ -2342,8 +2293,7 @@ class Program
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
-        [Fact]
+        [Fact, WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
         public async Task TestPartialClass1()
         {
             await new VerifyCS.Test
@@ -2388,8 +2338,7 @@ partial class C
             }.RunAsync();
         }
 
-        [WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
-        [Fact]
+        [Fact, WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
         public async Task TestPartialClass2()
         {
             await new VerifyCS.Test
@@ -2443,8 +2392,7 @@ partial class C
             }.RunAsync();
         }
 
-        [WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
-        [Fact]
+        [Fact, WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
         public async Task TestPartialClass3()
         {
             await new VerifyCS.Test

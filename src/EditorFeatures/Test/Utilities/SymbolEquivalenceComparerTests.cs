@@ -215,8 +215,7 @@ class Type2
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(field4_v1, field4_v2));
         }
 
-        [WorkItem(538124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
-        [Fact]
+        [Fact, WorkItem(538124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
         public async Task TestFieldsAcrossLanguages()
         {
             var csharpCode1 =
@@ -1092,8 +1091,7 @@ class Type1
                          SymbolEquivalenceComparer.Instance.GetHashCode(method_v2));
         }
 
-        [WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
-        [Fact]
+        [Fact, WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
         public async Task TestRefVersusOut()
         {
             var csharpCode1 =

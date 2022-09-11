@@ -242,8 +242,7 @@ class C
                 Region("span", "/// <summary> Summary with SeeClass, SeeAlsoClass, null, T, t, and not-supported.", autoCollapse: true));
         }
 
-        [WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
-        [Fact]
+        [Fact, WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
         public async Task TestSummaryWithPunctuation()
         {
             const string code = @"
@@ -262,8 +261,7 @@ class C
                 Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
         }
 
-        [WorkItem(20679, "https://github.com/dotnet/roslyn/issues/20679")]
-        [Fact]
+        [Fact, WorkItem(20679, "https://github.com/dotnet/roslyn/issues/20679")]
         public async Task TestSummaryWithAdditionalTags()
         {
             const string code = @"

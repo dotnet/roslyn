@@ -589,8 +589,7 @@ $$");
 @"sizeof($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(544347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544347")]
-        [Fact]
+        [Fact, WorkItem(544347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544347")]
         public async Task TestInUnsafeDefaultExpression()
         {
             await VerifyKeywordAsync(
@@ -599,8 +598,7 @@ $$");
     static void Method1(void* p1 = default($$");
         }
 
-        [WorkItem(544347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544347")]
-        [Fact]
+        [Fact, WorkItem(544347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544347")]
         public async Task TestNotInDefaultExpression()
         {
             await VerifyAbsenceAsync(

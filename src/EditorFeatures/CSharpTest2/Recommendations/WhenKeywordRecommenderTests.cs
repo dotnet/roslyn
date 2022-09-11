@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"try {} catch (Exception e) when (true) $$"));
         }
 
-        [WorkItem(24113, "https://github.com/dotnet/roslyn/issues/24113")]
-        [Fact]
+        [Fact, WorkItem(24113, "https://github.com/dotnet/roslyn/issues/24113")]
         public async Task TestForSwitchCase_AfterDeclarationPattern() =>
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ }"));
 

@@ -75,8 +75,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
-                [Fact]
+                [Fact, WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
                 public async Task TestPragmaWarningDirectiveAroundMultiLineStatement()
                 {
                     await TestAsync(
@@ -102,8 +101,7 @@ line"";
 }}");
                 }
 
-                [WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
-                [Fact]
+                [Fact, WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
                 public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
                 {
                     await TestAsync(
@@ -510,8 +508,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
-                [Fact]
+                [Fact, WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
                 public async Task TestWholeFilePragmaWarningDirective()
                 {
                     await TestAsync(
@@ -521,8 +518,7 @@ class Class {{ void Method() {{ int x = 0; }} }}
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}");
                 }
 
-                [WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
-                [Fact]
+                [Fact, WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
                 public async Task TestSuppressionAroundSingleToken()
                 {
                     await TestAsync(
@@ -552,8 +548,7 @@ class Program
 }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia1()
                 {
                     await TestAsync(
@@ -591,8 +586,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia2()
                 {
                     await TestAsync(
@@ -602,8 +596,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     await TestAsync(
@@ -613,8 +606,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia4()
                 {
                     await TestAsync(
@@ -634,8 +626,7 @@ class C {{ }}
 ");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia5()
                 {
                     await TestAsync(
@@ -651,8 +642,7 @@ class C2 {{ }}
 class C3 {{ }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia6()
                 {
                     await TestAsync(
@@ -2343,8 +2333,7 @@ namespace N
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithXmlDoc()
                 {
                     var initial = @"
@@ -2385,8 +2374,7 @@ namespace ClassLibrary10
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithNoTrivia()
                 {
                     var initial = @"
@@ -2419,8 +2407,7 @@ namespace ClassLibrary10
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithTriviaStartsOnTheSameLine()
                 {
                     var initial = @"

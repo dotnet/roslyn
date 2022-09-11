@@ -457,8 +457,7 @@ IL_0005:  ret
             ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds);
         }
 
-        [WorkItem(26159, "https://github.com/dotnet/roslyn/issues/26159")]
-        [Fact]
+        [Fact, WorkItem(26159, "https://github.com/dotnet/roslyn/issues/26159")]
         public void TypeOutsideAssemblyReferences()
         {
             var sourceA =
@@ -508,8 +507,7 @@ class B : A
             }
         }
 
-        [WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
-        [Fact]
+        [Fact, WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
         public void AssemblyDuplicateReferences()
         {
             var sourceA =
@@ -972,8 +970,7 @@ IL_0006:  ret
         /// mscorlib.dll is not directly referenced from an assembly
         /// compiled against portable framework assemblies.
         /// </summary>
-        [WorkItem(1150981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
-        [Fact]
+        [Fact, WorkItem(1150981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
         public void MissingMscorlib()
         {
             var sourceA =
@@ -1048,8 +1045,7 @@ IL_0005:  ret
 }");
         }
 
-        [WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
-        [Fact]
+        [Fact, WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
         public void DuplicateTypesInMscorlib()
         {
             var sourceConsole =
@@ -1251,8 +1247,7 @@ IL_0030:  ret
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
-        [Fact]
+        [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void CorLibWithAssemblyReferences()
         {
             string sourceLib =

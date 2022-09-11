@@ -464,8 +464,7 @@ class C
 
         #region "EditorBrowsable tests"
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableAlways()
         {
             var markup = @"
@@ -497,8 +496,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableNever()
         {
             var markup = @"
@@ -530,8 +528,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableAdvanced()
         {
             var markup = @"
@@ -571,8 +568,7 @@ public class Goo
                                     hideAdvancedMembers: false);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableMixed()
         {
             var markup = @"
@@ -678,8 +674,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        [Fact]
+        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -688,8 +683,7 @@ class C
             await TestAsync(markup);
         }
 
-        [WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
-        [Fact]
+        [Fact, WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
         public async Task TestSigHelpInIncorrectObjectCreationExpression()
         {
             var markup = @"

@@ -582,8 +582,7 @@ class C
 }");
         }
 
-        [WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
-        [Fact]
+        [Fact, WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
         public async Task TestMisspelledConstructor()
         {
             await TestInRegularAndScriptAsync(

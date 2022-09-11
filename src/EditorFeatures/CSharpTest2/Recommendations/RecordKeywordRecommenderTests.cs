@@ -245,8 +245,7 @@ $$");
    $$", absent: false, options: TestOptions.RegularPreview);
         }
 
-        [WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
-        [Fact]
+        [Fact, WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
         public async Task TestInsideRecord2()
         {
             // The recommender doesn't work in record in script
@@ -256,8 +255,7 @@ $$");
    public $$", absent: false, options: TestOptions.RegularPreview);
         }
 
-        [WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
-        [Fact]
+        [Fact, WorkItem(50783, "https://github.com/dotnet/roslyn/issues/50783")]
         public async Task TestInsideRecord3()
         {
             // The recommender doesn't work in record in script

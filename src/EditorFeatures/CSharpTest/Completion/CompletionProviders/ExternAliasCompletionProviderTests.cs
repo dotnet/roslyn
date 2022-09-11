@@ -62,8 +62,7 @@ extern alias $$";
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#");
         }
 
-        [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
-        [Fact]
+        [Fact, WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
         public async Task NotInComment()
         {
             var markup = @"

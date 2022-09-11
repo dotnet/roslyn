@@ -199,8 +199,7 @@ class C
 }");
         }
 
-        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
-        [Fact]
+        [Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
         public async Task TestInExpressionOfT()
         {
             await TestInRegularAndScriptAsync(

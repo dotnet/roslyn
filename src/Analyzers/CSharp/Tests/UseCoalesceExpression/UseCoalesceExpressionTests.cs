@@ -318,8 +318,7 @@ class C
 }");
         }
 
-        [WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
-        [Fact]
+        [Fact, WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -347,8 +346,7 @@ class Program
 }");
         }
 
-        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
-        [Fact]
+        [Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
         public async Task TestInExpressionOfT()
         {
             await TestInRegularAndScript1Async(

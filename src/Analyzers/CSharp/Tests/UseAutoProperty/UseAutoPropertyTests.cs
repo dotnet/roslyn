@@ -786,8 +786,7 @@ struct MutableInt { public int Value { get; set; } }");
 }");
         }
 
-        [WorkItem(25429, "https://github.com/dotnet/roslyn/issues/25429")]
-        [Fact]
+        [Fact, WorkItem(25429, "https://github.com/dotnet/roslyn/issues/25429")]
         public async Task TestNotIfFieldUsedInRefExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -910,8 +909,7 @@ struct MutableInt { public int Value { get; set; } }");
 }");
         }
 
-        [WorkItem(25379, "https://github.com/dotnet/roslyn/issues/25379")]
-        [Fact]
+        [Fact, WorkItem(25379, "https://github.com/dotnet/roslyn/issues/25379")]
         public async Task TestNotWithVolatileField()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1209,8 +1207,7 @@ partial class Class
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInSimpleExpressionLambdaInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1239,8 +1236,7 @@ class C
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInSimpleBlockLambdaInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1275,8 +1271,7 @@ class C
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInParenthesizedExpressionLambdaInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1305,8 +1300,7 @@ class C
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInParenthesizedBlockLambdaInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1341,8 +1335,7 @@ class C
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInAnonymousMethodInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1377,8 +1370,7 @@ class C
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInLocalFunctionInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1409,8 +1401,7 @@ class C
 }");
         }
 
-        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
-        [Fact]
+        [Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
         public async Task TestWriteInExpressionBodiedLocalFunctionInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -1662,8 +1653,7 @@ class C
         }
 
         [WorkItem(23215, "https://github.com/dotnet/roslyn/issues/23215")]
-        [WorkItem(23216, "https://github.com/dotnet/roslyn/issues/23216")]
-        [Fact]
+        [Fact, WorkItem(23216, "https://github.com/dotnet/roslyn/issues/23216")]
         public async Task TestFixAllInDocument()
         {
             await TestInRegularAndScript1Async(
@@ -1697,8 +1687,7 @@ class C
 }");
         }
 
-        [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
-        [Fact]
+        [Fact, WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
         public async Task ExplicitInterfaceImplementationGetterOnly()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1726,8 +1715,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
-        [Fact]
+        [Fact, WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
         public async Task ExplicitInterfaceImplementationGetterAndSetter()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -2250,8 +2238,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
-        [Fact]
+        [Fact, WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
         public async Task TestSingleLineWithDirective()
         {
             await TestInRegularAndScript1Async(
@@ -2278,8 +2265,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
-        [Fact]
+        [Fact, WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
         public async Task TestMultipleFieldsWithDirective()
         {
             await TestInRegularAndScript1Async(
@@ -2310,8 +2296,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
-        [Fact]
+        [Fact, WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
         public async Task TestSingleLineWithDoubleDirectives()
         {
             await TestInRegularAndScript1Async(
@@ -2339,8 +2324,7 @@ namespace RoslynSandbox
 }");
         }
 
-        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
-        [Fact]
+        [Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
         public async Task TestUseTabs()
         {
             await TestInRegularAndScript1Async(
@@ -2356,8 +2340,7 @@ namespace RoslynSandbox
 }", new TestParameters(options: Option(FormattingOptions2.UseTabs, true)));
         }
 
-        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
-        [Fact]
+        [Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
         public async Task TestUseSpaces()
         {
             await TestInRegularAndScript1Async(
@@ -2373,8 +2356,7 @@ namespace RoslynSandbox
 }", new TestParameters(options: Option(FormattingOptions2.UseTabs, false)));
         }
 
-        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
-        [Fact]
+        [Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
         public async Task TestUseTabs_Editorconfig()
         {
             await TestInRegularAndScript1Async(
@@ -2410,8 +2392,7 @@ indent_style = tab
 </Workspace>");
         }
 
-        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
-        [Fact]
+        [Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
         public async Task TestUseSpaces_Editorconfig()
         {
             await TestInRegularAndScript1Async(
@@ -2447,8 +2428,7 @@ indent_style = space
 </Workspace>");
         }
 
-        [WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")]
-        [Fact]
+        [Fact, WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")]
         public async Task TestNotOnSerializableType()
         {
             await TestMissingAsync(
@@ -2468,8 +2448,7 @@ class Class
 }");
         }
 
-        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
-        [Fact]
+        [Fact, WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
         public async Task TestPropertyIsReadOnlyAndSetterNeeded()
         {
             await TestInRegularAndScript1Async(
@@ -2486,8 +2465,7 @@ class Class
 }");
         }
 
-        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
-        [Fact]
+        [Fact, WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
         public async Task TestPropertyIsReadOnlyWithNoAccessModifierAndSetterNeeded()
         {
             await TestInRegularAndScript1Async(
@@ -2504,8 +2482,7 @@ class Class
 }");
         }
 
-        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
-        [Fact]
+        [Fact, WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
         public async Task TestPropertyIsReadOnlyAndSetterUnneeded()
         {
             await TestInRegularAndScript1Async(

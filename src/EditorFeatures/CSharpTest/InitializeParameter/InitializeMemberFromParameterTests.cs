@@ -583,8 +583,7 @@ class C
 }");
         }
 
-        [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
-        [Fact]
+        [Fact, WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
         public async Task TestNoBlock()
         {
             await TestInRegularAndScript1Async(
@@ -607,8 +606,7 @@ class C
 }");
         }
 
-        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
-        [Fact]
+        [Fact, WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
         public async Task TestInitializeFieldWithParameterNameSelected1()
         {
             await TestInRegularAndScript1Async(
@@ -633,8 +631,7 @@ class C
 }");
         }
 
-        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
-        [Fact]
+        [Fact, WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
         public async Task TestInitializeField_ParameterNameSelected2()
         {
             await TestInRegularAndScript1Async(
@@ -1521,8 +1518,7 @@ class C
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
 
-        [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
-        [Fact]
+        [Fact, WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
         public async Task TestSingleLineBlock_BraceOnNextLine()
         {
             await TestInRegularAndScript1Async(
@@ -1543,8 +1539,7 @@ class C
 }");
         }
 
-        [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
-        [Fact]
+        [Fact, WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
         public async Task TestSingleLineBlock_BraceOnSameLine()
         {
             await TestInRegularAndScriptAsync(
@@ -1564,8 +1559,7 @@ class C
 }", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
         }
 
-        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
-        [Fact]
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
         public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -1593,8 +1587,7 @@ class C
 }");
         }
 
-        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
-        [Fact]
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
         public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -1622,8 +1615,7 @@ class C
 }");
         }
 
-        [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
-        [Fact]
+        [Fact, WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
         public async Task TestMissingInArgList()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1641,8 +1633,7 @@ class C
 }");
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingFields1()
         {
             await TestInRegularAndScript1Async(
@@ -1669,8 +1660,7 @@ class C
 }", index: 3);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingFields2()
         {
             await TestInRegularAndScript1Async(
@@ -1700,8 +1690,7 @@ class C
 }", index: 2);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingFields3()
         {
             await TestInRegularAndScript1Async(
@@ -1731,8 +1720,7 @@ class C
 }", index: 2);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingFields4()
         {
             await TestInRegularAndScript1Async(
@@ -1762,8 +1750,7 @@ class C
 }", index: 2);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingProperties1()
         {
             await TestInRegularAndScript1Async(
@@ -1790,8 +1777,7 @@ class C
 }", index: 2);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingProperties2()
         {
             await TestInRegularAndScript1Async(
@@ -1822,8 +1808,7 @@ class C
 }", index: 3);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingProperties3()
         {
             await TestInRegularAndScript1Async(
@@ -1854,8 +1839,7 @@ class C
 }", index: 3);
         }
 
-        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
-        [Fact]
+        [Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingProperties4()
         {
             await TestInRegularAndScript1Async(
@@ -1886,8 +1870,7 @@ class C
 }", index: 3);
         }
 
-        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
-        [Fact]
+        [Fact, WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
         public async Task TestMissingWhenTypeNotInCompilation()
         {
             await TestMissingInRegularAndScriptAsync(

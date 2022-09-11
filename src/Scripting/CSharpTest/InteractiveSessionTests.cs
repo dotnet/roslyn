@@ -166,8 +166,7 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
             Assert.Equal("True False True", script.EvaluateAsync().Result.ToString());
         }
 
-        [WorkItem(543863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
-        [Fact]
+        [Fact, WorkItem(543863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
         public void AnonymousTypes_Redefinition()
         {
             var script = CSharpScript.Create(@"
@@ -383,8 +382,7 @@ pi = i + j + k + l;
             Assert.Equal(16, script.ContinueWith<int>("pi").EvaluateAsync().Result);
         }
 
-        [WorkItem(100639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
-        [Fact]
+        [Fact, WorkItem(100639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
         public void ExternDestructor()
         {
             var script = CSharpScript.Create(
@@ -728,8 +726,7 @@ iC.method(iC.field)
             Assert.Equal(3, script.EvaluateAsync().Result);
         }
 
-        [WorkItem(529243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
-        [Fact]
+        [Fact, WorkItem(529243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
         public void RecursiveBaseType()
         {
             CSharpScript.EvaluateAsync(@"
@@ -738,8 +735,7 @@ class B<T> : A<B<B<T>>> { }
 ");
         }
 
-        [WorkItem(5378, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(5378, "DevDiv_Projects/Roslyn")]
         public void CompilationChain_GenericMethods()
         {
             var s0 = CSharpScript.Create(@"
@@ -855,8 +851,7 @@ x
             Assert.Equal(1, CSharpScript.EvaluateAsync<long>("6 / (2 * 3)").Result);
         }
 
-        [WorkItem(5397, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(5397, "DevDiv_Projects/Roslyn")]
         public void TopLevelLambda()
         {
             var s = CSharpScript.RunAsync(@"
@@ -914,8 +909,7 @@ result
             Assert.Equal(4, f(2));
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Arrays()
         {
             var s = CSharpScript.RunAsync(@"
@@ -1036,8 +1030,7 @@ new object[] { x, y, z }
         [WorkItem(949559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
         [WorkItem(540237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
-        [Fact]
+        [Fact, WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         public async Task PrivateImplementationDetailsType()
         {
             var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }");
@@ -1366,8 +1359,7 @@ d
             Assert.True(result is Dictionary<string, int>, "Expected Dictionary<string, int>");
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Usings1()
         {
             var options = ScriptOptions.Default.
@@ -1378,8 +1370,7 @@ d
             Assert.Equal(1, result);
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Usings2()
         {
             var options = ScriptOptions.Default.

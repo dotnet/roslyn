@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 }");
         }
 
-        [WorkItem(44272, "https://github.com/dotnet/roslyn/issues/44272")]
-        [Fact]
+        [Fact, WorkItem(44272, "https://github.com/dotnet/roslyn/issues/44272")]
         public async Task TopLevelStatement()
         {
             await TestAsync(@"

@@ -995,8 +995,7 @@ class C
             });
         }
 
-        [WorkItem(928113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/928113")]
-        [Fact]
+        [Fact, WorkItem(928113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/928113")]
         public void Constants()
         {
             var source =
@@ -2271,8 +2270,7 @@ class C
         }
 
         [WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")]
-        [WorkItem(10649, "https://github.com/dotnet/roslyn/issues/10649")]
-        [Fact]
+        [Fact, WorkItem(10649, "https://github.com/dotnet/roslyn/issues/10649")]
         public void AsyncAndLambda()
         {
             var source =
@@ -2341,8 +2339,7 @@ class C
             });
         }
 
-        [WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")]
-        [Fact]
+        [Fact, WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")]
         public void AsyncLambda()
         {
             var source =
@@ -2391,8 +2388,7 @@ class C
             });
         }
 
-        [WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
-        [Fact]
+        [Fact, WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
         public void MissingReference()
         {
             var source0 =
@@ -2438,8 +2434,7 @@ public struct B
             });
         }
 
-        [WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
-        [Fact]
+        [Fact, WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
         public void MissingReference_2()
         {
             var source0 =
@@ -2543,8 +2538,7 @@ class C
             });
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void LocalDoubleConstant()
         {
             var source = @"
@@ -2576,8 +2570,7 @@ class C
             });
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void LocalByteConstant()
         {
             var source = @"
@@ -2614,8 +2607,7 @@ class C
             });
         }
 
-        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
-        [Fact]
+        [Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         public void LocalDecimalConstant()
         {
             var source = @"
@@ -3259,8 +3251,7 @@ class C<T>
             });
         }
 
-        [WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
-        [Fact]
+        [Fact, WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
         public void CatchInAsyncStateMachine()
         {
             var source =
@@ -3318,8 +3309,7 @@ class C
             });
         }
 
-        [WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
-        [Fact]
+        [Fact, WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
         public void CatchInIteratorStateMachine()
         {
             var source =
@@ -3422,8 +3412,7 @@ class C
             });
         }
 
-        [WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")]
-        [Fact]
+        [Fact, WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")]
         public void MultipleThisFields()
         {
             var source =
@@ -3482,8 +3471,7 @@ class C
             });
         }
 
-        [WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")]
-        [Fact]
+        [Fact, WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")]
         public void LocalsOnAsyncMethodClosingBrace()
         {
             var source =
@@ -3512,8 +3500,7 @@ class C
             });
         }
 
-        [WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
-        [Fact]
+        [Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
         public void TransparentIdentifiers_FromParameter()
         {
             const string source = @"
@@ -3600,8 +3587,7 @@ class C
             });
         }
 
-        [WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
-        [Fact]
+        [Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
         public void TransparentIdentifiers_FromDisplayClassField()
         {
             const string source = @"
@@ -3707,8 +3693,7 @@ class C
             });
         }
 
-        [WorkItem(3236, "https://github.com/dotnet/roslyn/pull/3236")]
-        [Fact]
+        [Fact, WorkItem(3236, "https://github.com/dotnet/roslyn/pull/3236")]
         public void AnonymousTypeParameter()
         {
             const string source = @"
@@ -3761,8 +3746,7 @@ class C
             });
         }
 
-        [WorkItem(955, "https://github.com/aspnet/Home/issues/955")]
-        [Fact]
+        [Fact, WorkItem(955, "https://github.com/aspnet/Home/issues/955")]
         public void ConstantWithErrorType()
         {
             const string source = @"
@@ -3793,8 +3777,7 @@ class Program
             });
         }
 
-        [WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")]
-        [Fact]
+        [Fact, WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")]
         public void OrderOfArguments_ArgumentsOnly()
         {
             var source =
@@ -3841,8 +3824,7 @@ class C
             });
         }
 
-        [WorkItem(55606, "https://github.com/dotnet/roslyn/issues/55606")]
-        [Fact]
+        [Fact, WorkItem(55606, "https://github.com/dotnet/roslyn/issues/55606")]
         public void OrderOfArguments_ArgumentsOnly_Async()
         {
             var source =
@@ -3881,8 +3863,7 @@ class C
         /// <summary>
         /// CompileGetLocals should skip locals with errors.
         /// </summary>
-        [WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")]
-        [Fact]
+        [Fact, WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")]
         public void SkipPseudoVariablesWithUseSiteErrors()
         {
             var source =

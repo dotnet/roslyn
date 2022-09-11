@@ -39,8 +39,7 @@ $$#region Goo";
                 Region("span", "Goo", autoCollapse: false, isDefaultCollapsed: true));
         }
 
-        [WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
-        [Fact]
+        [Fact, WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
         public async Task RegressionFor5284()
         {
             const string code = @"
@@ -97,8 +96,7 @@ class C
                 Region("span", "Region", autoCollapse: false, isDefaultCollapsed: collapseRegionsWhenFirstOpened));
         }
 
-        [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
-        [Fact]
+        [Fact, WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
         public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
         {
             const string code = @"

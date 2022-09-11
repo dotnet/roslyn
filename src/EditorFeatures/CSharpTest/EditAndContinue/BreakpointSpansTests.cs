@@ -4007,8 +4007,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [WorkItem(932711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
-        [Fact]
+        [Fact, WorkItem(932711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
         public void OnPropertyWithInitializer()
         {
             TestSpan(
@@ -4572,8 +4571,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [WorkItem(543968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
-        [Fact]
+        [Fact, WorkItem(543968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
         public void ConstructorInitializer()
         {
             // a sequence point for base constructor call
@@ -4718,8 +4716,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [WorkItem(3557, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(3557, "DevDiv_Projects/Roslyn")]
         public void InFrontOfAttribute()
         {
             TestSpan(
@@ -4732,8 +4729,7 @@ $$ [method: Obsolete]
 }");
         }
 
-        [WorkItem(538058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
-        [Fact]
+        [Fact, WorkItem(538058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
         public void InInactivePPRegion()
         {
             TestLine(
@@ -4744,8 +4740,7 @@ $$gooby
 #endif");
         }
 
-        [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
-        [Fact]
+        [Fact, WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void WithIncompleteDeclaration()
         {
             TestMissing(
@@ -4759,8 +4754,7 @@ $$        int
 }");
         }
 
-        [WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
-        [Fact]
+        [Fact, WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         public void OnGetter()
         {
             TestSpan(
@@ -4788,8 +4782,7 @@ $$        int
 }");
         }
 
-        [WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
-        [Fact]
+        [Fact, WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         public void OnSetter()
         {
             TestSpan(

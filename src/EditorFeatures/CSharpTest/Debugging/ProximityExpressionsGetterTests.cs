@@ -485,8 +485,7 @@ class Class
 }", "this");
         }
 
-        [WorkItem(751141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751141")]
-        [Fact]
+        [Fact, WorkItem(751141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751141")]
         public async Task Bug751141()
         {
             await TestTryDoAsync(@"

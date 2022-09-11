@@ -482,8 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -528,8 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultiline_IfElseIfElseSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -574,8 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestMultilineMissing_IfElseIfElseSubSelection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -950,8 +947,7 @@ class C
 @"string x; if (0 == x.Length) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero1()
         {
             await TestFixOneAsync(
@@ -959,8 +955,7 @@ class C
 @"byte x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero2()
         {
             await TestFixOneAsync(
@@ -968,8 +963,7 @@ class C
 @"ushort x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero3()
         {
             await TestFixOneAsync(
@@ -977,8 +971,7 @@ class C
 @"uint x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToEqualsZero4()
         {
             await TestFixOneAsync(
@@ -986,8 +979,7 @@ class C
 @"ulong x = 1; if (x == 0) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToNotEqualsZero1()
         {
             await TestFixOneAsync(
@@ -995,8 +987,7 @@ class C
 @"ulong x = 1; if (0 != x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
-        [Fact]
+        [Fact, WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         public async Task TestSingleLine_SimplifyToNotEqualsZero2()
         {
             await TestFixOneAsync(
@@ -1004,8 +995,7 @@ class C
 @"ulong x = 1; if (x != 0) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
-        [Fact]
+        [Fact, WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
         public async Task TestSingleLine_SimplifyLongLengthEqualsZero()
         {
             await TestFixOneAsync(

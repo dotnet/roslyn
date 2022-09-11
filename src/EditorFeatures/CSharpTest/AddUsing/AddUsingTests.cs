@@ -6282,8 +6282,7 @@ namespace Microsoft
 }", testHost);
         }
 
-        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact]
+        [Fact, WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         public async Task TestIncompleteLambda1()
         {
             await TestInRegularAndScriptAsync(
@@ -6306,8 +6305,7 @@ class C
         new Byte");
         }
 
-        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact]
+        [Fact, WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         public async Task TestIncompleteLambda2()
         {
             await TestInRegularAndScriptAsync(
@@ -6331,8 +6329,7 @@ class C
         }
 
         [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
-        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
-        [Fact]
+        [Fact, WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
             await TestInRegularAndScriptAsync(

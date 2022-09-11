@@ -894,8 +894,7 @@ class Program
 }");
         }
 
-        [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
-        [Fact]
+        [Fact, WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
         public async Task NullNodeCrash()
         {
             await TestMissingInRegularAndScriptAsync(

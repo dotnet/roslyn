@@ -971,8 +971,7 @@ namespace N
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
-        [Fact]
+        [Fact, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
         public async Task TestTypeInFileScopedNamespace1()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -994,8 +993,7 @@ public class [|C|]
                 fileScopedNamespaces: true);
         }
 
-        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
-        [Fact]
+        [Fact, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
         public async Task TestTypeInFileScopedNamespace2()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -1017,8 +1015,7 @@ namespace N
 }}", fileScopedNamespaces: true);
         }
 
-        [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
-        [Fact]
+        [Fact, WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
         public async Task TestTypeInFileScopedNamespace3()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -1760,8 +1757,7 @@ public class [|C|]
             TestContext.VerifyDocumentNotReused(a, b);
         }
 
-        [WorkItem(546311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
-        [Fact]
+        [Fact, WorkItem(546311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
         public async Task FormatMetadataAsSource()
         {
             using var context = TestContext.Create(LanguageNames.CSharp);
@@ -1770,8 +1766,7 @@ public class [|C|]
             await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
-        [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-        [Fact]
+        [Fact, WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
         public async Task IndexedProperty()
         {
             var metadataSource = @"
@@ -1800,8 +1795,7 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(566688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
-        [Fact]
+        [Fact, WorkItem(566688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
         public async Task AttributeReferencingInternalNestedType()
         {
             var metadataSource = @"using System;
@@ -2675,8 +2669,7 @@ public class [|TestAttribute|] : Attribute
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
-        [Fact]
+        [Fact, WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
         public async Task TestNavigationViaReducedExtensionMethodCS()
         {
             var metadata = @"using System;
@@ -2711,8 +2704,7 @@ public static class ObjectExtensions
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
-        [WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
-        [Fact]
+        [Fact, WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
         public async Task TestNavigationViaReducedExtensionMethodVB()
         {
             var metadata = @"Imports System.Runtime.CompilerServices
@@ -3288,8 +3280,7 @@ public delegate void [|D|]<T>() where T : unmanaged;";
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestSByteMinValue()
         {
             var source = @"
@@ -3303,8 +3294,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestSByteMinValueVB()
         {
             var source = @"
@@ -3317,8 +3307,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt16MinValue()
         {
             var source = @"
@@ -3332,8 +3321,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt16MinValueVB()
         {
             var source = @"
@@ -3346,8 +3334,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt32MinValue()
         {
             var source = @"
@@ -3361,8 +3348,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt32MinValueVB()
         {
             var source = @"
@@ -3375,8 +3361,7 @@ End Class";
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt64MinValue()
         {
             var source = @"
@@ -3390,8 +3375,7 @@ class C
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
-        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
-        [Fact]
+        [Fact, WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
         public async Task TestInt64MinValueVB()
         {
             var source = @"
@@ -5586,8 +5570,7 @@ public class TestType
             TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
-        [WorkItem(22431, "https://github.com/dotnet/roslyn/issues/22431")]
-        [Fact]
+        [Fact, WorkItem(22431, "https://github.com/dotnet/roslyn/issues/22431")]
         public async Task TestCDATAComment()
         {
             var source = @"

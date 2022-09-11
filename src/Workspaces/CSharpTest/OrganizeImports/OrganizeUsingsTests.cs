@@ -457,8 +457,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact]
+        [Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         public async Task DoTouchCommentsAtBeginningOfFile1()
         {
             var initial =
@@ -482,8 +481,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact]
+        [Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         public async Task DoTouchCommentsAtBeginningOfFile2()
         {
             var initial =
@@ -507,8 +505,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact]
+        [Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         public async Task DoTouchCommentsAtBeginningOfFile3()
         {
             var initial =
@@ -532,8 +529,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact]
+        [Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         public async Task CommentsNotAtTheStartOfTheFile1()
         {
             var initial =
@@ -557,8 +553,7 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact]
+        [Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         public async Task CommentsNotAtTheStartOfTheFile2()
         {
             var initial =
@@ -1161,8 +1156,7 @@ using ああ;
             }
         }
 
-        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
-        [Fact]
+        [Fact, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
         public async Task TestGrouping()
         {
             var initial =
@@ -1198,8 +1192,7 @@ using IntList = System.Collections.Generic.List<int>;
             await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
         }
 
-        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
-        [Fact]
+        [Fact, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")]
         public async Task TestGrouping2()
         {
             // Make sure we don't insert extra newlines if they're already there.

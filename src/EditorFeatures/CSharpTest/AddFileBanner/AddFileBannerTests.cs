@@ -344,8 +344,7 @@ class Program2
 </Workspace>");
         }
 
-        [WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
-        [Fact]
+        [Fact, WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
         public async Task TestUpdateFileNameInComment()
         {
             await TestInRegularAndScriptAsync(
@@ -399,8 +398,7 @@ class Program2
 </Workspace>");
         }
 
-        [WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
-        [Fact]
+        [Fact, WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
         public async Task TestUpdateFileNameInComment2()
         {
             await TestInRegularAndScriptAsync(

@@ -2912,8 +2912,7 @@ class C
             await TestAsync(text, "global::System.Collections.Generic.IEnumerable<global::System.Object>", TestMode.Node);
         }
 
-        [WorkItem(12755, "https://github.com/dotnet/roslyn/issues/12755")]
-        [Fact]
+        [Fact, WorkItem(12755, "https://github.com/dotnet/roslyn/issues/12755")]
         public async Task TestObjectCreationBeforeArrayIndexing()
         {
             var text =
@@ -2932,8 +2931,7 @@ class C
         }
 
         [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
-        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
-        [Fact]
+        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
         public async Task TestDeconstruction()
         {
             await TestInMethodAsync(
@@ -2941,8 +2939,7 @@ class C
         }
 
         [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
-        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
-        [Fact]
+        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
         public async Task TestDeconstruction2()
         {
             await TestInMethodAsync(
@@ -2956,8 +2953,7 @@ class C
 @"[|(string? s, _)|] =", "(global::System.String? s, global::System.Object _)", TestMode.Node);
         }
 
-        [WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]
-        [Fact]
+        [Fact, WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]
         public async Task TestObjectCreationBeforeBlock()
         {
             var text =
@@ -3040,8 +3036,7 @@ class Program
 @"(int, (string, bool)) x = (1, ("""", [|Goo()|]));", "global::System.Boolean", mode);
         }
 
-        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
-        [Fact]
+        [Fact, WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
         public async Task TestValueInNestedTuple3()
         {
             await TestInMethodAsync(
