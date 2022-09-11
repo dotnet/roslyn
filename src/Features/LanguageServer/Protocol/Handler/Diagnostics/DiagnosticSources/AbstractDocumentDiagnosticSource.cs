@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
 
@@ -51,15 +52,21 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
         if (this.Document is not Document document)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        var service = document.GetLanguageService<ITodoCommentDataService>();
+        var service = document.GetLanguageService<ITodoCommentService>();
         if (service == null)
             return ImmutableArray<DiagnosticData>.Empty;
 
         var tokenList = document.Project.Solution.Options.GetOption(TodoCommentOptionsStorage.TokenList);
         var descriptors = GetAndCacheDescriptors(tokenList);
 
-        var comments = await service.GetTodoCommentDataAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
-        return comments.SelectAsArray(comment => new DiagnosticData(
+        var comments = await service.GetTodoCommentsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
+        if (comments.Length == 0)
+            return ImmutableArray<DiagnosticData>.Empty;
+
+        using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+        await TodoComment.ConvertAsync(document, comments, converted, cancellationToken).ConfigureAwait(false);
+
+        return converted.SelectAsArray(comment => new DiagnosticData(
             id: "TODO",
             category: "TODO",
             message: comment.Message,
@@ -73,16 +80,16 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
                 document.Id,
-                originalFilePath: comment.Span.Path,
-                mappedFilePath: comment.MappedSpan.Path,
-                originalStartLine: comment.Span.StartLinePosition.Line,
-                originalStartColumn: comment.Span.StartLinePosition.Character,
-                originalEndLine: comment.Span.EndLinePosition.Line,
-                originalEndColumn: comment.Span.EndLinePosition.Character,
-                mappedStartLine: comment.MappedSpan.StartLinePosition.Line,
-                mappedStartColumn: comment.MappedSpan.StartLinePosition.Character,
-                mappedEndLine: comment.MappedSpan.EndLinePosition.Line,
-                mappedEndColumn: comment.MappedSpan.EndLinePosition.Character)));
+                originalFilePath: comment.OriginalFilePath,
+                mappedFilePath: comment.MappedFilePath,
+                originalStartLine: comment.OriginalLine,
+                originalStartColumn: comment.OriginalColumn,
+                originalEndLine: comment.OriginalLine,
+                originalEndColumn: comment.OriginalColumn,
+                mappedStartLine: comment.MappedLine,
+                mappedStartColumn: comment.MappedColumn,
+                mappedEndLine: comment.MappedLine,
+                mappedEndColumn: comment.MappedColumn)));
     }
 
     private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
