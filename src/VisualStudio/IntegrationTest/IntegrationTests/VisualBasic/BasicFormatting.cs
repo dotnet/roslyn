@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class BasicFormatting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact]
         public void VerifyFormattingIndent()
         {
             var testCode = new StringBuilder()
@@ -46,7 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact]
         public void VerifyCaseCorrection()
         {
             SetUpEditor(@"
@@ -58,8 +59,7 @@ Module A
 End Module");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
-         Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065")]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {
             SetUpEditor(@"

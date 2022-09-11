@@ -18,9 +18,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task EndOfLine()
         {
             var content = @"namespace A{/*1*/}/*2*/";
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             await AssertFormatAsync(content, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task Simple1()
             => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task DontFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
         {
             var content = @"namespace A
@@ -51,7 +52,7 @@ class A { }";
             await AssertFormatAsync(content, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task FormatIncludingTrivia()
         {
             var content = @"namespace A
@@ -69,7 +70,7 @@ class A { }";
             await AssertFormatAsync(content, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task MergeSpanAndFormat()
         {
             var content = @"namespace A
@@ -87,7 +88,7 @@ class A { }";
             await AssertFormatAsync(content, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task OverlappedSpan()
         {
             var content = @"namespace A
@@ -107,7 +108,6 @@ class A { }";
 
         [Fact]
         [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpanNullReference01()
         {
             var code = @"/*1*/class C
@@ -134,7 +134,6 @@ class A { }";
 
         [Fact]
         [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpanNullReference02()
         {
             var code = @"class C/*1*/
@@ -160,7 +159,7 @@ class A { }";
         }
 
         [WorkItem(539231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539231")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task EmptySpan()
         {
             using var workspace = new AdhocWorkspace();

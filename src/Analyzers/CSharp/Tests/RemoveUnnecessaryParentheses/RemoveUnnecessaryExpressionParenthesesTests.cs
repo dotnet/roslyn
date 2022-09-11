@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
     public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         private static DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
             => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestVariableInitializer_TestWithAllOptionsSetToIgnore()
         {
             await TestMissingAsync(
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: IgnoreAllParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")]
         public async Task TestVariableInitializer_TestMissingParenthesis()
         {
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticRequiredForClarity1()
         {
             await TestMissingAsync(
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(44629, "https://github.com/dotnet/roslyn/issues/44629")]
         public async Task TestStackAlloc()
         {
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(47365, "https://github.com/dotnet/roslyn/issues/47365")]
         public async Task TestDynamic()
         {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticRequiredForClarity2()
         {
             await TestInRegularAndScript1Async(
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalRequiredForClarity1()
         {
             await TestMissingAsync(
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalRequiredForClarity2()
         {
             await TestInRegularAndScript1Async(
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Integral1()
         {
             await TestAsync(
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Integral2()
         {
             await TestAsync(
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticRequiredForCorrectnessWhenPrecedenceStaysTheSameIfFloatingPoint()
         {
             await TestMissingAsync(
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame_Floating2()
         {
             await TestAsync(
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
         {
             await TestAsync(
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
         {
             await TestAsync(
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestVariableInitializer_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestReturnStatement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestExpressionBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -339,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCheckedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCompoundAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -419,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNestedParenthesizedExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -439,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestIncrementExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -459,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestLambdaBody_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -479,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArrayElement_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestWhereClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -523,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -543,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForConditionalAccess1()
         {
             await TestMissingAsync(
@@ -557,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [WorkItem(37046, "https://github.com/dotnet/roslyn/issues/37046")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForConditionalAccess2()
         {
             await TestMissingAsync(
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForConditionalAccessNotInExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", options: RemoveAllUnnecessaryParentheses);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForConditionalIndex()
         {
             await TestMissingAsync(
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestBinaryInCastExpression()
         {
             await TestMissingAsync(
@@ -617,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAroundCastExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -637,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalInInterpolation()
         {
             await TestMissingAsync(
@@ -650,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalInInterpolation_FixAll_1()
         {
             await TestAsync(
@@ -672,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalInInterpolation_FixAll_2()
         {
             await TestAsync(
@@ -694,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNonConditionalInInterpolation_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -714,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_1()
         {
             await TestAsync(
@@ -734,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestBinaryExpression_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_2()
         {
             await TestAsync(
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpression_TestNotAvailableForComplexChildren1()
         {
             await TestMissingAsync(
@@ -767,7 +768,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpression_TestNotAvailableForComplexChildren2()
         {
             await TestMissingAsync(
@@ -780,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpression_TestNotAvailableForComplexChildren3()
         {
             await TestMissingAsync(
@@ -793,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpression_TestAvailableForPrimaryChildren1()
         {
             await TestAsync(
@@ -813,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpression_TestAvailableForPrimaryChildren2()
         {
             await TestAsync(
@@ -833,7 +834,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpression_TestAvailableForPrimaryChildren3()
         {
             await TestAsync(
@@ -853,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestIsPattern_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_1()
         {
             await TestAsync(
@@ -873,7 +874,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestIsPattern_TestAvailableWithAlwaysRemove_And_NotAvailableWhenRequiredForClarity_2()
         {
             await TestAsync(
@@ -893,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForOverloadedOperatorOnLeft()
         {
             await TestInRegularAndScript1Async(
@@ -917,7 +918,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireAllParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForOverloadedOperatorOnRight()
         {
             await TestMissingAsync(
@@ -932,7 +933,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireAllParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestShiftRequiredForClarity1()
         {
             await TestMissingAsync(
@@ -945,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestShiftRequiredForClarity2()
         {
             await TestMissingAsync(
@@ -958,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RequireAllParenthesesForClarity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestDoNotRemoveShiftAcrossPrecedence()
         {
             await TestMissingAsync(
@@ -971,7 +972,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRemoveShiftIfNotNecessary2()
         {
             await TestInRegularAndScript1Async(
@@ -991,7 +992,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestDoNotRemoveShiftAcrossSamePrecedenceIfValueWouldChange()
         {
             await TestMissingAsync(
@@ -1004,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestDoNotRemoveShiftIfShiftKindDiffers()
         {
             await TestMissingAsync(
@@ -1017,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRemoveCoalesceIfNotNecessary1()
         {
             await TestMissingAsync(
@@ -1030,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRemoveCoalesceIfNotNecessary2()
         {
             await TestInRegularAndScript1Async(
@@ -1050,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestBitwiseExpression_TestMissingWithDifferencePrecedence1()
         {
             await TestMissingAsync(
@@ -1063,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestBitwiseExpression_TestMissingWithDifferencePrecedence2()
         {
             await TestMissingAsync(
@@ -1076,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestBitwiseExpression_TestAvailableWithSamePrecedenceMissingWithDifferencePrecedence2()
         {
             await TestAsync(
@@ -1097,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1124,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestSwitchCase_WithWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1151,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1178,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConstantPatternExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
@@ -1203,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConstantPatternExpression_RequiredForPrecedence()
         {
             await TestMissingAsync(
@@ -1218,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastAmbiguity1()
         {
             await TestMissingAsync(
@@ -1231,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastAmbiguity2()
         {
             await TestMissingAsync(
@@ -1244,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastAmbiguity3()
         {
             await TestMissingAsync(
@@ -1257,7 +1258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastAmbiguity4()
         {
             await TestMissingAsync(
@@ -1270,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPrimitiveCastNoAmbiguity1()
         {
             await TestAsync(
@@ -1290,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPrimitiveCastNoAmbiguity2()
         {
             await TestAsync(
@@ -1310,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPrimitiveCastNoAmbiguity3()
         {
             await TestAsync(
@@ -1330,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPrimitiveCastNoAmbiguity4()
         {
             await TestAsync(
@@ -1350,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArrayCastNoAmbiguity1()
         {
             await TestAsync(
@@ -1370,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArrayCastNoAmbiguity2()
         {
             await TestAsync(
@@ -1390,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArrayCastNoAmbiguity3()
         {
             await TestAsync(
@@ -1410,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestArrayCastNoAmbiguity4()
         {
             await TestAsync(
@@ -1430,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPointerCastNoAmbiguity1()
         {
             await TestAsync(
@@ -1450,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPointerCastNoAmbiguity2()
         {
             await TestAsync(
@@ -1470,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPointerCastNoAmbiguity3()
         {
             await TestAsync(
@@ -1490,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestPointerCastNoAmbiguity4()
         {
             await TestAsync(
@@ -1510,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNullableCastNoAmbiguity1()
         {
             await TestAsync(
@@ -1530,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNullableCastNoAmbiguity2()
         {
             await TestAsync(
@@ -1550,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNullableCastNoAmbiguity3()
         {
             await TestAsync(
@@ -1570,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNullableCastNoAmbiguity4()
         {
             await TestAsync(
@@ -1590,7 +1591,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAliasCastNoAmbiguity1()
         {
             await TestAsync(
@@ -1610,7 +1611,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAliasCastNoAmbiguity2()
         {
             await TestAsync(
@@ -1630,7 +1631,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAliasCastNoAmbiguity3()
         {
             await TestAsync(
@@ -1650,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAliasCastNoAmbiguity4()
         {
             await TestAsync(
@@ -1670,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastOfPrimary()
         {
             await TestAsync(
@@ -1690,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastOfMemberAccess()
         {
             await TestAsync(
@@ -1710,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastOfNonAmbiguousUnary()
         {
             await TestAsync(
@@ -1730,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestCastOfCast()
         {
             await TestAsync(
@@ -1750,7 +1751,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestIsPatternAndLogical_TestWithAllOptionsSetToIgnore()
         {
             await TestAsync(
@@ -1771,7 +1772,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 offeredWhenRequireForClarityIsEnabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestGuardPatternMissing()
         {
             await TestMissingAsync(
@@ -1784,7 +1785,7 @@ offeredWhenRequireForClarityIsEnabled: false);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundLValueMemberAccess()
         {
             await TestAsync(
@@ -1805,7 +1806,7 @@ offeredWhenRequireForClarityIsEnabled: false);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundMultiplicationInAddEquals()
         {
             await TestAsync(
@@ -1826,7 +1827,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundAddInMultipleEquals()
         {
             await TestAsync(
@@ -1847,7 +1848,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNecessaryCast()
         {
             await TestMissingAsync(
@@ -1860,7 +1861,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundChecked()
         {
             await TestAsync(
@@ -1881,7 +1882,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundUnchecked()
         {
             await TestAsync(
@@ -1902,7 +1903,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundNameof()
         {
             await TestAsync(
@@ -1923,7 +1924,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensIsCheck()
         {
             await TestAsync(
@@ -1944,7 +1945,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestNecessaryParensAroundIs()
         {
             await TestMissingAsync(
@@ -1957,7 +1958,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundAssignmentInInitialization()
         {
             await TestAsync(
@@ -1980,7 +1981,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundLambda1()
         {
             await TestAsync(
@@ -2001,7 +2002,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundLambda2()
         {
             await TestAsync(
@@ -2022,7 +2023,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundCastedLambda1()
         {
             await TestMissingAsync(
@@ -2035,7 +2036,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundCastedLambda2()
         {
             await TestMissingAsync(
@@ -2048,7 +2049,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundCastedLambda3()
         {
             await TestMissingAsync(
@@ -2061,7 +2062,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundReturnValue1()
         {
             await TestAsync(
@@ -2082,7 +2083,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundReturnValue2()
         {
             await TestAsync(
@@ -2103,7 +2104,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundPPDirective1()
         {
             await TestAsync(
@@ -2126,7 +2127,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundPPDirective2()
         {
             // Currently producing broken code.
@@ -2151,7 +2152,7 @@ offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
         [WorkItem(57768, "https://github.com/dotnet/roslyn/issues/57768")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestParensAroundPPDirective3()
         {
             await TestAsync(
@@ -2177,7 +2178,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForPreIncrement()
         {
             await TestMissingAsync(
@@ -2191,7 +2192,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForPreDecrement()
         {
             await TestMissingAsync(
@@ -2205,7 +2206,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForPostIncrement()
         {
             await TestInRegularAndScript1Async(
@@ -2227,7 +2228,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForPostDecrement()
         {
             await TestInRegularAndScript1Async(
@@ -2249,7 +2250,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForPreIncrementInLocalDeclaration()
         {
             await TestInRegularAndScript1Async(
@@ -2270,7 +2271,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForPreIncrementInSimpleAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -2291,7 +2292,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestForPreIncrementInArgument()
         {
             await TestInRegularAndScript1Async(
@@ -2312,7 +2313,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForPreIncrementAfterAdd()
         {
             await TestMissingAsync(
@@ -2326,7 +2327,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForUnaryPlusAfterAdd()
         {
             await TestMissingAsync(
@@ -2340,7 +2341,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForConditionalRefAsLeftHandSideValue()
         {
             await TestMissingAsync(
@@ -2354,7 +2355,7 @@ offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestConditionalExpressionAsRightHandSideValue()
         {
             await TestInRegularAndScript1Async(
@@ -2376,7 +2377,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(32085, "https://github.com/dotnet/roslyn/issues/32085")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestMissingForNestedConditionalExpressionInLambda()
         {
             await TestMissingAsync(
@@ -2391,7 +2392,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesisDiagnosticSingleLineExpression()
         {
             var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16);
@@ -2406,7 +2407,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesisDiagnosticInMultiLineExpression()
         {
             var firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 4, 16);
@@ -2422,7 +2423,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesisDiagnosticInNestedExpression()
         {
             var outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 4, 16);
@@ -2439,7 +2440,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression()
         {
             var outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 4, 16);
@@ -2458,7 +2459,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesisIncludesFadeLocations()
         {
             var input = @"class C
@@ -2485,7 +2486,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39363")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesesInSwitchExpression()
         {
             await TestAsync(
@@ -2516,7 +2517,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(26311, "https://github.com/dotnet/roslyn/issues/26311")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestUnnecessaryParenthesesAroundDefaultLiteral()
         {
             await TestAsync(
@@ -2540,7 +2541,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRangeWithConstantExpression()
         {
             await TestAsync(
@@ -2560,7 +2561,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRangeWithMemberAccessExpression()
         {
             await TestAsync(
@@ -2580,7 +2581,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRangeWithElementAccessExpression()
         {
             await TestAsync(
@@ -2600,7 +2601,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestRangeWithBinaryExpression()
         {
             await TestMissingAsync(
@@ -2613,7 +2614,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAlwaysUnnecessaryForPrimaryPattern1()
         {
             await TestAsync(
@@ -2633,7 +2634,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestAlwaysUnnecessaryForPrimaryPattern2()
         {
             await TestAsync(
@@ -2654,7 +2655,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
         {
             await TestMissingAsync(
@@ -2673,7 +2674,7 @@ public class Goo { }");
         }
 
         [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
         {
             await TestAsync(
@@ -2701,7 +2702,7 @@ public class C
 ", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestElementAccessOfSuppressedExpression1()
         {
             await TestAsync(
@@ -2725,7 +2726,7 @@ public class C
 ", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         public async Task TestElementAccessOfSuppressedExpression2()
         {
             await TestAsync(
@@ -2753,7 +2754,7 @@ public class C
 ", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
         public async Task TestArithmeticOverflow1()
         {
@@ -2770,7 +2771,7 @@ public class C
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
         public async Task TestArithmeticOverflow1_CompilationOption()
         {
@@ -2786,7 +2787,7 @@ public class C
     compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow: true)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
         public async Task TestArithmeticOverflow2()
         {
@@ -2807,7 +2808,7 @@ public class C
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax1()
         {
@@ -2834,7 +2835,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax2()
         {
@@ -2861,7 +2862,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax3()
         {
@@ -2888,7 +2889,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestTupleArgumentsBecomeGenericSyntax4()
         {
@@ -2915,7 +2916,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestMethodArgumentsBecomeGenericSyntax1()
         {
@@ -2942,7 +2943,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestMethodArgumentsBecomeGenericSyntax2()
         {
@@ -2969,7 +2970,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [Fact]
         [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
         public async Task TestMethodArgumentsBecomeGenericSyntax3()
         {

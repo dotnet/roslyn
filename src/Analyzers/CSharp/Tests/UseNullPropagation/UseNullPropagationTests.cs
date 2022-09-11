@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
         CSharpUseNullPropagationDiagnosticAnalyzer,
         CSharpUseNullPropagationCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
     public partial class UseNullPropagationTests
     {
         private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_Equals()
         {
             await TestInRegularAndScript1Async(
@@ -76,7 +77,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_Equals_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -101,7 +102,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_WithBlock()
         {
             await TestInRegularAndScript1Async(
@@ -128,7 +129,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_NotWithElse()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -147,7 +148,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_NotWithMultipleStatements()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -166,7 +167,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_Equals_IfStatement_TopLevel()
         {
             await TestInRegularAndScript1Async(
@@ -183,7 +184,7 @@ o?.ToString();
 ", OutputKind.ConsoleApplication);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_IsNull()
         {
             await TestInRegularAndScript1Async(
@@ -207,7 +208,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_IsNotNull()
         {
             await TestInRegularAndScript1Async(
@@ -231,7 +232,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_IsNotNull_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -256,7 +257,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMissingOnCSharp5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -271,7 +272,7 @@ class C
 }", LanguageVersion.CSharp5);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMissingOnCSharp5_IfStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -287,7 +288,7 @@ class C
 }", LanguageVersion.CSharp5);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestRight_Equals()
         {
             await TestInRegularAndScript1Async(
@@ -311,7 +312,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestRight_Equals_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -336,7 +337,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestLeft_NotEquals()
         {
             await TestInRegularAndScript1Async(
@@ -360,7 +361,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableType()
         {
             await TestInRegularAndScript1Async(
@@ -384,7 +385,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableType_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -409,7 +410,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndObjectCast()
         {
             await TestInRegularAndScript1Async(
@@ -433,7 +434,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndObjectCast_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -458,7 +459,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestRight_NotEquals()
         {
             await TestInRegularAndScript1Async(
@@ -482,7 +483,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIndexer()
         {
             await TestInRegularAndScript1Async(
@@ -506,7 +507,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIndexer_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -531,7 +532,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestConditionalAccess()
         {
             await TestInRegularAndScript1Async(
@@ -555,7 +556,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestConditionalAccess_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -580,7 +581,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMemberAccess()
         {
             await TestInRegularAndScript1Async(
@@ -604,7 +605,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMemberAccess_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -629,7 +630,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMissingOnSimpleMatch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -644,7 +645,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMissingOnSimpleMatch_IfStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -660,7 +661,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestParenthesizedCondition()
         {
             await TestInRegularAndScript1Async(
@@ -684,7 +685,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -710,7 +711,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -735,7 +736,7 @@ class C
         }
 
         [WorkItem(15505, "https://github.com/dotnet/roslyn/issues/15505")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestOtherValueIsNotNull1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -751,7 +752,7 @@ class C
         }
 
         [WorkItem(15505, "https://github.com/dotnet/roslyn/issues/15505")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestOtherValueIsNotNull2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -767,7 +768,7 @@ class C
         }
 
         [WorkItem(16287, "https://github.com/dotnet/roslyn/issues/16287")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestMethodGroup()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -786,7 +787,7 @@ class C { public void M(string s) { } }");
         }
 
         [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestInExpressionTree()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -809,7 +810,7 @@ class Program
 
         [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestInExpressionTree2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -828,7 +829,7 @@ class C
 
         [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestInExpressionTree3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -848,7 +849,7 @@ class C
 
         [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestInExpressionTree4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -867,7 +868,7 @@ class C
         }
 
         [WorkItem(19774, "https://github.com/dotnet/roslyn/issues/19774")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestNullableMemberAccess()
         {
             await TestInRegularAndScript1Async(
@@ -897,7 +898,7 @@ class C
         }
 
         [WorkItem(19774, "https://github.com/dotnet/roslyn/issues/19774")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestNullableMemberAccess_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -928,7 +929,7 @@ class C
         }
 
         [WorkItem(19774, "https://github.com/dotnet/roslyn/issues/19774")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestNullableElementAccess()
         {
             await TestInRegularAndScript1Async(
@@ -968,7 +969,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsNull()
         {
             await TestInRegularAndScript1Async(
@@ -993,7 +994,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsNotNull()
         {
             await TestInRegularAndScript1Async(
@@ -1018,7 +1019,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsNotNull_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -1044,7 +1045,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1060,7 +1061,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsType_IfStatement1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1077,7 +1078,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsType_IfStatement2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1094,7 +1095,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndIsType_IfStatement3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1111,7 +1112,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIsOtherConstant()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1126,7 +1127,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEquals1()
         {
             await TestInRegularAndScript1Async(
@@ -1151,7 +1152,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEquals1_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -1177,7 +1178,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEquals2()
         {
             await TestInRegularAndScript1Async(
@@ -1202,7 +1203,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEquals2_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -1228,7 +1229,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1244,7 +1245,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1261,7 +1262,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValue1_IfStatement2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1278,7 +1279,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValue2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1294,7 +1295,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject1()
         {
             await TestInRegularAndScript1Async(
@@ -1319,7 +1320,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject1_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -1345,7 +1346,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject2()
         {
             await TestInRegularAndScript1Async(
@@ -1370,7 +1371,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject2_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -1396,7 +1397,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1412,7 +1413,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndReferenceEqualsOtherValueWithObject2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1428,7 +1429,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndNotIsNull()
         {
             await TestInRegularAndScript1Async(
@@ -1453,7 +1454,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndNotIsNotNull()
         {
             await TestInRegularAndScript1Async(
@@ -1478,7 +1479,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndNotIsType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1494,7 +1495,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndNotIsOtherConstant()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1509,7 +1510,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEquals1()
         {
             await TestInRegularAndScript1Async(
@@ -1534,7 +1535,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEquals2()
         {
             await TestInRegularAndScript1Async(
@@ -1559,7 +1560,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1575,7 +1576,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1591,7 +1592,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1()
         {
             await TestInRegularAndScript1Async(
@@ -1616,7 +1617,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2()
         {
             await TestInRegularAndScript1Async(
@@ -1641,7 +1642,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1657,7 +1658,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1673,7 +1674,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestEqualsWithLogicalNot()
         {
             await TestInRegularAndScript1Async(
@@ -1698,7 +1699,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestEqualsWithLogicalNot_IfStatement()
         {
             await TestInRegularAndScript1Async(
@@ -1724,7 +1725,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestNotEqualsWithLogicalNot()
         {
             await TestInRegularAndScript1Async(
@@ -1749,7 +1750,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestEqualsOtherValueWithLogicalNot()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1765,7 +1766,7 @@ class C
         }
 
         [WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestNotEqualsOtherValueWithLogicalNot()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1781,7 +1782,7 @@ class C
         }
 
         [WorkItem(49517, "https://github.com/dotnet/roslyn/issues/49517")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestParenthesizedExpression()
         {
             await TestInRegularAndScript1Async(
@@ -1806,7 +1807,7 @@ class C
         }
 
         [WorkItem(49517, "https://github.com/dotnet/roslyn/issues/49517")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestReversedParenthesizedExpression()
         {
             await TestInRegularAndScript1Async(
@@ -1831,7 +1832,7 @@ class C
         }
 
         [WorkItem(49517, "https://github.com/dotnet/roslyn/issues/49517")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestParenthesizedNull()
         {
             await TestInRegularAndScript1Async(
@@ -1856,7 +1857,7 @@ class C
         }
 
         [WorkItem(49517, "https://github.com/dotnet/roslyn/issues/49517")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestReversedParenthesizedNull()
         {
             await TestInRegularAndScript1Async(
@@ -1880,7 +1881,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_Trivia1()
         {
             await TestInRegularAndScript1Async(
@@ -1907,7 +1908,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_Trivia2()
         {
             await TestInRegularAndScript1Async(
@@ -1936,7 +1937,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_Trivia3()
         {
             await TestInRegularAndScript1Async(
@@ -1967,7 +1968,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_Trivia4()
         {
             await TestInRegularAndScript1Async(
@@ -1998,7 +1999,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestIfStatement_Trivia5()
         {
             await TestInRegularAndScript1Async(
@@ -2029,7 +2030,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         public async Task TestNotOnPointer_IfStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2045,7 +2046,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         [WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
         public async Task TestNotWithColorColorStaticCase()
         {
@@ -2072,7 +2073,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        [Fact]
         [WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")]
         public async Task TestWithColorColorInstanceCase()
         {

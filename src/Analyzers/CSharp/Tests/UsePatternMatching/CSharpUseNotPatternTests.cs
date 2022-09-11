@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         CSharpUseNotPatternDiagnosticAnalyzer,
         CSharpUseNotPatternCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
     public partial class CSharpUseNotPatternTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [Fact]
         [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
         public async Task BinaryIsExpression()
         {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [Fact]
         [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
         public async Task ConstantPattern()
         {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [Fact]
         [WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
         {
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [Fact]
         public async Task UnavailableInCSharp8()
         {
             await new VerifyCS.Test
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [Fact]
         [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
         public async Task BinaryIsObject()
         {

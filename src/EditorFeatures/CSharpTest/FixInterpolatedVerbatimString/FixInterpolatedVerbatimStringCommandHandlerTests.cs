@@ -22,6 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatimString
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
     public class FixInterpolatedVerbatimStringCommandHandlerTests
     {
         private static TestWorkspace CreateTestWorkspace(string inputMarkup)
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
             Assert.Equal(originalCaretPosition, view.Caret.Position.BufferPosition.Position);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestAfterAtSignDollarSign()
         {
             TestHandled(
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingAfterDollarSignAtSign()
         {
             TestNotHandled(
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingAfterAtSign()
         {
             TestNotHandled(
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingAfterDollarSign()
         {
             TestNotHandled(
@@ -155,20 +156,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
             => TestHandled(@"@$[||]", @"$@""[||]");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInEmptyFileAfterDollarSign()
             => TestNotHandled(@"$[||]");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInEmptyFile()
             => TestNotHandled(@"[||]");
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestAfterAtSignDollarSignEndOfFile()
         {
             TestHandled(
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         var v = $@""[||]");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInClassDeclaration()
         {
             TestNotHandled(
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInComment1()
         {
             TestNotHandled(
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInComment2()
         {
             TestNotHandled(
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInString()
         {
             TestNotHandled(
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInInterpolatedString()
         {
             TestNotHandled(
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInInterpolatedVerbatimString1()
         {
             TestNotHandled(
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestMissingInInterpolatedVerbatimString2()
         {
             TestNotHandled(
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact]
         public void TestTrivia()
         {
             TestHandled(

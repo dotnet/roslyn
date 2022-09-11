@@ -12,6 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.AddAwait
 {
     [Trait(Traits.Feature, Traits.Features.AddAwait)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
     public class AddAwaitTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -369,7 +370,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand1()
         {
             var initial =
@@ -408,7 +409,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_WithLeadingTrivia1()
         {
             var initial =
@@ -451,7 +452,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
@@ -484,7 +485,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
@@ -521,7 +522,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
@@ -554,7 +555,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
@@ -591,7 +592,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
@@ -620,7 +621,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
@@ -657,7 +658,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TaskNotAwaited()
         {
             var initial =
@@ -684,7 +685,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TaskNotAwaited_WithLeadingTrivia()
         {
             var initial =
@@ -715,7 +716,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task FunctionNotAwaited()
         {
             var initial =
@@ -752,7 +753,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task FunctionNotAwaited_WithLeadingTrivia()
         {
             var initial =
@@ -793,7 +794,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task FunctionNotAwaited_WithLeadingTrivia1()
         {
             var initial =
@@ -834,7 +835,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -868,7 +869,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpressionWithConversion()
         {
             await TestInRegularAndScriptAsync(
@@ -902,7 +903,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
         {
 
@@ -923,7 +924,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpressionWithConversionInAsyncFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -957,7 +958,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression1()
         {
             await TestInRegularAndScriptAsync(
@@ -997,7 +998,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression2()
         {
             await TestInRegularAndScriptAsync(
@@ -1037,7 +1038,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression3()
         {
             await TestMissingAsync(
@@ -1061,7 +1062,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression3_1()
         {
             await TestInRegularAndScriptAsync(
@@ -1103,7 +1104,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression4()
         {
             await TestMissingAsync(
@@ -1126,7 +1127,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression4_1()
         {
             await TestInRegularAndScriptAsync(
@@ -1166,7 +1167,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression5()
         {
             await TestInRegularAndScriptAsync(
@@ -1206,7 +1207,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression6()
         {
             await TestInRegularAndScriptAsync(
@@ -1246,7 +1247,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression7()
         {
             await TestMissingAsync(
@@ -1269,7 +1270,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression7_1()
         {
             await TestInRegularAndScriptAsync(
@@ -1309,7 +1310,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression8()
         {
             await TestMissingAsync(
@@ -1333,7 +1334,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAssignmentExpression8_1()
         {
             await TestInRegularAndScriptAsync(
@@ -1375,7 +1376,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestTernaryOperator()
         {
             await TestInRegularAndScriptAsync(
@@ -1401,7 +1402,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestNullCoalescingOperator()
         {
             await TestInRegularAndScriptAsync(
@@ -1425,7 +1426,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         public async Task TestAsExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1449,7 +1450,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        [Fact]
         [WorkItem(1345322, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1345322")]
         public async Task TestOnTaskTypeItself()
         {
