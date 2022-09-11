@@ -9531,8 +9531,7 @@ record C : {|CS0535:I|}
             }.RunAsync();
         }
 
-        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
-        [Theory]
+        [Theory, WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
         [InlineData("record")]
         [InlineData("record class")]
         [InlineData("record struct")]

@@ -629,8 +629,7 @@ $$", options: CSharp9ParseOptions);
 @"new $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Theory]
+        [Theory, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [CombinatorialData]
         public async Task TestInTypeOf(bool topLevelStatement)
         {
@@ -638,8 +637,7 @@ $$", options: CSharp9ParseOptions);
 @"typeof($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Theory]
+        [Theory, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [CombinatorialData]
         public async Task TestInDefault(bool topLevelStatement)
         {
@@ -647,8 +645,7 @@ $$", options: CSharp9ParseOptions);
 @"default($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Theory]
+        [Theory, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [CombinatorialData]
         public async Task TestInSizeOf(bool topLevelStatement)
         {
@@ -741,8 +738,7 @@ class Program
 }");
         }
 
-        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
-        [Theory]
+        [Theory, WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [CombinatorialData]
         public async Task TestInTupleWithinMember(bool topLevelStatement)
         {
@@ -786,8 +782,7 @@ class C
     delegate*$$");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        [Theory]
+        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
         public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
@@ -795,8 +790,7 @@ class C
 {keyword} $$"));
         }
 
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
-        [Theory]
+        [Theory, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
         public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {

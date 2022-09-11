@@ -767,8 +767,7 @@ $$");
 @" D1 lambda = () => $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
-        [Theory]
+        [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
         [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
@@ -782,8 +781,7 @@ ref int x = ref true ? $$", topLevelStatement: topLevelStatement),
                 options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
         }
 
-        [WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
-        [Theory]
+        [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
         [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
@@ -798,8 +796,7 @@ ref int y = ref true ? ref x : $$", topLevelStatement: topLevelStatement),
                 options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
         }
 
-        [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
-        [Theory]
+        [Theory, WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
         [CombinatorialData]
         public async Task TestInLocalMethod(bool topLevelStatement)
         {

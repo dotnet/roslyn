@@ -1368,8 +1368,7 @@ namespace System
         }
 
         // References to missing assembly from PDB custom debug info.
-        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [Theory]
+        [Theory, WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
         [MemberData(nameof(NonNullTypesTrueAndFalseReleaseDll))]
         public void CorLibWithAssemblyReferences_Pdb(CSharpCompilationOptions options)
         {

@@ -1871,8 +1871,7 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
-        [Theory]
+        [Theory, WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         public async Task TestPreferNoBlock(int preferBraces)

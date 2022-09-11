@@ -2460,8 +2460,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585"), Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("void")]
         [InlineData("string")]
         [InlineData("String")]

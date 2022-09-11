@@ -671,8 +671,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Theory]
+        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion2_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -764,8 +763,7 @@ class C
 }", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Theory]
+        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -796,8 +794,7 @@ class C
 }", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Theory]
+        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3_Throw2(LanguageVersion languageVersion, string expectedTrue)

@@ -2013,8 +2013,7 @@ class D<T> : B<(T, T)>
 }");
         }
 
-        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
-        [Theory]
+        [Theory, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
         [InlineData("", "T")]
         [InlineData(" where T : class", "T")]
         [InlineData("", "T?")]

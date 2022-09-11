@@ -1061,8 +1061,7 @@ public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Theory]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         [InlineData("byte")]
         [InlineData("short")]
         [InlineData("long")]
@@ -1087,8 +1086,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
-        [Theory]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
         [InlineData("byte")]
         [InlineData("short")]
         [InlineData("long")]
@@ -1159,8 +1157,7 @@ $@"public class C
 }");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Theory]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData("switch($$) { }")]
         [InlineData("while(($$) > 0) { }")]
         [InlineData("_ = true ? $$ : 0;")]
@@ -1186,8 +1183,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Theory]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData("return $$;")]
         [InlineData("return true ? $$ : 0;")]
         [InlineData("return ($$);")]
@@ -1212,8 +1208,7 @@ $@"public class C
 }}");
         }
 
-        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
-        [Theory]
+        [Theory, WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
         [InlineData(
             "/* Before */ i [||]= i + 1; /* After */",
             "/* Before */ i++; /* After */")]

@@ -278,8 +278,7 @@ if (true)
 #end$$region", "#region Start");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("$$#endregion")]
         [InlineData("#$$endregion")]
         [InlineData("#endregion$$ ")]
@@ -293,8 +292,7 @@ if (true)
 {endRegion}", "#region Start");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("#endregion$$")]
         [InlineData("# $$ endregion")]
         [InlineData("#endregion $$End")]
@@ -525,8 +523,7 @@ if (true)
 #end$$if", "");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("#$$elif RELEASE")]
         [InlineData("#elif$$ RELEASE")]
         [InlineData("#elif RELEASE$$")]
@@ -539,8 +536,7 @@ if (true)
 #endif", "#if DEBUG");
         }
 
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory]
+        [Theory, WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [InlineData("#elif $$RELEASE")]
         [InlineData("#elif RELE$$ASE")]
         [InlineData("#elif (REL$$EASE == true)")]

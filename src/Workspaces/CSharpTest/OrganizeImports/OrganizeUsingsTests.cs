@@ -1240,8 +1240,7 @@ using IntList = System.Collections.Generic.List<int>;
             await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
         }
 
-        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/19306")]
-        [Theory]
+        [Theory, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/19306")]
         [InlineData("\n")]
         [InlineData("\r\n")]
         public async Task TestGrouping3(string endOfLine)

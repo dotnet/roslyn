@@ -573,8 +573,7 @@ $$");
        $$");
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Theory]
+        [Theory, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [CombinatorialData]
         public async Task TestNotInDefault(bool topLevelStatement)
         {
@@ -582,8 +581,7 @@ $$");
 @"default($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
-        [Theory]
+        [Theory, WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [CombinatorialData]
         public async Task TestInSizeOf(bool topLevelStatement)
         {

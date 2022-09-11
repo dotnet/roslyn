@@ -1357,8 +1357,7 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
         public async Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
         {
             var markup = $@"
@@ -1377,8 +1376,7 @@ class P
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
         public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
         {
             var overload = isLambda

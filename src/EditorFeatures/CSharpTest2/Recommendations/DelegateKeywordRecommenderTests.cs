@@ -301,8 +301,7 @@ $$");
             await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        [Theory]
+        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
         public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
         {

@@ -1489,9 +1489,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-
-        [Theory]
+        [Theory, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [InlineData("class ")]
         [InlineData("struct")]
         public void InstanceFieldInitializer_Leaf_Update1(string typeKind)

@@ -75,8 +75,7 @@ namespace BasicGenerateFromUsage
                 Region("span", "TaoRegion", autoCollapse: false, isDefaultCollapsed: true));
         }
 
-        [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668"), CombinatorialData]
         public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
         {
             const string code = @"

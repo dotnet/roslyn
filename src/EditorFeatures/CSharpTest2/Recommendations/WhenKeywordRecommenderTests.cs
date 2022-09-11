@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestForSwitchCase_AfterDeclarationPattern_BeforeWhen() =>
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ when }"));
 
-        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
-        [Theory]
+        [Theory, WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
         [InlineData("int.MinValue")]
         [InlineData("1")]
         [InlineData("1 + 1")]

@@ -1297,8 +1297,7 @@ class D
             VerifyNavigateToResultItems(expectedItems, items);
         }
 
-        [WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
-        [Theory]
+        [Theory, WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
         [CombinatorialData]
         public async Task FindFuzzy1(TestHost testHost, Composition composition)
         {
@@ -1315,8 +1314,7 @@ testHost, composition, @"class C
             });
         }
 
-        [WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
-        [Theory]
+        [Theory, WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
         [CombinatorialData]
         public async Task Test__arglist(TestHost testHost, Composition composition)
         {

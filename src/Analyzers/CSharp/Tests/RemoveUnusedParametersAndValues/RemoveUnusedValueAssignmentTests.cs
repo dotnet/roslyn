@@ -133,8 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             }.RunAsync();
         }
 
-        [WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")]
-        [Theory]
+        [Theory, WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")]
         [InlineData(UnusedValuePreference.DiscardVariable)]
         [InlineData(UnusedValuePreference.UnusedLocalVariable)]
         public async Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
@@ -2053,8 +2052,7 @@ $@"class C
 }", optionName);
         }
 
-        [WorkItem(40717, "https://github.com/dotnet/roslyn/issues/40717")]
-        [Theory]
+        [Theory, WorkItem(40717, "https://github.com/dotnet/roslyn/issues/40717")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantAssignment_AfterUseAsRefArgument(string optionName)
@@ -2082,8 +2080,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(40483, "https://github.com/dotnet/roslyn/issues/40483")]
-        [Theory]
+        [Theory, WorkItem(40483, "https://github.com/dotnet/roslyn/issues/40483")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantAssignment_AfterUseAsRefArgument_02(string optionName)
@@ -2723,8 +2720,7 @@ $@"class C
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -2739,8 +2735,7 @@ $@"class C
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithNoReference_TypePattern(
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -2826,8 +2821,7 @@ $@"class C
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -2848,8 +2842,7 @@ $@"class C
 }", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_TypePattern(
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -2920,8 +2913,7 @@ $@"class C
             }.RunAsync();
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference(string optionName, string fix)
@@ -2954,8 +2946,7 @@ $@"class C
 }}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [InlineData(nameof(PreferDiscard), "")]
         [InlineData(nameof(PreferUnusedLocal), " unused")]
         public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference_TypePatternxxxxxxxxxxxxxxxxxxxxxx(string optionName, string fix)
@@ -2988,8 +2979,7 @@ $@"class C
 }}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
-        [Theory]
+        [Theory, WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference_TypePattern(
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option,
@@ -3861,8 +3851,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
-        [Theory]
+        [Theory, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UnusedInExpressionTree_PassedAsArgument(string optionName)
@@ -3885,8 +3874,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
-        [Theory]
+        [Theory, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ReadInExpressionTree_PassedAsArgument(string optionName)
@@ -3909,8 +3897,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
-        [Theory]
+        [Theory, WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task OnlyWrittenInExpressionTree_PassedAsArgument(string optionName)
@@ -6990,8 +6977,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
-        [Theory]
+        [Theory, WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task MissingImports(string optionName)
@@ -7006,8 +6992,7 @@ $@"class C
 }", optionName);
         }
 
-        [WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
-        [Theory]
+        [Theory, WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedAssignment_ConditionalPreprocessorDirective(string optionName)
@@ -7028,8 +7013,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
-        [Theory]
+        [Theory, WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RefLocalInitialization(string optionName)
@@ -7047,8 +7031,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
-        [Theory]
+        [Theory, WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RefLocalAssignment(string optionName)
@@ -7067,8 +7050,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(32903, "https://github.com/dotnet/roslyn/issues/32903")]
-        [Theory]
+        [Theory, WorkItem(32903, "https://github.com/dotnet/roslyn/issues/32903")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task DelegateCreationWrappedInATuple_UsedInReturnedLambda(string optionName)
@@ -7134,8 +7116,7 @@ foreach (var [|item|] in items)
 }", PreferDiscard, new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
-        [Theory]
+        [Theory, WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
         [InlineData("_", nameof(PreferDiscard))]
         [InlineData("_", nameof(PreferUnusedLocal))]
         [InlineData("_1", nameof(PreferDiscard))]
@@ -7168,8 +7149,7 @@ class C
 }}", new TestParameters(options: GetOptions(optionName), retainNonFixableDiagnostics: true));
         }
 
-        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
-        [Theory]
+        [Theory, WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
         [InlineData("_", nameof(PreferDiscard))]
         [InlineData("_", nameof(PreferUnusedLocal))]
         [InlineData("_3", nameof(PreferDiscard))]
@@ -7784,8 +7764,7 @@ class C
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
-        [Theory]
+        [Theory, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -7806,8 +7785,7 @@ class C
 }", PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
-        [Theory]
+        [Theory, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchCase_WithTrivia_TypePattern(
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -7873,8 +7851,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
-        [Theory]
+        [Theory, WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedInArgumentAfterAnArgumentWithControlFlow(string optionName)
@@ -7895,8 +7872,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
-        [Theory]
+        [Theory, WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ConpoundAssignmentWithControlFlowInValue(string optionName)
@@ -7914,8 +7890,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
-        [Theory]
+        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLocalFunction(string optionName)
@@ -7937,8 +7912,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
-        [Theory]
+        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLambda(string optionName)
@@ -7960,8 +7934,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
-        [Theory]
+        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLambda_02(string optionName)
@@ -7985,8 +7958,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
-        [Theory]
+        [Theory, WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UsedValueWithUsingStatementAndLambda_03(string optionName)
@@ -8010,8 +7982,7 @@ class C
 }", optionName);
         }
 
-        [WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
-        [Theory]
+        [Theory, WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchUsedInFinally_ThrowInCatch(string optionName)
@@ -8044,8 +8015,7 @@ public static class Program
 }", optionName);
         }
 
-        [WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
-        [Theory]
+        [Theory, WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchUsedInFinally_NoThrowInCatch(string optionName)
@@ -8397,8 +8367,7 @@ public class Test
 }", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
-        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
-        [Theory]
+        [Theory, WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -8493,8 +8462,7 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
-        [Theory]
+        [Theory, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
         [CombinatorialData]
         public async Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
@@ -8518,8 +8486,7 @@ public class Test
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
         }
 
-        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
-        [Theory]
+        [Theory, WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
         [CombinatorialData]
         public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)

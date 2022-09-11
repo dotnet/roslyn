@@ -181,8 +181,7 @@ readonly struct Colors
             await VerifyNoItemsExistAsync(markup + colorsLike);
         }
 
-        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-        [Theory]
+        [Theory, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InYieldReturnInMethod(string typeName)
@@ -205,8 +204,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
-        [Theory]
+        [Theory, WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InYieldReturnInLocalFunction(string typeName)
@@ -232,8 +230,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
-        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-        [Theory]
+        [Theory, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [InlineData(nameof(DayOfWeek))]
         [InlineData(nameof(DateTime))]
         public async Task InAsyncMethodReturnStatement(string typeName)
@@ -614,8 +611,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Theory]
+        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias(string fullTypeName)
@@ -636,8 +632,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Theory]
+        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias2(string fullTypeName)
@@ -663,8 +658,7 @@ class Program
                 await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-        [Theory]
+        [Theory, WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [InlineData("System.Globalization.DigitShapes")]
         [InlineData("System.DateTime")]
         public async Task SuggestAlias3(string fullTypeName)

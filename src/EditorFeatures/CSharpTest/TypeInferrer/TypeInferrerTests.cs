@@ -1011,16 +1011,14 @@ void M()
 @"void M() => [|Goo()|];", "void", mode);
         }
 
-        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskOfTMethod(TestMode mode)
         {
             await TestInClassAsync(
 @"async System.Threading.Tasks.Task<int> M() => [|Goo()|];", "global::System.Int32", mode);
         }
 
-        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskOfTMethodNullableReference(TestMode mode)
         {
             await TestInClassAsync(
@@ -1028,8 +1026,7 @@ void M()
 async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.String?", mode);
         }
 
-        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskMethod(TestMode mode)
         {
             await TestInClassAsync(
@@ -1123,8 +1120,7 @@ async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.S
 }", "global::System.Int32", mode);
         }
 
-        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskOfTLocalFunction(TestMode mode)
         {
             await TestInClassAsync(
@@ -1134,8 +1130,7 @@ async System.Threading.Tasks.Task<string?> M() => [|Goo()|];", "global::System.S
 }", "global::System.Int32", mode);
         }
 
-        [WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647"), CombinatorialData]
         public async Task TestExpressionBodiedAsyncTaskLocalFunction(TestMode mode)
         {
             await TestInClassAsync(
@@ -1338,8 +1333,7 @@ System.Func<string?> f = delegate ()
 };", "global::System.String?", mode);
         }
 
-        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
         public async Task TestReturnInAsyncTaskOfTSimpleLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1349,8 +1343,7 @@ System.Func<string?> f = delegate ()
 };", "global::System.Int32", mode);
         }
 
-        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
         public async Task TestReturnInAsyncTaskOfTParenthesizedLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1360,8 +1353,7 @@ System.Func<string?> f = delegate ()
 };", "global::System.Int32", mode);
         }
 
-        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486"), CombinatorialData]
         public async Task TestReturnInAsyncTaskOfTAnonymousMethod(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1495,8 +1487,7 @@ System.Func<string, System.Threading.Tasks.Task<string?>> f = async s => [|Goo()
 @"System.Func<string, System.Threading.Tasks.Task> f = async s => [|Goo()|];", "void", mode);
         }
 
-        [WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232"), CombinatorialData]
         public async Task TestAsyncTaskParenthesizedLambda(TestMode mode)
         {
             await TestInMethodAsync(
@@ -1803,8 +1794,7 @@ C(string? s)
 }", "global::System.String?", mode);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
         public async Task TestThisConstructorInitializer1(TestMode mode)
         {
             await TestAsync(
@@ -1816,8 +1806,7 @@ C(string? s)
 }", "global::System.Int32", mode);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
         public async Task TestThisConstructorInitializer2(TestMode mode)
         {
             await TestAsync(
@@ -1843,8 +1832,7 @@ class MyClass
 }", "global::System.String?", mode);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112"), CombinatorialData]
         public async Task TestBaseConstructorInitializer(TestMode mode)
         {
             await TestAsync(
@@ -3038,16 +3026,14 @@ class Program
             await TestAsync(text, "global::System.Object", mode);
         }
 
-        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
         public async Task TestValueInNestedTuple1(TestMode mode)
         {
             await TestInMethodAsync(
 @"(int, (string, bool)) x = ([|Goo()|], ("""", true));", "global::System.Int32", mode);
         }
 
-        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
-        [Theory, CombinatorialData]
+        [Theory, WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
         public async Task TestValueInNestedTuple2(TestMode mode)
         {
             await TestInMethodAsync(

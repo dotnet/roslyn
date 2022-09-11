@@ -5463,8 +5463,7 @@ static class Program
 }");
         }
 
-        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
-        [Theory]
+        [Theory, WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
         [InlineData("-")]
         [InlineData("+")]
         public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
@@ -5489,8 +5488,7 @@ enum Sign
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
-        [Theory]
+        [Theory, WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
         [InlineData("-")]
         [InlineData("+")]
         public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
@@ -11779,8 +11777,7 @@ class P
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(58171, "https://github.com/dotnet/roslyn/issues/58171")]
-        [Theory]
+        [Theory, WorkItem(58171, "https://github.com/dotnet/roslyn/issues/58171")]
         [CombinatorialData]
         public async Task DoNotRemoveMethodGroupToSpecificDelegateType(LanguageVersion version)
         {
@@ -12694,8 +12691,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
-        [Theory]
+        [Theory, WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
         [InlineData("Delegate")]
         [InlineData("MulticastDelegate")]
         [InlineData("Func<string>")]

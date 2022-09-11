@@ -4421,8 +4421,7 @@ class C
 }");
         }
 
-        [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Theory, WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         [InlineData("record")]
         [InlineData("record class")]
         public async Task TestInRecord(string record)

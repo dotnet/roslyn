@@ -3683,8 +3683,7 @@ class P {
 }");
         }
 
-        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
-        [Theory]
+        [Theory, WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
         [InlineData("void")]
         [InlineData("int")]
         public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
@@ -3935,8 +3934,7 @@ class D
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
-        [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
-        [Theory]
+        [Theory, WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
         [InlineData("_s", "s")]
         [InlineData("_S", "s")]
         [InlineData("m_s", "s")]

@@ -1016,8 +1016,7 @@ class C
 }");
         }
 
-        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
-        [Theory]
+        [Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
         [InlineData(@"[|""a"" + $""{1:000}""|]",
                      @"$""a{1:000}""")]
         [InlineData(@"[|""a"" + $""b{1:000}""|]",
@@ -1055,8 +1054,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
         }
 
-        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
-        [Theory]
+        [Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
         [InlineData(@"""\t"" [|+|] 1",
                    @"$""\t{1}""")]
         [InlineData(@"""😀"" [|+|] 1",
@@ -1086,8 +1084,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
         }
 
-        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
-        [Theory]
+        [Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
         [InlineData(@"""a"" [|+|] (1 + 1)",
                    @"$""a{1 + 1}""")]
         [InlineData(@"""a"" [||]+ (1 + 1) + ""b"" + (2 + 2)",
