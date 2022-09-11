@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Custom Event")
         End Sub
 
-        <Fact>
-        <WorkItem(544999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
+        <Fact, WorkItem(544999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CustomEventNotInInterfaceDeclarationTest()
             VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Custom Event")

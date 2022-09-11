@@ -75,8 +75,7 @@ End Class
         End Using
     End Function
 
-    <Fact>
-    <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
+    <Fact, WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
         Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(

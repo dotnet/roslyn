@@ -179,8 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static volatile int Foo.x")
         End Function
 
-        <Fact>
-        <WorkItem(33049, "https://github.com/dotnet/roslyn/issues/33049")>
+        <Fact, WorkItem(33049, "https://github.com/dotnet/roslyn/issues/33049")>
         Public Async Function TestCSharpDefaultParameter() As Task
             Dim workspace =
 <Workspace>

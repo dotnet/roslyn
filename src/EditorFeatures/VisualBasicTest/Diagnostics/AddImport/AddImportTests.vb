@@ -2481,8 +2481,7 @@ Namespace A
 End Namespace", testHost, placeSystemFirst:=True)
         End Function
 
-        <Fact>
-        <WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
+        <Fact, WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
         Public Async Function TestImportIncompleteSub() As Task
             Await TestAsync(
 "Imports System

@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Error")
         End Sub
 
-        <Fact>
-        <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
+        <Fact, WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ErrorStatementInLambdaTest()
             Dim code = <File>

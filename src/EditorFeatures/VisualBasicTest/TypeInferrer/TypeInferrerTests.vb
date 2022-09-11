@@ -374,8 +374,7 @@ End Class</text>.Value
             Await TestInMethodAsync("Dim i As String() : Dim j = i([|Goo()|])", "System.Int32", mode)
         End Function
 
-        <Fact>
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCollectionInitializer1() As Task
             Dim text = <text>Imports System.Collections.Generic
@@ -388,8 +387,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.Int32", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCollectionInitializer2() As Task
             Dim text = <text>
@@ -403,8 +401,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.Int32", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCollectionInitializer3() As Task
             Dim text = <text>
@@ -418,8 +415,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.String", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCustomCollectionInitializerAddMethod1() As Task
             Dim text = <text>
@@ -444,8 +440,7 @@ End Class
             Await TestAsync(text, "System.Int32", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCustomCollectionInitializerAddMethod2() As Task
             Dim text = <text>
@@ -469,8 +464,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.Boolean", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCustomCollectionInitializerAddMethod3() As Task
             Dim text = <text>

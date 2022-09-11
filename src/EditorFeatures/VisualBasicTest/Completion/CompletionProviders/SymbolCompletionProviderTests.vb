@@ -2849,8 +2849,7 @@ End Class</a>.Value
             Await VerifyItemExistsAsync(text, "Bar")
         End Function
 
-        <Fact>
-        <WorkItem(10572, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableNotBeforeExplicitDeclaration_ExplicitOff() As Task
             Dim text = <Text>
@@ -2865,8 +2864,7 @@ End Class</Text>.Value
             Await VerifyItemIsAbsentAsync(text, "goo")
         End Function
 
-        <Fact>
-        <WorkItem(10572, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableNotBeforeExplicitDeclaration_ExplicitOn() As Task
             Dim text = <Text>
@@ -2898,8 +2896,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact>
-        <WorkItem(10572, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableInItsDeclaration() As Task
             ' "Dim goo As Integer = goo" is legal code while "Dim goo = goo" is not, but
@@ -2917,8 +2914,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact>
-        <WorkItem(10572, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableInItsDeclarator() As Task
             Dim text = <Text>
@@ -2931,8 +2927,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <Fact>
-        <WorkItem(10572, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableNotBeforeItsDeclarator() As Task
             Dim text = <Text>
@@ -2945,8 +2940,7 @@ End Class</Text>.Value
             Await VerifyItemIsAbsentAsync(text, "bar")
         End Function
 
-        <Fact>
-        <WorkItem(10572, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLocalVariableAfterDeclarator() As Task
             Dim text = <Text>
@@ -2959,8 +2953,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact>
-        <WorkItem(545439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
+        <Fact, WorkItem(545439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestArrayAfterReDim() As Task
             Dim text = <Text>
@@ -2974,8 +2967,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact>
-        <WorkItem(545439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
+        <Fact, WorkItem(545439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545439")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestArrayAfterReDimPreserve() As Task
             Dim text = <Text>
@@ -2989,8 +2981,7 @@ End Class</Text>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact>
-        <WorkItem(546353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546353")>
+        <Fact, WorkItem(546353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546353")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoNamespaceDeclarationIntellisense() As Task
             Dim text = <Text>

@@ -211,8 +211,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
+        <WpfFact, WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterColon()
             Dim test = <Workspace>
@@ -230,8 +229,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
+        <WpfFact, WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterConstDirective()
             Dim test = <Workspace>
@@ -245,8 +243,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
+        <WpfFact, WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterComment()
             Dim test = <Workspace>
@@ -260,8 +257,7 @@ rem Hello World$$|]
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
+        <WpfFact, WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub UndoAfterCommitOnBlankLine()
             Using testData = CommitTestData.Create(<Workspace>
@@ -278,8 +274,7 @@ rem Hello World$$|]
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
+        <WpfFact, WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterThenTouchingThen()
             ' Note that the source we are starting this test with is *not* syntactically correct,
@@ -302,8 +297,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
+        <WpfFact, WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterThenTouchingStatement()
             ' Note that the source we are starting this test with is *not* syntactically correct,
@@ -326,8 +320,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
+        <WpfFact, WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterPropertyStatement()
             Dim test = <Workspace>
@@ -349,8 +342,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
+        <WpfFact, WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestDontCommitInsideStringLiteral()
             Dim test = <Workspace>

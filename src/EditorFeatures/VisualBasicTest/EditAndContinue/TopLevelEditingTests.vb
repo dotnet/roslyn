@@ -760,8 +760,7 @@ End Class"
                 Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
         End Sub
 
-        <Fact>
-        <WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
+        <Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
         Public Sub Type_Rename_Reloadable()
             Dim src1 = ReloadableAttributeSrc & "
 <CreateNewOnMetadataUpdate>
@@ -779,8 +778,7 @@ End Class"
                 Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
         End Sub
 
-        <Fact>
-        <WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
+        <Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
         Public Sub Type_Rename_Reloadable_AddAndDeleteMember()
             Dim src1 = ReloadableAttributeSrc & "
 <CreateNewOnMetadataUpdate>
