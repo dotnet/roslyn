@@ -116,8 +116,8 @@ $$");
           join z in $$"));
         }
 
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterJoinPredefinedType()
         {
             await VerifyAbsenceAsync(
@@ -130,8 +130,8 @@ class C {
                 join int $$");
         }
 
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterJoinType()
         {
             await VerifyAbsenceAsync(
@@ -285,8 +285,8 @@ class C {
 @"var q2 = from x $$ ((IEnumerable)src))"));
         }
 
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterFromPredefinedType()
         {
             await VerifyAbsenceAsync(
@@ -298,8 +298,8 @@ class C {
         var q = from int $$");
         }
 
-        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterFromType()
         {
             await VerifyAbsenceAsync(
@@ -616,8 +616,8 @@ class C {
     static void Extension($$");
         }
 
-        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyKeywordAsync(

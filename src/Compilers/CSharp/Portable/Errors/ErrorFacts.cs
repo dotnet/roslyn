@@ -550,6 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
                 case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                case ErrorCode.ERR_FileTypeNonUniquePath:
                     return true;
                 case ErrorCode.Void:
                 case ErrorCode.Unknown:
@@ -2218,6 +2219,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExplicitScopedRef:
                 case ErrorCode.ERR_UnscopedScoped:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
+                case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
+                case ErrorCode.ERR_FileLocalDuplicateNameInNS:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

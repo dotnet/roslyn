@@ -236,7 +236,7 @@ class C : IB, IC
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, int]'
+                // (9,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this[0]").WithArguments("y", "C.this[int, int]").WithLocation(9, 16),
                 // (10,18): error CS1503: Argument 2: cannot convert from 'C' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("2", "C", "int").WithLocation(10, 18),
@@ -843,7 +843,7 @@ class Derived : Base
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, long]'
                 //         c[0] = c[0, 0, 0]; //wrong number of arguments
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),
                 // (7,16): error CS1501: No overload for method 'this' takes 3 arguments

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class EnumMemberDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of EnumMemberDeclarationSyntax)
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New EnumMemberDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Enum E
@@ -32,7 +33,7 @@ End Enum
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithAttributes() As Task
             Dim code = "
 Enum E
@@ -46,7 +47,7 @@ End Enum
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 Enum E

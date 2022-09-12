@@ -630,7 +630,7 @@ class C
     static void F(int i, params int[] args) { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'C.F(int, params int[])'
+                // (5,9): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'C.F(int, params int[])'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F").WithArguments("i", "C.F(int, params int[])").WithLocation(5, 9),
                 // (6,11): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 11),
@@ -2993,7 +2993,7 @@ class C
             var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
                 );
@@ -3073,7 +3073,7 @@ class C
             var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
                 );
@@ -3146,7 +3146,7 @@ class C
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(31, 38)
                 );
@@ -3231,7 +3231,7 @@ class C
             var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
 
             comp.VerifyDiagnostics(
-    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
     //             await ctx.Authentication.AuthenticateAsync();
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(42, 38)
                 );
