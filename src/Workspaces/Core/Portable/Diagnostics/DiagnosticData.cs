@@ -267,19 +267,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return default;
             }
 
-            var dataLocationStartLine = (useMapped ? dataLocation?.MappedFileSpan?.StartLinePosition.Line : dataLocation?.OriginalFileSpan?.StartLinePosition.Line) ?? 0;
-            var dataLocationStartColumn = (useMapped ? dataLocation?.MappedFileSpan?.StartLinePosition.Character : dataLocation?.OriginalFileSpan?.StartLinePosition.Character) ?? 0;
-            var dataLocationEndLine = (useMapped ? dataLocation?.MappedFileSpan?.EndLinePosition.Line : dataLocation?.OriginalFileSpan?.EndLinePosition.Line) ?? 0;
-            var dataLocationEndColumn = (useMapped ? dataLocation?.MappedFileSpan?.EndLinePosition.Line : dataLocation?.OriginalFileSpan?.EndLinePosition.Character) ?? 0;
+            var startLine = (useMapped ? dataLocation?.MappedFileSpan?.StartLinePosition.Line : dataLocation?.OriginalFileSpan?.StartLinePosition.Line) ?? 0;
+            var startColumn = (useMapped ? dataLocation?.MappedFileSpan?.StartLinePosition.Character : dataLocation?.OriginalFileSpan?.StartLinePosition.Character) ?? 0;
+            var endLine = (useMapped ? dataLocation?.MappedFileSpan?.EndLinePosition.Line : dataLocation?.OriginalFileSpan?.EndLinePosition.Line) ?? 0;
+            var endColumn = (useMapped ? dataLocation?.MappedFileSpan?.EndLinePosition.Line : dataLocation?.OriginalFileSpan?.EndLinePosition.Character) ?? 0;
 
-            if (dataLocationStartLine >= lines.Count)
+            if (startLine >= lines.Count)
             {
                 var lastLine = lines.GetLinePosition(text.Length);
                 return new LinePositionSpan(lastLine, lastLine);
             }
 
-            AdjustBoundaries(dataLocationStartLine, dataLocationStartColumn, dataLocationEndLine, dataLocationEndColumn, lines,
-                out var startLine, out var startColumn, out var endLine, out var endColumn);
+            AdjustBoundaries(
+                lines,
+                ref startLine,
+                ref startColumn,
+                ref endLine,
+                ref endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
@@ -297,24 +301,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void AdjustBoundaries(
-            int dataLocationStartLine,
-            int dataLocationStartColumn,
-            int dataLocationEndLine,
-            int dataLocationEndColumn,
             TextLineCollection lines,
-            out int startLine,
-            out int startColumn,
-            out int endLine,
-            out int endColumn)
+            ref int startLine,
+            ref int startColumn,
+            ref int endLine,
+            ref int endColumn)
         {
-            startLine = dataLocationStartLine;
-            endLine = dataLocationEndLine;
-
-            var originalStartColumn = dataLocationStartColumn;
-            var originalEndColumn = dataLocationEndColumn;
-
-            startColumn = Math.Max(originalStartColumn, 0);
-            endColumn = Math.Max(originalEndColumn, 0);
+            // Make sure the starting columns are never negative.
+            startColumn = Math.Max(startColumn, 0);
+            endColumn = Math.Max(endColumn, 0);
 
             // If the start line is negative (e.g. before the start of the actual document) then move the start to the
             // 0,0 position.
@@ -347,8 +342,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // now, ensure that the column of the start/end positions is within that line.
-            startColumn = Math.Max(0, Math.Min(startColumn, lines[startLine].EndIncludingLineBreak - lines[startLine].Start));
-            endColumn = Math.Max(0, Math.Min(endColumn, lines[endLine].EndIncludingLineBreak - lines[endLine].Start));
+            startColumn = Math.Min(startColumn, lines[startLine].EndIncludingLineBreak - lines[startLine].Start);
+            endColumn = Math.Min(endColumn, lines[endLine].EndIncludingLineBreak - lines[endLine].Start);
         }
 
         private static void SwapIfNeeded(ref LinePosition startLinePosition, ref LinePosition endLinePosition)

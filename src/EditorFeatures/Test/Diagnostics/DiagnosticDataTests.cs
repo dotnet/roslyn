@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var code = @"
 ";
 
-            await VerifyTextSpanAsync(code, 0, 30, 40, 40, new TextSpan(0, code.Length));
+            await VerifyTextSpanAsync(code, 0, 30, 40, 40, new TextSpan(code.Length, 0));
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var code = @"
 ";
 
-            await VerifyTextSpanAsync(code, 0, 30, 0, 40, new TextSpan(0, 0));
+            await VerifyTextSpanAsync(code, 0, 30, 0, 40, new TextSpan(code.Length, 0));
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var code = @"
 ";
 
-            await VerifyTextSpanAsync(code, 1, 30, 0, 40, new TextSpan(code.Length, 0));
+            await VerifyTextSpanAsync(code, 1, 30, 1, 40, new TextSpan(code.Length, 0));
         }
 
         [Fact]
