@@ -11,24 +11,15 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.TodoComments
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
-    <ExportLanguageServiceFactory(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicTodoCommentServiceFactory
-        Implements ILanguageServiceFactory
+Namespace Microsoft.CodeAnalysis.VisualBasic.TaskList
+    <ExportLanguageService(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicTaskListService
+        Inherits AbstractTaskListService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicTodoCommentService()
-        End Function
-
-    End Class
-
-    Friend Class VisualBasicTodoCommentService
-        Inherits AbstractTaskListService
 
         Protected Overrides Sub AppendTodoComments(
                 commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
