@@ -135,7 +135,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation?.OriginalFilePath, filename)
+                Assert.Equal(item.DataLocation?.OriginalFileSpan?.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -143,11 +143,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(If(item.DataLocation?.MappedStartLine, 0), line)
+                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Line, 0), line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(If(item.DataLocation?.MappedStartColumn, 0), column)
+                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Character, 0), column)
             End Using
         End Sub
 
@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation?.OriginalFilePath, filename)
+                Assert.Equal(item.DataLocation?.OriginalFileSpan?.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -193,11 +193,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(If(item.DataLocation?.MappedStartLine, 0), line)
+                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Line, 0), line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(If(item.DataLocation?.MappedStartColumn, 0), column)
+                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Character, 0), column)
             End Using
         End Sub
 
@@ -692,16 +692,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             New DiagnosticDataLocation(
                                 Nothing,
                                 diagnostic1.DataLocation.SourceSpan,
-                                diagnostic1.DataLocation.OriginalFilePath,
-                                diagnostic1.DataLocation.OriginalStartLine,
-                                diagnostic1.DataLocation.OriginalStartColumn,
-                                diagnostic1.DataLocation.OriginalEndLine,
-                                diagnostic1.DataLocation.OriginalEndColumn,
-                                diagnostic1.DataLocation.MappedFilePath,
-                                diagnostic1.DataLocation.MappedStartLine,
-                                diagnostic1.DataLocation.MappedStartColumn,
-                                diagnostic1.DataLocation.MappedEndLine,
-                                diagnostic1.DataLocation.MappedEndColumn),
+                                diagnostic1.DataLocation.OriginalFileSpan,
+                                diagnostic1.DataLocation.MappedFileSpan),
                             diagnostic1.AdditionalLocations,
                             diagnostic1.Language,
                             diagnostic1.Title,
@@ -725,16 +717,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             New DiagnosticDataLocation(
                                 Nothing,
                                 diagnostic2.DataLocation.SourceSpan,
-                                diagnostic2.DataLocation.OriginalFilePath,
-                                diagnostic2.DataLocation.OriginalStartLine,
-                                diagnostic2.DataLocation.OriginalStartColumn,
-                                diagnostic2.DataLocation.OriginalEndLine,
-                                diagnostic2.DataLocation.OriginalEndColumn,
-                                diagnostic2.DataLocation.MappedFilePath,
-                                diagnostic2.DataLocation.MappedStartLine,
-                                diagnostic2.DataLocation.MappedStartColumn,
-                                diagnostic2.DataLocation.MappedEndLine,
-                                diagnostic2.DataLocation.MappedEndColumn),
+                                diagnostic2.DataLocation.OriginalFileSpan,
+                                diagnostic2.DataLocation.MappedFileSpan),
                             diagnostic2.AdditionalLocations,
                             diagnostic2.Language,
                             diagnostic2.Title,
@@ -791,7 +775,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
-                location:=If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
+                location:=If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10),
+                    New FileLinePositionSpan("test", New LinePosition(20, 20), New LinePosition(20, 20)))),
                 language:=LanguageNames.VisualBasic,
                 title:="Title",
                 description:="Description",
