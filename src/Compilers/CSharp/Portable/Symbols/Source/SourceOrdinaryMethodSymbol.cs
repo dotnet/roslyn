@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind);
