@@ -21,18 +21,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TaskList
 
         Protected Overrides Sub AppendTaskListItems(
                 commentDescriptors As ImmutableArray(Of TaskListItemDescriptor),
-                Document As SyntacticDocument,
+                document As SyntacticDocument,
                 trivia As SyntaxTrivia,
                 items As ArrayBuilder(Of TaskListItem))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTaskListItemsOnSingleLine(commentDescriptors, Document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, items)
+                AppendTaskListItemsOnSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, items)
                 Return
             End If
 
             If IsSingleLineComment(trivia) Then
-                ProcessMultilineComment(commentDescriptors, Document, trivia, postfixLength:=0, items)
+                ProcessMultilineComment(commentDescriptors, document, trivia, postfixLength:=0, items)
                 Return
             End If
 
