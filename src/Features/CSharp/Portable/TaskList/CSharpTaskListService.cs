@@ -15,25 +15,19 @@ using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.TodoComments
+namespace Microsoft.CodeAnalysis.CSharp.TaskList
 {
-    [ExportLanguageServiceFactory(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
-    internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpTodoCommentServiceFactory()
-        {
-        }
-
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTodoCommentService();
-    }
-
-    internal class CSharpTodoCommentService : AbstractTaskListService
+    [ExportLanguageService(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
+    internal class CSharpTaskListService : AbstractTaskListService
     {
         private static readonly int s_multilineCommentPostfixLength = "*/".Length;
         private const string SingleLineCommentPrefix = "//";
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpTaskListService()
+        {
+        }
 
         protected override void AppendTodoComments(
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
