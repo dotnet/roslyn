@@ -1339,8 +1339,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Theory>
-        <WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
+        <Theory, WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
         <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(Base)d2")>
         <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "d2")>
         Public Async Function TestCSharp_CastInTernaryExpression(languageVersion As LanguageVersion, expectedFalseExpression As String) As Task
@@ -1382,8 +1381,7 @@ class Test
             Await TestAsync(input, expected)
         End Function
 
-        <Theory>
-        <WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
+        <Theory, WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
         <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(Base)d1")>
         <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "d1")>
         Public Async Function TestCSharp_CastInTernaryExpression2(languageVersion As LanguageVersion, expectedTrueExpression As String) As Task
@@ -1425,8 +1423,7 @@ class Test
             Await TestAsync(input, expected)
         End Function
 
-        <Theory>
-        <WorkItem(530085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530085")>
+        <Theory, WorkItem(530085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530085")>
         <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(long?)value")>
         <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "value")>
         Public Async Function TestCSharp_CastInTernaryExpression3(languageVersion As LanguageVersion, expectedTrueExpression As String) As Task

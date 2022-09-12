@@ -897,8 +897,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
 
-        <Theory>
-        <WorkItem(19306, "https://github.com/dotnet/roslyn/issues/19306")>
+        <Theory, WorkItem(19306, "https://github.com/dotnet/roslyn/issues/19306")>
         <InlineData(vbLf)>
         <InlineData(vbCrLf)>
         Public Async Function TestGrouping3(endOfLine As String) As Task

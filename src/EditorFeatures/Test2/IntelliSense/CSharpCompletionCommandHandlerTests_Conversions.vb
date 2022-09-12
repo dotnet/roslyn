@@ -556,8 +556,7 @@ public class Program
             )
         End Function
 
-        <WpfTheory>
-        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         <CombinatorialData>
         Public Async Function ExplicitConversionOfConditionalAccessFromClassOrStructToClassOrStruct(
             <CombinatorialValues("struct", "class")> fromClassOrStruct As String,
@@ -617,8 +616,7 @@ public class Program
 ")
         End Function
 
-        <WpfTheory>
-        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("bool")>
         <InlineData("byte")>
         <InlineData("sbyte")>
@@ -673,8 +671,7 @@ namespace N
 ")
         End Function
 
-        <WpfTheory>
-        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("white.$$", "Black", "((Black)white)$$")>
         <InlineData("white.$$;", "Black", "((Black)white)$$;")>
         <InlineData("white.Bl$$", "Black", "((Black)white)$$")>
@@ -744,8 +741,7 @@ namespace N
 ")
         End Function
 
-        <WpfTheory>
-        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("/* Leading */c.$$", "/* Leading */((float)c)$$")>
         <InlineData("/* Leading */c.fl$$", "/* Leading */((float)c)$$")>
         <InlineData("c.  $$", "((float)c)  $$")>
@@ -783,8 +779,7 @@ public class Program
 ")
         End Function
 
-        <WpfTheory>
-        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         <InlineData("abstract")>
         <InlineData("as")>
         <InlineData("base")>

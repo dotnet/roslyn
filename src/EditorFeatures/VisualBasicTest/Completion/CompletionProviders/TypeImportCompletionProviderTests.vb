@@ -153,8 +153,7 @@ End Class]]></Text>.Value
 
         <InlineData(SourceCodeKind.Regular)>
         <InlineData(SourceCodeKind.Script)>
-        <WpfTheory>
-        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        <WpfTheory, WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
         Public Async Function CommitTypeInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
 
             Dim file1 = <Text>
@@ -173,8 +172,7 @@ End Namespace</Text>.Value
 
         <InlineData(SourceCodeKind.Regular)>
         <InlineData(SourceCodeKind.Script)>
-        <WpfTheory>
-        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        <WpfTheory, WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
         Public Async Function CommitGenericTypeParameterInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
 
             Dim file1 = <Text>

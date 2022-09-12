@@ -588,8 +588,7 @@ Public Class C
 End Class")
         End Function
 
-        <Theory>
-        <WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")>
+        <Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")>
         <InlineData("[|""a"" + $""{1:000}""|]", "$""a{1:000}""")>
         <InlineData("[|""a"" + $""b{1:000}""|]", "$""ab{1:000}""")>
         <InlineData("[|$""a{1:000}"" + ""b""|]", "$""a{1:000}b""")>
