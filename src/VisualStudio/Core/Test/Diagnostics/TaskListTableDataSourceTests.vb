@@ -281,7 +281,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 provider.Items = New TaskListItem() {
                     New TaskListItem(priority:=1, message:="test2", documentId:=documentId, New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22)), New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22))),
-                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 22)), New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 22)))
+                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 21)), New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 21)))
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
