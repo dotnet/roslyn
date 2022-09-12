@@ -6,11 +6,12 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
 #Region "FAR on reference types"
 
         <WorkItem(541155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541155")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInaccessibleVar1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -37,7 +38,7 @@ class B : A
         End Function
 
         <WorkItem(541155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541155")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInaccessibleVar2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -64,7 +65,7 @@ class B : A
         End Function
 
         <WorkItem(541151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541151")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericVar1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -89,7 +90,7 @@ class {|Definition:$$var|}<T> { }
         End Function
 
         <WorkItem(541151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541151")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericVar2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -113,7 +114,7 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Class(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -138,7 +139,7 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_NestedClass(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -158,7 +159,7 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ExplicitCast(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -200,7 +201,7 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Events(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -235,7 +236,7 @@ class var<T> { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_TypeOfOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -255,7 +256,7 @@ class var<T> { }
         End Function
 
         <WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InaccessibleType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -281,7 +282,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_OneDimensionalArray(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -302,7 +303,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_BaseList(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -316,7 +317,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_StaticConstructor(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -334,7 +335,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_GenericClass(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -354,7 +355,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_GenericClass1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -374,7 +375,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_GenericClass2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -397,7 +398,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_GenericClass3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -421,7 +422,7 @@ class A
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -454,7 +455,7 @@ public class Basic : I1<int>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -487,7 +488,7 @@ public class Basic : I1<int>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -520,7 +521,7 @@ public class Basic : I1<int>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -544,7 +545,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces5_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -568,7 +569,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces5_FEature(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -592,7 +593,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces6_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -616,7 +617,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCascadedMembersFromConstructedInterfaces6_Feature(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -639,7 +640,7 @@ class C : I<int>, I<string>
             Await TestStreamingFeature(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_MultipleFiles(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -660,7 +661,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_MultipleFiles_InOneFileOnly(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -682,7 +683,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host, searchSingleFileOnly:=True)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpImplicitConstructor(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -701,7 +702,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpExplicitConstructor(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -722,7 +723,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBImplicitConstructor(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -739,7 +740,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpConstructorCallUsingNewOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -763,7 +764,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpConstructorCallUsingNewOperator2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -787,7 +788,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBConstructorCallUsingNewOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -808,7 +809,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBModule(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -831,7 +832,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_PartialClass(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -854,7 +855,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Interface(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -874,7 +875,7 @@ class C : I<int>, I<string>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_GenericInterface(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -897,7 +898,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539065")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -921,7 +922,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539065")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -943,7 +944,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539065")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -965,7 +966,7 @@ class C : I<int>, I<string>
         End Function
 
         <WorkItem(539614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539614")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -992,7 +993,7 @@ class Program
         End Function
 
         <WorkItem(539614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539614")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1019,7 +1020,7 @@ class Program
         End Function
 
         <WorkItem(539614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539614")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate5(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1046,7 +1047,7 @@ class Program
         End Function
 
         <WorkItem(539646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539646")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Delegate6(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1075,7 +1076,7 @@ class Program
         End Function
 
         <WorkItem(537966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537966")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CalledDynamic1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1094,7 +1095,7 @@ class Program
         End Function
 
         <WorkItem(537966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537966")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CalledDynamic2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1115,7 +1116,7 @@ class Program
         End Function
 
         <WorkItem(538842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538842")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CalledSystemString1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1136,7 +1137,7 @@ class Program
         End Function
 
         <WorkItem(538842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538842")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CalledSystemString2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1157,7 +1158,7 @@ class Program
         End Function
 
         <WorkItem(538926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538926")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CalledSystemString3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1178,7 +1179,7 @@ namespace System
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_LeftSideOfMemberAccessExpression1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1200,7 +1201,7 @@ public class C
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_LeftSideOfMemberAccessExpression2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1222,7 +1223,7 @@ public class C
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_LeftSideOfMemberAccessExpression3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1242,7 +1243,7 @@ End Class
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_LeftSideOfMemberAccessExpression4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1261,7 +1262,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCrefNamedType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1281,7 +1282,7 @@ class {|Definition:Program|}
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCrefNamedType2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1302,7 +1303,7 @@ class {|Definition:Progr$$am|}
         End Function
 
         <WorkItem(775925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775925")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_LeftSideOfGreaterThanTokenInAttribute(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1324,7 +1325,7 @@ End Class
 #End Region
 
 #Region "FAR on primitive types"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_PrimitiveTypeAsMethodParameter(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1352,7 +1353,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_PrimitiveTypeAsField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1382,7 +1383,7 @@ End Class
 #End Region
 
 #Region "FAR on value types"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Struct(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1399,7 +1400,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Enum(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1421,7 +1422,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_EnumMembers(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1445,7 +1446,7 @@ End Class
 #End Region
 
 #Region "FAR on across projects"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_NonDependentProjectCSharpRefsCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1468,7 +1469,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_NonDependentProjectVBRefsCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1490,7 +1491,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InDependentProjectCSharpRefsCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1514,7 +1515,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InDependentProjectVBRefsCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1539,7 +1540,7 @@ End Class
 #End Region
 
 #Region "FAR in namespaces"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InNamespace(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1563,7 +1564,7 @@ End Class
 #End Region
 
 #Region "FAR with case sensitivity"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CaseSensitivity(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1606,7 +1607,7 @@ End Class
 #End Region
 
 #Region "FAR through alias"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1631,7 +1632,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ThroughAliasNestedType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1659,7 +1660,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ThroughAliasGenericType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1686,7 +1687,7 @@ End Class
 #End Region
 
 #Region "FAR on object initializers"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ReferenceInObjectInitializers(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1706,7 +1707,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ReferenceInObjectInitializersConstructorTakesNoParms(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1734,7 +1735,7 @@ End Class
 #End Region
 
 #Region "FAR on collection initializers"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLocal_CSharpColInitWithMultipleExpressionContainSameIdentifier(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1754,7 +1755,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLocal_VBColInitWithMultipleExpressionContainSameIdentifier(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1776,7 +1777,7 @@ End Class
 #End Region
 
 #Region "FAR on array initializers"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpArrayInitializerContainsALongExpression(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1800,7 +1801,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBArrayInitializerContainsALongExpression(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1821,7 +1822,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpArrayInitializerContansANestedArrayInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1845,7 +1846,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBArrayInitializerContainsANestedArrayInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1866,7 +1867,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpArrayInitializerDifferentTypesWithImplicitCasting(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1887,7 +1888,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBArrayInitializerDifferentTypesWithImplicitCasting(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1906,7 +1907,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpImplicitlyTypedArray(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1927,7 +1928,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBImplicitlyTypedArray(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1948,7 +1949,7 @@ End Class
 #End Region
 
 #Region "FAR on query expressions"
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpQueryExpressionInitializedViaColInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1968,7 +1969,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBQueryExpressionInitializedViaColInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1986,7 +1987,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpQueryExpressionThatIncludeColInit(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2007,7 +2008,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBQueryExpressionThatIncludeColInit(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2030,7 +2031,7 @@ End Class
 #Region "FAR in Venus Contexts"
 
         <WorkItem(545325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545325")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestHiddenCodeIsNotVisibleFromUI(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2050,7 +2051,7 @@ public class _Default
         End Function
 
         <WorkItem(545325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545325")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestHiddenCodeIsAccessibleViaApis(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2072,7 +2073,7 @@ public class {|Definition:_Default|}
 #End Region
 
         <WorkItem(542949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542949")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_DoNotFindDestructor1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2086,7 +2087,7 @@ class {|Definition:$$A|} {    ~{|Definition:A|}()    {        Console.WriteLine(
         End Function
 
         <WorkItem(546229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546229")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CrossLanguageModule(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2114,7 +2115,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRetargetingType_Basic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2145,7 +2146,7 @@ class Class2
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRetargetingType_GenericType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2179,7 +2180,7 @@ class Class2
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestDuplicatePublicTypeWithDuplicateConstructors(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2210,7 +2211,7 @@ public class D { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(1174256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174256")>
         Public Async Function TestFarWithInternalsVisibleToNull(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -2237,7 +2238,7 @@ public class D { }
 
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_TypeOrNamespaceUsageInfo(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2279,7 +2280,7 @@ public class D { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ContainingTypeInfo(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2321,7 +2322,7 @@ public class D { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ContainingMemberInfo(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2364,7 +2365,7 @@ public class D { }
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2389,7 +2390,7 @@ namespace N
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeReferenceInGlobalSuppression_NestedType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2417,7 +2418,7 @@ namespace N
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeReferenceInGlobalSuppression_GenericType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2444,7 +2445,7 @@ namespace N
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
         <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <CombinatorialData>
         Public Async Function TestTypeReferenceInGlobalSuppressionParameter(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2474,7 +2475,7 @@ namespace N
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
         <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <CombinatorialData>
         Public Async Function TestTypeReferenceInGlobalSuppressionParameter_GenericType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2504,7 +2505,7 @@ namespace N
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
         <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <CombinatorialData>
         Public Async Function TestTypeReferenceInGlobalSuppressionTypeParameter_GenericType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -2532,7 +2533,7 @@ namespace N
         End Function
 
         <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <CombinatorialData>
         Public Async Function TestNamedTypeUsedInSourceGeneratedOutput(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

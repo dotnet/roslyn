@@ -17,9 +17,10 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class SolutionAssetCacheTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public void TestGetAssets()
         {
             var storage = new SolutionAssetCache();
@@ -32,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.True(storage.TryGetAsset(checksum, out object _));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestCleanup()
         {
             var storage = new SolutionAssetCache(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));

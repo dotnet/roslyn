@@ -5,8 +5,9 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
         Public Async Function TestTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
         Public Async Function TestTypeParameter_NewConstraint_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -86,7 +87,7 @@ class C
         End Function
 
         <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -108,7 +109,7 @@ class C
         End Function
 
         <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -130,7 +131,7 @@ class C
         End Function
 
         <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -151,7 +152,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -179,7 +180,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -201,7 +202,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericTypeArgsWithStaticCalls(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -215,7 +216,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypeParameterCaseSensitivity(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -234,7 +235,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestMethodTypeParameterExplicitImplementation1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -256,7 +257,7 @@ class A : I
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestMethodTypeParameterExplicitImplementation2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -278,7 +279,7 @@ class A : I
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestMethodTypeParameterExplicitImplementation3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

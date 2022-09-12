@@ -704,8 +704,7 @@ End Class"
                 EvalResult("_p", "3", "Integer", "DirectCast(c, D)._p", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
-        <WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")>
-        <Fact>
+        <Fact, WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")>
         Public Sub RootVersusInternal()
             Const source = "
 Imports System.Diagnostics

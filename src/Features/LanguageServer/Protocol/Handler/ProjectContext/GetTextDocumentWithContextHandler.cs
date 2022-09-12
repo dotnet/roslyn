@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Workspace);
             Contract.ThrowIfNull(context.Solution);
 
             // We specifically don't use context.Document here because we want multiple
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
             var openDocument = documents.First();
-            var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
+            var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
             return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
             {

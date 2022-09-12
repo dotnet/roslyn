@@ -140,7 +140,6 @@ internal readonly struct RequestContext
         // 1. We don't bother building the LSP solution for perf reasons
         // 2. We explicitly don't give the handler a solution or document, even if we could
         //    so they're not accidentally operating on stale solution state.
-
         RequestContext context;
         if (!requiresLSPSolution)
         {
@@ -151,25 +150,55 @@ internal readonly struct RequestContext
         }
         else
         {
-            Solution? workspaceSolution;
+            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+            var logger = lspServices.GetRequiredService<ILspLogger>();
+            var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
+
+            // Retrieve the current LSP tracked text as of this request.
+            // This is safe as all creation of request contexts cannot happen concurrently.
+            var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+
+            // If the handler doesn't need an LSP solution we do two important things:
+            // 1. We don't bother building the LSP solution for perf reasons
+            // 2. We explicitly don't give the handler a solution or document, even if we could
+            //    so they're not accidentally operating on stale solution state.
+            if (!requiresLSPSolution)
+            {
+                return new RequestContext(
+                    workspace: null, solution: null, document: null, logger, clientCapabilities, serverKind,
+                    documentChangeTracker, trackedDocuments, supportedLanguages, lspServices, queueCancellationToken);
+            }
+
+            Workspace? workspace = null;
+            Solution? solution = null;
             Document? document = null;
             if (textDocument is not null)
             {
-                // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
-                // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
-                // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
-                (_, document) = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                // we were given a request associated with a document.  Find the corresponding roslyn document for this.
+                // There are certain cases where we may be asked for a document that does not exist (for example a
+                // document is removed) For example, document pull diagnostics can ask us after removal to clear
+                // diagnostics for a document.
+                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
 
-            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(cancellationToken).ConfigureAwait(false);
+            if (workspace is null)
+                (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(requestCancellationToken).ConfigureAwait(false);
 
-            context = new RequestContext(
-                workspaceSolution,
+            if (workspace is null)
+            {
+                logger.TraceError("Could not find appropriate workspace for operation");
+                return null;
+            }
+
+            var context = new RequestContext(
+                workspace,
+                solution,
+                document,
+>>>>>>> 65700185c560300d5d49dee4ed00baaed6ba6ded
                 logger,
                 method,
                 clientCapabilities,
                 serverKind,
-                document,
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,

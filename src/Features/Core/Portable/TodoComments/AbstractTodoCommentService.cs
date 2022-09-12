@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal abstract class AbstractTodoCommentService : ITodoCommentDataService
+    internal abstract class AbstractTodoCommentService : ITodoCommentService
     {
         protected abstract bool PreprocessorHasComment(SyntaxTrivia trivia);
         protected abstract bool IsSingleLineComment(SyntaxTrivia trivia);
@@ -21,37 +22,15 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoCommentData> todoList);
+        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoComment> todoList);
 
-        public async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(
-            Document document,
-            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
-            CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                var result = await client.TryInvokeAsync<IRemoteTodoCommentsDiscoveryService, ImmutableArray<TodoCommentData>>(
-                    document.Project,
-                    (service, checksum, cancellationToken) => service.GetTodoCommentDataAsync(checksum, document.Id, commentDescriptors, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (!result.HasValue)
-                    return ImmutableArray<TodoCommentData>.Empty;
-
-                return result.Value;
-            }
-
-            return await GetTodoCommentDataInProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataInProcessAsync(
+        public async Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(
             Document document,
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             CancellationToken cancellationToken)
         {
             if (commentDescriptors.IsEmpty)
-                return ImmutableArray<TodoCommentData>.Empty;
+                return ImmutableArray<TodoComment>.Empty;
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -59,7 +38,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var syntaxDoc = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             // reuse list
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var todoList);
+            using var _ = ArrayBuilder<TodoComment>.GetInstance(out var todoList);
 
             foreach (var trivia in syntaxDoc.Root.DescendantTrivia())
             {
@@ -79,9 +58,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected void AppendTodoCommentInfoFromSingleLine(
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
-            SyntacticDocument document,
             string message, int start,
-            ArrayBuilder<TodoCommentData> todoList)
+            ArrayBuilder<TodoComment> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -109,14 +87,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                     continue;
                 }
 
-                var trimmedMessage = message[index..];
-                var position = start + index;
-
-                // Go through SyntaxTree so that any `#line` remapping is picked up
-                var location = document.SyntaxTree.GetLocation(new TextSpan(position, 0));
-
-                todoList.Add(new TodoCommentData(
-                    commentDescriptor.Priority, trimmedMessage, document.Document.Id, location.GetLineSpan(), location.GetMappedLineSpan()));
+                todoList.Add(new TodoComment(commentDescriptor, message[index..], start + index));
             }
         }
 
@@ -124,7 +95,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             SyntacticDocument document,
             SyntaxTrivia trivia, int postfixLength,
-            ArrayBuilder<TodoCommentData> todoList)
+            ArrayBuilder<TodoComment> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;
@@ -139,20 +110,20 @@ namespace Microsoft.CodeAnalysis.TodoComments
             if (startLine.LineNumber == endLine.LineNumber)
             {
                 var message = postfixLength == 0 ? fullString : fullString.Substring(0, fullSpan.Length - postfixLength);
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message, fullSpan.Start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message, fullSpan.Start, todoList);
                 return;
             }
 
             // multiline 
             var startMessage = text.ToString(TextSpan.FromBounds(fullSpan.Start, startLine.End));
-            AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, startMessage, fullSpan.Start, todoList);
+            AppendTodoCommentInfoFromSingleLine(commentDescriptors, startMessage, fullSpan.Start, todoList);
 
             for (var lineNumber = startLine.LineNumber + 1; lineNumber < endLine.LineNumber; lineNumber++)
             {
                 var line = text.Lines[lineNumber];
                 var message = line.ToString();
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message, line.Start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message, line.Start, todoList);
             }
 
             var length = fullSpan.End - endLine.Start;
@@ -162,7 +133,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
 
             var endMessage = text.ToString(new TextSpan(endLine.Start, length));
-            AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, endMessage, endLine.Start, todoList);
+            AppendTodoCommentInfoFromSingleLine(commentDescriptors, endMessage, endLine.Start, todoList);
         }
     }
 }

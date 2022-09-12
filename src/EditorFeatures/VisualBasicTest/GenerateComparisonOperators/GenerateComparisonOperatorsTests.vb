@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateComparisonOperators
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateComparisonOperators
+    <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
     Public Class GenerateComparisonOperatorsTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateComparison
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestClass() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -61,7 +62,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestExplicitImpl() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -102,7 +103,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestOnInterface() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -143,7 +144,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestAtEndOfInterface() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -184,7 +185,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestInBody() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -227,7 +228,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestMissingWithoutCompareMethod() As Task
             Await TestMissingAsync(
 "
@@ -240,7 +241,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestMissingWithUnknownType() As Task
             Await TestMissingAsync(
 "
@@ -253,7 +254,7 @@ class C : IComparable<Goo>
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestMissingWithAllExistingOperators() As Task
             Await TestMissingAsync(
 "
@@ -286,7 +287,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestWithExistingOperator() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -333,7 +334,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
+        <Fact>
         Public Async Function TestMultipleInterfaces() As Task
             Await TestInRegularAndScript1Async(
 "

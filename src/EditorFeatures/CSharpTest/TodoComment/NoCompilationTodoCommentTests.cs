@@ -2,21 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -52,8 +48,8 @@ $@"<Workspace>
     }
 
     [PartNotDiscoverable]
-    [ExportLanguageService(typeof(ITodoCommentDataService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTodoCommentService : ITodoCommentDataService
+    [ExportLanguageService(typeof(ITodoCommentService), language: NoCompilationConstants.LanguageName), Shared]
+    internal class NoCompilationTodoCommentService : ITodoCommentService
     {
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,12 +57,9 @@ $@"<Workspace>
         {
         }
 
-        public Task<ImmutableArray<TodoCommentData>> GetTodoCommentDataAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create(new TodoCommentData(
-                commentDescriptors.First().Priority,
-                "Message",
-                document.Id,
-                span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
-                mappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
+        public Task<ImmutableArray<CodeAnalysis.TodoComments.TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray.Create(new CodeAnalysis.TodoComments.TodoComment(commentDescriptors.First(), "Message", 3)));
+        }
     }
 }

@@ -34,19 +34,19 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     }
 
     protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
-        => new WorkspaceDiagnosticReport(new[]
+        => new(new[]
         {
             new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, diagnostics, version: null, resultId))
         });
 
     protected override WorkspaceDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
-        => new WorkspaceDiagnosticReport(new[]
+        => new(new[]
         {
             new WorkspaceDocumentDiagnosticReport(new WorkspaceFullDocumentDiagnosticReport(identifier.Uri, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(), version: null, resultId: null))
         });
 
     protected override WorkspaceDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new WorkspaceDiagnosticReport(new[]
+        => new(new[]
         {
             new WorkspaceDocumentDiagnosticReport(new WorkspaceUnchangedDocumentDiagnosticReport(identifier.Uri, resultId, version: null))
         });
@@ -61,9 +61,7 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     }
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-    {
-        return WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
-    }
+        => WorkspacePullDiagnosticHandler.GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken);
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {

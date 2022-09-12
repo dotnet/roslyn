@@ -351,8 +351,7 @@ class A
             Assert.Null(results);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsAsync()
         {
             var markup =
@@ -389,8 +388,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexLiteralCompletionsAsync()
         {
             var markup =
@@ -427,8 +425,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsReplaceTextAsync()
         {
             var markup =
@@ -465,8 +462,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync()
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities
@@ -514,8 +510,7 @@ class A
             Assert.Null(results.ItemDefaults);
         }
 
-        [Fact]
-        [WorkItem(46694, "https://github.com/dotnet/roslyn/issues/46694")]
+        [Fact, WorkItem(46694, "https://github.com/dotnet/roslyn/issues/46694")]
         public async Task TestCompletionListCacheAsync()
         {
             var markup =

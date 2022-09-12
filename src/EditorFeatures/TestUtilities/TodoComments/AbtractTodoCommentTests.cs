@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -37,25 +40,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
             var initialTextSnapshot = hostDocument.GetTextBuffer().CurrentSnapshot;
             var documentId = hostDocument.Id;
 
-            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-            var service = document.GetRequiredLanguageService<ITodoCommentDataService>();
-            var todoComments = await service.GetTodoCommentDataAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var service = document.GetLanguageService<ITodoCommentService>();
+            var todoComments = await service.GetTodoCommentsAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
+
+            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+            await TodoComment.ConvertAsync(document, todoComments, converted, CancellationToken.None);
 
             var expectedLists = hostDocument.SelectedSpans;
-            Assert.Equal(todoComments.Length, expectedLists.Count);
+            Assert.Equal(converted.Count, expectedLists.Count);
 
             var sourceText = await document.GetTextAsync();
             var tree = await document.GetSyntaxTreeAsync();
-            for (var i = 0; i < todoComments.Length; i++)
+            for (var i = 0; i < converted.Count; i++)
             {
-                var todo = todoComments[i];
+                var todo = converted[i];
                 var span = expectedLists[i];
 
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
                 var text = initialTextSnapshot.GetText(span.ToSpan());
 
-                Assert.Equal(todo.MappedSpan.Span.Start.Line, line.LineNumber);
-                Assert.Equal(todo.MappedSpan.Span.Start.Character, span.Start - line.Start);
+                Assert.Equal(todo.MappedLine, line.LineNumber);
+                Assert.Equal(todo.MappedColumn, span.Start - line.Start);
                 Assert.Equal(todo.Message, text);
             }
         }
