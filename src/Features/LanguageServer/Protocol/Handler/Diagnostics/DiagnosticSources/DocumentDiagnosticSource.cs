@@ -17,7 +17,7 @@ internal sealed class DocumentDiagnosticSource : AbstractDocumentDiagnosticSourc
 
     // The normal diagnostic source includes both todo comments and diagnostics for this open file.
 
-    protected override bool IncludeTodoComments => true;
+    protected override bool IncludeTaskListItems => true;
     protected override bool IncludeStandardDiagnostics => true;
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(

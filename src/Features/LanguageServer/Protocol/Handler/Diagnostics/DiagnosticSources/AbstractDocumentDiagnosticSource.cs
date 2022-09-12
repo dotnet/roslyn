@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -33,7 +35,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public Project GetProject() => Document.Project;
     public Uri GetUri() => Document.GetURI();
 
-    protected abstract bool IncludeTodoComments { get; }
+    protected abstract bool IncludeTaskListItems { get; }
     protected abstract bool IncludeStandardDiagnostics { get; }
 
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
@@ -42,12 +44,12 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
-        var todoComments = IncludeTodoComments ? await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var taskListItems = IncludeTaskListItems ? await this.GetTaskListDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        return todoComments.AddRange(diagnostics);
+        return taskListItems.AddRange(diagnostics);
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetTodoCommentDiagnosticsAsync(CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetTaskListDiagnosticsAsync(CancellationToken cancellationToken)
     {
         if (this.Document is not Document document)
             return ImmutableArray<DiagnosticData>.Empty;
@@ -56,14 +58,14 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
         if (service == null)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        var tokenList = document.Project.Solution.Options.GetOption(TodoCommentOptionsStorage.TokenList);
+        var tokenList = document.Project.Solution.Options.GetOption(TaskListOptionsStorage.Descriptors);
         var descriptors = GetAndCacheDescriptors(tokenList);
 
         var comments = await service.GetTodoCommentsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
         if (comments.Length == 0)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+        using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
         await TodoComment.ConvertAsync(document, comments, converted, cancellationToken).ConfigureAwait(false);
 
         return converted.SelectAsArray(comment => new DiagnosticData(
