@@ -87,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (string.IsNullOrEmpty(directoryName))
                 return mapped;
 
-            var combined = PathUtilities.CombinePaths(directoryName, mapped); try
+            var combined = PathUtilities.CombinePaths(directoryName, mapped);
+            try
             {
                 return Path.GetFullPath(combined);
             }
