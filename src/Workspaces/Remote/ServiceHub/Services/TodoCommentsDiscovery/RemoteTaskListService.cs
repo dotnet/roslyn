@@ -10,19 +10,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsDiscoveryService : BrokeredServiceBase, IRemoteTaskListService
+    internal partial class RemoteTaskListService : BrokeredServiceBase, IRemoteTaskListService
     {
         internal sealed class Factory : FactoryBase<IRemoteTaskListService, IRemoteTaskListService.ICallback>
         {
             protected override IRemoteTaskListService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
-                => new RemoteTodoCommentsDiscoveryService(arguments, callback);
+                => new RemoteTaskListService(arguments, callback);
         }
 
         private readonly RemoteCallback<IRemoteTaskListService.ICallback> _callback;
 
-        private RemoteTodoCommentsIncrementalAnalyzer? _lazyAnalyzer;
+        private RemoteTaskListIncrementalAnalyzer? _lazyAnalyzer;
 
-        public RemoteTodoCommentsDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
+        public RemoteTaskListService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
 
                 // This method should only be called once.
-                Contract.ThrowIfFalse(Interlocked.Exchange(ref _lazyAnalyzer, new RemoteTodoCommentsIncrementalAnalyzer(_callback, callbackId)) == null);
+                Contract.ThrowIfFalse(Interlocked.Exchange(ref _lazyAnalyzer, new RemoteTaskListIncrementalAnalyzer(_callback, callbackId)) == null);
 
                 registrationService.AddAnalyzerProvider(
-                    new RemoteTodoCommentsIncrementalAnalyzerProvider(_lazyAnalyzer),
+                    new RemoteTaskListIncrementalAnalyzerProvider(_lazyAnalyzer),
                     new IncrementalAnalyzerProviderMetadata(
-                        nameof(RemoteTodoCommentsIncrementalAnalyzerProvider),
+                        nameof(RemoteTaskListIncrementalAnalyzerProvider),
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 

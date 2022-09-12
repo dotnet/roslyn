@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteTodoCommentsIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
+    internal sealed class RemoteTaskListIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly RemoteCallback<IRemoteTaskListService.ICallback> _callback;
         private readonly RemoteServiceCallbackId _callbackId;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(RemoteCallback<IRemoteTaskListService.ICallback> callback, RemoteServiceCallbackId callbackId)
+        public RemoteTaskListIncrementalAnalyzer(RemoteCallback<IRemoteTaskListService.ICallback> callback, RemoteServiceCallbackId callbackId)
         {
             _callback = callback;
             _callbackId = callbackId;
