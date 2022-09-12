@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         private readonly IGlobalOptionService _globalOptions;
         private readonly SolutionServices _services;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTodoCommentsUpdated;
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToInfos = new();
+        private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTaskListItemsUpdated;
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToTaskListItems = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             _globalOptions = globalOptions;
             _services = services;
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TaskList);
-            _onTodoCommentsUpdated = onTodoCommentsUpdated;
+            _onTaskListItemsUpdated = onTodoCommentsUpdated;
             _disposalToken = disposalToken;
 
             _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 
             foreach (var (documentId, newComments) in filteredArray)
             {
-                var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
+                var oldComments = _documentToTaskListItems.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
                     : ImmutableArray<TaskListItem>.Empty;
 
@@ -168,16 +168,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
                 // so it's safe to remove/add here.
                 if (newComments.IsEmpty)
                 {
-                    _documentToInfos.TryRemove(documentId, out _);
+                    _documentToTaskListItems.TryRemove(documentId, out _);
                 }
                 else
                 {
-                    _documentToInfos[documentId] = newComments;
+                    _documentToTaskListItems[documentId] = newComments;
                 }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
-                _onTodoCommentsUpdated(documentId, oldComments, newComments);
+                _onTaskListItemsUpdated(documentId, oldComments, newComments);
             }
 
             return ValueTaskFactory.CompletedTask;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 
         public ImmutableArray<TaskListItem> GetTodoItems(DocumentId documentId)
         {
-            return _documentToInfos.TryGetValue(documentId, out var values)
+            return _documentToTaskListItems.TryGetValue(documentId, out var values)
                 ? values
                 : ImmutableArray<TaskListItem>.Empty;
         }
