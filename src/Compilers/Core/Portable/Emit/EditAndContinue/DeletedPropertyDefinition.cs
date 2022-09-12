@@ -4,68 +4,63 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedPropertyDefinition : IPropertyDefinition
+    internal sealed class DeletedPropertyDefinition : DeletedDefinition<IPropertyDefinition>, IPropertyDefinition
     {
-        private readonly IPropertyDefinition _oldProperty;
         private readonly ITypeDefinition _containingTypeDef;
-        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
         private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
 
         private readonly IMethodReference? _getter;
         private readonly IMethodReference? _setter;
 
         public DeletedPropertyDefinition(IPropertyDefinition oldProperty, DeletedMethodDefinition? getter, DeletedMethodDefinition? setter, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+            : base(oldProperty, typesUsedByDeletedMembers)
         {
-            _oldProperty = oldProperty;
             _containingTypeDef = containingTypeDef;
-            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
             _getter = getter;
             _setter = setter;
 
-            _parameters = _oldProperty.Parameters.SelectAsArray(p => new DeletedParameterDefinition(p, typesUsedByDeletedMembers));
+            _parameters = WrapParameters(oldProperty.Parameters);
         }
 
-        public MetadataConstant? DefaultValue => _oldProperty.DefaultValue;
+        public MetadataConstant? DefaultValue => OldDefinition.DefaultValue;
 
         public IMethodReference? Getter => _getter;
 
-        public bool HasDefaultValue => _oldProperty.HasDefaultValue;
+        public bool HasDefaultValue => OldDefinition.HasDefaultValue;
 
-        public bool IsRuntimeSpecial => _oldProperty.IsRuntimeSpecial;
+        public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-        public bool IsSpecialName => _oldProperty.IsSpecialName;
+        public bool IsSpecialName => OldDefinition.IsSpecialName;
 
         public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
 
         public IMethodReference? Setter => _setter;
 
-        public CallingConvention CallingConvention => _oldProperty.CallingConvention;
+        public CallingConvention CallingConvention => OldDefinition.CallingConvention;
 
         public ushort ParameterCount => (ushort)_parameters.Length;
 
-        public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => _oldProperty.ReturnValueCustomModifiers;
+        public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => OldDefinition.ReturnValueCustomModifiers;
 
-        public ImmutableArray<ICustomModifier> RefCustomModifiers => _oldProperty.RefCustomModifiers;
+        public ImmutableArray<ICustomModifier> RefCustomModifiers => OldDefinition.RefCustomModifiers;
 
-        public bool ReturnValueIsByRef => _oldProperty.ReturnValueIsByRef;
+        public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
 
         public ITypeDefinition ContainingTypeDefinition => _containingTypeDef;
 
-        public TypeMemberVisibility Visibility => _oldProperty.Visibility;
+        public TypeMemberVisibility Visibility => OldDefinition.Visibility;
 
-        public string? Name => _oldProperty.Name;
+        public string? Name => OldDefinition.Name;
 
         public IDefinition? AsDefinition(EmitContext context)
         {
-            return _oldProperty.AsDefinition(context);
+            return OldDefinition.AsDefinition(context);
         }
 
         public void Dispatch(MetadataVisitor visitor)
@@ -84,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _oldProperty.GetAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
+            return WrapAttributes(OldDefinition.GetAttributes(context));
         }
 
         public ITypeReference GetContainingType(EmitContext context)
@@ -94,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ISymbolInternal? GetInternalSymbol()
         {
-            return _oldProperty.GetInternalSymbol();
+            return OldDefinition.GetInternalSymbol();
         }
 
         public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
@@ -104,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ITypeReference GetType(EmitContext context)
         {
-            return DeletedTypeDefinition.TryCreate(_oldProperty.GetType(context), _typesUsedByDeletedMembers);
+            return WrapType(OldDefinition.GetType(context));
         }
     }
 }

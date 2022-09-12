@@ -11,11 +11,11 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Emit.EditAndContinue;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 var eventChange = _changes.GetChange(eventDef);
-                eventChange = FixSymbolChangeForReAddedMembers(eventDef, eventChange);
+                eventChange = _changes.FixSymbolChangeForReAddedMembers(eventDef, eventChange, DefinitionExistsInAnyPreviousGeneration);
 
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var fieldDef in typeDef.GetFields(this.Context))
             {
                 var fieldChange = _changes.GetChange(fieldDef);
-                fieldChange = FixSymbolChangeForReAddedMembers(fieldDef, fieldChange);
+                fieldChange = _changes.FixSymbolChangeForReAddedMembers(fieldDef, fieldChange, DefinitionExistsInAnyPreviousGeneration);
 
                 this.AddDefIfNecessary(_fieldDefs, fieldDef, fieldChange);
             }
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
                 var methodChange = _changes.GetChange(methodDef);
-                methodChange = FixSymbolChangeForReAddedMembers(methodDef, methodChange);
+                methodChange = _changes.FixSymbolChangeForReAddedMembers(methodDef, methodChange, DefinitionExistsInAnyPreviousGeneration);
 
                 this.AddDefIfNecessary(_methodDefs, methodDef, methodChange);
                 CreateIndicesForMethod(methodDef, methodChange);
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 var propertyChange = _changes.GetChange(propertyDef);
-                propertyChange = FixSymbolChangeForReAddedMembers(propertyDef, propertyChange);
+                propertyChange = _changes.FixSymbolChangeForReAddedMembers(propertyDef, propertyChange, DefinitionExistsInAnyPreviousGeneration);
 
                 this.AddDefIfNecessary(_propertyDefs, propertyDef, propertyChange);
             }
@@ -677,59 +677,14 @@ namespace Microsoft.CodeAnalysis.Emit
             implementingMethods.Free();
         }
 
-        private SymbolChange FixSymbolChangeForReAddedMembers(IDefinition item, SymbolChange change)
+        private bool DefinitionExistsInAnyPreviousGeneration(IDefinition item) => item switch
         {
-            // If this is a field that is being added, but it's part of a property or event that has been deleted
-            // and is now being re-added, we don't want to add the field twice, so we ignore the change.
-            // Unlike properties and methods, since we can't replace a field with a MissingMethodException
-            // we don't need to update it at all.
-            // This also makes sure to check that the field itself is being re-added, because it could be
-            // a property that is being re-added as an auto-prop, when it wasn't one before, for example.
-            if (item is IFieldDefinition fieldDefinition &&
-                _changes.GetContainingDefinitionForBackingField(fieldDefinition) is IDefinition containingDef &&
-                _changes.GetChange(containingDef) == SymbolChange.Added &&
-                isDeleted(item) &&
-                FixSymbolChangeForReAddedMembers(containingDef, SymbolChange.Added) == SymbolChange.Updated)
-            {
-                return SymbolChange.None;
-            }
-
-            // Otherwise if the item was added, and not replaced, but we can find an existing row id, then treat it
-            // as an update. This supercedes the other checks for edit types etc. because a method could be
-            // deleted in a generation, and then "added" in a subsequent one, but that is an update
-            // even if the previous generation doesn't know about it.
-            if (change == SymbolChange.Added &&
-                item is ITypeDefinitionMember member &&
-                !_changes.IsReplaced(member.ContainingTypeDefinition, checkEnclosingTypes: true) &&
-                isDeleted(item))
-            {
-                return SymbolChange.Updated;
-            }
-
-            return change;
-
-            bool isDeleted(IDefinition item)
-            {
-                if (item is IMethodDefinition methodDef)
-                {
-                    return TryGetExistingMethodDefIndex(methodDef, out _);
-                }
-                else if (item is IPropertyDefinition propertyDef)
-                {
-                    return TryGetExistingPropertyDefIndex(propertyDef, out _);
-                }
-                else if (item is IFieldDefinition fieldDef)
-                {
-                    return TryGetExistingFieldDefIndex(fieldDef, out _);
-                }
-                else if (item is IEventDefinition eventDef)
-                {
-                    return TryGetExistingEventDefIndex(eventDef, out _);
-                }
-
-                return false;
-            }
-        }
+            IMethodDefinition methodDef => TryGetExistingMethodDefIndex(methodDef, out _),
+            IPropertyDefinition propertyDef => TryGetExistingPropertyDefIndex(propertyDef, out _),
+            IFieldDefinition fieldDef => TryGetExistingFieldDefIndex(fieldDef, out _),
+            IEventDefinition eventDef => TryGetExistingEventDefIndex(eventDef, out _),
+            _ => false,
+        };
 
         private void CreateIndicesForMethod(IMethodDefinition methodDef, SymbolChange methodChange)
         {
