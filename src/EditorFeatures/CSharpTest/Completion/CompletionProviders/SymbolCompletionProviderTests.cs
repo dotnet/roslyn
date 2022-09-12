@@ -2460,8 +2460,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585"), Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("void")]
         [InlineData("string")]
         [InlineData("String")]
@@ -3025,8 +3024,7 @@ class C { }";
             await VerifyItemExistsAsync(markup, "Alias");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace()
         {
@@ -3041,8 +3039,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "MyAttribute");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace2()
         {
@@ -3060,8 +3057,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "MyAttribute");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameWhenSuffixlessFormIsKeyword()
         {
@@ -3077,8 +3073,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "@namespace");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
         {
@@ -3094,8 +3089,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "@namespace");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task KeywordsUsedAsLocals()
         {
@@ -3124,8 +3118,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "int");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords1()
         {
@@ -3143,8 +3136,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "from");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords2()
         {
@@ -3166,8 +3158,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "where");
         }
 
-        [Fact]
-        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
+        [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords3()
         {
@@ -3189,8 +3180,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "where");
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAlias()
         {
@@ -3202,8 +3192,7 @@ class Program { }";
             await VerifyItemIsAbsentAsync(markup, "MyAttribute", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
+        [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
         {
@@ -10150,8 +10139,7 @@ class C
 }", "C");
         }
 
-        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Fact]
+        [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
@@ -10168,8 +10156,7 @@ class C
 }", "Local", "void Local()");
         }
 
-        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Fact]
+        [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
@@ -11168,8 +11155,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "DoSomething", displayTextSuffix: "<>");
         }
 
-        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
-        [Fact]
+        [Fact, WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()

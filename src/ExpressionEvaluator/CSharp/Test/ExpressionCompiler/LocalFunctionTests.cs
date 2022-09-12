@@ -300,8 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
-        [WorkItem(59093, "https://github.com/dotnet/roslyn/issues/59093")]
+        [Fact, WorkItem(59093, "https://github.com/dotnet/roslyn/issues/59093")]
         public void DeclaringCompilationIsNotNull()
         {
             var source = @"

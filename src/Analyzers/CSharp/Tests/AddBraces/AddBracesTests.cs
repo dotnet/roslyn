@@ -359,8 +359,7 @@ class Program
                 expectDiagnostic);
         }
 
-        [WorkItem(57770, "https://github.com/dotnet/roslyn/issues/57770")]
-        [Theory]
+        [Theory, WorkItem(57770, "https://github.com/dotnet/roslyn/issues/57770")]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]

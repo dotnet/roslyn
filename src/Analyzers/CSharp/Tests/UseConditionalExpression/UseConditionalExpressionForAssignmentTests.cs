@@ -71,8 +71,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleAssignment_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -101,8 +100,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleAssignment_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -131,8 +129,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithTwoThrows()
         {
             await TestMissingAsync(
@@ -153,8 +150,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -175,8 +171,7 @@ class C
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithSimpleThrow()
         {
             await TestMissingAsync(
@@ -299,8 +294,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnAssignmentToUndefinedField_Throw()
         {
             await TestInRegularAndScript1Async(
@@ -421,8 +415,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -452,8 +445,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -825,8 +817,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingWithoutElseWithThrowStatementAfterwards()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -877,8 +868,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp8()
         {
             await TestInRegularAndScript1Async(
@@ -908,8 +898,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways, parseOptions: CSharp8));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp9()
         {
             await TestInRegularAndScript1Async(
@@ -999,8 +988,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1030,8 +1018,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1332,8 +1319,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1371,8 +1357,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1466,8 +1451,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefAssignment1_Throw1()
         {
             await TestMissingAsync(
@@ -1489,8 +1473,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefAssignment1_Throw2()
         {
             await TestMissingAsync(
@@ -1541,8 +1524,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestTrueFalse_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1571,8 +1553,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestTrueFalse_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1630,8 +1611,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestFalseTrue_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1660,8 +1640,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestFalseTrue_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1690,8 +1669,7 @@ class C
 }");
         }
 
-        [WorkItem(58898, "https://github.com/dotnet/roslyn/issues/58898")]
-        [Fact]
+        [Fact, WorkItem(58898, "https://github.com/dotnet/roslyn/issues/58898")]
         public async Task TestRemoveRedundantCast()
         {
             await TestInRegularAndScript1Async(

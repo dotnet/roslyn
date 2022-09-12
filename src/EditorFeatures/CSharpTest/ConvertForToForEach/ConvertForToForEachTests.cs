@@ -356,8 +356,7 @@ class C
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestBeforeKeyword()
         {
             await TestInRegularAndScript1Async(
@@ -405,8 +404,7 @@ class C
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInParentheses()
         {
             await TestInRegularAndScript1Async(
@@ -454,8 +452,7 @@ class C
 }");
         }
 
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [Fact]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestInParentheses2()
         {
             await TestInRegularAndScript1Async(

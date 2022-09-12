@@ -1314,8 +1314,7 @@ class C
         /// <summary>
         /// Should not allow names with '$' prefix.
         /// </summary>
-        [WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
-        [Fact]
+        [Fact, WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
         public void NoPrefix()
         {
             var source =
@@ -1421,8 +1420,7 @@ class C
             });
         }
 
-        [WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
-        [Fact]
+        [Fact, WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
         public void OtherStatements()
         {
             var source =

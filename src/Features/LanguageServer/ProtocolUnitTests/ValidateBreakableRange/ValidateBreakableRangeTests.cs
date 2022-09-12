@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        [WorkItem(1501785, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
+        [Fact, WorkItem(1501785, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
         public async Task InvalidExistingBreakpoint1()
         {
             var markup =
@@ -121,8 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        [WorkItem(1501882, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
+        [Fact, WorkItem(1501882, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
         public async Task InvalidExistingBreakpoint2()
         {
             var markup =

@@ -607,8 +607,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task RemoveByVal1()
         {
             var code = @"[|Class A
@@ -624,8 +623,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task RemoveByVal2()
         {
             var code = @"[|Class A
@@ -641,8 +639,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task RemoveByVal_LineContinuation()
         {
             var code = @"[|Class A
@@ -783,8 +780,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
+        [Fact, WorkItem(544300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
         public async Task NormalizedOperator_StructuredTrivia()
         {
             var code = @"[|#If VBC_VER => 9.0|]";
@@ -794,8 +790,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
+        [Fact, WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         public async Task DontRemoveByVal()
         {
             var code = @"[|Module Program
@@ -817,8 +812,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
+        [Fact, WorkItem(544561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
         public async Task NormalizeOperator_Text()
         {
             var code = @"[|Module Program
@@ -840,8 +834,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
+        [Fact, WorkItem(544557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
         public async Task NormalizeOperator_OperatorStatement()
         {
             var code = @"[|Class S
@@ -855,8 +848,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(544574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
+        [Fact, WorkItem(544574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
         public async Task Reorder_OperatorTokenAndModifiers()
         {
             var code = @"[|Class S
@@ -870,8 +862,7 @@ End Class";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(546521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
+        [Fact, WorkItem(546521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
         public async Task SkippedTokenOperator()
         {
             var code = @"[|Module M
@@ -889,8 +880,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
+        [Fact, WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         public async Task ReorderAsyncModifier()
         {
             var code = @"[|Module M
@@ -924,8 +914,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
+        [Fact, WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         public async Task ReorderIteratorModifier()
         {
             var code = @"[|Module M
@@ -959,8 +948,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(611766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
+        [Fact, WorkItem(611766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
         public async Task ReorderDuplicateModifiers()
         {
             var code = @"[|Module M
@@ -986,8 +974,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(530058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
+        [Fact, WorkItem(530058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
         public async Task TestBadOperatorToken()
         {
             var code = @"[|Module Test
@@ -1007,8 +994,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(1534, "https://github.com/dotnet/roslyn/issues/1534")]
+        [Fact, WorkItem(1534, "https://github.com/dotnet/roslyn/issues/1534")]
         public async Task TestColonEqualsToken()
         {
             var code = @"[|Module Program

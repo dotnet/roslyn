@@ -14,8 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Theory>
-        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextCausesConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -51,8 +50,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -87,8 +85,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -134,8 +131,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Theory, WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInCSCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

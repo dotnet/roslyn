@@ -128,8 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
+        <Theory, WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -292,8 +291,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <Theory, WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute(host As RenameTestHost)
@@ -327,8 +325,7 @@ end class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <Theory, WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeNoConflict1(host As RenameTestHost)
@@ -363,8 +360,7 @@ end class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <Theory, WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithConflict1(host As RenameTestHost)

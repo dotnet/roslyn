@@ -111,8 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 }");
         }
 
-        [Fact]
-        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestMissingBeforeCSharp6()
         {
             await TestMissingAsync(
@@ -544,8 +543,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
+        [Fact, WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
         public async Task TestTrivia3()
         {
             await TestInRegularAndScript1Async(
@@ -572,8 +570,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
+        [Fact, WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
         public async Task TestTrivia4()
         {
             await TestInRegularAndScript1Async(
@@ -822,8 +819,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithLambdaInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -855,8 +851,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithLambdaInitializer2()
         {
             await TestInRegularAndScript1Async(
@@ -888,8 +883,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestForWithAnonymousMethod()
         {
             await TestInRegularAndScript1Async(
@@ -920,8 +914,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithMethodReference()
         {
             await TestInRegularAndScript1Async(

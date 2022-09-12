@@ -920,8 +920,7 @@ class Program
             await VerifyItemExistsAsync(markup, "T");
         }
 
-        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
-        [Fact]
+        [Fact, WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionReturnType()
         {

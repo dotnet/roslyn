@@ -524,8 +524,7 @@ class TestFile
 }");
         }
 
-        [Fact]
-        [WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
+        [Fact, WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
         public async Task TestNoDiagnosticWhenCS0103Happens()
         {
             await TestDiagnosticMissingAsync(
@@ -549,8 +548,7 @@ class SpecificThingType
 }");
         }
 
-        [Fact]
-        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        [Fact, WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
         public async Task TestInExpressionTree1()
         {
             await TestMissingAsync(
@@ -561,8 +559,7 @@ object? o = null;
 Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;");
         }
 
-        [Fact]
-        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        [Fact, WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
         public async Task TestInExpressionTree2()
         {
             await TestMissingAsync(

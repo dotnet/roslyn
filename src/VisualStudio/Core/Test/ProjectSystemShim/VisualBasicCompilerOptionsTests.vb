@@ -214,8 +214,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")>
+        <WpfFact, WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectOutputPathAndOutputExeNameChange()
             Using environment = New TestEnvironment()

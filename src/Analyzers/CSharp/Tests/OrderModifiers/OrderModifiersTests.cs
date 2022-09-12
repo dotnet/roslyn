@@ -379,8 +379,7 @@ internal static class C
 }");
         }
 
-        [Fact]
-        [WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
+        [Fact, WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
         public async Task TestInLocalFunction()
         {
             // Not handled for performance reason.

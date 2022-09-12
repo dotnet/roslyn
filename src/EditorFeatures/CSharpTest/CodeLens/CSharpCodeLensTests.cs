@@ -255,8 +255,7 @@ public {typeKind} A
             await RunFullyQualifiedNameTest(input);
         }
 
-        [Fact]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestExplicitParameterlessConstructor()
         {
             const string input = @"<Workspace>
@@ -280,8 +279,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestExplicitParameterlessConstructor_TwoCalls()
         {
             const string input = @"<Workspace>
@@ -306,8 +304,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor()
         {
             const string input = @"<Workspace>
@@ -330,8 +327,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact]
-        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        [Fact, WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor_TwoCalls()
         {
             const string input = @"<Workspace>
@@ -355,8 +351,7 @@ public class B
             await RunReferenceTest(input);
         }
 
-        [Fact]
-        [WorkItem(51633, "https://github.com/dotnet/roslyn/issues/51633")]
+        [Fact, WorkItem(51633, "https://github.com/dotnet/roslyn/issues/51633")]
         public async Task TestMethodRefSourceGeneratedDocument()
         {
             const string input = @"<Workspace>

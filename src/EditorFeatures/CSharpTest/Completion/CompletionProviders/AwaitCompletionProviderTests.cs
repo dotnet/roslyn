@@ -198,8 +198,7 @@ class C
           select $$", LanguageVersion.CSharp9);
         }
 
-        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Fact]
+        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInFinally()
         {
             await VerifyKeywordAsync(@"
@@ -212,8 +211,7 @@ finally { $$ }  }
 }", LanguageVersion.CSharp9);
         }
 
-        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Fact]
+        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInFinally_TopLevel()
         {
             await VerifyKeywordAsync(
@@ -221,8 +219,7 @@ finally { $$ }  }
 finally { $$ }", LanguageVersion.CSharp9);
         }
 
-        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Fact]
+        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInCatch()
         {
             await VerifyKeywordAsync(@"
@@ -235,8 +232,7 @@ catch { $$ }  }
 }", LanguageVersion.CSharp9);
         }
 
-        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Fact]
+        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInCatch_TopLevel()
         {
             await VerifyKeywordAsync(

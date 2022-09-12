@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
             TestLinkedFileSet(
@@ -124,8 +123,7 @@ Four",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(

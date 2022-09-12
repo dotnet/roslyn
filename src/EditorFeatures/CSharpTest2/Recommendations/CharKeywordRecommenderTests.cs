@@ -814,8 +814,7 @@ class C
     delegate*$$");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
         public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
@@ -823,8 +822,7 @@ class C
 {keyword} $$"));
         }
 
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
         public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {

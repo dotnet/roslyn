@@ -14,8 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <WpfTheory>
-        <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
+        <WpfTheory, WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictForDelegate(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -217,8 +216,7 @@ class Goo
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(546429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546429")>
+        <Theory, WorkItem(546429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546429")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictWithNamespaceDefinedInMetadata(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

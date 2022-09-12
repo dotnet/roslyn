@@ -760,8 +760,7 @@ End Class"
                 Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
         End Sub
 
-        <Fact>
-        <WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
+        <Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
         Public Sub Type_Rename_Reloadable()
             Dim src1 = ReloadableAttributeSrc & "
 <CreateNewOnMetadataUpdate>
@@ -779,8 +778,7 @@ End Class"
                 Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.class_))
         End Sub
 
-        <Fact>
-        <WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
+        <Fact, WorkItem(54886, "https://github.com/dotnet/roslyn/issues/54886")>
         Public Sub Type_Rename_Reloadable_AddAndDeleteMember()
             Dim src1 = ReloadableAttributeSrc & "
 <CreateNewOnMetadataUpdate>
@@ -2743,8 +2741,7 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D"), preserveLocalVariables:=False)})
         End Sub
 
-        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
-        <Fact>
+        <Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         Public Sub NestedType_Insert_PInvoke_Syntactic()
             Dim src1 = "
 Imports System
@@ -2772,8 +2769,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertDllImport, "Declare Ansi Sub B Lib ""B"" ()", FeaturesResources.method))
         End Sub
 
-        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
-        <Fact>
+        <Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         Public Sub NestedType_Insert_PInvoke_Semantic1()
             Dim src1 = "
 Imports System
@@ -2813,8 +2809,7 @@ End Class"
                 targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
 
-        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
-        <Fact>
+        <Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         Public Sub NestedType_Insert_PInvoke_Semantic2()
             Dim src1 = "
 Imports System
@@ -2842,8 +2837,7 @@ End Class"
                 targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
 
-        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
-        <Fact>
+        <Fact, WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         Public Sub NestedType_Insert_VirtualAbstract()
             Dim src1 = "
 Imports System

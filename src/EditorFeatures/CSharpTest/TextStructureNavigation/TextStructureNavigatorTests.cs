@@ -306,8 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"class Test { string x = ""hello""; string s = $"" { x } hello{|Significant:$$""|}; }");
         }
 
-        [WpfFact]
-        [WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
+        [WpfFact, WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringContent()
         {
             AssertExtent(
@@ -353,8 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     """""";");
         }
 
-        [WpfFact]
-        [WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
+        [WpfFact, WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringDelimeter1()
         {
             AssertExtent(
@@ -379,8 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     """""";");
         }
 
-        [WpfFact]
-        [WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
+        [WpfFact, WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringDelimeter2()
         {
             AssertExtent(

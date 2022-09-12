@@ -205,8 +205,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
-        [Fact]
+        [Fact, WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         public async Task ReorderConstructorParametersAndArguments_ImplicitObjectCreation()
         {
             var markup = @"

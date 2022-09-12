@@ -2131,7 +2131,7 @@ End Module
 
         <WorkItem(576607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576607")>
         <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCompilerGeneratedEventHandlerForNonCustomEvent(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2156,7 +2156,7 @@ End Module
         End Sub
 
         <WorkItem(576966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576966")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpRenameParenthesizedFunctionName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2179,7 +2179,7 @@ End Module
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasicAwaitAsIdentifierInAsyncShouldBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2204,7 +2204,7 @@ End Module
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncMethodShouldBeEscaped0(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2238,7 +2238,7 @@ class M
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2271,7 +2271,7 @@ class s
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2304,7 +2304,7 @@ class s
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldNotBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2336,7 +2336,7 @@ class s
             End Using
         End Sub
 
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VBRoundTripMissingModuleName_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2366,7 +2366,7 @@ class s
             End Using
         End Sub
 
-        <Theory()>
+        <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VBRoundTripMissingModuleName_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -6920,8 +6920,7 @@ class C
         End Sub
 #End Region
 
-        <WpfTheory>
-        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <WpfTheory, WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub HandleProjectsWithoutCompilations(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
