@@ -1961,8 +1961,8 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 
         #endregion
         #region Bugfix 
-        [WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         [Fact, WorkItem(873066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")]
+        [WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2259,8 +2259,8 @@ typeName: "Bar",
 isMissing: true);
         }
 
-        [WorkItem(876202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
         [Fact, WorkItem(883531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")]
+        [WorkItem(876202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
         public async Task GenerateType_NoParameterLessConstructorForStruct()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2518,8 +2518,8 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [WorkItem(872935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
         [Fact(Skip = "872935")]
+        [WorkItem(872935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
         {
             await TestWithMockedGenerateTypeDialog(

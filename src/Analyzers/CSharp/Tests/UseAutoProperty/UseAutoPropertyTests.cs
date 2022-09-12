@@ -1652,8 +1652,8 @@ class C
 }");
         }
 
-        [WorkItem(23215, "https://github.com/dotnet/roslyn/issues/23215")]
         [Fact, WorkItem(23216, "https://github.com/dotnet/roslyn/issues/23216")]
+        [WorkItem(23215, "https://github.com/dotnet/roslyn/issues/23215")]
         public async Task TestFixAllInDocument()
         {
             await TestInRegularAndScript1Async(

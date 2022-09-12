@@ -6328,8 +6328,8 @@ class C
             new Byte() }");
         }
 
-        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         [Fact, WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
             await TestInRegularAndScriptAsync(

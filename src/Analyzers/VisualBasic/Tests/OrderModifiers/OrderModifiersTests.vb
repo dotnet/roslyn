@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.OrderModifiers
+    <Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
     Public Class OrderModifiersTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.OrderModifiers
                     New VisualBasicOrderModifiersCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestClass() As Task
             Await TestInRegularAndScript1Async(
 "[|friend|] protected class C
@@ -27,7 +28,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         public async Function TestStruct() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "[|friend|] protected structure C
@@ -38,7 +39,7 @@ end structure",
 end structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestInterface() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "[|friend|] protected interface C
@@ -47,7 +48,7 @@ end interface",
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestEnum() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "[|friend|] protected enum C
@@ -56,14 +57,14 @@ end enum",
 end enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestDelegate() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "[|friend|] protected delegate sub D()",
 "protected friend delegate sub D()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestMethodStatement() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -74,7 +75,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestMethodBlock() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -87,7 +88,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestField() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -98,7 +99,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestConstructor() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -111,7 +112,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestPropertyStatement() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -122,7 +123,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestPropertyBlock() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -139,7 +140,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestAccessor() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -158,7 +159,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestPropertyEvent() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -171,7 +172,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestFieldEvent() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -182,7 +183,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestOperator() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -197,7 +198,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestConversionOperator() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "class C
@@ -210,7 +211,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestFixAll1() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "{|FixAllInDocument:friend|} protected class C
@@ -223,7 +224,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestFixAll2() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "friend protected class C
@@ -238,7 +239,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestTrivia1() As Threading.Tasks.Task
             Await TestInRegularAndScript1Async(
 "
@@ -253,7 +254,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
+        <Fact>
         Public Async Function TestTrivia3() As Task
             Await TestInRegularAndScript1Async(
 "

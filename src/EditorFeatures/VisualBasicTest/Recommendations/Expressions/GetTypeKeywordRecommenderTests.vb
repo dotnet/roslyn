@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class GetTypeKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "GetType",
 $"{VBFeaturesResources.GetType_function}
@@ -14,112 +15,111 @@ $"{VBFeaturesResources.GetType_function}
 GetType({VBWorkspaceResources.typeName}) As Type")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeInStatementTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterReturnTest()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterArgument1Test()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterArgument2Test()
             VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterBinaryExpressionTest()
             VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterNotTest()
             VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterTypeOfTest()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterDoWhileTest()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterDoUntilTest()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterLoopWhileTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterLoopUntilTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterIfTest()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterElseIfTest()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterElseSpaceIfTest()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterErrorTest()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterThrowTest()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterInitializerTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterArrayInitializerSquiggleTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub GetTypeAfterArrayInitializerCommaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "GetType")
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>

@@ -1027,10 +1027,10 @@ new object[] { x, y, z }
         /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
+        [Fact, WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         [WorkItem(949559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
         [WorkItem(540237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact, WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         public async Task PrivateImplementationDetailsType()
         {
             var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }");

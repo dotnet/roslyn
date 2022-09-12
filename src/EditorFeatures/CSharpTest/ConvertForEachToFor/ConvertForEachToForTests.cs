@@ -688,8 +688,8 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task TestCaretBefore()
         {
             var text = @"
@@ -720,8 +720,8 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task TestCaretAfter()
         {
             var text = @"
@@ -752,8 +752,8 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         public async Task TestSelection()
         {
             var text = @"

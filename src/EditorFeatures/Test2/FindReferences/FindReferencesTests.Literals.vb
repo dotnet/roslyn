@@ -6,8 +6,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInt32Literals1(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -45,7 +46,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCharLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -80,7 +81,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestDoubleLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -120,7 +121,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestFloatLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -160,7 +161,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestStringLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -203,7 +204,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestStringLiterals2(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -236,7 +237,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestStringLiterals3(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -269,7 +270,7 @@ end class
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestDecimalLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
@@ -291,7 +292,7 @@ class C
             Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, CombinatorialData>
         Public Async Function TestInt32LiteralsUsedInSourceGeneratedDocument() As Task
             Dim test =
 <Workspace>

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
     Public Class UseAutoPropertyTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
             End If
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <Fact>
         Public Async Function TestMultiFile_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -59,7 +60,7 @@ partial class C
                 })
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <Fact>
         Public Async Function TestMultiFile_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -97,8 +98,7 @@ end class
                 })
         End Function
 
-        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <Fact, WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
         Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>

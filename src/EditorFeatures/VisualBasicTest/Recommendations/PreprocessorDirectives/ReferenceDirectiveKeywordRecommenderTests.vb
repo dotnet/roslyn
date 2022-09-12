@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ReferenceDirectiveKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        <WorkItem(37911, "https://github.com/dotnet/roslyn/issues/37911")>
+        <Fact, WorkItem(37911, "https://github.com/dotnet/roslyn/issues/37911")>
         Public Sub NotInFileTest()
             VerifyRecommendationsMissing(<File>|</File>, "#R")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        <WorkItem(37911, "https://github.com/dotnet/roslyn/issues/37911")>
+        <Fact, WorkItem(37911, "https://github.com/dotnet/roslyn/issues/37911")>
         Public Sub AppearsInScriptingContext()
             VerifyRecommendationsContain(<File Script="True">|</File>, "#R")
         End Sub
