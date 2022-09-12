@@ -90,8 +90,8 @@ class C
 }");
         }
 
-        [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         public async Task TestPartialSelection()
         {
             await TestInRegularAndScript1Async(
@@ -508,8 +508,8 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
-        [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
         public async Task TestReadOfDataThatDoesNotFlowIn()
         {
             await TestInRegularAndScript1Async(
@@ -548,8 +548,8 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
 }");
         }
 
-        [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
         public async Task TestMissingOnGoto()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -569,8 +569,8 @@ class C
 }");
         }
 
-        [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
             await TestInRegularAndScript1Async(
@@ -685,8 +685,8 @@ class C
 }");
         }
 
-        [WorkItem(545623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(545623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
         public async Task TestOnActionInvocation()
         {
             await TestInRegularAndScript1Async(
@@ -725,8 +725,8 @@ class Program
 }");
         }
 
-        [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
         public async Task DisambiguateCallSiteIfNecessary1()
         {
             await TestInRegularAndScript1Async(
@@ -764,8 +764,8 @@ class Program
 }");
         }
 
-        [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
         public async Task DisambiguateCallSiteIfNecessary2()
         {
             await TestInRegularAndScript1Async(
@@ -803,9 +803,9 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         [WorkItem(530709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
         [WorkItem(632182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DontOverparenthesize()
         {
             await TestAsync(
@@ -903,8 +903,8 @@ static class E
 parseOptions: Options.Regular);
         }
 
-        [WorkItem(632182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(632182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
         public async Task DontOverparenthesizeGenerics()
         {
             await TestAsync(
@@ -1002,8 +1002,8 @@ static class E
 parseOptions: Options.Regular);
         }
 
-        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
         public async Task PreserveCommentsBeforeDeclaration_1()
         {
             await TestInRegularAndScript1Async(
@@ -1044,8 +1044,8 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
         public async Task PreserveCommentsBeforeDeclaration_2()
         {
             await TestInRegularAndScript1Async(
@@ -1094,8 +1094,8 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
         public async Task PreserveCommentsBeforeDeclaration_3()
         {
             await TestInRegularAndScript1Async(
@@ -1627,8 +1627,8 @@ class Program
 }");
         }
 
-        [WorkItem(15218, "https://github.com/dotnet/roslyn/issues/15218")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(15218, "https://github.com/dotnet/roslyn/issues/15218")]
         public async Task TestCancellationTokenGoesLast()
         {
             await TestInRegularAndScript1Async(
@@ -1670,8 +1670,8 @@ class C
 }");
         }
 
-        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
         public async Task TestUseVar1()
         {
             await TestInRegularAndScript1Async(
@@ -1718,8 +1718,8 @@ class C
 }", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
-        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
         public async Task TestUseVar2()
         {
             await TestInRegularAndScript1Async(
@@ -1872,8 +1872,8 @@ class C
 }");
         }
 
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         public async Task Bug3790()
         {
             await TestInRegularAndScript1Async(@"
@@ -1913,8 +1913,8 @@ class Test
 }");
         }
 
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         public async Task Bug3790_1()
         {
             await TestInRegularAndScript1Async(@"
@@ -1953,8 +1953,8 @@ class Test
 }");
         }
 
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         public async Task Bug3790_2()
         {
             await TestInRegularAndScript1Async(@"
@@ -1993,8 +1993,8 @@ class Test
 }");
         }
 
-        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         public async Task TestExpressionBodyProperty()
         {
             await TestInRegularAndScript1Async(@"
@@ -2018,8 +2018,8 @@ class Program
 }");
         }
 
-        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         public async Task TestExpressionBodyIndexer()
         {
             await TestInRegularAndScript1Async(@"
@@ -2043,8 +2043,8 @@ class Program
 }");
         }
 
-        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         public async Task TestExpressionBodyPropertyGetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -2076,8 +2076,8 @@ class Program
 }");
         }
 
-        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         public async Task TestExpressionBodyPropertySetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -2109,8 +2109,8 @@ class Program
 }");
         }
 
-        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         public async Task TestExpressionBodyIndexerGetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -2142,8 +2142,8 @@ class Program
 }");
         }
 
-        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
         public async Task TestExpressionBodyIndexerSetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -4046,8 +4046,8 @@ class MethodExtraction
             await TestInRegularAndScript1Async(input, expected);
         }
 
-        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
         public async Task TestOnInvalidUsingStatement_MultipleStatements()
         {
             var input = @"
@@ -4076,8 +4076,8 @@ class C
             await TestInRegularAndScript1Async(input, expected);
         }
 
-        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
         public async Task TestMissingOnInvalidUsingStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4471,8 +4471,8 @@ record struct Program
 }");
         }
 
-        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
         public async Task TestMethodInNamespace()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -4482,8 +4482,8 @@ namespace TestNamespace
 }");
         }
 
-        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
         public async Task TestMethodInInterface()
         {
             await TestInRegularAndScript1Async(@"
@@ -4503,8 +4503,8 @@ interface TestInterface
 }");
         }
 
-        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
         public async Task TestStaticMethodInInterface()
         {
             await TestInRegularAndScript1Async(@"
@@ -4524,8 +4524,8 @@ interface TestInterface
 }");
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         public async Task TopLevelStatement_FullStatement()
         {
             var code = @"
@@ -4545,8 +4545,8 @@ interface TestInterface
             }.RunAsync();
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         public async Task TopLevelStatement_MultipleStatements()
         {
             var code = @"
@@ -4571,8 +4571,8 @@ System.Console.WriteLine(x);
             }.RunAsync();
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         public async Task TopLevelStatement_MultipleStatementsWithUsingAndClass()
         {
             var code = @"
@@ -4601,8 +4601,8 @@ class Ignored { }
             }.RunAsync();
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
         public async Task TopLevelStatement_MultipleStatementsWithInvalidOrdering()
         {
             var code = @"
@@ -4633,8 +4633,8 @@ class Ignored2 { }
             }.RunAsync();
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
         public async Task TopLevelMethod_StaticMethod()
         {
             await TestInRegularAndScript1Async(@"
@@ -4655,8 +4655,8 @@ static string NewMethod(string s)
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
         public async Task StaticMethod_ExtractStatementContainingParameter()
         {
             await TestInRegularAndScript1Async(@"
@@ -4683,8 +4683,8 @@ public class Class
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
 
-        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
         public async Task AttributeArgumentWithLambdaBody()
         {
             await TestInRegularAndScript1Async(

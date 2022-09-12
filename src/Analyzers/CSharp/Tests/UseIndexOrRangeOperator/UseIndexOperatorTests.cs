@@ -492,8 +492,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         public async Task TestMissingWithNoSystemIndex()
         {
             var source =

@@ -877,8 +877,8 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "T");
         }
 
-        [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
@@ -906,8 +906,8 @@ $$
             await VerifyItemInLinkedFilesAsync(markup, "T", null);
         }
 
-        [WorkItem(1020654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020654")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1020654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020654")]
         public async Task AfterAsyncTaskWithBraceCompletion()
         {
             var markup = @"

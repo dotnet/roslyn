@@ -5391,8 +5391,8 @@ class C : IServiceProvider
 ");
         }
 
-        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         [Fact, WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         public async Task TestImplementIDisposable_NoDisposePattern()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -5409,8 +5409,8 @@ class C : IDisposable
 ", codeAction: ("False;False;True:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
         }
 
-        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         [Fact, WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         public async Task TestImplementIDisposable_DisposePattern()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -5426,8 +5426,8 @@ class C : IDisposable
 ", codeAction: ("False;False;True:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
         }
 
-        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         [Fact, WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         public async Task TestImplementIDisposableExplicitly_NoDisposePattern()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -5444,8 +5444,8 @@ class C : IDisposable
 ", codeAction: ("True;False;False:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
         }
 
-        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         [Fact, WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         public async Task TestImplementIDisposableExplicitly_DisposePattern()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -5469,8 +5469,8 @@ class C : System.IDisposable
 }}", codeAction: ("True;False;False:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
         }
 
-        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         [Fact, WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         public async Task TestImplementIDisposableAbstractly_NoDisposePattern()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -5484,8 +5484,8 @@ abstract class C : IDisposable
 ", codeAction: ("False;True;True:global::System.IDisposable;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
         }
 
-        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         [Fact, WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
+        [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
         public async Task TestImplementIDisposableThroughMember_NoDisposePattern()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -7300,8 +7300,8 @@ class C : I
 }");
         }
 
-        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
         [Fact, WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
         public async Task TestAutoProperties()
         {
             await new VerifyCS.Test()

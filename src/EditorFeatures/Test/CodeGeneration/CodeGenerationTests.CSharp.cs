@@ -969,8 +969,8 @@ class C
                 await TestAddStatementsAsync(input, expected, "Console.WriteLine(2);");
             }
 
-            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(840265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
             public async Task AddDefaultParameterWithNonDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
@@ -997,8 +997,8 @@ class C
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5f)));
             }
 
-            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WorkItem(841365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
             public async Task AddParamsParameterToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";

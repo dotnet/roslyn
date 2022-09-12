@@ -448,8 +448,8 @@ public class goo
 }", "completionlist");
         }
 
-        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         public async Task ParamRefNames()
         {
             // Local functions do not support documentation comments
@@ -463,8 +463,8 @@ static void Main(string[] args)
 ", "args", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         public async Task ParamRefNames_Interactive()
         {
             await VerifyItemExistsAsync(@"
@@ -676,8 +676,8 @@ class C
 }", "bullet", "number", "table");
         }
 
-        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
         [Fact, WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
         public async Task SeeAttributeNames()
         {
             await VerifyItemsExistAsync(@"

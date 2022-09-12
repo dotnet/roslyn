@@ -1273,8 +1273,8 @@ class P
             await TestSelectionAsync(code);
         }
 
-        [WorkItem(540787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
         [Fact, WorkItem(542722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
+        [WorkItem(540787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
         public async Task DontCrash()
             => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 

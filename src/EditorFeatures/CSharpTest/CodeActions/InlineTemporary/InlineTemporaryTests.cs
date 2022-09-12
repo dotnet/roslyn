@@ -2407,8 +2407,8 @@ class Program
             parseOptions: null);
         }
 
-        [WorkItem(544636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544636")]
         [Fact, WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
+        [WorkItem(544636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544636")]
         public async Task InsertCastForMethodGroupIfNeeded1()
         {
             await TestAsync(
@@ -2435,8 +2435,8 @@ class Program
             parseOptions: null);
         }
 
-        [WorkItem(544978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544978")]
         [Fact, WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
+        [WorkItem(544978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544978")]
         public async Task InsertCastForMethodGroupIfNeeded2()
         {
             await TestAsync(
@@ -3688,8 +3688,8 @@ class C
 }", parseOptions: TestOptions.Regular7);
         }
 
-        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
             await TestInRegularAndScriptAsync(
@@ -3710,8 +3710,8 @@ class C
 }");
         }
 
-        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         public async Task DoNotCastInterpolatedStringWhenInliningIntoValidCall()
         {
             await TestInRegularAndScriptAsync(

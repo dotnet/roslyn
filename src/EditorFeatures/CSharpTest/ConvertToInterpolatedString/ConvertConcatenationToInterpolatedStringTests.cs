@@ -595,8 +595,8 @@ public class C
 }");
         }
 
-        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithSelectionOnEntireToBeInterpolatedString()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -631,8 +631,8 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringSuffix()
         {
             var code = @"public class C
@@ -647,8 +647,8 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestMissingWithSelectionOnMiddlePartOfToBeInterpolatedString()
         {
             var code = @"public class C

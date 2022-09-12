@@ -75,8 +75,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         public async Task TestNotWithoutSystemRange()
         {
             var source =
@@ -638,8 +638,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestWritableType()
         {
             var source =
@@ -697,8 +697,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestIntWritableType()
         {
             var source =
@@ -742,8 +742,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
         public async Task TestReadWriteProperty()
         {
             var source =
@@ -817,8 +817,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
         public async Task TestExpressionWithAddOperatorArgument()
         {
             var source =
@@ -878,8 +878,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         public async Task TestExpressionWithNullConditionalAccess()
         {
             var source =
@@ -906,8 +906,8 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
         {
             var source =
@@ -980,8 +980,8 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
         public async Task TestStringMethod()
         {
             var source =
@@ -1047,8 +1047,8 @@ namespace System
             }.RunAsync();
         }
 
-        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
         public async Task TestSliceOnThis()
         {
             var source =
@@ -1078,8 +1078,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromZero()
         {
             var source =
@@ -1109,8 +1109,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromAribtraryPosition()
         {
             var source =
@@ -1140,8 +1140,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromZeroToArbitraryEnd()
         {
             var source =
@@ -1171,8 +1171,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         public async Task TestStartingFromZeroGoingToLength()
         {
             var source =
@@ -1202,8 +1202,8 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(40438, "https://github.com/dotnet/roslyn/issues/40438")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(40438, "https://github.com/dotnet/roslyn/issues/40438")]
         public async Task TestStartingFromZeroGoingToLengthMinus1()
         {
             var source =

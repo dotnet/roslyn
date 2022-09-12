@@ -1875,8 +1875,8 @@ public class goo : System.Object
 }");
         }
 
-        [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
         [Fact, WorkItem(8808, "https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
+        [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
         public async Task NewLineForOpenBracesNonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -6127,8 +6127,8 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
         [Fact, WorkItem(37031, "https://github.com/dotnet/roslyn/issues/37031")]
+        [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
             var code = @"
@@ -7907,8 +7907,8 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         [Fact, WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
+        [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         public async Task ReconstructWhitespaceStringUsingTabs_SingleLineComment()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -7931,9 +7931,9 @@ class Program
 }", false, optionSet);
         }
 
+        [Fact, WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
         [WorkItem(961559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/961559")]
         [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
-        [Fact, WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
         public async Task ReconstructWhitespaceStringUsingTabs_MultiLineComment()
         {
             var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
@@ -8014,8 +8014,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         [Fact, WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         public async Task FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8044,8 +8044,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         [Fact, WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         public async Task FormatHashElseToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8074,8 +8074,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         [Fact, WorkItem(1089196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089196")]
+        [WorkItem(285, "https://github.com/dotnet/roslyn/issues/285")]
         public async Task FormatHashsToZeroColumnAnywhereInsideIfDef()
         {
             const string code = @"class MyClass
@@ -8351,8 +8351,8 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
-        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
         [Fact, WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
         public async Task VerifySpacingAfterMethodDeclarationName_Default()
         {
             var code = @"class Program<T>
@@ -8372,8 +8372,8 @@ class Program
             await AssertFormatAsync(expected, code);
         }
 
-        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
         [Fact, WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
+        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
         public async Task VerifySpacingAfterMethodDeclarationName_NonDefault()
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -8424,8 +8424,8 @@ class Program
             await AssertFormatAsync(code, code);
         }
 
-        [WorkItem(1184285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1184285")]
         [Fact, WorkItem(4280, "https://github.com/dotnet/roslyn/issues/4280")]
+        [WorkItem(1184285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1184285")]
         public async Task FormatDictionaryInitializers()
         {
             var code = @"class Program

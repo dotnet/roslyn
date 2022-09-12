@@ -314,8 +314,8 @@ using System.Linq;
                 MainDescription("class System.Console"));
         }
 
-        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         public async Task TestDocumentationInUsingDirectiveWithAlias()
         {
             var markup =
@@ -328,8 +328,8 @@ interface IGoo {  }";
                 Documentation("summary for interface IGoo"));
         }
 
-        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         public async Task TestDocumentationInUsingDirectiveWithAlias2()
         {
             var markup =
@@ -343,8 +343,8 @@ class C : I$$ { }";
                 Documentation("summary for interface IGoo"));
         }
 
-        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         public async Task TestDocumentationInUsingDirectiveWithAlias3()
         {
             var markup =
@@ -759,8 +759,8 @@ public class GenericList<T> { Generic$$List<int> t; }";
                 MainDescription($"T {FeaturesResources.in_} C<T>"));
         }
 
-        [WorkItem(538636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538636")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538636")]
         public async Task TestTypeParameterWithDocComment()
         {
             var markup =
@@ -1337,8 +1337,8 @@ static class Test { int a = MyStruct.Some$$Field; }";
                 MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestMemberOfStructFromSourceWithDocComment()
         {
             var markup =
@@ -1364,8 +1364,8 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestMemberOfStructInsideMethodFromSourceWithDocComment()
         {
             var markup =
@@ -1379,8 +1379,8 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 Documentation("My Field"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestPartialMethodDocComment_01()
         {
             var markup =
@@ -1401,8 +1401,8 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
                 Documentation("My Method Implementation"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestPartialMethodDocComment_02()
         {
             var markup =
@@ -1422,8 +1422,8 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
                 Documentation("My Method Definition"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestPartialMethodDocComment_03()
         {
             var markup =
@@ -1443,8 +1443,8 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
                 Documentation("My Method Implementation"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestPartialMethodDocComment_04()
         {
             var markup =
@@ -1460,8 +1460,8 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
                 Documentation("My Method Definition"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestPartialMethodDocComment_05()
         {
             var markup =
@@ -1477,8 +1477,8 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
                 Documentation("My Method Implementation"));
         }
 
-        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
         public async Task TestPartialMethodDocComment_06()
         {
             var markup =
@@ -1604,8 +1604,8 @@ class D
                 MainDescription("struct System.Boolean"));
         }
 
-        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         public async Task TestNullLiteral()
         {
             await TestInMethodAsync(@"string f = null$$",
@@ -1616,16 +1616,16 @@ class D
         public async Task TestNullLiteralWithVar()
             => await TestInMethodAsync(@"var f = null$$");
 
-        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         public async Task TestDefaultLiteral()
         {
             await TestInMethodAsync(@"string f = default$$",
                 MainDescription("class System.String"));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         public async Task TestAwaitKeywordOnGenericTaskReturningAsync()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1640,8 +1640,8 @@ class C
             await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         public async Task TestAwaitKeywordInDeclarationStatement()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1656,8 +1656,8 @@ class C
             await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         public async Task TestAwaitKeywordOnTaskReturningAsync()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1671,8 +1671,8 @@ class C
             await TestAsync(markup, MainDescription(FeaturesResources.Awaited_task_returns_no_value));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         public async Task TestNestedAwaitKeywords1()
         {
             var markup = @"using System;
@@ -1707,8 +1707,8 @@ class AsyncExample2
                          TypeParameterMap($"\r\nTResult {FeaturesResources.is_} int"));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         public async Task TestNestedAwaitKeywords2()
         {
             var markup = @"using System;
@@ -1742,8 +1742,8 @@ class AsyncExample2
             await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         public async Task TestAwaitablePrefixOnCustomAwaiter()
         {
             var markup = @"using System;
@@ -1769,8 +1769,8 @@ class MyAwaiter : INotifyCompletion
             await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) class C"));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         public async Task TestTaskType()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1784,8 +1784,8 @@ class C
             await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task"));
         }
 
-        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
         public async Task TestTaskOfTType()
         {
             var markup = @"using System;
@@ -1801,8 +1801,8 @@ class C
                          TypeParameterMap($"\r\nTResult {FeaturesResources.is_} int"));
         }
 
-        [WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")]
         public async Task TestDynamicIsntAwaitable()
         {
             var markup = @"
@@ -1843,8 +1843,8 @@ class C
                 TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
         }
 
-        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         public async Task TestVerbatimStringLiteral()
         {
             await TestInMethodAsync(@"string f = @""cat""$$",
@@ -1925,8 +1925,8 @@ class C
                 TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
         }
 
-        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         public async Task TestInterpolatedStringLiteral()
         {
             await TestInMethodAsync(@"string f = $""cat""$$", MainDescription("class System.String"));
@@ -1935,8 +1935,8 @@ class C
             await TestInMethodAsync(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
         }
 
-        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         public async Task TestVerbatimInterpolatedStringLiteral()
         {
             await TestInMethodAsync(@"string f = $@""cat""$$", MainDescription("class System.String"));
@@ -3072,8 +3072,8 @@ class D : X$$
                 MainDescription($"({FeaturesResources.field}) DateTime C.field"));
         }
 
-        [WorkItem(538767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538767")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538767")]
         public async Task TestGenericErrorFieldOnDeclaration()
         {
             await TestInClassAsync(
@@ -3081,8 +3081,8 @@ class D : X$$
                 MainDescription($"({FeaturesResources.field}) NonExistentType<int> C.field"));
         }
 
-        [WorkItem(538822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538822")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538822")]
         public async Task TestDelegateType()
         {
             await TestInClassAsync(
@@ -3093,8 +3093,8 @@ class D : X$$
                           $"TResult {FeaturesResources.is_} string")));
         }
 
-        [WorkItem(538824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538824")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(538824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538824")]
         public async Task TestOnDelegateInvocation()
         {
             await TestAsync(
@@ -3111,8 +3111,8 @@ class D : X$$
                 MainDescription($"({FeaturesResources.local_variable}) D1 d"));
         }
 
-        [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
         public async Task TestOnArrayCreation1()
         {
             await TestAsync(
@@ -3125,8 +3125,8 @@ class D : X$$
 }", MainDescription("int[]"));
         }
 
-        [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
         public async Task TestOnArrayCreation2()
         {
             await TestAsync(
@@ -3172,8 +3172,8 @@ class D : X$$
                 MainDescription($"C.C(int i) (+ 1 {FeaturesResources.overload})"));
         }
 
-        [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
         public async Task TestIsNamedTypeAccessibleForErrorTypes()
         {
             await TestAsync(
@@ -3190,8 +3190,8 @@ internal class A<T>
                 MainDescription("class A<T>"));
         }
 
-        [WorkItem(540075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540075")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(540075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540075")]
         public async Task TestErrorType()
         {
             await TestAsync(
@@ -3207,8 +3207,8 @@ class C
                 MainDescription("Goo"));
         }
 
-        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
         public async Task TestShortDiscardInAssignment()
         {
             await TestAsync(
@@ -3222,8 +3222,8 @@ class C
                 MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
-        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
         public async Task TestUnderscoreLocalInAssignment()
         {
             await TestAsync(
@@ -3237,8 +3237,8 @@ class C
                 MainDescription($"({FeaturesResources.local_variable}) int _"));
         }
 
-        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
         public async Task TestShortDiscardInOutVar()
         {
             await TestAsync(
@@ -3253,8 +3253,8 @@ class C
                 MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
-        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
         public async Task TestDiscardInOutVar()
         {
             await TestAsync(
@@ -3268,8 +3268,8 @@ class C
 }"); // No quick info (see issue #16667)
         }
 
-        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
         public async Task TestDiscardInIsPattern()
         {
             await TestAsync(
@@ -3282,8 +3282,8 @@ class C
 }"); // No quick info (see issue #16667)
         }
 
-        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
         public async Task TestDiscardInSwitchPattern()
         {
             await TestAsync(
@@ -3328,8 +3328,8 @@ class C
                 MainDescription($"({FeaturesResources.discard}) int _"));
         }
 
-        [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
         public async Task TestLiterals()
         {
             await TestAsync(
@@ -3354,8 +3354,8 @@ class C
                 MainDescription("struct System.Int32"));
         }
 
-        [WorkItem(541444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541444")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(541444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541444")]
         public async Task TestErrorInForeach()
         {
             await TestAsync(
@@ -3372,8 +3372,8 @@ class C
                 MainDescription($"({FeaturesResources.local_variable}) int cc"));
         }
 
-        [WorkItem(541678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541678")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(541678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541678")]
         public async Task TestQuickInfoOnEvent()
         {
             await TestAsync(
@@ -3404,32 +3404,32 @@ public class Publisher
                 MainDescription("SampleEventHandler Publisher.SampleEvent"));
         }
 
-        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
         public async Task TestEvent()
         {
             await TestInMethodAsync(@"System.Console.CancelKeyPres$$s += null;",
                 MainDescription("ConsoleCancelEventHandler Console.CancelKeyPress"));
         }
 
-        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
         public async Task TestEventPlusEqualsOperator()
         {
             await TestInMethodAsync(@"System.Console.CancelKeyPress +$$= null;",
                 MainDescription("void Console.CancelKeyPress.add"));
         }
 
-        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542157")]
         public async Task TestEventMinusEqualsOperator()
         {
             await TestInMethodAsync(@"System.Console.CancelKeyPress -$$= null;",
                 MainDescription("void Console.CancelKeyPress.remove"));
         }
 
-        [WorkItem(541885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541885")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(541885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541885")]
         public async Task TestQuickInfoOnExtensionMethod()
         {
             await TestWithOptionsAsync(Options.Regular,
@@ -4249,8 +4249,8 @@ namespace N {
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
         }
 
-        [WorkItem(543205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543205")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543205")]
         public async Task TestErrorGlobal()
         {
             await TestAsync(
@@ -4280,8 +4280,8 @@ class classAttribute : Attribute
                 MainDescription($"({FeaturesResources.field}) classAttribute classAttribute.x"));
         }
 
-        [WorkItem(544026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544026")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544026")]
         public async Task DontRemoveAttributeSuffix2()
         {
             await TestAsync(
@@ -4294,8 +4294,8 @@ class class1Attribute : Attribute
                 MainDescription($"({FeaturesResources.field}) class1Attribute class1Attribute.x"));
         }
 
-        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
         public async Task AttributeQuickInfoBindsToClassTest()
         {
             await TestAsync(
@@ -4317,8 +4317,8 @@ class SomeAttribute : Attribute
                 Documentation("class comment"));
         }
 
-        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
         public async Task AttributeConstructorQuickInfo()
         {
             await TestAsync(
@@ -4353,8 +4353,8 @@ Goo:
                 MainDescription($"({FeaturesResources.label}) Goo"));
         }
 
-        [WorkItem(542613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542613")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(542613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542613")]
         public async Task TestUnboundGeneric()
         {
             await TestAsync(
@@ -4372,8 +4372,8 @@ class C
                 NoTypeParameterMap);
         }
 
-        [WorkItem(543113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543113")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543113")]
         public async Task TestAnonymousTypeNew1()
         {
             await TestAsync(
@@ -4392,8 +4392,8 @@ $@"
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
-        [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
@@ -4467,8 +4467,8 @@ $@"
                 MainDescription("string[]"));
         }
 
-        [WorkItem(529139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529139")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(529139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529139")]
         public async Task ColorColorRangeVariable()
         {
             await TestAsync(
@@ -4492,8 +4492,8 @@ namespace N1
                 MainDescription($"({FeaturesResources.range_variable}) N1.yield yield"));
         }
 
-        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         public async Task QuickInfoOnOperator()
         {
             await TestAsync(
@@ -4573,8 +4573,8 @@ class B
                 MainDescription($"({FeaturesResources.constant}) int B.Z = A.X + 1"));
         }
 
-        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         public async Task TestConstantOverflow()
         {
             await TestAsync(
@@ -4585,8 +4585,8 @@ class B
                 MainDescription($"({FeaturesResources.constant}) int B.Z = int.MaxValue + 1"));
         }
 
-        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         public async Task TestConstantOverflowInUncheckedContext()
         {
             await TestAsync(
@@ -4671,8 +4671,8 @@ class B
                 MainDescription($"({FeaturesResources.local_constant}) int loc = 1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType1()
         {
             await TestInMethodAsync(
@@ -4680,8 +4680,8 @@ class B
                 MainDescription($"({FeaturesResources.local_variable}) Goo v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType2()
         {
             await TestInMethodAsync(
@@ -4689,8 +4689,8 @@ class B
                 MainDescription($"({FeaturesResources.local_variable}) var v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType3()
         {
             await TestInMethodAsync(
@@ -4698,8 +4698,8 @@ class B
                 MainDescription($"({FeaturesResources.local_variable}) Goo<Bar> v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType4()
         {
             await TestInMethodAsync(
@@ -4707,24 +4707,24 @@ class B
                 MainDescription($"({FeaturesResources.local_variable}) ?* v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType5()
         {
             await TestInMethodAsync("var $$v1 = &v1",
                 MainDescription($"({FeaturesResources.local_variable}) var* v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType6()
         {
             await TestInMethodAsync("var $$v1 = new Goo[1]",
                 MainDescription($"({FeaturesResources.local_variable}) Goo[] v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType7()
         {
             await TestInClassAsync(
@@ -4742,16 +4742,16 @@ class B
                 MainDescription($"({FeaturesResources.local_variable}) ? v1"));
         }
 
-        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(544416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544416")]
         public async Task TestErrorType8()
         {
             await TestInMethodAsync("var $$v1 = Unknown",
                 MainDescription($"({FeaturesResources.local_variable}) ? v1"));
         }
 
-        [WorkItem(545072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545072")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545072")]
         public async Task TestDelegateSpecialTypes()
         {
             await TestAsync(
@@ -4759,8 +4759,8 @@ class B
                 MainDescription("delegate void F(int x)"));
         }
 
-        [WorkItem(545108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545108")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545108")]
         public async Task TestNullPointerParameter()
         {
             await TestAsync(
@@ -4773,16 +4773,16 @@ class B
                 MainDescription("void C.Goo([int* x = null])"));
         }
 
-        [WorkItem(545098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545098")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545098")]
         public async Task TestLetIdentifier1()
         {
             await TestInMethodAsync("var q = from e in \"\" let $$y = 1 let a = new { y } select a;",
                 MainDescription($"({FeaturesResources.range_variable}) int y"));
         }
 
-        [WorkItem(545295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545295")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545295")]
         public async Task TestNullableDefaultValue()
         {
             await TestAsync(
@@ -4795,8 +4795,8 @@ class B
                 MainDescription("void Test.Method([int? t1 = null])"));
         }
 
-        [WorkItem(529586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529586")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(529586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529586")]
         public async Task TestInvalidParameterInitializer()
         {
             await TestAsync(
@@ -4811,8 +4811,8 @@ class B
                 MainDescription($@"({FeaturesResources.parameter}) float j1 = ""Hello"" + ""World"""));
         }
 
-        [WorkItem(545230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
         public async Task TestComplexConstLocal()
         {
             await TestAsync(
@@ -4828,8 +4828,8 @@ class B
                 MainDescription($@"({FeaturesResources.local_constant}) int MEGABYTE = 1024 * 1024 + true"));
         }
 
-        [WorkItem(545230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(545230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
         public async Task TestComplexConstField()
         {
             await TestAsync(
@@ -4927,8 +4927,8 @@ class B
 }");
         }
 
-        [WorkItem(546849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(546849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
         public async Task TestIndexedProperty()
         {
             var markup = @"class Program
@@ -4974,8 +4974,8 @@ End Class";
                 expectedResults: MainDescription("string CCC.IndexProp[int p1, [int p2 = 0]] { get; set; }"));
         }
 
-        [WorkItem(546918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546918")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(546918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546918")]
         public async Task TestUnconstructedGeneric()
         {
             await TestAsync(
@@ -4996,8 +4996,8 @@ End Class";
                 MainDescription(@"enum A<T>.SortOrder"));
         }
 
-        [WorkItem(546970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546970")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(546970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546970")]
         public async Task TestUnconstructedGenericInCRef()
         {
             await TestAsync(
@@ -5041,8 +5041,8 @@ class Program
             await TestAsync(markup, MainDescription($"[{CSharpFeaturesResources.deprecated}] void Program.goo()"));
         }
 
-        [WorkItem(751070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751070")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(751070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751070")]
         public async Task DynamicOperator()
         {
             var markup = @"
@@ -5404,8 +5404,8 @@ public class C
 }", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
         }
 
-        [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
         public async Task CrefInMethodOverloading1()
         {
             await TestAsync(
@@ -5434,8 +5434,8 @@ public class C
 }", Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
         }
 
-        [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
         public async Task CrefInMethodOverloading2()
         {
             await TestAsync(
@@ -5486,8 +5486,8 @@ class Generic$$Class<T>
             Text("cref."))));
         }
 
-        [WorkItem(812720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812720")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(812720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812720")]
         public async Task ClassificationOfCrefsFromMetadata()
         {
             var code = @"
@@ -5672,8 +5672,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
         }
 
-        [WorkItem(962353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(962353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
         public async Task NoValidSymbolsInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -5700,8 +5700,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup);
         }
 
-        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         public async Task LocalsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -5725,8 +5725,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("") });
         }
 
-        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         public async Task LocalWarningInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -5754,8 +5754,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true) });
         }
 
-        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         public async Task LabelsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -5779,8 +5779,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.label}) LABEL"), Usage("") });
         }
 
-        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         public async Task RangeVariablesValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -5805,8 +5805,8 @@ class C
             await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("") });
         }
 
-        [WorkItem(1019766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1019766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]
         public async Task PointerAccessibility()
         {
             var markup = @"class C
@@ -5822,8 +5822,8 @@ class C
             await TestAsync(markup, MainDescription("bool void*.operator ==(void* left, void* right)"));
         }
 
-        [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
         public async Task AwaitingTaskOfArrayType()
         {
             var markup = @"
@@ -5839,8 +5839,8 @@ class Program
             await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "int[]")));
         }
 
-        [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
         public async Task AwaitingTaskOfDynamic()
         {
             var markup = @"
@@ -6395,8 +6395,8 @@ class C : I
                 MainDescription("(int, int) C.Name { get; set; }"));
         }
 
-        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task ValueTupleWithArity0VariableName()
         {
             await TestAsync(
@@ -6413,8 +6413,8 @@ public class C
                 MainDescription($"({FeaturesResources.local_variable}) ValueTuple y"));
         }
 
-        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task ValueTupleWithArity0ImplicitVar()
         {
             await TestAsync(
@@ -6431,8 +6431,8 @@ public class C
                 MainDescription("struct System.ValueTuple"));
         }
 
-        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task ValueTupleWithArity1VariableName()
         {
             await TestAsync(
@@ -6449,8 +6449,8 @@ public class C
                 MainDescription($"({FeaturesResources.local_variable}) ValueTuple<int> y"));
         }
 
-        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task ValueTupleWithArity1ImplicitVar()
         {
             await TestAsync(
@@ -6467,8 +6467,8 @@ public class C
                 MainDescription("struct System.ValueTuple<System.Int32>"));
         }
 
-        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task ValueTupleWithArity2VariableName()
         {
             await TestAsync(
@@ -6485,8 +6485,8 @@ public class C
                 MainDescription($"({FeaturesResources.local_variable}) (int, int) y"));
         }
 
-        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task ValueTupleWithArity2ImplicitVar()
         {
             await TestAsync(
@@ -6639,8 +6639,8 @@ namespace Nested
             await TestAsync(markup, MainDescription("readonly ref struct Nested.X"));
         }
 
-        [WorkItem(22450, "https://github.com/dotnet/roslyn/issues/22450")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(22450, "https://github.com/dotnet/roslyn/issues/22450")]
         public async Task TestRefLikeTypesNoDeprecated()
         {
             var xmlString = @"
@@ -6666,8 +6666,8 @@ ref struct Test
             await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"ref struct TestRef"));
         }
 
-        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
         public async Task PropertyWithSameNameAsOtherType()
         {
             await TestAsync(
@@ -6692,8 +6692,8 @@ ref struct Test
             MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
         }
 
-        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
         public async Task PropertyWithSameNameAsOtherType2()
         {
             await TestAsync(
@@ -6720,8 +6720,8 @@ namespace ConsoleApplication1
             MainDescription($"void Program.Test<Bar>()"));
         }
 
-        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
         public async Task InMalformedEmbeddedStatement_01()
         {
             await TestAsync(
@@ -6739,8 +6739,8 @@ class Program
 ");
         }
 
-        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23883, "https://github.com/dotnet/roslyn/issues/23883")]
         public async Task InMalformedEmbeddedStatement_02()
         {
             await TestAsync(
@@ -6841,8 +6841,8 @@ class X
                 MainDescription("void M<T>() where T : unmanaged"));
         }
 
-        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         public async Task TestGetAccessorDocumentation()
         {
             await TestAsync(
@@ -6855,8 +6855,8 @@ class X
                 Documentation("Summary for property Goo"));
         }
 
-        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         public async Task TestSetAccessorDocumentation()
         {
             await TestAsync(
@@ -6869,8 +6869,8 @@ class X
                 Documentation("Summary for property Goo"));
         }
 
-        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         public async Task TestEventAddDocumentation1()
         {
             await TestAsync(
@@ -6889,8 +6889,8 @@ class X
                 Documentation("Summary for event Goo"));
         }
 
-        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         public async Task TestEventAddDocumentation2()
         {
             await TestAsync(
@@ -6907,8 +6907,8 @@ class X
                 Documentation("Summary for event Goo"));
         }
 
-        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         public async Task TestEventRemoveDocumentation1()
         {
             await TestAsync(
@@ -6927,8 +6927,8 @@ class X
                 Documentation("Summary for event Goo"));
         }
 
-        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
         public async Task TestEventRemoveDocumentation2()
         {
             await TestAsync(
@@ -6945,8 +6945,8 @@ class X
                 Documentation("Summary for event Goo"));
         }
 
-        [WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")]
         public async Task BuiltInOperatorWithUserDefinedEquivalent()
         {
             await TestAsync(
@@ -7985,8 +7985,8 @@ record Person(string First, string Last)
                 MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
         }
 
-        [WorkItem(53135, "https://github.com/dotnet/roslyn/issues/53135")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(53135, "https://github.com/dotnet/roslyn/issues/53135")]
         public async Task TestDocumentationCData()
         {
             var markup =
@@ -8006,8 +8006,8 @@ interface IGoo {  }";
 List<string> y = null;"));
         }
 
-        [WorkItem(37503, "https://github.com/dotnet/roslyn/issues/37503")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(37503, "https://github.com/dotnet/roslyn/issues/37503")]
         public async Task DoNotNormalizeWhitespaceForCode()
         {
             var markup =
@@ -8029,8 +8029,8 @@ line 1
 line     2"));
         }
 
-        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
         public async Task DoNotNormalizeLeadingWhitespaceForCode()
         {
             var markup =
@@ -8052,8 +8052,8 @@ line 1
     line     2"));
         }
 
-        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
         public async Task ParsesEmptySummary()
         {
             var markup =
@@ -8262,8 +8262,8 @@ T {FeaturesResources.is_} int
 TResult {FeaturesResources.is_} string"));
         }
 
-        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         public async Task TestInferredNonAnonymousDelegateType1()
         {
             await TestAsync(
@@ -8278,8 +8278,8 @@ TResult {FeaturesResources.is_} string"));
                 AnonymousTypes(""));
         }
 
-        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         public async Task TestAnonymousSynthesizedLambdaType()
         {
             await TestAsync(
@@ -8294,8 +8294,8 @@ TResult {FeaturesResources.is_} string"));
                 AnonymousTypes(""));
         }
 
-        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         public async Task TestAnonymousSynthesizedLambdaType2()
         {
             await TestAsync(
@@ -8313,8 +8313,8 @@ $@"
     'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
-        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         public async Task TestAnonymousSynthesizedLambdaType3()
         {
             await TestAsync(
@@ -8335,8 +8335,8 @@ $@"
     'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
-        [WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         public async Task TestSingleTupleType()
         {
             await TestInClassAsync(

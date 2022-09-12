@@ -788,8 +788,8 @@ class C
 }");
         }
 
-        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
         public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
         {
             await TestInRegularAndScriptAsync(
@@ -1055,8 +1055,8 @@ class C
 }");
         }
 
-        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
         public async Task TestMissingForDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1072,8 +1072,8 @@ class C
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestMissingAcrossPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1092,8 +1092,8 @@ public class Goo
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -1127,8 +1127,8 @@ public class Goo
 }");
         }
 
-        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
         public async Task TestObjectInitializerAssignmentAmbiguity()
         {
             await TestInRegularAndScriptAsync(
@@ -1160,8 +1160,8 @@ public class Goo
 }");
         }
 
-        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
         public async Task TestObjectInitializerCompoundAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -1193,8 +1193,8 @@ public class Goo
 }");
         }
 
-        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
         public async Task TestKeepBlankLinesAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -1228,8 +1228,8 @@ class MyClass
 }");
         }
 
-        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
         public async Task TestMissingWithExplicitImplementedAddMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1346,8 +1346,8 @@ class C
 }");
         }
 
-        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
         public async Task TestInTopLevelStatements()
         {
             await TestInRegularAndScriptAsync(
