@@ -65,6 +65,17 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>The <see cref="CodeRefactoringProvider"/> to be used.</returns>
         protected abstract IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders();
 
+        /// <summary>
+        /// Creates a code refactoring context to be used for testing.
+        /// </summary>
+        /// <param name="document">Document to refactor.</param>
+        /// <param name="span">Text span within the <paramref name="document"/> to refactor.</param>
+        /// <param name="registerRefactoring">Delegate to register a <see cref="CodeAction"/> for the refactoring.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>New <see cref="CodeRefactoringContext"/>.</returns>
+        protected virtual CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
+            => new CodeRefactoringContext(document, span, registerRefactoring, cancellationToken);
+
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
@@ -258,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 foreach (var codeRefactoringProvider in codeRefactoringProviders)
                 {
-                    var context = new CodeRefactoringContext(triggerDocument, location.SourceSpan, actions.Add, cancellationToken);
+                    var context = CreateCodeRefactoringContext(triggerDocument, location.SourceSpan, actions.Add, cancellationToken);
                     await codeRefactoringProvider.ComputeRefactoringsAsync(context).ConfigureAwait(false);
                 }
 
