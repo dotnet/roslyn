@@ -34,6 +34,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using Microsoft.CodeAnalysis.Indentation;
 
@@ -2425,9 +2426,11 @@ End Class";
             return new ObjectReference<Compilation>(observed);
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
         [WorkItem(63834, "https://github.com/dotnet/roslyn/issues/63834")]
-        public void RecoverableTree_With()
+        public void RecoverableTree_With(string language)
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
 
@@ -2435,8 +2438,8 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             var sol = workspace.CurrentSolution
-                .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                .AddDocument(did, "goo.cs", SourceText.From("class C {}", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: "old path");
+                .AddProject(pid, "test", "test.dll", language)
+                .AddDocument(did, "test", SourceText.From(language == LanguageNames.CSharp ? "class C {}" : "Class C : End Class", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: "old path");
 
             var document = sol.GetDocument(did);
             var tree = document.GetSyntaxTreeSynchronously(default);
@@ -2455,12 +2458,19 @@ End Class";
             // unchanged:
             Assert.Same(tree, tree.WithFilePath("old path"));
 
-            var newRoot = CS.SyntaxFactory.ParseCompilationUnit(@"
-#define X
-#if X
-class NewType {}
-#endif
-");
+            var newRoot = (language == LanguageNames.CSharp) ? CS.SyntaxFactory.ParseCompilationUnit("""
+                #define X
+                #if X
+                class NewType {}
+                #endif
+                """) : (SyntaxNode)VB.SyntaxFactory.ParseCompilationUnit("""
+                #Define X
+                #If X
+                Class C
+                End Class
+                #End If
+                """);
+
             Assert.True(newRoot.ContainsDirectives);
 
             var tree3 = tree.WithRootAndOptions(newRoot, tree.Options);
