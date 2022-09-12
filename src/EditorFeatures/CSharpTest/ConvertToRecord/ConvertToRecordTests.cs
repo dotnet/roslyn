@@ -4727,7 +4727,6 @@ namespace N
             {
                 LanguageVersion = LanguageVersion.CSharp10;
                 AddSolutionTransform(SolutionTransforms);
-                Options.Add(CodeActionOptionsStorage.EnableConvertToRecord, true);
                 CodeActionOptions = (CSharpCodeActionOptions.Default with
                 {
                     EnableConvertToRecord = true,
