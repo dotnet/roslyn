@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.TaskList
         [DataMember]
         public ImmutableArray<string> Descriptors { get; init; } = s_defaultDescriptors;
 
+        [DataMember]
+        public bool ComputeForClosedFiles { get; init; } = true;
+
         public TaskListOptions()
         {
         }

@@ -15,12 +15,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(AttributeNamedParameterCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -43,7 +44,7 @@ public class TestAttribute : Attribute
             await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitCharacterTest()
         {
             const string markup = @"
@@ -64,7 +65,7 @@ public class TestAttribute : Attribute
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SimpleAttributeUsage()
         {
             var markup = @"
@@ -85,7 +86,7 @@ public class TestAttribute : Attribute
             await VerifyItemExistsAsync(markup, "Color", displayTextSuffix: " =");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterComma()
         {
             var markup = @"
@@ -108,7 +109,7 @@ public class TestAttribute : Attribute
         }
 
         [WorkItem(544345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExistingItemsAreFiltered()
         {
             var markup = @"
@@ -131,7 +132,7 @@ public class TestAttribute : Attribute
             await VerifyItemIsAbsentAsync(markup, "Color", displayTextSuffix: " =");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeConstructor()
         {
             var markup = @"
@@ -150,7 +151,7 @@ class Goo
             await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AttributeConstructorAfterComma()
         {
             var markup = @"
@@ -170,7 +171,7 @@ class Goo
         }
 
         [WorkItem(545426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestPropertiesInScript()
         {
             var markup = @"
@@ -193,7 +194,7 @@ class Goo
         }
 
         [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NotInComment()
         {
             var markup = @"

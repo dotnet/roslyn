@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GoToAdjacentMember
 {
+    [Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
     public class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTests
     {
         protected override string LanguageName => LanguageNames.CSharp;
         protected override ParseOptions DefaultParseOptions => CSharpParseOptions.Default;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task EmptyFile()
         {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GoToAdjacentMember
             Assert.Null(await GetTargetPositionAsync(code, next: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task ClassWithNoMembers()
         {
@@ -37,7 +38,7 @@ $$
             Assert.Null(await GetTargetPositionAsync(code, next: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task BeforeClassWithMember()
         {
@@ -50,7 +51,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task AfterClassWithMember()
         {
@@ -65,7 +66,7 @@ $$";
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task BetweenClasses()
         {
@@ -85,7 +86,7 @@ class C2
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task BetweenClassesPrevious()
         {
@@ -105,7 +106,7 @@ class C2
             await AssertNavigatedAsync(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task FromFirstMemberToSecond()
         {
@@ -119,7 +120,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task FromSecondToFirst()
         {
@@ -133,7 +134,7 @@ class C
             await AssertNavigatedAsync(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task NextWraps()
         {
@@ -147,7 +148,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task PreviousWraps()
         {
@@ -161,7 +162,7 @@ class C
             await AssertNavigatedAsync(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task DescendsIntoNestedType()
         {
@@ -179,7 +180,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtConstructor()
         {
@@ -192,7 +193,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtDestructor()
         {
@@ -205,7 +206,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtOperator()
         {
@@ -217,7 +218,7 @@ class C
 }";
             await AssertNavigatedAsync(code, next: true);
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtField()
         {
@@ -230,7 +231,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtFieldlikeEvent()
         {
@@ -243,7 +244,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtAutoProperty()
         {
@@ -256,7 +257,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtPropertyWithAccessors()
         {
@@ -275,7 +276,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task SkipsPropertyAccessors()
         {
@@ -296,7 +297,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task FromInsideAccessor()
         {
@@ -317,7 +318,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtIndexerWithAccessors()
         {
@@ -336,7 +337,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task SkipsIndexerAccessors()
         {
@@ -357,7 +358,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtEventWithAddRemove()
         {
@@ -376,7 +377,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task SkipsEventAddRemove()
         {
@@ -397,7 +398,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task FromInsideMethod()
         {
@@ -415,7 +416,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task NextFromBetweenMethods()
         {
@@ -432,7 +433,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task PreviousFromBetweenMethods()
         {
@@ -449,7 +450,7 @@ class C
             await AssertNavigatedAsync(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task NextFromBetweenMethodsInTrailingTrivia()
         {
@@ -466,7 +467,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task PreviousFromBetweenMethodsInTrailingTrivia()
         {
@@ -483,7 +484,7 @@ class C
             await AssertNavigatedAsync(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task StopsAtExpressionBodiedMember()
         {
@@ -498,7 +499,7 @@ class C
             await AssertNavigatedAsync(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         [WorkItem(10588, "https://github.com/dotnet/roslyn/issues/10588")]
         public async Task PreviousFromInsideCurrent()
@@ -519,7 +520,7 @@ class C
             await AssertNavigatedAsync(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task NextInScript()
         {
@@ -531,7 +532,7 @@ $$void M1() { }
             await AssertNavigatedAsync(code, next: true, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [Fact]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task PrevInScript()
         {

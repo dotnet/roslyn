@@ -23,6 +23,7 @@ using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NameCref()
         {
             var text = @"using System;
@@ -76,7 +77,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "AccessViolationException");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task QualifiedCref()
         {
             var text = @"using System;
@@ -92,7 +93,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CrefArgumentList()
         {
             var text = @"using System;
@@ -109,7 +110,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "int");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CrefTypeParameterInArgumentList()
         {
             var text = @"using System;
@@ -125,7 +126,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "Q");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
+        [Fact, WorkItem(530887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
         public async Task PrivateMember()
         {
             var text = @"using System;
@@ -145,7 +146,7 @@ namespace Goo
             await VerifyItemExistsAsync(text, "Private");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterSingleQuote()
         {
             var text = @"using System;
@@ -160,7 +161,7 @@ namespace Goo
         }
 
         [WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task EscapePredefinedTypeName()
         {
             var text = @"using System;
@@ -172,7 +173,7 @@ class @void { }
 
         [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         [WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ShowParameterNames()
         {
             var text = @"/// <see cref=""C.$$""/>
@@ -190,7 +191,7 @@ class C
         }
 
         [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ShowTypeParameterNames()
         {
             var text = @"/// <see cref=""C$$""/>
@@ -206,7 +207,7 @@ class C<TGoo>
         }
 
         [WorkItem(531156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ShowConstructors()
         {
             var text = @"using System;
@@ -228,7 +229,7 @@ class C<T>
         }
 
         [WorkItem(598679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoParamsModifier()
         {
             var text = @"/// <summary>
@@ -246,7 +247,7 @@ class C
         }
 
         [WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task UnqualifiedTypes()
         {
             var text = @"
@@ -258,7 +259,7 @@ class C { }
         }
 
         [WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitUnqualifiedTypes()
         {
             var text = @"
@@ -276,7 +277,7 @@ class C { }
         }
 
         [WorkItem(642285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SuggestOperators()
         {
             var text = @"
@@ -308,7 +309,7 @@ class Test
         }
 
         [WorkItem(641096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SuggestIndexers()
         {
             var text = @"
@@ -327,7 +328,7 @@ class Program
         }
 
         [WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CommitEscapedPredefinedTypeName()
         {
             var text = @"using System;
@@ -343,7 +344,7 @@ class @void { }
         }
 
         [WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task RefOutModifiers()
         {
             var text = @"/// <summary>
@@ -361,7 +362,7 @@ class C
         }
 
         [WorkItem(673587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673587")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NestedNamespaces()
         {
             var text = @"namespace N
@@ -391,7 +392,7 @@ class Program
         }
 
         [WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PermitTypingTypeParameters()
         {
             var text = @"
@@ -409,7 +410,7 @@ class C { }
         }
 
         [WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PermitTypingParameterTypes()
         {
             var text = @"
@@ -432,7 +433,7 @@ class C
             await VerifyProviderCommitAsync(text, "goo(int)", expected, '(');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task CrefCompletionSpeculatesOutsideTrivia()
         {
             var text = @"
@@ -464,7 +465,7 @@ class C
         }
 
         [WorkItem(16060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task SpecialTypeNames()
         {
             var text = @"
@@ -480,7 +481,7 @@ class C
             await VerifyItemExistsAsync(text, "UInt32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task NoSuggestionAfterEmptyCref()
         {
             var text = @"
@@ -495,7 +496,7 @@ class C
             await VerifyNoItemsExistAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
         public async Task CRef_InParameter()
         {

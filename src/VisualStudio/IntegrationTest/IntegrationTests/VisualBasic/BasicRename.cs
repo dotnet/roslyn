@@ -16,6 +16,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Rename)]
     public class BasicRename : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -39,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -82,7 +83,7 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -131,7 +132,7 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -170,7 +171,7 @@ Module Program
 End Module");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -207,7 +208,7 @@ Public MustInherit Class A
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
@@ -233,7 +234,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
@@ -260,7 +261,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
@@ -293,7 +294,7 @@ Public Class CustomAttribute
 End Class", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
@@ -326,7 +327,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeCapitalizedRename()
         {
@@ -352,7 +353,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeNotCapitalizedRename()
         {

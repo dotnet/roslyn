@@ -17,11 +17,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CSharpIfSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
         protected override string ItemToCommit => "if";
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetInMethodTest()
         {
             var markupBeforeCommit =
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetInGlobalContextTest()
         {
             var markupBeforeCommit =
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInBlockNamespaceTest()
         {
             var markupBeforeCommit =
@@ -81,7 +82,7 @@ namespace Namespace
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInFileScopedNamespaceTest()
         {
             var markupBeforeCommit =
@@ -98,7 +99,7 @@ class Program
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetInConstructorTest()
         {
             var markupBeforeCommit =
@@ -126,7 +127,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippettInLocalFunctionTest()
         {
             var markupBeforeCommit =
@@ -160,7 +161,7 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetInAnonymousFunctionTest()
         {
             var markupBeforeCommit =
@@ -190,7 +191,7 @@ static void Main(string[] args)
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetInParenthesizedLambdaExpressionTest()
         {
             var markupBeforeCommit =
@@ -213,7 +214,7 @@ static void Main(string[] args)
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInSwitchExpression()
         {
             var markupBeforeCommit =
@@ -236,7 +237,7 @@ static void Main(string[] args)
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInSingleLambdaExpression()
         {
             var markupBeforeCommit =
@@ -250,7 +251,7 @@ static void Main(string[] args)
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInStringTest()
         {
             var markupBeforeCommit =
@@ -265,7 +266,7 @@ static void Main(string[] args)
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInObjectInitializerTest()
         {
             var markupBeforeCommit =
@@ -290,7 +291,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInParameterListTest()
         {
             var markupBeforeCommit =
@@ -304,7 +305,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInRecordDeclarationTest()
         {
             var markupBeforeCommit =
@@ -318,7 +319,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task NoIfSnippetInVariableDeclarationTest()
         {
             var markupBeforeCommit =
@@ -333,7 +334,7 @@ class Test
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetWithInvocationBeforeAndAfterCursorTest()
         {
             var markupBeforeCommit =
@@ -359,7 +360,7 @@ class Test
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertIfSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
         {
             var markupBeforeCommit =

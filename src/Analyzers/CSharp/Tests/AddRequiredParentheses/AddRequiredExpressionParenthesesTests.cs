@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
     public partial class AddRequiredExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddRequiredExpressionParenthesesTests(ITestOutputHelper logger)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
             => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestArithmeticPrecedence()
         {
             await TestAsync(
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNoArithmeticOnLowerPrecedence()
         {
             await TestMissingAsync(
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfArithmeticPrecedenceStaysTheSame()
         {
             await TestMissingAsync(
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfArithmeticPrecedenceIsNotEnforced1()
         {
             await TestMissingAsync(
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireOtherBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfArithmeticPrecedenceIsNotEnforced2()
         {
             await TestMissingAsync(
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireOtherBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestRelationalPrecedence()
         {
             await TestAsync(
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestLogicalPrecedence()
         {
             await TestAsync(
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNoLogicalOnLowerPrecedence()
         {
             await TestMissingAsync(
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfLogicalPrecedenceStaysTheSame()
         {
             await TestMissingAsync(
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
         {
             await TestMissingAsync(
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireArithmeticBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestMixedArithmeticAndLogical()
         {
             await TestMissingAsync(
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
         {
             await TestAsync(
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
         {
             await TestAsync(
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestShiftPrecedence1()
         {
             await TestAsync(
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestShiftPrecedence2()
         {
             await TestAsync(
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireArithmeticBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestShiftPrecedence3()
         {
             await TestMissingAsync(
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireOtherBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfShiftPrecedenceStaysTheSame1()
         {
             await TestMissingAsync(
@@ -303,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfShiftPrecedenceStaysTheSame2()
         {
             await TestMissingAsync(
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestEqualityPrecedence1()
         {
             await TestMissingAsync(
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireOtherBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestEqualityPrecedence2()
         {
             await TestMissingAsync(
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireOtherBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestEqualityPrecedence3()
         {
             await TestMissingAsync(
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireRelationalBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestEqualityPrecedence4()
         {
             await TestMissingAsync(
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireRelationalBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestCoalescePrecedence1()
         {
             await TestMissingAsync(
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestCoalescePrecedence2()
         {
             await TestMissingAsync(
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestCoalescePrecedence3()
         {
             await TestMissingAsync(
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestBitwisePrecedence1()
         {
             await TestAsync(
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestBitwisePrecedence2()
         {
             await TestMissingAsync(
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestBitwisePrecedence3()
         {
             await TestAsync(
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestBitwisePrecedence4()
         {
             await TestMissingAsync(
@@ -473,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotForEqualityAfterEquals()
         {
             await TestMissingAsync(
@@ -486,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotForAssignmentEqualsAfterLocal()
         {
             await TestMissingAsync(
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestForAssignmentAndEquality1()
         {
             await TestMissingAsync(
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestMissingForAssignmentAndEquality2()
         {
             await TestMissingAsync(
@@ -525,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestUnclearCast1()
         {
             await TestMissingAsync(
@@ -538,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestUnclearCast_NotOfferedWithIgnore()
         {
             await TestMissingAsync(
@@ -551,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", IgnoreAllParentheses);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestUnclearCast_NotOfferedWithRemoveForClarity()
         {
             await TestMissingAsync(
@@ -564,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RemoveAllUnnecessaryParentheses);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestUnclearCast2()
         {
             await TestMissingAsync(
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestUnclearCast3()
         {
             await TestMissingAsync(
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestUnclearCast4()
         {
             await TestMissingAsync(
@@ -603,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotForPrimary()
         {
             await TestMissingAsync(
@@ -616,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotForMemberAccess()
         {
             await TestMissingAsync(
@@ -629,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotForCastOfCast()
         {
             await TestMissingAsync(
@@ -642,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotForNonAmbiguousUnary()
         {
             await TestMissingAsync(
@@ -655,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestMissingAsync(
@@ -670,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -694,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", options: RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestMissingAsync(
@@ -709,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestSeams1()
         {
             await TestInRegularAndScriptAsync(

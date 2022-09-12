@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
     public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public FullyQualifyTests(ITestOutputHelper logger)
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestTypeFromMultipleNamespaces1()
         {
             await TestInRegularAndScriptAsync(
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestTypeFromMultipleNamespaces2()
         {
             await TestInRegularAndScriptAsync(
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericWithNoArgs()
         {
             await TestInRegularAndScriptAsync(
@@ -93,7 +94,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericWithCorrectArgs()
         {
             await TestInRegularAndScriptAsync(
@@ -113,7 +114,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestSmartTagDisplayText()
         {
             await TestSmartTagTextAsync(
@@ -127,7 +128,7 @@ index: 1);
 "System.Collections.Generic.List");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericWithWrongArgs()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -140,7 +141,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestNotOnVar1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -159,7 +160,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestNotOnVar2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -178,7 +179,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericInLocalDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -198,7 +199,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericItemType()
         {
             await TestInRegularAndScriptAsync(
@@ -216,7 +217,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenerateWithExistingUsings()
         {
             await TestInRegularAndScriptAsync(
@@ -240,7 +241,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenerateInNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -266,7 +267,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenerateInNamespaceWithUsings()
         {
             await TestInRegularAndScriptAsync(
@@ -296,7 +297,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestExistingUsing()
         {
             await TestActionCountAsync(
@@ -332,7 +333,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestMissingIfUniquelyBound()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -347,7 +348,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestMissingIfUniquelyBoundGeneric()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -362,7 +363,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestOnEnum()
         {
             await TestInRegularAndScriptAsync(
@@ -402,7 +403,7 @@ namespace A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestOnClassInheritance()
         {
             await TestInRegularAndScriptAsync(
@@ -428,7 +429,7 @@ namespace A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestOnImplementedInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -454,7 +455,7 @@ namespace A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAllInBaseList()
         {
             await TestInRegularAndScriptAsync(
@@ -530,7 +531,7 @@ namespace B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAttributeUnexpanded()
         {
             await TestInRegularAndScriptAsync(
@@ -544,7 +545,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAttributeExpanded()
         {
             await TestInRegularAndScriptAsync(
@@ -559,7 +560,7 @@ class Class
         }
 
         [WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestExtensionMethods()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -576,7 +577,7 @@ class Goo
         }
 
         [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAfterNew()
         {
             await TestInRegularAndScriptAsync(
@@ -598,7 +599,7 @@ class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestArgumentsInMethodCall()
         {
             await TestInRegularAndScriptAsync(
@@ -618,7 +619,7 @@ class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestCallSiteArgs()
         {
             await TestInRegularAndScriptAsync(
@@ -636,7 +637,7 @@ class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestUsePartialClass()
         {
             await TestInRegularAndScriptAsync(
@@ -670,7 +671,7 @@ namespace B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericClassInNestedNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -710,7 +711,7 @@ namespace C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestBeforeStaticMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -729,7 +730,7 @@ namespace C
         }
 
         [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestBeforeNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -770,7 +771,7 @@ namespace B
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestSimpleNameWithLeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -779,7 +780,7 @@ namespace B
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGenericNameWithLeadingTrivia()
         {
             await TestInRegularAndScriptAsync(
@@ -788,7 +789,7 @@ namespace B
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -817,7 +818,7 @@ class Test
         }
 
         [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyUnboundIdentifier3()
         {
             await TestInRegularAndScriptAsync(
@@ -846,7 +847,7 @@ class Test
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyTypeName_NotForGenericType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -864,7 +865,7 @@ class Test
         }
 
         [WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyThroughAlias()
         {
             await TestInRegularAndScriptAsync(
@@ -883,7 +884,7 @@ class C
         }
 
         [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
             await TestInRegularAndScriptAsync(
@@ -918,7 +919,7 @@ class Test
         }
 
         [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
             await TestInRegularAndScriptAsync(
@@ -954,7 +955,7 @@ index: 1);
         }
 
         [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -964,7 +965,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAfterAlias()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -982,7 +983,7 @@ class Program
         }
 
         [WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestMissingOnIncompleteStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -998,7 +999,7 @@ class C
         }
 
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAssemblyAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -1007,7 +1008,7 @@ class C
         }
 
         [WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestMissingOnAliasName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1029,7 +1030,7 @@ namespace Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestMissingOnAttributeOverloadResolutionError()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1043,7 +1044,7 @@ class M
         }
 
         [WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestNotOnAbstractConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1059,7 +1060,7 @@ class Program
         }
 
         [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -1071,7 +1072,7 @@ input,
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestGeneratePropertyFromAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1089,7 +1090,7 @@ class D
         }
 
         [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -1115,7 +1116,7 @@ class Test
         }
 
         [WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task AmbiguousTypeFix()
         {
             await TestInRegularAndScriptAsync(
@@ -1170,7 +1171,7 @@ namespace n2
         }
 
         [WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task NonPublicNamespaces()
         {
             await TestInRegularAndScriptAsync(
@@ -1263,7 +1264,7 @@ public class Program
         }
 
         [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task AmbiguousFixOrdering()
         {
             await TestInRegularAndScriptAsync(
@@ -1317,7 +1318,7 @@ namespace n2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TupleTest()
         {
             await TestInRegularAndScriptAsync(
@@ -1337,7 +1338,7 @@ namespace n2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TupleWithOneName()
         {
             await TestInRegularAndScriptAsync(
@@ -1358,7 +1359,7 @@ namespace n2
         }
 
         [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1380,7 +1381,7 @@ class C
         }
 
         [WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1393,7 +1394,7 @@ class Program : [|IReadOnlyCollection|]
         }
 
         [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
@@ -1421,7 +1422,7 @@ class C
         }
 
         [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestInUsingContext_Type()
         {
             await TestInRegularAndScriptAsync(
@@ -1444,7 +1445,7 @@ class Class
         }
 
         [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestInUsingContext_Namespace()
         {
             await TestInRegularAndScriptAsync(
@@ -1467,7 +1468,7 @@ class Class
         }
 
         [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestInUsingContext_UsingStatic()
         {
             await TestInRegularAndScriptAsync(
@@ -1490,7 +1491,7 @@ class Class
         }
 
         [WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact]
         public async Task TestInUsingContext_UsingAlias()
         {
             await TestInRegularAndScriptAsync(

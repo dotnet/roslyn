@@ -17,12 +17,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
 {
+    [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
-        [Theory, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Theory]
         [InlineData("set"), InlineData("init")]
         [WorkItem(48133, "https://github.com/dotnet/roslyn/issues/48133")]
         public async Task SimpleAutoPropertyTest(string setter)
@@ -54,7 +55,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task ExtraLineAfterProperty()
         {
             var text = @"
@@ -86,7 +87,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithInitialValue()
         {
             var text = @"
@@ -116,7 +117,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithCalculatedInitialValue()
         {
             var text = @"
@@ -148,7 +149,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithPrivateSetter()
         {
             var text = @"
@@ -178,7 +179,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithFieldNameAlreadyUsed()
         {
             var text = @"
@@ -211,7 +212,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithComments()
         {
             var text = @"
@@ -245,7 +246,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithExpressionBody()
         {
             var text = @"
@@ -265,7 +266,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithExpressionBodyWhenOnSingleLine()
         {
             var text = @"
@@ -285,7 +286,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithExpressionBodyWhenOnSingleLine2()
         {
             var text = @"
@@ -313,7 +314,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithExpressionBodyWithTrivia()
         {
             var text = @"
@@ -333,7 +334,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithPropertyOpenBraceOnSameLine()
         {
             var text = @"
@@ -362,7 +363,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithAccessorOpenBraceOnSameLine()
         {
             var text = @"
@@ -390,7 +391,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task StaticProperty()
         {
             var text = @"
@@ -420,7 +421,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task ProtectedProperty()
         {
             var text = @"
@@ -450,7 +451,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task InternalProperty()
         {
             var text = @"
@@ -480,7 +481,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task WithAttributes()
         {
             var text = @"
@@ -512,7 +513,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task CommentsInAccessors()
         {
             var text = @"
@@ -548,7 +549,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task OverrideProperty()
         {
             var text = @"
@@ -588,7 +589,7 @@ class MyDerivedClass : MyBaseClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task SealedProperty()
         {
             var text = @"
@@ -618,7 +619,7 @@ class MyClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task VirtualProperty()
         {
             var text = @"
@@ -658,7 +659,7 @@ class MyDerivedClass : MyBaseClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task PrivateProperty()
         {
             var text = @"
@@ -688,7 +689,7 @@ class MyClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task AbstractProperty()
         {
             var text = @"
@@ -705,7 +706,7 @@ class MyDerivedClass : MyBaseClass
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task ExternProperty()
         {
             var text = @"
@@ -717,7 +718,7 @@ class MyBaseClass
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task GetterOnly()
         {
             var text = @"
@@ -743,7 +744,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task GetterOnlyExpressionBodies()
         {
             var text = @"
@@ -763,7 +764,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiesOnAccessorsAndMethods);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task SetterOnly()
         {
             var text = @"
@@ -778,7 +779,7 @@ class TestClass
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task ExpressionBodiedAccessors()
         {
             var text = @"
@@ -792,7 +793,7 @@ class TestClass
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task CursorAtBeginning()
         {
             var text = @"
@@ -822,7 +823,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task CursorAtEnd()
         {
             var text = @"
@@ -852,7 +853,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task CursorOnAccessors()
         {
             var text = @"
@@ -865,7 +866,7 @@ class TestClass
         }
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task CursorInType()
         {
             var text = @"
@@ -896,7 +897,7 @@ class TestClass
         }
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task SelectionWhole()
         {
             var text = @"
@@ -926,7 +927,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task SelectionName()
         {
             var text = @"
@@ -956,7 +957,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task MoreThanOneGetter()
         {
             var text = @"
@@ -968,7 +969,7 @@ class TestClass
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task MoreThanOneSetter()
         {
             var text = @"
@@ -980,7 +981,7 @@ class TestClass
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task CustomFieldName()
         {
             var text = @"
@@ -1011,7 +1012,7 @@ class TestClass
         }
 
         [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task UnderscorePrefixedFieldName()
         {
             var text = @"
@@ -1042,7 +1043,7 @@ class TestClass
         }
 
         [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
         {
             var text = @"
@@ -1062,7 +1063,7 @@ class stranger
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task NonStaticPropertyWithCustomStaticFieldName()
         {
             var text = @"
@@ -1092,7 +1093,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: UseCustomStaticFieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task StaticPropertyWithCustomStaticFieldName()
         {
             var text = @"
@@ -1122,7 +1123,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: UseCustomStaticFieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task InInterface()
         {
             var text = @"
@@ -1134,7 +1135,7 @@ interface IGoo
             await TestMissingAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task InStruct()
         {
             var text = @"
@@ -1165,7 +1166,7 @@ struct goo
         }
 
         [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task PartialClasses()
         {
             var text = @"
@@ -1196,7 +1197,7 @@ partial class Program
         }
 
         [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task PartialClassInSeparateFiles1()
         {
             var file1 = @"
@@ -1240,7 +1241,7 @@ partial class Program
         }
 
         [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task PartialClassInSeparateFiles2()
         {
             var file1 = @"
@@ -1283,7 +1284,7 @@ partial class Program
                 parameters: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task InvalidLocation()
         {
             await TestMissingAsync(@"namespace NS
@@ -1294,7 +1295,7 @@ partial class Program
             await TestMissingAsync("public int G[||]oo { get; set; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        [Fact]
         public async Task NullBackingField()
         {
             await TestInRegularAndScriptAsync(

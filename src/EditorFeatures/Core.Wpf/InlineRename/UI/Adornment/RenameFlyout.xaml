@@ -34,6 +34,14 @@
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:InlineRenameColors.CheckBoxTextBrushKey}}"/>
             </Style>
+
+            <Style TargetType="TextBox">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:InlineRenameColors.TextBoxTextBrushKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static rename:InlineRenameColors.TextBoxBackgroundBrushKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static rename:InlineRenameColors.TextBoxBorderBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="5" />
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 

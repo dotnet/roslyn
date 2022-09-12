@@ -15,12 +15,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
     public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures1()
         {
             await TestInRegularAndScriptAsync(
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures2()
         {
             await TestInRegularAndScriptAsync(
@@ -114,7 +115,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures3()
         {
             await TestInRegularAndScriptAsync(
@@ -143,7 +144,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures4()
         {
             await TestInRegularAndScriptAsync(
@@ -168,7 +169,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures5()
         {
             await TestInRegularAndScriptAsync(
@@ -199,7 +200,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -253,7 +254,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestTypeParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -276,7 +277,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestNameConflict()
         {
             await TestInRegularAndScriptAsync(
@@ -305,7 +306,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestNamedArguments1()
         {
             await TestAsync(
@@ -340,7 +341,7 @@ struct S
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestNamedArguments2()
         {
             await TestAsync(
@@ -375,7 +376,7 @@ struct S
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestDelegate1()
         {
             await TestInRegularAndScriptAsync(
@@ -402,7 +403,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestDelegate2()
         {
             await TestInRegularAndScriptAsync(
@@ -429,7 +430,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestAsyncFunction1()
         {
             await TestInRegularAndScriptAsync(
@@ -466,7 +467,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestAsyncFunction2()
         {
             await TestInRegularAndScriptAsync(
@@ -503,7 +504,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestCaretPositon()
         {
@@ -562,7 +563,7 @@ $@"class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection1()
         {
@@ -590,7 +591,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection2()
         {
@@ -608,7 +609,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection3()
         {
@@ -640,7 +641,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection4()
         {
@@ -661,7 +662,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection5()
         {
@@ -683,7 +684,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection6()
         {
@@ -706,7 +707,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection7()
         {
@@ -723,7 +724,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection8()
         {
@@ -751,7 +752,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection9()
         {
@@ -779,7 +780,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection10()
         {
@@ -806,7 +807,7 @@ $@"class C
     }
 }");
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection11()
         {
@@ -824,7 +825,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestUnsafeLocalFunction()
         {
@@ -856,7 +857,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestUnsafeLocalFunctionInUnsafeMethod()
         {
@@ -888,7 +889,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestLocalFunctionInUnsafeMethod()
         {

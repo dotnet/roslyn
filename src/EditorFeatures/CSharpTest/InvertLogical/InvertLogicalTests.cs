@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
     public partial class InvertLogicalTests : AbstractCSharpCodeActionTest
     {
         private static readonly ParseOptions CSharp6 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6);
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInvertLogicalCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertLogical1()
         {
             await TestInRegularAndScriptAsync(
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertLogical2()
         {
             await TestInRegularAndScriptAsync(
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await TestInRegularAndScriptAsync(
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertMultiConditional1()
         {
             await TestInRegularAndScriptAsync(
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertMultiConditional2()
         {
             await TestInRegularAndScriptAsync(
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertMultiConditional3()
         {
             await TestInRegularAndScriptAsync(
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task InverSelection()
         {
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task MissingInverSelection1()
         {
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }"*/);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertMultiConditional4()
         {
             await TestInRegularAndScriptAsync(
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task TestMissingOnShortCircuitAnd()
         {
             await TestMissingAsync(
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task TestMissingOnShortCircuitOr()
         {
             await TestMissingAsync(
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task TestSelectedOperator()
         {
             await TestInRegularAndScriptAsync(
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task MissingSelectedSubtree()
         {
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsTypePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsTypePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNotTypePattern1_CSharp8()
         {
             // Note: this is not legal (since it's a 'not' pattern being used in C# 8).
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNotTypePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -380,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNullPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -401,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNullPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNotNullPattern1_CSharp6()
         {
             // Result is illegal (uses a constant pattern in c# 6), but the original code was illegal as well.
@@ -444,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNotNullPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -465,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsNotNullPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -486,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsTruePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -507,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsTruePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsFalsePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -549,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsFalsePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsAndPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsAndPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsOrPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -633,7 +634,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsOrPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -654,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsTypeWithDesignationPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -675,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsTypeWithDesignationPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -696,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsVarPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -717,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsVarPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -738,7 +739,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsAndWithDesignationPattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -759,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsAndWithDesignationPattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -780,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsAndWithDesignationPattern2_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -801,7 +802,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [Fact]
         public async Task InvertIsAndWithDesignationPattern2_CSharp9()
         {
             await TestInRegularAndScriptAsync(

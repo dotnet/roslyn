@@ -16,10 +16,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
     public class AddMissingTokensTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MultipleLineIfStatementThen()
         {
             var code = @"[|
@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeArgumentOf()
         {
             var code = @"[|
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeParameterOf()
         {
             var code = @"[|Class A(T)
@@ -62,7 +60,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodDeclaration()
         {
             var code = @"Class A
@@ -80,7 +77,6 @@ End Class";
 
         [Fact]
         [WorkItem(544318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544318")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_TypeArgParens()
         {
             var code = @"[|Imports System
@@ -109,7 +105,6 @@ Module Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Sub()
         {
             var code = @"Class A
@@ -128,7 +123,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Function()
         {
             var code = @"Class A
@@ -149,7 +143,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_Return()
         {
             var code = @"Class A
@@ -176,7 +169,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_Assign()
         {
             var code = @"Class A
@@ -205,7 +197,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_DotName_DontAdd()
         {
             var code = @"Class A
@@ -234,7 +225,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_DotName()
         {
             var code = @"Class A
@@ -263,7 +253,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Generic()
         {
             var code = @"Class A
@@ -292,7 +281,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Call()
         {
             var code = @"Class A
@@ -321,7 +309,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventHandler_AddressOf1()
         {
             var code = @"Class A
@@ -344,7 +331,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventHandler_AddressOf2()
         {
             var code = @"Class A
@@ -367,7 +353,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Delegate_AddressOf()
         {
             var code = @"Class A
@@ -386,7 +371,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventDeclaration()
         {
             var code = @"Class A
@@ -409,7 +393,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task RaiseEvent()
         {
             var code = @"Class A
@@ -432,7 +415,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DelegateInvocation()
         {
             var code = @"
@@ -447,7 +429,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Attribute()
         {
             var code = @"[|<Obsolete>
@@ -468,7 +449,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ObjectCreation()
         {
             var code = @"[|Module Program
@@ -505,7 +485,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Constructor()
         {
             var code = @"[|Class C
@@ -522,7 +501,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DeclareStatement()
         {
             var code = @"[|Class C
@@ -537,7 +515,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DelegateStatement()
         {
             var code = @"[|Class C
@@ -552,7 +529,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodStatementWithComment()
         {
             var code = @"[|Class C
@@ -569,7 +545,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MultipleLineIfStatementThenWithComment()
         {
             var code = @"[|
@@ -586,7 +561,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeArgumentOf_Comment_DontAdd()
         {
             var code = @"[|
@@ -602,7 +576,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TypeParameterOf_Comment()
         {
             var code = @"[|Class A( ' test
@@ -617,7 +590,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task MethodInvocation_Function_Comment()
         {
             var code = @"Class A
@@ -638,7 +610,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IdentifierMethod_Return_Comment()
         {
             var code = @"Class A
@@ -665,7 +636,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ImplementsClause()
         {
             var code = @"Class Program
@@ -692,7 +662,6 @@ End Interface";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OperatorStatement()
         {
             var code = @"[|Public Structure abc
@@ -715,7 +684,6 @@ End Structure";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task PropertyAndAccessorStatement()
         {
             var code = @"[|Class Class1
@@ -746,7 +714,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task LambdaExpression()
         {
             var code = @"[|Class Class1
@@ -764,7 +731,6 @@ End Class";
 
         [Fact]
         [WorkItem(544225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task StructuredTrivia_Expression_DontCrash()
         {
             var code = @"[|#Const Goo1 = 1
@@ -784,7 +750,6 @@ End Class";
 
         [Fact]
         [WorkItem(544169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544169")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task EventStatement_AsClause()
         {
             var code = @"[|Imports System.ComponentModel
@@ -801,7 +766,6 @@ End Class";
 
         [Fact]
         [WorkItem(544167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544167")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task InvocationExpression_NoParenthesesForPredefinedCastExpression()
         {
             var code = @"[|Class Program
@@ -821,7 +785,6 @@ End Class";
         [Fact]
         [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
         [WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ObjectCreationExpression()
         {
             var code = @"[|Class C
@@ -840,7 +803,6 @@ End Class";
 
         [Fact]
         [WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ObjectCreationExpression_Initializer()
         {
             var code = @"[|Public Class SomeClass
@@ -863,7 +825,6 @@ End Class";
 
         [Fact]
         [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ObjectCreationExpression_GenericName()
         {
             var code = @"[|Imports System
@@ -887,7 +848,6 @@ End Module";
 
         [Fact]
         [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ObjectCreationExpression_AsNewClause()
         {
             var code = @"[|Class C
@@ -902,7 +862,6 @@ End Class";
 
         [Fact]
         [WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ContinueStatement_While()
         {
             var code = @"Module M
@@ -925,7 +884,6 @@ End Module";
 
         [Fact]
         [WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ContinueStatement_For()
         {
             var code = @"Module M
@@ -948,7 +906,6 @@ End Module";
 
         [Fact]
         [WorkItem(544380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544380")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task IfDirective()
         {
             var code = @"[|#If VBC_VER >= 9.0
@@ -965,7 +922,6 @@ End Class";
 
         [Fact]
         [WorkItem(544386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544386")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task NamedFieldInitializer()
         {
             var code = @"[|Class S
@@ -990,7 +946,6 @@ End Class";
 
         [Fact]
         [WorkItem(544526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DontCrash_ImplementsStatement()
         {
             var code = @"[|Class C
@@ -1009,7 +964,6 @@ End Class";
 
         [Fact]
         [WorkItem(544525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544525")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task AccessorStatement_AddRemoveHandler_RaiseEvent()
         {
             var code = @"[|Class C
@@ -1038,7 +992,6 @@ End Class";
 
         [Fact]
         [WorkItem(545176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545176")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task CallStatement_Lambda()
         {
             var code = @"[|Module Program
@@ -1057,7 +1010,6 @@ End Module";
 
         [Fact]
         [WorkItem(545256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task HandlesClauseItem_DontAddParentheses()
         {
             var code = @"[|Structure s1
@@ -1076,7 +1028,6 @@ End Structure";
 
         [Fact]
         [WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DontAddParenthesesInForEachControlVariable()
         {
             var code = @"[|Module Module1
@@ -1101,7 +1052,6 @@ End Module";
 
         [Fact]
         [WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DontAddParenthesesInForControlVariable()
         {
             var code = @"[|Module Module1
@@ -1126,7 +1076,6 @@ End Module";
 
         [Fact]
         [WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task DontAddParenthesesForMissingName()
         {
             var code = @"[|Class C
@@ -1139,7 +1088,6 @@ End Module";
 
         [Fact]
         [WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task CombinedDelegates()
         {
             var code = @"[|Imports System
@@ -1166,7 +1114,6 @@ End Class";
 
         [Fact]
         [WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ThenOmittedWithSurroundingErrors()
         {
             var code = @"[|
@@ -1179,7 +1126,6 @@ End Class";
 
         [Fact]
         [WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ThenOmittedWithSurroundingErrors1()
         {
             var code = @"[|
@@ -1192,7 +1138,6 @@ End Class";
 
         [Fact]
         [WorkItem(546797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ParenthesisWithLineContinuation()
         {
             var code = @"[|
@@ -1204,7 +1149,6 @@ End Class";
 
         [Fact]
         [WorkItem(546806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ThenWithLineContinuation()
         {
             var code = @"[|
@@ -1220,7 +1164,6 @@ End Class";
 
         [Fact]
         [WorkItem(531278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531278")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task ThenInIfDirective()
         {
             var code = @"#Const ccConst = 0
@@ -1248,7 +1191,6 @@ End Module";
 
         [Fact]
         [WorkItem(607792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task CaseKeywordInSelectStatement()
         {
             var code = @"
@@ -1290,7 +1232,6 @@ End Module";
 
         [Fact]
         [WorkItem(530789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530789")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task Bug530789()
         {
             var code = @"Imports System
@@ -1312,7 +1253,6 @@ End Module";
 
         [Fact]
         [WorkItem(530039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530039")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestArraySyntax()
         {
             var code = @"[|Module TestMod
@@ -1334,7 +1274,6 @@ End Module";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithoutAsClause()
         {
             var code = @"[|
@@ -1422,7 +1361,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithoutAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -1516,7 +1454,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithoutAsClause()
         {
             var code = @"[|
@@ -1598,7 +1535,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithoutAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -1688,7 +1624,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithAsClause()
         {
             var code = @"[|
@@ -1858,7 +1793,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -2034,7 +1968,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithAsClause()
         {
             var code = @"[|
@@ -2230,7 +2163,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithAsClause_WithAddedImports()
         {
             var code = @"[|
@@ -2432,7 +2364,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithAliasedReturnType()
         {
             var code = @"[|
@@ -2462,7 +2393,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithAliasedReturnType()
         {
             var code = @"[|
@@ -2492,7 +2422,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithAliasedReturnType_2()
         {
             var code = @"[|
@@ -2520,7 +2449,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithAliasedReturnType_2()
         {
             var code = @"[|
@@ -2548,7 +2476,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncFunctionWithQualifiedNameReturnType()
         {
             var code = @"[|
@@ -2574,7 +2501,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorFunctionWithQualifiedNameReturnType()
         {
             var code = @"[|
@@ -2600,7 +2526,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncLambdaFunction()
         {
             var code = @"[|
@@ -2668,7 +2593,6 @@ End Class";
 
         [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestIteratorLambdaFunction()
         {
             var code = @"[|
@@ -2735,7 +2659,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestNoParenthesesForArgument()
         {
             // making roslyn behavior same as dev12
@@ -2774,7 +2697,6 @@ End Class";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestNoParenthesesForNameOf()
         {
             var code = @"[|
@@ -2795,7 +2717,6 @@ End Module";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OptionExplicitOn()
         {
             var code = @"[|Option Explicit|]";
@@ -2806,7 +2727,6 @@ End Module";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OptionInferOn()
         {
             var code = @"[|Option Infer|]";
@@ -2817,7 +2737,6 @@ End Module";
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task OptionStrictOn()
         {
             var code = @"[|Option Strict|]";
