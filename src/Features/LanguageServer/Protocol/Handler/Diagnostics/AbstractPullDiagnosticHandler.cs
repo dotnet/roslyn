@@ -376,13 +376,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     Start = new Position
                     {
-                        Character = dataLocation.OriginalFileSpan!.Value.StartLinePosition.Character,
-                        Line = dataLocation.OriginalFileSpan!.Value.StartLinePosition.Line,
+                        Character = dataLocation.OriginalFileSpan?.StartLinePosition.Character ?? 0,
+                        Line = dataLocation.OriginalFileSpan?.StartLinePosition.Line ?? 0,
                     },
                     End = new Position
                     {
-                        Character = dataLocation.OriginalFileSpan!.Value.EndLinePosition.Character,
-                        Line = dataLocation.OriginalFileSpan!.Value.EndLinePosition.Line,
+                        Character = dataLocation.OriginalFileSpan?.EndLinePosition.Character ?? 0,
+                        Line = dataLocation.OriginalFileSpan?.EndLinePosition.Line ?? 0,
                     }
                 };
             }
