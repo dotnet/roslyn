@@ -1014,8 +1014,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
         <Theory>
+        <WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1057,8 +1057,8 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <Theory>
+        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1099,8 +1099,8 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <Theory>
+        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1139,8 +1139,8 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(851604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(851604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
         Public Sub ConflictInsideSimpleArgument(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

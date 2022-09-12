@@ -1125,8 +1125,8 @@ End Class
                 expectedVirtualSpace:=4)
         End Function
 
-        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
         Public Async Function DifferentMembersMetadataName(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>

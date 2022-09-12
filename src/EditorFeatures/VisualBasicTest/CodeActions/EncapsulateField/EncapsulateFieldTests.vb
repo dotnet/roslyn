@@ -397,8 +397,8 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
         Public Async Function TestPreserveTrivia(host As TestHost) As Task
             Dim text = <File>
 Class AA
@@ -424,8 +424,8 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
         Public Async Function TestNewPropertyNameIsUnique(host As TestHost) As Task
             Dim text = <File>
 Class AA
@@ -467,8 +467,8 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
         Public Async Function TestAvailableNotJustOnVariableName(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -478,8 +478,8 @@ End Class</File>.ConvertTestSourceTag()
             Await TestActionCountAsync(text, 2, New TestParameters(testHost:=host))
         End Function
 
-        <WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
         Public Async Function TestCopyAccessibility(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -503,8 +503,8 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
         Public Async Function TestBackingFieldStartsWithUnderscore(host As TestHost) As Task
             Dim text = <File>
 Public Class Class1
@@ -591,8 +591,8 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>
         Public Async Function TestDoNotEncapsulateOutsideTypeDeclaration(host As TestHost) As Task
             Dim globalField = <File>
 Dim [|x|] = 1

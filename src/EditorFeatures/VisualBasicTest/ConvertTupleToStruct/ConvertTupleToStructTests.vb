@@ -81,8 +81,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")>
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        <WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")>
         Public Async Function ConvertSingleTupleType_ChangeArgumentNameCase(host As TestHost) As Task
             Dim text = "
 class Test

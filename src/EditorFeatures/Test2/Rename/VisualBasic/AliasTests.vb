@@ -151,8 +151,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WorkItem(541393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541393")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(541393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541393")>
         Public Sub RenameNamespaceAlias(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -174,8 +174,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         Public Sub RenameConstructedTypeAliasFromUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -197,8 +197,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         Public Sub RenameConstructedTypeAliasFromDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -220,8 +220,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         Public Sub RenameSimpleTypeAliasFromUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -243,8 +243,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         Public Sub RenameSimpleTypeAliasFromDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -265,8 +265,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(546084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546084")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(546084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546084")>
         Public Sub ConflictWhenRenamingAliasToSameAsGlobalTypeName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

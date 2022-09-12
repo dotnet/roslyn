@@ -687,15 +687,15 @@ End Class
             Await TestInMethodAsync(text, "System.Int32", mode)
         End Function
 
-        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
         Public Async Function TestValueInNestedTuple1(mode As TestMode) As Task
             Await TestInMethodAsync(
 "dim x as (integer, (string, boolean)) = ([|Goo()|], ("""", true));", "System.Int32", mode)
         End Function
 
-        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
         Public Async Function TestValueInNestedTuple2(mode As TestMode) As Task
             Await TestInMethodAsync(
 "dim x as (integer, (string, boolean)) = (1, ("""", [|Goo()|]))", "System.Boolean", mode)
