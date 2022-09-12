@@ -11,9 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "CSharp tests"
 
-        <Fact
-#Region "CSharp tests"
->
+        <Fact>
         Public Async Function TestCSharpLeaveAnnotationIfValidAndEnabled() As Task
             Dim input =
 <Workspace>

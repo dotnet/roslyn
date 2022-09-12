@@ -11,9 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "CSharp tests"
 
-        <Fact
-#Region "CSharp tests"
->
+        <Fact>
         Public Async Function TestCSharp_Remove_IntToInt() As Task
             Dim input =
 <Workspace>
@@ -5786,9 +5784,7 @@ class Program
 
 #Region "Visual Basic tests"
 
-        <Fact
-#Region "Visual Basic tests"
->
+        <Fact>
         Public Async Function TestVisualBasic_DontRemove_IntToObj_Overloads1() As Task
             Dim input =
 <Workspace>

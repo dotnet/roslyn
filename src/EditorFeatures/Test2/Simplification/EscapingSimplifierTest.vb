@@ -11,9 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Visual Basic Escaping Simplification tests"
 
-        <Fact
-#Region "Visual Basic Escaping Simplification tests"
->
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
@@ -969,9 +967,7 @@ End Module
 
 #Region "CSharp Escaping Simplification tests"
 
-        <Fact
-#Region "CSharp Escaping Simplification tests"
->
+        <Fact>
         Public Async Function TestCSharp_SimplifyUnescapedIdentifier() As Task
             Dim input =
 <Workspace>

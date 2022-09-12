@@ -19,9 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
 #Region "Classes And Interfaces"
 
-        <Fact
-#Region "Classes And Interfaces"
->
+        <Fact>
         Public Async Function TestWithSingleClass() As Task
             Await TestAsync(
 "class $$C
@@ -140,9 +138,7 @@ end interface", metadataDefinitions:={"mscorlib:Object"})
 
 #Region "Structures"
 
-        <Fact
-#Region "Structures"
->
+        <Fact>
         Public Async Function TestWithStruct() As Task
             Await TestAsync(
 "structure $$S
@@ -184,9 +180,7 @@ end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
 
 #Region "Methods"
 
-        <Fact
-#Region "Methods"
->
+        <Fact>
         Public Async Function TestWithOneMethodImplementation_01() As Task
             Await TestAsync(
 "class C
@@ -612,9 +606,7 @@ End Class
 #End Region
 
 #Region "Properties and Events"
-        <Fact
-#Region "Properties and Events"
->
+        <Fact>
         Public Async Function TestWithOneEventImplementation() As Task
             Await TestAsync(
 "Class C

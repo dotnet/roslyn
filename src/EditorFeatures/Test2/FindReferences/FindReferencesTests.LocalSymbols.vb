@@ -213,9 +213,7 @@ End Module
 
 #Region "FAR on collection initializers"
 
-        <WpfTheory, CombinatorialData
-#Region "FAR on collection initializers"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLocal_CSharpNamedIdentifiersUsedInNestedColInit(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

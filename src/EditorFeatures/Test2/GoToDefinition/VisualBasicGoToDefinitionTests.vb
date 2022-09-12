@@ -463,9 +463,7 @@ End Class
 
 #Region "Venus Visual Basic Tests"
 
-        <WpfFact
-#Region "Venus Visual Basic Tests"
->
+        <WpfFact>
         Public Async Function TestVisualBasicVenusGotoDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -689,9 +687,7 @@ class C
 
 #Region "Show notification tests"
 
-        <WpfFact
-#Region "Show notification tests"
->
+        <WpfFact>
         Public Async Function TestShowNotificationVB() As Task
             Dim workspace =
 <Workspace>

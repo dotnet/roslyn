@@ -156,9 +156,7 @@ partial class program
 
 #Region "FAR on partial methods"
 
-        <WpfTheory, CombinatorialData
-#Region "FAR on partial methods"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestParameter_CSharpWithSignaturesMatchFARParameterOnDefDecl(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

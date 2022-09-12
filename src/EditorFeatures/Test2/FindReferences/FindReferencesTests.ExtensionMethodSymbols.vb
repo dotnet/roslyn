@@ -97,9 +97,7 @@ public static class MyExtension
 
 #Region "Normal Visual Basic Tests"
 
-        <WpfTheory, CombinatorialData
-#Region "Normal Visual Basic Tests"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicFindReferencesOnExtensionMethod(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

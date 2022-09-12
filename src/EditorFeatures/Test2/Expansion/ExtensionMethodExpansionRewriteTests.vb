@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
         Inherits AbstractExpansionTest
 
 #Region "Visual Basic ExtensionMethodRewrite Expansion tests"
-        <Fact
-#Region "Visual Basic ExtensionMethodRewrite Expansion tests"
->
+        <Fact>
         Public Async Function TestVisualBasic_ExpandSingleExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -704,9 +702,7 @@ End Class]]>
 #End Region
 
 #Region "CSharp ExtensionMethodRewrite Expansion tests"
-        <Fact
-#Region "CSharp ExtensionMethodRewrite Expansion tests"
->
+        <Fact>
         Public Async Function TestCSharp_ExpandSingleExtensionMethod() As Task
             Dim input =
 <Workspace>

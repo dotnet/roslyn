@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
 #Region "VB"
-        <Fact
-#Region "VB"
->
+        <Fact>
         <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
         Public Async Function TestVisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
             Dim input =
@@ -465,9 +463,7 @@ End Class
 
 #Region "VB Array Literal tests"
 
-        <Fact
-#Region "VB Array Literal tests"
->
+        <Fact>
         Public Async Function TestVisualBasic_DontRemoveInJaggedArrayLiteral() As Task
             Dim input =
 <Workspace>
@@ -618,9 +614,7 @@ End Class
 #End Region
 
 #Region "VB Binary Expressions"
-        <Fact
-#Region "VB Binary Expressions"
->
+        <Fact>
         <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestVisualBasic_SimplifyOnLeftSideOfBinaryExpression() As Task
             Dim input =
@@ -785,9 +779,7 @@ End Class
 #End Region
 
 #Region "C#"
-        <Fact
-#Region "C#"
->
+        <Fact>
         Public Async Function TestCSharp_Unnecessary_Parenthesis_in_Array_Index() As Task
             Dim input =
 <Workspace>
@@ -1439,9 +1431,7 @@ class C
 
 #Region "C# Binary Expressions"
 
-        <Fact
-#Region "C# Binary Expressions"
->
+        <Fact>
         <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_SimplifyOnLeftSideOfBinaryExpression() As Task
             Dim input =

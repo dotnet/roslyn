@@ -9,9 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 #Region "C#"
 
-        <WpfTheory, CombinatorialData
-#Region "C#"
->
+        <WpfTheory, CombinatorialData>
         <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionPredefinedType_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -159,9 +157,7 @@ struct Goo
 
 #Region "Visual Basic"
 
-        <WpfTheory, CombinatorialData
-#Region "Visual Basic"
->
+        <WpfTheory, CombinatorialData>
         <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionPredefinedType_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =

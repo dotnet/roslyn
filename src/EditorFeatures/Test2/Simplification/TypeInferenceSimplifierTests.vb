@@ -401,9 +401,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
 
-        <Fact
-#Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
->
+        <Fact>
         Public Async Function TestSimplify_For_GenericMethods() As Task
             Dim input =
         <Workspace>

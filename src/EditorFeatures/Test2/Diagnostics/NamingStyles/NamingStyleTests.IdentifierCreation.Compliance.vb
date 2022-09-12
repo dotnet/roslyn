@@ -8,9 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     <Trait(Traits.Feature, Traits.Features.NamingStyle)>
     Partial Public Class NamingStyleTests
 #Region "Edge cases"
-        <Fact
-#Region "Edge cases"
->
+        <Fact>
         Public Sub TestNonoverlappingPrefixAndSuffix()
             Dim namingStyle = CreateNamingStyle(prefix:="p_", suffix:="_s", capitalizationScheme:=Capitalization.PascalCase)
             TestNameCompliance(namingStyle, "p_Pascal_s")
@@ -60,9 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "PascalCase"
-        <Fact
-#Region "PascalCase"
->
+        <Fact>
         Public Sub TestPascalCaseComplianceWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.PascalCase)
             TestNameCompliance(namingStyle, "")
@@ -124,9 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "camelCase"
-        <Fact
-#Region "camelCase"
->
+        <Fact>
         Public Sub TestCamelCaseComplianceWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.CamelCase)
             TestNameCompliance(namingStyle, "")
@@ -188,9 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "Firstupper"
-        <Fact
-#Region "Firstupper"
->
+        <Fact>
         Public Sub TestFirstUpperComplianceWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCompliance(namingStyle, "")
@@ -246,9 +238,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "ALLUPPER"
-        <Fact
-#Region "ALLUPPER"
->
+        <Fact>
         Public Sub TestAllUpperComplianceWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllUpper)
             TestNameCompliance(namingStyle, "")
@@ -305,9 +295,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "alllower"
-        <Fact
-#Region "alllower"
->
+        <Fact>
         Public Sub TestAllLowerComplianceWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllLower)
             TestNameCompliance(namingStyle, "")

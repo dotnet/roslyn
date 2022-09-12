@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
 #Region "Visual Basic tests"
-        <Fact
-#Region "Visual Basic tests"
->
+        <Fact>
         Public Async Function TestVisualBasic_SimplifyExtensionMethodOnce() As Task
             Dim input =
 <Workspace>
@@ -110,9 +108,7 @@ End Module
 #End Region
 
 #Region "CSharp tests"
-        <Fact
-#Region "CSharp tests"
->
+        <Fact>
         Public Async Function TestCSharp_SimplifyExtensionMethodOnce() As Task
             Dim input =
 <Workspace>

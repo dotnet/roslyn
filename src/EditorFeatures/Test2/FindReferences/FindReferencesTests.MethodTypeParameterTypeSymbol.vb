@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 #Region "FAR on generic methods"
 
-        <WpfTheory, CombinatorialData
-#Region "FAR on generic methods"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestMethodType_Parameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

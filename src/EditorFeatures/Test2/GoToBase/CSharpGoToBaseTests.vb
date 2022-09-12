@@ -19,9 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
 #Region "Classes And Interfaces"
 
-        <Fact
-#Region "Classes And Interfaces"
->
+        <Fact>
         Public Async Function TestWithSingleClass() As Task
             Await TestAsync("class $$C { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
@@ -109,9 +107,7 @@ interface [|J2|] { }", metadataDefinitions:={"mscorlib:Object"})
 
 #Region "Structs"
 
-        <Fact
-#Region "Structs"
->
+        <Fact>
         Public Async Function TestWithStruct() As Task
             Await TestAsync(
 "struct $$C
@@ -141,9 +137,7 @@ interface [|J2|] { }", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueT
 
 #Region "Methods"
 
-        <Fact
-#Region "Methods"
->
+        <Fact>
         Public Async Function TestWithOneMethodImplementation_01() As Task
             Await TestAsync(
 "class C : I { public void $$M() { } }
@@ -425,9 +419,7 @@ class C { public override string $$ToString() { return base.ToString(); } }
 #End Region
 
 #Region "Properties and Events"
-        <Fact
-#Region "Properties and Events"
->
+        <Fact>
         Public Async Function TestWithOneEventImplementation() As Task
             Await TestAsync(
 "using System;
