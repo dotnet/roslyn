@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool checkReturnType,
                 bool checkParameters)
             {
-                if (checkParameters)
+                if (checkParameters && RequiresValidScopedOverrideForRefSafety(overriddenMethod))
                 {
                     CheckValidScopedOverride(
                         overriddenMethod,
@@ -1368,6 +1368,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        /// <summary>
+        /// Returns true if the method signature must match, with respect to scoped for ref safety,
+        /// in overrides, interface implementations, or delegate conversions.
+        /// </summary>
+        internal static bool RequiresValidScopedOverrideForRefSafety(MethodSymbol? method)
+        {
+            if (method is null)
+            {
+                return false;
+            }
+
+            var parameters = method.Parameters;
+
+            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // The compiler will report a diagnostic for _unsafe scoped mismatches_ across overrides, interface implementations, and delegate conversions when:
+            // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
+            // ...
+            int nRefParametersRequired;
+            if (method.ReturnType.IsRefLikeType ||
+                (method.RefKind is RefKind.Ref or RefKind.RefReadOnly))
+            {
+                nRefParametersRequired = 1;
+            }
+            else if (parameters.Any(p => (p.RefKind is RefKind.Ref or RefKind.Out) && p.Type.IsRefLikeType))
+            {
+                nRefParametersRequired = 2; // including the parameter found above
+            }
+            else
+            {
+                return false;
+            }
+
+            // ...
+            // - The method has at least one additional `ref`, `in`, or `out` parameter, or a parameter of `ref struct` type.
+            int nRefParameters = parameters.Count(p => p.RefKind is RefKind.Ref or RefKind.In or RefKind.Out);
+            if (nRefParameters >= nRefParametersRequired)
+            {
+                return true;
+            }
+            else if (parameters.Any(p => p.RefKind == RefKind.None && p.Type.IsRefLikeType))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Returns true if a diagnostic was added.
         /// </summary>
