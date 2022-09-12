@@ -14,9 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact
-#Region "GetStartPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>using System;
@@ -86,9 +84,7 @@ class C { }
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact
-#Region "GetEndPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>using System;
@@ -158,9 +154,7 @@ class C { }
 
 #Region "AttributeArgument GetStartPoint() tests"
 
-        <WpfFact
-#Region "AttributeArgument GetStartPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetAttributeArgumentStartPoint1()
             Dim code =
 <Code>
@@ -281,9 +275,7 @@ class GooAttribute : Attribute
 
 #Region "AttributeArgument GetEndPoint() tests"
 
-        <WpfFact
-#Region "AttributeArgument GetEndPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetAttributeArgumentEndPoint1()
             Dim code =
 <Code>
@@ -406,9 +398,7 @@ End Class
 #End Region
 
 #Region "FullName tests"
-        <WpfFact
-#Region "FullName tests"
->
+        <WpfFact>
         Public Sub TestGetFullName1()
             Dim code =
 <Code>
@@ -435,9 +425,7 @@ class C { }
 #End Region
 
 #Region "Parent tests"
-        <WpfFact
-#Region "Parent tests"
->
+        <WpfFact>
         Public Sub TestGetParent1()
             Dim code =
 <Code>
@@ -465,9 +453,7 @@ class C { }
 #End Region
 
 #Region "Attribute argument tests"
-        <WpfFact
-#Region "Attribute argument tests"
->
+        <WpfFact>
         Public Sub TestGetArguments1()
             Dim code =
 <Code>
@@ -522,9 +508,7 @@ class CAttribute : Attribute { }
 #End Region
 
 #Region "Target tests"
-        <WpfFact
-#Region "Target tests"
->
+        <WpfFact>
         Public Sub TestGetTarget1()
             Dim code =
 <Code>
@@ -539,9 +523,7 @@ class C { }
 #End Region
 
 #Region "Value tests"
-        <WpfFact
-#Region "Value tests"
->
+        <WpfFact>
         Public Sub TestGetValue1()
             Dim code =
 <Code>
@@ -596,9 +578,7 @@ class CAttribute : Attribute { }
 #End Region
 
 #Region "AddAttributeArgument tests"
-        <WpfFact
-#Region "AddAttributeArgument tests"
->
+        <WpfFact>
         Public Async Function TestAddAttributeArgument1() As Task
             Dim code =
 <Code>
@@ -687,9 +667,7 @@ class C
 
 #Region "Delete tests"
 
-        <WpfFact
-#Region "Delete tests"
->
+        <WpfFact>
         Public Async Function TestDelete1() As Task
             Dim code =
 <Code>
@@ -831,9 +809,7 @@ class C { }
 
 #Region "Delete attribute argument tests"
 
-        <WpfFact
-#Region "Delete attribute argument tests"
->
+        <WpfFact>
         Public Async Function TestDeleteAttributeArgument1() As Task
             Dim code =
 <Code>
@@ -887,9 +863,7 @@ class CAttribute : Attribute { }
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact
-#Region "Set Name tests"
->
+        <WpfFact>
         Public Async Function TestSetName_NewName() As Task
             Dim code =
 <Code>
@@ -942,9 +916,7 @@ class C { }
 #End Region
 
 #Region "Set Target tests"
-        <WpfFact
-#Region "Set Target tests"
->
+        <WpfFact>
         Public Async Function TestSetTarget1() As Task
             Dim code =
 <Code>
@@ -1009,9 +981,7 @@ class C { }
 #End Region
 
 #Region "Set Value tests"
-        <WpfFact
-#Region "Set Value tests"
->
+        <WpfFact>
         Public Async Function TestSetValue1() As Task
             Dim code =
 <Code>
