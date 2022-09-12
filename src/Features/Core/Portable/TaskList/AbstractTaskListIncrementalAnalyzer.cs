@@ -7,14 +7,15 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.TaskList;
+using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
-    internal abstract partial class AbstractTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
+    internal abstract partial class AbstractTaskListIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         private readonly object _gate = new();
         private ImmutableArray<string> _lastTokenList = ImmutableArray<string>.Empty;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
 
-        protected AbstractTodoCommentsIncrementalAnalyzer()
+        protected AbstractTaskListIncrementalAnalyzer()
         {
         }
 

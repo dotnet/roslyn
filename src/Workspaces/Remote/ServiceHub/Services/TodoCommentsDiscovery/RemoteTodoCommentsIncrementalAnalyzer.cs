@@ -6,11 +6,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteTodoCommentsIncrementalAnalyzer : AbstractTodoCommentsIncrementalAnalyzer
+    internal sealed class RemoteTodoCommentsIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.

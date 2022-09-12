@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal sealed class InProcTodoCommentsIncrementalAnalyzer : AbstractTodoCommentsIncrementalAnalyzer
+    internal sealed class InProcTodoCommentsIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {
         private readonly TodoCommentsListener _listener;
 
