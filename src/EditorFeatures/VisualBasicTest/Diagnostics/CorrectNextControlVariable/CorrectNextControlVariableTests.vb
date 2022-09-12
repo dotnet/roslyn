@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Correc
             Return (Nothing, New CorrectNextControlVariableCodeFixProvider)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForLoopBoundIdentifier() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -33,7 +33,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForLoopUnboundIdentifier() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -50,7 +50,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachLoopBoundIdentifier() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -69,7 +69,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachLoopUnboundIdentifier() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -86,7 +86,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachNested() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -107,7 +107,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachNestedOuter() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -128,7 +128,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForLoopWithDeclarator() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -147,7 +147,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachLoopWithDeclarator() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -164,7 +164,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMultipleControl1() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -183,7 +183,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMultipleControl2() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -202,7 +202,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMixedNestedLoop() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -221,7 +221,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestThreeLevels() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -244,7 +244,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestExtraVariable() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -263,7 +263,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMethodCall() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -284,7 +284,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestLongExpressions() As Task
             Await TestInRegularAndScriptAsync(
 "Module M1
@@ -303,7 +303,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestNoLoop() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module M1
@@ -313,7 +313,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMissingNesting() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module M1

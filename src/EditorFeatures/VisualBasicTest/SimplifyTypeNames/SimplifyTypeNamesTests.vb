@@ -2477,7 +2477,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         Public Async Function TestMyClassShouldNotBeRemoved() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -2490,7 +2490,7 @@ End Module")
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         Public Async Function TestMyClassShouldBeRemoved() As Task
             Await TestInRegularAndScriptAsync(
@@ -2510,7 +2510,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType1() As Task
             Await TestInRegularAndScriptAsync(
@@ -2529,7 +2529,7 @@ End Module",
                 options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType2() As Task
             Await TestInRegularAndScriptAsync(
@@ -2548,7 +2548,7 @@ End Module",
                 options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType3() As Task
             Await TestInRegularAndScriptAsync(

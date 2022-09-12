@@ -1068,7 +1068,7 @@ Class Category
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan1() As Task
             Await TestSpansAsync(
@@ -1079,7 +1079,7 @@ End Namespace</text>.NormalizedValue)
         End Function
 
         <WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan2() As Task
             Await TestSpansAsync(
@@ -1092,7 +1092,7 @@ diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
         End Function
 
         <WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         Public Async Function TestRemovalSpan3() As Task
             Await TestSpansAsync(

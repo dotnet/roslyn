@@ -1715,7 +1715,7 @@ Public Class X
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         <WorkItem(1130905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130905")>
         Public Async Function TestGenerateTypeInImports() As Task
             Await TestInRegularAndScriptAsync(
@@ -1725,7 +1725,7 @@ End Class
 ")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         <WorkItem(1130905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130905")>
         Public Async Function TestGenerateTypeInImports2() As Task
             Await TestInRegularAndScriptAsync(

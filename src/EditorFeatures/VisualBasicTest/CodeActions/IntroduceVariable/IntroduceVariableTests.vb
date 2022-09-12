@@ -277,7 +277,7 @@ End Module"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestLocalFromInferredFieldInitializer() As Task
             Dim source = "Imports System
 Class C
@@ -295,7 +295,7 @@ End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestLocalFromYieldStatement() As Task
             Dim source = "Imports System
 Class C
@@ -313,7 +313,7 @@ End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestLocalFromWhileStatement() As Task
             Dim source = "Class C
     Sub M()

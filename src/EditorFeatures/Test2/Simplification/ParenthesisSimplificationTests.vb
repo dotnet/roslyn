@@ -823,7 +823,7 @@ class Goo{
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(619292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619292")>
         Public Async Function TestCSharp_RemoveParensInJaggedArrayLiteral() As Task
             Dim input =
@@ -866,7 +866,7 @@ class C
 
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(619294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619294")>
         Public Async Function TestCSharp_RemoveParensInCollectionInitializer() As Task
             Dim input =

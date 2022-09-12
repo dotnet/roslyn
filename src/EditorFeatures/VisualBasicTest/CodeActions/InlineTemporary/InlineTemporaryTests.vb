@@ -807,7 +807,7 @@ End Sub
         End Function
 
         <WorkItem(544981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544981")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast6() As Task
             Dim code =
@@ -868,7 +868,7 @@ End Module
         End Function
 
         <WorkItem(545130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545130")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast8() As Task
             Dim code =
@@ -950,7 +950,7 @@ End Module
         End Function
 
         <WorkItem(545600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545600")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInlineWithCast11() As Task
             Dim code =
@@ -2010,7 +2010,7 @@ Dim q = From x In "" Select z = Sub() Return
             Await TestAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(529694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529694")>
         Public Async Function TestParenthesizeIfNecessary20() As Task
             Dim code =
@@ -2133,7 +2133,7 @@ End Select
 
         <WorkItem(549182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549182")>
         <WorkItem(549191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549191")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(545730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545730")>
         Public Async Function TestUnparenthesizeIfNecessary1() As Task
             Dim code =
@@ -2576,7 +2576,7 @@ End Module
         End Function
 
         <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement1() As Task
             Dim code =
@@ -2606,7 +2606,7 @@ End Module
         End Function
 
         <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement2() As Task
             Dim code =
@@ -4107,7 +4107,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
         Public Async Function TestReplaceReferencesInWithBlocks() As Task
             Dim code =
@@ -4128,7 +4128,7 @@ End With
             Await TestAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
         Public Async Function TestDontParenthesizeInterpolatedStringWithNoInterpolation() As Task
             Dim code =
@@ -4145,7 +4145,7 @@ Dim s2 = AscW($"hello")
             Await TestAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
         Public Async Function TestDontParenthesizeInterpolatedStringWithInterpolation() As Task
             Dim code =
@@ -4164,7 +4164,7 @@ Dim s2 = AscW($"hello {x}")
             Await TestAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
         Public Async Function TestInlineFormattableStringIntoCallSiteRequiringFormattableString() As Task
             Dim code = "
@@ -4197,7 +4197,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
         Public Async Function TestInlineFormattableStringIntoCallSiteWithFormattableStringOverload() As Task
             Dim code = "
@@ -4236,7 +4236,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(8119, "https://github.com/dotnet/roslyn/issues/8119")>
         Public Async Function ShouldWorkEvenWhenReferencesVaryByCase() As Task
             Dim code = "

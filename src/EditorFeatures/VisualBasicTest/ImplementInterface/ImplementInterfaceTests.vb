@@ -1821,7 +1821,7 @@ Class Bar
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545643"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestVBConstantValue1() As Task
             Await TestInRegularAndScriptAsync(
@@ -1879,7 +1879,7 @@ End Namespace",
 parseOptions:=Nothing)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545679"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestVBConstantValue3() As Task
             Await TestInRegularAndScriptAsync(
@@ -1929,7 +1929,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545675"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestEnumConstant1() As Task
             Await TestInRegularAndScriptAsync(
@@ -1981,7 +1981,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestUnicodeQuote() As Task
             Await TestInRegularAndScriptAsync(
@@ -2211,7 +2211,7 @@ Class C
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestEnumParameters() As Task
             Await TestInRegularAndScriptAsync(
@@ -2267,7 +2267,7 @@ Class C
 End Class]]></Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestEnumParameters2() As Task
             Await TestInRegularAndScriptAsync(
@@ -2351,7 +2351,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestQuoteEscaping1() As Task
             Await TestInRegularAndScriptAsync(
@@ -2429,7 +2429,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545687"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestRemoveParenthesesAroundTypeReference1() As Task
             Await TestInRegularAndScriptAsync(
@@ -2461,7 +2461,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545694"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestNullableDefaultValue1() As Task
             Await TestInRegularAndScriptAsync(
@@ -2515,7 +2515,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545729"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestCharSurrogates() As Task
             Await TestInRegularAndScriptAsync(
@@ -2543,7 +2543,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545733"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestReservedChar() As Task
             Await TestInRegularAndScriptAsync(
@@ -2649,7 +2649,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545742"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestRemFieldEnum() As Task
             Await TestInRegularAndScriptAsync(
@@ -3012,7 +3012,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545893"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestVBTab() As Task
             Await TestInRegularAndScriptAsync(
@@ -3278,7 +3278,7 @@ Class C : Inherits D : Implements IServiceProvider
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(544652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544652"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestConvertNonprintableCharToString() As Task
             Await TestInRegularAndScriptAsync(
@@ -3306,7 +3306,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestSimplifyModuleNameWhenPossible1() As Task
             Await TestInRegularAndScriptAsync(
@@ -3334,7 +3334,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(545684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         Public Async Function TestSimplifyModuleNameWhenPossible2() As Task
             Await TestInRegularAndScriptAsync(
@@ -4475,7 +4475,7 @@ Public Class Holder
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")>
         Public Async Function TestImplementInterfaceThroughStaticMemberInGenericClass() As Task
             Await TestInRegularAndScriptAsync(

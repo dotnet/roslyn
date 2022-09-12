@@ -501,7 +501,7 @@ Class C(Of S)
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestFormattingInImplementAbstractClass() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports System
@@ -532,7 +532,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
         Public Async Function TestImplementClassWithInaccessibleMembers() As Task
             Await TestInRegularAndScriptAsync(

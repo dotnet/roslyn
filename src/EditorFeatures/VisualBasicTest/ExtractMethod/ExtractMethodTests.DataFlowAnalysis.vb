@@ -5902,7 +5902,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <WorkItem(529967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529967")>
             Public Async Function TestExtractObjectArray() As Task
                 Dim code = <text>Imports System

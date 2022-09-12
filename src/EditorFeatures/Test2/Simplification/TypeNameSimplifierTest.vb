@@ -904,7 +904,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Action() As Task
             Dim input =
@@ -948,7 +948,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Func() As Task
             Dim input =
@@ -5902,7 +5902,7 @@ End Class
             Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSharedMemberOffOfMe() As Task
             ' even if the user prefers qualified member access, we will strip off 'Me' when calling
             ' a static method through it.

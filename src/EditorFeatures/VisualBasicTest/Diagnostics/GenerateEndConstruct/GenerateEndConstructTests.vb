@@ -425,7 +425,7 @@ End Module</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         <WorkItem(578260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578260")>
         Public Async Function TestNotOnLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -443,7 +443,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         <WorkItem(578271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578271")>
         Public Async Function TestNamespaceThatEndsAtFile() As Task
             Dim text = <File>

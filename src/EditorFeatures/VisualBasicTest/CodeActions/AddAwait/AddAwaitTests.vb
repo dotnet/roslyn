@@ -390,7 +390,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -413,7 +413,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -436,7 +436,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -450,7 +450,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -473,7 +473,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment5() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -500,7 +500,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment6() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -527,7 +527,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment7() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -552,7 +552,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestTernaryOperator() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -569,7 +569,7 @@ Module M
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestTernaryOperator2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
@@ -586,7 +586,7 @@ Module M
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestCastExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks

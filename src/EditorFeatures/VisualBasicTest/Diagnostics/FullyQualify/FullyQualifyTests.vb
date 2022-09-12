@@ -767,7 +767,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFormattingInFullyQualify() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Module Program
@@ -782,7 +782,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -803,7 +803,7 @@ Module Program
 End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         <WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
         Public Async Function TestAmbiguousTypeFix() As Task
             Await TestInRegularAndScriptAsync(

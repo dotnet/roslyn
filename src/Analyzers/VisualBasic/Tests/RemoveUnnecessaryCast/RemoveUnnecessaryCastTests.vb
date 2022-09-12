@@ -2046,7 +2046,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(578016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578016")>
         Public Async Function TestDontRemoveCStr() As Task
             Dim markup =
@@ -2064,7 +2064,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(530105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530105")>
         Public Async Function TestDontRemoveNumericCast() As Task
             Dim markup =
@@ -2076,7 +2076,7 @@ End Interface
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(530104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530104")>
         Public Async Function TestDontRemoveCTypeFromNumberToEnum() As Task
             Dim markup =
@@ -2090,7 +2090,7 @@ End Interface
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(530077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530077")>
         Public Async Function TestDontRemoveCastForLambdaToDelegateConversionWithOptionStrictOn() As Task
             Dim markup =
@@ -2109,7 +2109,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(529966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529966")>
         Public Async Function TestDontRemoveForNarrowingConversionFromObjectWithOptionStrictOnInsideQueryExpression() As Task
             Dim markup =
@@ -2128,7 +2128,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(530650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530650")>
         Public Async Function TestRemoveUnnecessaryCastFromLambdaToDelegateParenthesizeLambda() As Task
             Dim markup =
@@ -2155,7 +2155,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(707189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
         Public Async Function TestRemoveUnnecessaryCastFromInvocationStatement() As Task
             Dim markup =
@@ -2188,7 +2188,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(707189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707189")>
         Public Async Function DoNotRemoveUnnecessaryCastFromInvocationStatement2() As Task
             Dim markup =

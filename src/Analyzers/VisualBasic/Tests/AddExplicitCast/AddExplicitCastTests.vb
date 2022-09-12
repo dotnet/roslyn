@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddExp
             Return FlattenActions(actions)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCBool() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -39,7 +39,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCByte() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -60,7 +60,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCChar() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -79,7 +79,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCDate() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -98,7 +98,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCDbl() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -117,7 +117,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCDec() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -136,7 +136,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCInt() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -155,7 +155,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCLng() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -174,7 +174,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCSByte() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -193,7 +193,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCShort() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -212,7 +212,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCSng() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -231,7 +231,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCStr() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -250,7 +250,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentObjectToStringCStr() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -269,7 +269,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCUInt() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -288,7 +288,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCULng() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -307,7 +307,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestPredefinedAssignmentCUShort() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -326,7 +326,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -357,7 +357,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestMethodCall() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -390,7 +390,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestMethodCallPredefined() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -411,7 +411,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestConditional() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -430,7 +430,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestReturn() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -447,7 +447,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestObjectCreation() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Strict On
@@ -465,7 +465,7 @@ Module M1
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestAttribute() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -482,7 +482,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestClassAttribute() As Task
             Await TestInRegularAndScriptAsync(
 "<[|TestOverload|](1)>
@@ -513,7 +513,7 @@ Public Enum TestEnum
 End Enum", compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=OptionStrict.Off))
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestMultiline() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -534,7 +534,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestWidening() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Strict On
@@ -545,7 +545,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestInvalidCast() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Strict On
@@ -560,7 +560,7 @@ Module Program[||]
 End Module")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function TestOptionStrictOn() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On

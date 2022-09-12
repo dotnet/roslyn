@@ -992,7 +992,7 @@ Public Class A
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestErrorToleranceWithStrictSemantics() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On

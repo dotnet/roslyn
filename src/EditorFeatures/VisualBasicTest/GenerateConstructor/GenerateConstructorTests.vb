@@ -1270,7 +1270,7 @@ Class C
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestFormattingInGenerateConstructor() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class C
@@ -1476,7 +1476,7 @@ Public Class MyAttribute
     End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
         Public Async Function TestConstructorGenerationForDifferentNamedParameter() As Task
             Await TestInRegularAndScriptAsync(
@@ -1601,7 +1601,7 @@ End Class
 ")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
         Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
             Await TestInRegularAndScriptAsync(
