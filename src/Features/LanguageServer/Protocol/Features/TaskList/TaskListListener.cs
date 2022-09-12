@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         {
             _globalOptions = globalOptions;
             _services = services;
-            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TaskList);
             _onTodoCommentsUpdated = onTodoCommentsUpdated;
             _disposalToken = disposalToken;
 
