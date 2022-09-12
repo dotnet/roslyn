@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.TaskList
     [DataContract]
     internal readonly struct TaskListItemDescriptor
     {
+        [DataMember(Order = 0)]
         public string Text { get; }
+        [DataMember(Order = 1)]
         public int Priority { get; }
 
         public TaskListItemDescriptor(string text, int priority)
