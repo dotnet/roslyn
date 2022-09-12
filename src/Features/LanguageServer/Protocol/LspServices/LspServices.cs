@@ -146,23 +146,23 @@ internal class LspServices : ILspServices
     }
 
     public void Dispose()
-{
-    ImmutableArray<IDisposable> disposableServices;
-    lock (_gate)
     {
-        disposableServices = _servicesToDispose.ToImmutableArray();
-        _servicesToDispose.Clear();
-    }
+        ImmutableArray<IDisposable> disposableServices;
+        lock (_gate)
+        {
+            disposableServices = _servicesToDispose.ToImmutableArray();
+            _servicesToDispose.Clear();
+        }
 
-    foreach (var disposableService in disposableServices)
-    {
-        try
+        foreach (var disposableService in disposableServices)
         {
-            disposableService.Dispose();
-        }
-        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-        {
+            try
+            {
+                disposableService.Dispose();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
         }
     }
-}
 }
