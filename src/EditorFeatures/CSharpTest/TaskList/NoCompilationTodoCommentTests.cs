@@ -18,10 +18,10 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList
 {
     [UseExportProvider]
-    public class NoCompilationTodoCommentTests : AbstractTaskListTests
+    public class NoCompilationTaskListTests : AbstractTaskListTests
     {
         protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         {

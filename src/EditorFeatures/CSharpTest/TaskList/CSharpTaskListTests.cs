@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TaskList;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList
 {
     [UseExportProvider]
-    public class TodoCommentTests : AbstractTaskListTests
+    public class CSharpTaskListTests : AbstractTaskListTests
     {
         protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
             => TestWorkspace.CreateCSharp(codeWithMarker, composition: composition);
