@@ -27,10 +27,7 @@ internal class ShutdownHandler : ILspServiceNotificationHandler
 
     public async Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
     {
-        if (requestContext.ClientCapabilities is null)
-        {
-            throw new InvalidOperationException($"{Methods.ShutdownName} called before {Methods.InitializeName}");
-        }
+        requestContext.GetRequiredClientCapabilities();
 
         var lifeCycleManager = requestContext.GetRequiredService<ILifeCycleManager>();
         await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);

@@ -481,10 +481,9 @@ namespace Roslyn.Test.Utilities
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
-            private readonly Task<RoslynLanguageServer> _languageServerTask;
             private readonly JsonRpc _clientRpc;
 
-            private RoslynLanguageServer LanguageServer => _languageServerTask.Result;
+            private readonly RoslynLanguageServer LanguageServer;
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
@@ -495,7 +494,7 @@ namespace Roslyn.Test.Utilities
                 _locations = locations;
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                _languageServerTask = CreateLanguageServerAsync(serverStream, serverStream, TestWorkspace, serverKind);
+                LanguageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind);
 
                 _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
                 {
@@ -516,7 +515,7 @@ namespace Roslyn.Test.Utilities
                 ClientCapabilities = clientCapabilities;
                 _locations = locations;
 
-                _languageServerTask = Task.FromResult(target);
+                LanguageServer = target;
 
                 _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
                 {
@@ -567,7 +566,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static async Task<RoslynLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
+            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
@@ -584,7 +583,6 @@ namespace Roslyn.Test.Utilities
                     logger,
                     ProtocolConstants.RoslynLspLanguages,
                     serverKind);
-                await languageServer.InitializeAsync();
 
                 jsonRpc.StartListening();
                 return languageServer;
@@ -593,10 +591,6 @@ namespace Roslyn.Test.Utilities
             public async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken) where RequestType : class
             {
                 // If creating the LanguageServer threw we might timeout without this.
-                if (_languageServerTask.IsFaulted)
-                {
-                    throw _languageServerTask.Exception;
-                }
                 var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, request, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return result;
             }

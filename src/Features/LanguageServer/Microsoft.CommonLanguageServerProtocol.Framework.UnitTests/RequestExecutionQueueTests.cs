@@ -58,6 +58,19 @@ public class RequestExecutionQueueTests
         await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync<int, string>(request, MethodName, lspServices, CancellationToken.None));
     }
 
+    [Fact]
+    public async Task Dispose_MultipleTimes_Succeeds()
+    {
+        // Arrange
+        var requestExecutionQueue = GetRequestExecutionQueue();
+
+        // Act
+        await requestExecutionQueue.DisposeAsync();
+        await requestExecutionQueue.DisposeAsync();
+
+        // Assert, it didn't fail
+    }
+
     public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
     {
         public bool MutatesSolutionState => false;

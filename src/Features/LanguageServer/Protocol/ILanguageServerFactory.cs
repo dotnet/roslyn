@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILanguageServerFactory
     {
-        public Task<AbstractLanguageServer<RequestContext>> CreateAsync(
+        public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspServiceLogger logger);

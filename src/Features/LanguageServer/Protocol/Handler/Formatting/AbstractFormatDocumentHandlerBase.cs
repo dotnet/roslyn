@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.Range? range = null)
         {
             var document = context.Document;
-            if (document == null)
+            if (document is null)
                 return null;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

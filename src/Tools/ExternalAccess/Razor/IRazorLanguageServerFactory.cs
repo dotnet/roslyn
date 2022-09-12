@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal interface IRazorLanguageServerFactoryWrapper
     {
-        Task<IRazorLanguageServerTarget> CreateLanguageServerAsync(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
+        IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
 
         DocumentInfo CreateDocumentInfo(
             DocumentId id,

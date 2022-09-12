@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
@@ -27,8 +26,7 @@ internal class ExitHandler : ILspServiceNotificationHandler
 
     public async Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
     {
-        if (requestContext.ClientCapabilities is null)
-            throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
+        requestContext.GetRequiredClientCapabilities();
         var lifeCycleManager = requestContext.GetRequiredLspService<LspServiceLifeCycleManager>();
         await lifeCycleManager.ExitAsync().ConfigureAwait(false);
     }

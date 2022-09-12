@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _languageServerFactory = languageServerFactory;
         }
 
-        public async Task<IRazorLanguageServerTarget> CreateLanguageServerAsync(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
+        public IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = await _languageServerFactory.CreateAsync(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance).ConfigureAwait(false);
+            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }

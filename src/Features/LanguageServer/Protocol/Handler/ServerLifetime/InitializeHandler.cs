@@ -32,7 +32,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
 
             var clientCapabilitiesManager = context.GetRequiredLspService<IClientCapabilitiesManager>();
             var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-            if (clientCapabilities != null || context.ClientCapabilities is not null)
+            if (clientCapabilities != null)
             {
                 throw new InvalidOperationException($"{nameof(Methods.InitializeName)} called multiple times");
             }

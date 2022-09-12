@@ -15,8 +15,10 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 public interface IQueueItem<TRequestContext>
 {
     /// <summary>
-    /// Begins executing the work specified by this queue item.
+    /// Executes the work specified by this queue item.
     /// </summary>
+    /// <param name="cancellationToken" />
+    /// <returns>A <see cref="Task "/> which completes when the request has finished.</returns>
     Task StartRequestAsync(CancellationToken cancellationToken);
 
     ILspServices LspServices { get; }

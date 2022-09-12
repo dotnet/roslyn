@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// and the only state will be wiped out on Server startup</remarks>
     internal class ClientCapabilitiesManager : IClientCapabilitiesManager
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ClientCapabilitiesManager()
         {
         }

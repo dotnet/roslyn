@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
-            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer.ToConvertableString())
+            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
                 return ImmutableArray<IDiagnosticSource>.Empty;
 
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);

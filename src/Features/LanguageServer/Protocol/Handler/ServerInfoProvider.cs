@@ -4,19 +4,17 @@
 
 using System.Collections.Immutable;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal class ServerInfoProvider
     {
-        public ServerInfoProvider(string serverKind, ImmutableArray<string> supportedLanguages)
+        public ServerInfoProvider(WellKnownLspServerKinds serverKind, ImmutableArray<string> supportedLanguages)
         {
             ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
         }
 
-        public readonly string ServerKind;
+        public readonly WellKnownLspServerKinds ServerKind;
         public readonly ImmutableArray<string> SupportedLanguages;
     }
 }

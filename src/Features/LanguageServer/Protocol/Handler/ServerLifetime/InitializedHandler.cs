@@ -24,13 +24,14 @@ internal class InitializedHandler : ILspServiceNotificationHandler<InitializedPa
 
     public bool RequiresLSPSolution => false;
 
-    public Task HandleNotificationAsync(InitializedParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(InitializedParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (requestContext.ClientCapabilities is null)
-        {
-            throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
-        }
+        var clientCapabilities = requestContext.GetRequiredClientCapabilities();
+        var onInitializeList = requestContext.GetRequiredServices<IOnInitialized>();
 
-        return Task.CompletedTask;
+        foreach (var onInitialize in onInitializeList)
+        {
+            await onInitialize.OnInitializedAsync(clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

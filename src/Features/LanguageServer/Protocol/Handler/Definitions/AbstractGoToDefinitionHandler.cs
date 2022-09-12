@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
+            if (document is null)
                 return null;
 
             var locations = ArrayBuilder<LSP.Location>.GetInstance();

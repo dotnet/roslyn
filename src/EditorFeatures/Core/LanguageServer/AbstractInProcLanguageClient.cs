@@ -207,16 +207,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-            var server = await languageClient.CreateAsync(
+            var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
-                logger).ConfigureAwait(false);
+                logger);
 
             jsonRpc.StartListening();
             return server;
         }
 
-        public async Task<AbstractLanguageServer<RequestContext>> CreateAsync(
+        public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspServiceLogger logger)
@@ -228,7 +228,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 logger,
                 SupportedLanguages,
                 ServerKind);
-            await server.InitializeAsync().ConfigureAwait(false);
 
             return server;
         }

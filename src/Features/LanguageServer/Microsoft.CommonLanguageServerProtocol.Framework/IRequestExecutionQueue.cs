@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
-/// Queue's requests to be Executed in the proper order.
+/// Queues requests to be executed in the proper order.
 /// </summary>
 /// <typeparam name="TRequestContext">The type of the RequestContext to be used by the handler.</typeparam>
 public interface IRequestExecutionQueue<TRequestContext> : IAsyncDisposable

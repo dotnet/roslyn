@@ -76,12 +76,12 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.
         await WaitForWorkspaceOperationsAsync(testWorkspace);
-        var languageServerTarget = await CreateLanguageServer(serverStream, serverStream, testWorkspace);
+        var languageServerTarget = CreateLanguageServer(serverStream, serverStream, testWorkspace);
 
         return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
-    private static async Task<RoslynLanguageServer> CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
+    private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
         var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
@@ -99,7 +99,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             logger,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
-        await languageServer.InitializeAsync();
 
         jsonRpc.StartListening();
         return languageServer;

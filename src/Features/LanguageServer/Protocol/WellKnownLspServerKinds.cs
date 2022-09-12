@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -51,11 +48,6 @@ internal enum WellKnownLspServerKinds
 
 internal static class WellKnownLspServerExtensions
 {
-    public static WellKnownLspServerKinds WellKnownLspServerKindsFromString(string str)
-    {
-        return (WellKnownLspServerKinds)Enum.Parse(typeof(WellKnownLspServerKinds), str);
-    }
-
     public static string ToUserVisibleString(this WellKnownLspServerKinds server)
     {
         return server switch
@@ -71,17 +63,6 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "Roslyn TypeScript Language Server Client",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
-    }
-
-    public static string ToConvertableString(this WellKnownLspServerKinds server)
-    {
-        var result = Enum.GetName(typeof(WellKnownLspServerKinds), server);
-        if (result is null)
-        {
-            throw new ArgumentOutOfRangeException("WellKnownLspServerKinds did not match expected values");
-        }
-
-        return result;
     }
 
     public static string ToTelemetryString(this WellKnownLspServerKinds server)

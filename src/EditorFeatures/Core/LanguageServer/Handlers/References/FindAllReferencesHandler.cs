@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {
-            Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
+            var clientCapabilities = context.GetRequiredClientCapabilities();
+            Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
 
             var document = context.Document;
             Contract.ThrowIfNull(document);

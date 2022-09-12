@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            context.RequireClientCapabilities();
+            var clientCapabilities = context.GetRequiredClientCapabilities();
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             var diagnosticMode = GetDiagnosticMode(context);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, diagnosticSource, newResultId, context.ClientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, diagnosticSource, newResultId, clientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -242,8 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private DiagnosticMode GetDiagnosticMode(RequestContext context)
         {
-            var serverKindEnum = WellKnownLspServerExtensions.WellKnownLspServerKindsFromString(context.ServerKind);
-            var diagnosticModeOption = serverKindEnum switch
+            var diagnosticModeOption = context.ServerKind switch
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
                 WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,

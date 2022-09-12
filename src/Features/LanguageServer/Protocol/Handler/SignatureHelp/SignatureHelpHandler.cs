@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            var clientCapabilities = context.GetRequiredClientCapabilities();
             var document = context.Document;
             if (document == null)
                 return null;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     foreach (var item in items.Items)
                     {
                         LSP.SignatureInformation sigInfo;
-                        if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
+                        if (clientCapabilities.HasVisualStudioLspCapability() == true)
                         {
                             sigInfo = new LSP.VSInternalSignatureInformation
                             {

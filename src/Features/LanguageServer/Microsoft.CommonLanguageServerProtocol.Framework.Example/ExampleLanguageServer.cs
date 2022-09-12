@@ -13,6 +13,8 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
 {
     public ExampleLanguageServer(JsonRpc jsonRpc, ILspLogger logger) : base(jsonRpc, logger)
     {
+        // This spins up the queue and ensure the LSP is ready to start receiving requests
+        Initialize();
     }
 
     protected override ILspServices ConstructLspServices()
@@ -23,12 +25,17 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
             .AddSingleton<ILspLogger>(_logger)
             .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
-            .AddSingleton<ILifeCycleManager>(this)
+            .AddSingleton<ILifeCycleManager>(GetLifeCycleManager())
             .AddSingleton(this);
 
         var lspServices = new ExampleLspServices(serviceCollection);
 
         return lspServices;
+    }
+
+    protected virtual ILifeCycleManager GetLifeCycleManager()
+    {
+        return this;
     }
 
     private static IServiceCollection AddHandlers(IServiceCollection serviceCollection)

@@ -4,12 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _baseServices;
         private readonly IServiceCollection _serviceCollection;
-        private readonly string _serverKind;
+        private readonly WellKnownLspServerKinds _serverKind;
 
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
@@ -34,11 +30,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             : base(jsonRpc, logger)
         {
             _lspServiceProvider = lspServiceProvider;
-            _serverKind = serverKind.ToConvertableString();
+            _serverKind = serverKind;
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             _baseServices = GetBaseServices();
-            _serviceCollection = GetServiceCollection(jsonRpc, this, logger, capabilitiesProvider, serverKind.ToConvertableString(), supportedLanguages);
+            _serviceCollection = GetServiceCollection(jsonRpc, this, logger, capabilitiesProvider, serverKind, supportedLanguages);
+
+            // This spins up the queue and ensure the LSP is ready to start receiving requests
+            Initialize();
         }
 
         protected override ILspServices ConstructLspServices()
@@ -51,11 +50,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             IClientCapabilitiesProvider clientCapabilitiesProvider,
             ILspServiceLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
-            string serverKind,
+            WellKnownLspServerKinds serverKind,
             ImmutableArray<string> supportedLanguages)
         {
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
             var lifeCycleManager = new LspServiceLifeCycleManager(this, logger, clientLanguageServerManager);
+
             var serviceCollection = new ServiceCollection()
                 .AddSingleton<IClientLanguageServerManager>(clientLanguageServerManager)
                 .AddSingleton<ILspLogger>(logger)

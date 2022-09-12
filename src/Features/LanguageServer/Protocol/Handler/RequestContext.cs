@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -25,6 +26,14 @@ internal readonly struct RequestContext
     private readonly IDocumentChangeTracker _documentChangeTracker;
 
     /// <summary>
+    /// The client capabilities for the request.
+    /// </summary>
+    /// <remarks>
+    /// Should only be null on the "initialize" request.
+    /// </remarks>
+    private readonly ClientCapabilities? _clientCapabilities;
+
+    /// <summary>
     /// Contains the LSP text for all opened LSP documents from when this request was processed in the queue.
     /// </summary>
     /// <remarks>
@@ -42,22 +51,14 @@ internal readonly struct RequestContext
     public readonly Solution? Solution;
 
     /// <summary>
-    /// The client capabilities for the request.
+    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
-    /// <remarks>
-    /// Should only be null on the "initialize" request.
-    /// </remarks>
-    public readonly ClientCapabilities? ClientCapabilities;
+    public readonly Document? Document;
 
     /// <summary>
     /// The LSP server handling the request.
     /// </summary>
-    public readonly string ServerKind;
-
-    /// <summary>
-    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
-    /// </summary>
-    public readonly Document? Document;
+    public readonly WellKnownLspServerKinds ServerKind;
 
     /// <summary>
     /// The method this request is targeting.
@@ -81,7 +82,7 @@ internal readonly struct RequestContext
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
-        string serverKind,
+        WellKnownLspServerKinds serverKind,
         Document? document,
         IDocumentChangeTracker documentChangeTracker,
         ImmutableDictionary<Uri, SourceText> trackedDocuments,
@@ -91,7 +92,7 @@ internal readonly struct RequestContext
     {
         Document = document;
         Solution = solution;
-        ClientCapabilities = clientCapabilities;
+        _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
         SupportedLanguages = supportedLanguages;
         _documentChangeTracker = documentChangeTracker;
@@ -102,29 +103,25 @@ internal readonly struct RequestContext
         Method = method;
     }
 
-    [MemberNotNull(nameof(ClientCapabilities))]
-    public void RequireClientCapabilities()
+    public ClientCapabilities GetRequiredClientCapabilities()
     {
-        if (ClientCapabilities is null)
-        {
-            throw new ArgumentNullException($"{nameof(ClientCapabilities)} is null when it was required for {Method}");
-        }
+        return _clientCapabilities is null
+            ? throw new ArgumentNullException($"{nameof(ClientCapabilities)} is null when it was required for {Method}")
+            : _clientCapabilities;
     }
 
-    [MemberNotNull(nameof(Document))]
-    public void RequireDocument()
+    public Document GetRequiredDocument()
     {
-        if (Document is null)
-        {
-            throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}");
-        }
+        return Document is null
+            ? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}")
+            : Document;
     }
 
     public static async Task<RequestContext> CreateAsync(
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         TextDocumentIdentifier? textDocument,
-        string serverKind,
+        WellKnownLspServerKinds serverKind,
         ClientCapabilities? clientCapabilities,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
@@ -236,5 +233,10 @@ internal readonly struct RequestContext
     public T GetRequiredService<T>() where T : class
     {
         return _lspServices.GetRequiredService<T>();
+    }
+
+    public IEnumerable<T> GetRequiredServices<T>() where T : class
+    {
+        return _lspServices.GetRequiredServices<T>();
     }
 }

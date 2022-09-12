@@ -41,13 +41,12 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
     }
 
     /// <summary>
-    /// This spins up the LSP and should be called when you're ready for your server to start receiving requests.
+    /// Initializes the LanguageServer.
     /// </summary>
-    public virtual Task InitializeAsync()
+    /// <remarks>Should be called at the bottom of the implementing constructor or immedietly after construction.</remarks>
+    public void Initialize()
     {
         GetRequestExecutionQueue();
-
-        return Task.CompletedTask;
     }
 
     protected abstract ILspServices ConstructLspServices();
@@ -193,7 +192,7 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
         }
     }
 
-    public virtual async Task ShutdownAsync(string message = "Shutting down")
+    public async Task ShutdownAsync(string message = "Shutting down")
     {
         _shuttingDown = true;
         _logger.LogInformation(message);
@@ -201,7 +200,7 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
         await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
     }
 
-    public virtual async Task ExitAsync()
+    public async Task ExitAsync()
     {
         try
         {

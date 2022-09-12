@@ -77,9 +77,10 @@ internal class LspServices : ILspServices
 
     public IEnumerable<T> GetRequiredServices<T>()
     {
-        // TODO: This is incomplete because it only includes things from IServiceProvider and not MEF
         var services = _serviceProvider.GetServices<T>();
-        return services;
+        var mefServices = GetMefServices<T>();
+
+        return services.Concat(mefServices);
     }
 
     public object? TryGetService(Type type)
@@ -115,24 +116,53 @@ internal class LspServices : ILspServices
         return true;
     }
 
-    public void Dispose()
+    private IEnumerable<T> GetMefServices<T>()
     {
-        ImmutableArray<IDisposable> disposableServices;
-        lock (_gate)
+
+        if (typeof(T) == typeof(IMethodHandler))
         {
-            disposableServices = _servicesToDispose.ToImmutableArray();
-            _servicesToDispose.Clear();
+            // HACK: There is special handling for the IMethodHandler to make sure that its types remain lazy
+            // Special case this to avoid providing them twice.
+            yield break;
         }
 
-        foreach (var disposableService in disposableServices)
+        var allServices = GetRegisteredServices();
+        foreach (var service in allServices)
         {
-            try
+            var @interface = service.GetInterface(typeof(T).Name);
+            if (@interface is not null)
             {
-                disposableService.Dispose();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
+                var instance = TryGetService(service);
+                if (instance is not null)
+                {
+                    yield return (T)instance;
+                }
+                else
+                {
+                    throw new Exception("Service failed to construct");
+                }
             }
         }
     }
+
+    public void Dispose()
+{
+    ImmutableArray<IDisposable> disposableServices;
+    lock (_gate)
+    {
+        disposableServices = _servicesToDispose.ToImmutableArray();
+        _servicesToDispose.Clear();
+    }
+
+    foreach (var disposableService in disposableServices)
+    {
+        try
+        {
+            disposableService.Dispose();
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+        }
+    }
+}
 }
