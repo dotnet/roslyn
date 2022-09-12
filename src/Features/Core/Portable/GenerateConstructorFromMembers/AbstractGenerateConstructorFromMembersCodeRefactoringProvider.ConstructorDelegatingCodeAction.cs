@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var codeGenerationService = languageServices.GetRequiredService<ICodeGenerationService>();
 
                 Contract.ThrowIfNull(_state.DelegatedConstructor);
-                var thisConstructorArguments = factory.CreateArguments(
+                var thisConstructor = _state.DelegatedConstructor.ContainingType == _state.ContainingType;
+                var delegatedConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
 
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
@@ -105,7 +106,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         typeName: _state.ContainingType.Name,
                         parameters: _state.Parameters,
                         statements: statements,
-                        thisConstructorArguments: thisConstructorArguments),
+                        baseConstructorArguments: thisConstructor ? default : delegatedConstructorArguments,
+                        thisConstructorArguments: thisConstructor ? delegatedConstructorArguments : default),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

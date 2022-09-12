@@ -80,6 +80,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
                 DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters);
+                if (DelegatedConstructor is null && ContainingType.BaseType is not null)
+                {
+                    DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType.BaseType, Parameters);
+                }
                 return true;
             }
 

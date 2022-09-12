@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             // Find all the possible writable instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.  Otherwise, if there are none
             // don't offer to generate anything.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
+            var viableMembers = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
                 return null;
