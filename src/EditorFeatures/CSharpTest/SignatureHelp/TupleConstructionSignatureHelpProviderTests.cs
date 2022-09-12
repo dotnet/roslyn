@@ -51,8 +51,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(655607, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
-        [Fact]
+        [Fact, WorkItem(655607, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
         public async Task TestMissingTupleElement()
         {
             var markup = @"
@@ -231,8 +230,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(14793, "https://github.com/dotnet/roslyn/issues/14793")]
-        [Fact]
+        [Fact, WorkItem(14793, "https://github.com/dotnet/roslyn/issues/14793")]
         public async Task DoNotCrashInLinkedFile()
         {
             var markup = @"<Workspace>

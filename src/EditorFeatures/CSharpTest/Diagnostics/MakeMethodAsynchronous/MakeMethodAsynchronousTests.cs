@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInVoidMethodWithModifiers()
         {
             var initial =
@@ -57,8 +56,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
-        [Fact]
-        [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        [Fact, WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
         public async Task AwaitInTaskMainMethodWithModifiers()
         {
             var initial =
@@ -91,8 +89,7 @@ class Program
             await TestActionCountAsync(initial, count: 1, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
         }
 
-        [Fact]
-        [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        [Fact, WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
         [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInVoidMainMethodWithModifiers_NotEntryPoint()
         {
@@ -151,8 +148,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInTaskMethodNoModifiers()
         {
             var initial =
@@ -181,8 +177,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInTaskMethodWithModifiers()
         {
             var initial =
@@ -271,8 +266,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod()
         {
             var initial =
@@ -297,8 +291,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod2()
         {
             var initial =
@@ -323,8 +316,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod3()
         {
             var initial =
@@ -374,8 +366,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod5()
         {
             var initial =
@@ -398,8 +389,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod6()
         {
             var initial =
@@ -422,8 +412,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod7()
         {
             var initial =
@@ -738,8 +727,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInIAsyncEnumerableMethod()
         {
             var initial =
@@ -768,8 +756,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInIAsyncEnumeratorMethod()
         {
             var initial =
@@ -907,8 +894,7 @@ class Program
 }");
         }
 
-        [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
-        [Fact]
+        [Fact, WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
         public async Task NullNodeCrash()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -929,9 +915,8 @@ class C
 }");
         }
 
+        [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         [WorkItem(17470, "https://github.com/dotnet/roslyn/issues/17470")]
-        [Fact]
-        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInValueTaskMethod()
         {
             var initial =
@@ -1013,8 +998,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        [Fact, WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
         public async Task AddAsyncInLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -1054,8 +1038,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        [Fact, WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
         [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AddAsyncInLocalFunctionKeepVoidReturn()
         {

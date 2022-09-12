@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
         [DataMember]
         public ImmutableArray<string> TokenList { get; init; } = s_defaultTokenList;
 
+        [DataMember]
+        public bool ComputeForClosedFiles { get; init; } = true;
+
         public TodoCommentOptions()
         {
         }

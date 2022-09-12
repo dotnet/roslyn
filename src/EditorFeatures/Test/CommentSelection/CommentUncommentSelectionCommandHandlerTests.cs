@@ -127,8 +127,7 @@ multiple lines";
             CommentSelection(code, new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, supportBlockComments: false);
         }
 
-        [WpfFact]
-        [WorkItem(563915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563915")]
+        [WpfFact, WorkItem(563915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563915")]
         [WorkItem(530300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530300")]
         public void Comment_MultilineIndented()
         {
@@ -154,8 +153,7 @@ class Goo
                 expectedSelectedSpans: new[] { Span.FromBounds(16, 48) });
         }
 
-        [WpfFact]
-        [WorkItem(527190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527190")]
+        [WpfFact, WorkItem(527190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527190")]
         [WorkItem(563924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563924")]
         public void Comment_ApplyTwice()
         {
@@ -369,8 +367,7 @@ class C
             UncommentSelection(code, expectedChanges, Span.FromBounds(14, 119), supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(563927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563927")]
+        [WpfFact, WorkItem(563927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563927")]
         // This test is just measuring current behavior, there is no reason not to support maintaining box selection.
         public void Uncomment_BoxSelection()
         {
@@ -418,8 +415,7 @@ class Goo
             UncommentSelection(code, expectedChanges, Span.FromBounds(2, 25), supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(530300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530300")]
+        [WpfFact, WorkItem(530300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530300")]
         [WorkItem(563924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563924")]
         public void Comment_NoSelectionAtStartOfLine()
         {
@@ -427,8 +423,7 @@ class Goo
             CommentSelection(code, new[] { new TextChange(TextSpan.FromBounds(0, 0), "//") }, new[] { new Span(0, 15) }, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
+        [WpfFact, WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
         public void Uncomment_NoSelectionInBlockComment()
         {
             var code = @"using /* Sy|start||end|stem.*/IO;";
@@ -442,8 +437,7 @@ class Goo
                 supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
+        [WpfFact, WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
         public void Uncomment_BlockCommentWithPreviousBlockComment()
         {
             var code = @"/* comment */using /* Sy|start||end|stem.*/IO;";
@@ -457,8 +451,7 @@ class Goo
                 supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
+        [WpfFact, WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
         public void Uncomment_InsideEndOfBlockComment()
         {
             var code = @"/*using System;*|start||end|/";
@@ -472,8 +465,7 @@ class Goo
                 supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
+        [WpfFact, WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
         public void Uncomment_AtBeginningOfEndOfBlockComment()
         {
             var code = @"/*using System;|start||end|*/";
@@ -487,24 +479,21 @@ class Goo
                 supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
+        [WpfFact, WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
         public void Uncomment_AtEndOfBlockComment()
         {
             var code = @"/*using System;*/|start||end|";
             UncommentSelection(code, Enumerable.Empty<TextChange>(), new Span(17, 0), supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
+        [WpfFact, WorkItem(932411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932411")]
         public void Uncomment_BlockCommentWithNoEnd()
         {
             var code = @"/*using |start||end|System;";
             UncommentSelection(code, Enumerable.Empty<TextChange>(), new Span(8, 0), supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInside()
         {
             var code = @"
@@ -533,8 +522,7 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndSelectionIncludesNewLines()
         {
             var code = @"
@@ -565,8 +553,7 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndSelectionStartsWithSpaces()
         {
             var code = @"
@@ -595,8 +582,7 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndBlockSelected()
         {
             var code = @"
@@ -625,8 +611,7 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_SingleLineInsideBlockAndSingleSelected()
         {
             var code = @"
@@ -654,8 +639,7 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_SingleLineInsideBlockAndBothSelected()
         {
             var code = @"
@@ -683,8 +667,7 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-        [WpfFact]
-        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        [WpfFact, WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_SingleLinesWithBlockAndSingleInside()
         {
             var code = @"

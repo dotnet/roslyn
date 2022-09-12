@@ -2892,8 +2892,7 @@ class Derived : Base
 
         #region "EditorBrowsable should be ignored"
 
-        [WpfFact]
-        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
+        [WpfFact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_IgnoredWhenOverridingMethods()
         {
             var markup = @"
@@ -3242,8 +3241,7 @@ namespace NS3
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Bar(NS2.Baz baz)", expectedCodeAfterCommit);
         }
 
-        [WpfFact]
-        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
+        [WpfFact, WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
         public async Task OverrideInRecordWithoutExplicitOverriddenMember()
         {
             await VerifyItemExistsAsync(@"record Program
@@ -3252,8 +3250,7 @@ namespace NS3
 }", "ToString()");
         }
 
-        [WpfFact]
-        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
+        [WpfFact, WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
         public async Task OverrideInRecordWithExplicitOverriddenMember()
         {
             await VerifyItemIsAbsentAsync(@"record Program
@@ -3264,8 +3261,7 @@ namespace NS3
 }", "ToString()");
         }
 
-        [WpfFact]
-        [WorkItem(47973, "https://github.com/dotnet/roslyn/issues/47973")]
+        [WpfFact, WorkItem(47973, "https://github.com/dotnet/roslyn/issues/47973")]
         public async Task NoCloneInOverriddenRecord()
         {
             // Currently WellKnownMemberNames.CloneMethodName is not public, so we can't reference it directly.  We
@@ -3284,8 +3280,7 @@ record Program : Base
 }", cloneMemberName);
         }
 
-        [WpfFact]
-        [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
+        [WpfFact, WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
         public async Task ObjectEqualsInClass()
         {
             await VerifyItemExistsAsync(@"
@@ -3295,8 +3290,7 @@ class Program
 }", "Equals(object obj)");
         }
 
-        [WpfFact]
-        [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
+        [WpfFact, WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
         public async Task NoObjectEqualsInOverriddenRecord1()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -3313,8 +3307,7 @@ record Program
 
         }
 
-        [WpfFact]
-        [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
+        [WpfFact, WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
         public async Task NoObjectEqualsInOverriddenRecord()
         {
             await VerifyItemIsAbsentAsync(@"

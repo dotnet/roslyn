@@ -110,8 +110,7 @@ class T
 }}");
         }
 
-        [Fact]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        [Fact, WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
         public async Task TestMissing_ConsoleWriteLine()
         {
             await TestMissingAsync(
@@ -129,8 +128,7 @@ class T
 }");
         }
 
-        [Fact]
-        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        [Fact, WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
         public async Task TestMissing_ConsoleWrite()
         {
             await TestMissingAsync(
@@ -826,8 +824,7 @@ class T
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOnlyArgumentSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -851,8 +848,7 @@ class T
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestOnlyArgumentSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -876,8 +872,7 @@ class T
 }");
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestArgumentsSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -901,8 +896,7 @@ class T
 }");
         }
 
-        [WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
-        [Fact]
+        [Fact, WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
         public async Task TestNoCastToObjectWhenNullableEnabled()
         {
             await TestInRegularAndScriptAsync(

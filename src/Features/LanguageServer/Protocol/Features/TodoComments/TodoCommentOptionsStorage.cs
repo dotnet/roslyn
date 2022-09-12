@@ -16,10 +16,17 @@ namespace Microsoft.CodeAnalysis.TodoComments
             TodoCommentOptions.Default.TokenList,
             new RoamingProfileStorageLocation("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens"));
 
+        public static readonly Option2<bool> ComputeTodoCommentsForClosedFiles = new(
+            "TodoCommentOptions",
+            "ComputeTodoCommentsForClosedFiles",
+            defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTodoCommentsForClosedFiles"));
+
         public static TodoCommentOptions GetTodoCommentOptions(this IGlobalOptionService globalOptions)
             => new()
             {
-                TokenList = globalOptions.GetOption(TokenList)
+                TokenList = globalOptions.GetOption(TokenList),
+                ComputeForClosedFiles = globalOptions.GetOption(ComputeTodoCommentsForClosedFiles)
             };
     }
 }

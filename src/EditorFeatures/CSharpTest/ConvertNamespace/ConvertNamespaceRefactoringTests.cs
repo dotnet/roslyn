@@ -461,8 +461,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        [Fact, WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
         public async Task TextConvertToFileScopedWithCommentedOutContents()
         {
             await new VerifyCS.Test
@@ -490,8 +489,7 @@ namespace N;
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        [Fact, WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
         public async Task TextConvertToFileScopedWithCommentedAfterContents()
         {
             await new VerifyCS.Test
@@ -523,8 +521,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        [Fact, WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
         public async Task TextConvertToFileScopedWithTriviaAroundNamespace1()
         {
             await new VerifyCS.Test
@@ -560,8 +557,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        [Fact, WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
         public async Task TextConvertToFileScopedWithTriviaAroundNamespace2()
         {
             await new VerifyCS.Test

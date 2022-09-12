@@ -844,8 +844,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_EndingWithNewLine()
         {
             var code = @"
@@ -867,8 +866,7 @@ throw new System.Exception();
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_NotEndingWithNewLine()
         {
             var code = @"
@@ -889,8 +887,7 @@ throw new System.Exception();
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements()
         {
             var code = @"
@@ -913,8 +910,7 @@ throw new System.Exception();
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_HasClassDeclarationInBetween()
         {
             var code = @"
@@ -943,8 +939,7 @@ public class C { }
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration1()
         {
             var code = @"
@@ -970,8 +965,7 @@ public class C { }
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration2()
         {
             var code = @"

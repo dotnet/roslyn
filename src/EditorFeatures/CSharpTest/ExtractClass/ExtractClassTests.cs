@@ -976,8 +976,7 @@ internal class MyBase
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace()
         {
             var input = @"// this is my document header
@@ -1043,8 +1042,7 @@ internal class MyBase
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_FileScopedNamespace()
         {
             var input = @"// this is my document header
@@ -1111,8 +1109,7 @@ namespace ConsoleApp185
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_NoNamespace()
         {
             var input = @"
@@ -1165,8 +1162,7 @@ internal class MyBase
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_MultipleNamespaces()
         {
             var input = @"

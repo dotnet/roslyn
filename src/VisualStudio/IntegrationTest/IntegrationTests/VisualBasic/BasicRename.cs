@@ -208,8 +208,7 @@ Public MustInherit Class A
 End Class");
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
             var markup = @"
@@ -234,8 +233,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
             var markup = @"
@@ -261,8 +259,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
             var markup = @"
@@ -294,8 +291,7 @@ Public Class CustomAttribute
 End Class", true);
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
             var markup = @"
@@ -327,8 +323,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeCapitalizedRename()
         {
             var markup = @"
@@ -353,8 +348,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [WpfFact]
-        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        [WpfFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeNotCapitalizedRename()
         {
             var markup = @"

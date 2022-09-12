@@ -185,8 +185,7 @@ $$");
     public C(int i, [Goo]$$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -194,8 +193,7 @@ $$");
     public C():this($$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -203,8 +201,7 @@ $$");
     public C():this(Goo:$$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -212,8 +209,7 @@ $$");
     public C():base($$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -670,8 +666,7 @@ $$");
 @"$$ readonly struct { }");
         }
 
-        [Fact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
         {
             await VerifyAbsenceAsync(
@@ -768,8 +763,7 @@ $$");
 @" D1 lambda = () => $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
-        [Theory]
+        [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
         [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
@@ -783,8 +777,7 @@ ref int x = ref true ? $$", topLevelStatement: topLevelStatement),
                 options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
         }
 
-        [WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
-        [Theory]
+        [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
         [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
@@ -799,8 +792,7 @@ ref int y = ref true ? ref x : $$", topLevelStatement: topLevelStatement),
                 options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
         }
 
-        [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
-        [Theory]
+        [Theory, WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
         [CombinatorialData]
         public async Task TestInLocalMethod(bool topLevelStatement)
         {
@@ -852,8 +844,7 @@ return ref (x = $$", topLevelStatement: topLevelStatement), options: CSharp9Pars
     static void Extension($$");
         }
 
-        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
-        [Fact]
+        [Fact, WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyKeywordAsync(
@@ -979,8 +970,7 @@ $$");
 $$");
         }
 
-        [Fact]
-        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnDifferentLines()
         {
             await VerifyKeywordAsync(
@@ -994,8 +984,7 @@ $$");
 }");
         }
 
-        [Fact]
-        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnSameLine()
         {
             await VerifyKeywordAsync(

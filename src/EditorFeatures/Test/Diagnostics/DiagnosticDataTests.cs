@@ -134,8 +134,7 @@ namespace B
             Assert.Equal(span, actual);
         }
 
-        [Fact]
-        [WorkItem(46377, "https://github.com/dotnet/roslyn/issues/46377")]
+        [Fact, WorkItem(46377, "https://github.com/dotnet/roslyn/issues/46377")]
         public async Task DiagnosticData_ExternalAdditionalLocationIsPreserved()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);

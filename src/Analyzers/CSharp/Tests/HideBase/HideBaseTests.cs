@@ -106,8 +106,7 @@ class App : Application
 }");
         }
 
-        [WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
-        [Fact]
+        [Fact, WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
         public async Task TestAddNewToConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -131,8 +130,7 @@ class App : Application
 }");
         }
 
-        [WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
-        [Fact]
+        [Fact, WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
         public async Task TestAddNewToConstantInternalFields()
         {
             await TestInRegularAndScriptAsync(

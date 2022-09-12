@@ -241,8 +241,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
-        [Fact]
+        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
         public async Task NestedInGenericType()
         {
             var text = @"class Test
@@ -276,8 +275,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
-        [Fact]
+        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
         public async Task NestedInGenericType2()
         {
             var text = @"using System;
@@ -305,8 +303,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
-        [Fact]
+        [Fact, WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
         public async Task NotOnVoid()
         {
             var text = @"

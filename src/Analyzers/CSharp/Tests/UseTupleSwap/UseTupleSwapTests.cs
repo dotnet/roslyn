@@ -446,8 +446,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58759, "https://github.com/dotnet/roslyn/issues/58759")]
+        [Fact, WorkItem(58759, "https://github.com/dotnet/roslyn/issues/58759")]
         public async Task TestTopLevelStatements()
         {
             await new VerifyCS.Test

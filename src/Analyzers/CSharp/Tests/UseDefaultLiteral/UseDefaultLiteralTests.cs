@@ -444,8 +444,7 @@ struct S
 }", parseOptions: s_parseOptions);
         }
 
-        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
-        [Fact]
+        [Fact, WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
         public async Task TestNotInSwitchCase()
         {
             await TestMissingInRegularAndScriptAsync(

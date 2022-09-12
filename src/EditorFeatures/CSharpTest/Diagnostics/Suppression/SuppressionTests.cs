@@ -75,8 +75,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
-                [Fact]
+                [Fact, WorkItem(26015, "https://github.com/dotnet/roslyn/issues/26015")]
                 public async Task TestPragmaWarningDirectiveAroundMultiLineStatement()
                 {
                     await TestAsync(
@@ -102,8 +101,7 @@ line"";
 }}");
                 }
 
-                [WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
-                [Fact]
+                [Fact, WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
                 public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
                 {
                     await TestAsync(
@@ -222,8 +220,7 @@ class Class
 }}");
                 }
 
-                [Fact]
-                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                [Fact, WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment1()
                 {
                     await TestAsync(
@@ -379,8 +376,7 @@ class Class
 }}");
                 }
 
-                [Fact]
-                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                [Fact, WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment2()
                 {
                     await TestAsync(
@@ -435,8 +431,7 @@ class Class
 }}");
                 }
 
-                [Fact]
-                [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
+                [Fact, WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
                 public async Task TestNoDuplicateSuppressionCodeFixes()
                 {
                     var source = @"
@@ -513,8 +508,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
-                [Fact]
+                [Fact, WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
                 public async Task TestWholeFilePragmaWarningDirective()
                 {
                     await TestAsync(
@@ -524,8 +518,7 @@ class Class {{ void Method() {{ int x = 0; }} }}
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}");
                 }
 
-                [WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
-                [Fact]
+                [Fact, WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
                 public async Task TestSuppressionAroundSingleToken()
                 {
                     await TestAsync(
@@ -555,8 +548,7 @@ class Program
 }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia1()
                 {
                     await TestAsync(
@@ -594,8 +586,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia2()
                 {
                     await TestAsync(
@@ -605,8 +596,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     await TestAsync(
@@ -616,8 +606,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia4()
                 {
                     await TestAsync(
@@ -637,8 +626,7 @@ class C {{ }}
 ");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia5()
                 {
                     await TestAsync(
@@ -654,8 +642,7 @@ class C2 {{ }}
 class C3 {{ }}");
                 }
 
-                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-                [Fact]
+                [Fact, WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 public async Task TestPragmaWarningDirectiveAroundTrivia6()
                 {
                     await TestAsync(
@@ -955,8 +942,8 @@ using System;
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
-            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             public async Task TestPragmaWarningDirectiveAroundMultilineDiagnostic()
             {
                 await TestAsync(
@@ -1135,8 +1122,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [Fact]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveTrailingWhitespace()
                 {
                     var expected =
@@ -1168,8 +1154,7 @@ using System;
                 private static bool HasTrailingWhitespace(string line)
                     => line.LastOrNull() is char last && char.IsWhiteSpace(last);
 
-                [Fact]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveLeadingBlankLines()
                 {
                     var expected =
@@ -1199,8 +1184,7 @@ using System;
 }", expected);
                 }
 
-                [Fact]
-                [WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
+                [Fact, WorkItem(37529, "https://github.com/dotnet/roslyn/issues/37529")]
                 public async Task GeneratedCodeShouldNotHaveMoreThanOneTrailingBlankLine()
                 {
                     var expected =
@@ -1726,8 +1710,7 @@ class Class
 }");
                 }
 
-                [Fact]
-                [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+                [Fact, WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
                 public async Task TestSuppressionOnTriviaBetweenFields()
                 {
                     await TestAsync(
@@ -2350,8 +2333,7 @@ namespace N
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithXmlDoc()
                 {
                     var initial = @"
@@ -2392,8 +2374,7 @@ namespace ClassLibrary10
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithNoTrivia()
                 {
                     var initial = @"
@@ -2426,8 +2407,7 @@ namespace ClassLibrary10
                     await TestMissingAsync(expected);
                 }
 
-                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
-                [Fact]
+                [Fact, WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
                 public async Task TestSuppressionOnMethodWithTriviaStartsOnTheSameLine()
                 {
                     var initial = @"

@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateConversionCodeFixProvider());
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateImplicitConversionGenericClass()
         {
             await TestInRegularAndScriptAsync(
@@ -62,8 +61,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateImplicitConversionClass()
         {
             await TestInRegularAndScriptAsync(
@@ -129,8 +127,7 @@ class C
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateImplicitConversionAwaitExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -163,8 +160,7 @@ class Program
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateImplicitConversionTargetTypeNotInSource()
         {
             await TestInRegularAndScriptAsync(
@@ -213,8 +209,7 @@ class Program
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateExplicitConversionGenericClass()
         {
             await TestInRegularAndScriptAsync(
@@ -248,8 +243,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateExplicitConversionClass()
         {
             await TestInRegularAndScriptAsync(
@@ -283,8 +277,7 @@ class C
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateExplicitConversionAwaitExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -317,8 +310,7 @@ class Program
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact]
+        [Fact, WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         public async Task TestGenerateExplicitConversionTargetTypeNotInSource()
         {
             await TestInRegularAndScriptAsync(

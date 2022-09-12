@@ -290,8 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
-        [Fact]
+        [Fact, WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
         public async Task TestComments4()
         {
             await TestInRegularAndScript1Async(
@@ -503,8 +502,7 @@ namespace N {
 }");
         }
 
-        [WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
-        [Fact]
+        [Fact, WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
         public async Task TestMissingWhenTypesDoNotMatch()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -535,8 +533,7 @@ public static class C
 }");
         }
 
-        [WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
-        [Fact]
+        [Fact, WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
         public async Task TestMissingWithNullableType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -555,8 +552,7 @@ class C
 }");
         }
 
-        [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
-        [Fact]
+        [Fact, WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
         public async Task TestMissingWithDynamic()
         {
             await TestMissingInRegularAndScriptAsync(

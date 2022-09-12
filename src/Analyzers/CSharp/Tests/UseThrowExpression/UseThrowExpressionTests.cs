@@ -57,8 +57,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
+        [Fact, WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
         public async Task TestMissingOnIf()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -308,8 +307,7 @@ class C
 }");
         }
 
-        [WorkItem(16234, "https://github.com/dotnet/roslyn/issues/16234")]
-        [Fact]
+        [Fact, WorkItem(16234, "https://github.com/dotnet/roslyn/issues/16234")]
         public async Task TestNotInExpressionTree()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -333,8 +331,7 @@ class C
 }");
         }
 
-        [WorkItem(404142, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=404142")]
-        [Fact]
+        [Fact, WorkItem(404142, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=404142")]
         public async Task TestNotWithAsCheck()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -367,8 +364,7 @@ public interface ISyntax
 }");
         }
 
-        [WorkItem(18670, "https://github.com/dotnet/roslyn/issues/18670")]
-        [Fact]
+        [Fact, WorkItem(18670, "https://github.com/dotnet/roslyn/issues/18670")]
         public async Task TestNotWithElseClause()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -395,8 +391,7 @@ class C
 }");
         }
 
-        [WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
-        [Fact]
+        [Fact, WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
         public async Task TestNotWithMultipleStatementsInIf1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -416,8 +411,7 @@ class C
 }");
         }
 
-        [WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
-        [Fact]
+        [Fact, WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
         public async Task TestNotWithMultipleStatementsInIf2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -437,8 +431,7 @@ class C
 }");
         }
 
-        [WorkItem(21612, "https://github.com/dotnet/roslyn/issues/21612")]
-        [Fact]
+        [Fact, WorkItem(21612, "https://github.com/dotnet/roslyn/issues/21612")]
         public async Task TestNotWhenAccessedOnLeftOfAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -461,8 +454,7 @@ class B
 }");
         }
 
-        [WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
-        [Fact]
+        [Fact, WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
         public async Task TestNotWhenAccessedOnLineBefore()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -484,8 +476,7 @@ class B
 }");
         }
 
-        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
-        [Fact]
+        [Fact, WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
         public async Task TestNotWhenUnconstrainedTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -501,8 +492,7 @@ class A<T>
 }");
         }
 
-        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
-        [Fact]
+        [Fact, WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
         public async Task TestWhenClassConstrainedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -527,8 +517,7 @@ class A<T> where T: class
 }");
         }
 
-        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
-        [Fact]
+        [Fact, WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
         public async Task TestWhenStructConstrainedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -553,8 +542,7 @@ class A<T> where T: struct
 }");
         }
 
-        [WorkItem(44454, "https://github.com/dotnet/roslyn/issues/44454")]
-        [Fact]
+        [Fact, WorkItem(44454, "https://github.com/dotnet/roslyn/issues/44454")]
         public async Task TopLevelStatement()
         {
             await TestAsync(
