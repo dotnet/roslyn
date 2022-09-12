@@ -5,30 +5,30 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsDiscoveryService : BrokeredServiceBase, IRemoteTodoCommentsDiscoveryService
+    internal partial class RemoteTodoCommentsDiscoveryService : BrokeredServiceBase, IRemoteTaskListService
     {
-        internal sealed class Factory : FactoryBase<IRemoteTodoCommentsDiscoveryService, IRemoteTodoCommentsDiscoveryService.ICallback>
+        internal sealed class Factory : FactoryBase<IRemoteTaskListService, IRemoteTaskListService.ICallback>
         {
-            protected override IRemoteTodoCommentsDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback)
+            protected override IRemoteTaskListService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
                 => new RemoteTodoCommentsDiscoveryService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> _callback;
+        private readonly RemoteCallback<IRemoteTaskListService.ICallback> _callback;
 
         private RemoteTodoCommentsIncrementalAnalyzer? _lazyAnalyzer;
 
-        public RemoteTodoCommentsDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback)
+        public RemoteTodoCommentsDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTaskListService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
         }
 
-        public ValueTask ComputeTodoCommentsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask ComputeTaskListItemsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {

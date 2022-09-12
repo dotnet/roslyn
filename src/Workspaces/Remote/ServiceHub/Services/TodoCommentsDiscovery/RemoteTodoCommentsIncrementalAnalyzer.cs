@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> _callback;
+        private readonly RemoteCallback<IRemoteTaskListService.ICallback> _callback;
         private readonly RemoteServiceCallbackId _callbackId;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
+        public RemoteTodoCommentsIncrementalAnalyzer(RemoteCallback<IRemoteTaskListService.ICallback> callback, RemoteServiceCallbackId callbackId)
         {
             _callback = callback;
             _callbackId = callbackId;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(_callbackId, documentId, data, cancellationToken),
+                (callback, cancellationToken) => callback.ReportTaskListItemsAsync(_callbackId, documentId, data, cancellationToken),
                 cancellationToken);
 
         protected override ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
