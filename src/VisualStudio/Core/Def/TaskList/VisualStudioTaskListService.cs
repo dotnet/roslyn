@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 globalOptions,
                 workspace.Services.SolutionServices,
                 asynchronousOperationListenerProvider,
-                onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
+                onTaskListItemsUpdated: (documentId, oldComments, newComments) =>
                 {
                     if (TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
                         TodoListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));

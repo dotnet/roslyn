@@ -135,7 +135,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 workspace.GlobalOptions,
                 workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
-                onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
+                onTaskListItemsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
 
             await listener.StartAsync();

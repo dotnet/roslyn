@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             IGlobalOptionService globalOptions,
             SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> onTodoCommentsUpdated,
+            Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> onTaskListItemsUpdated,
             CancellationToken disposalToken)
         {
             _globalOptions = globalOptions;
             _services = services;
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TaskList);
-            _onTaskListItemsUpdated = onTodoCommentsUpdated;
+            _onTaskListItemsUpdated = onTaskListItemsUpdated;
             _disposalToken = disposalToken;
 
             _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
