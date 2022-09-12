@@ -106,9 +106,7 @@ public class C1 : I1
 
 #Region "Access tests"
 
-        <WpfFact
-#Region "Access tests"
->
+        <WpfFact>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -316,9 +314,7 @@ class Class2
 
 #Region "CanOverride tests"
 
-        <WpfFact
-#Region "CanOverride tests"
->
+        <WpfFact>
         Public Sub TestCanOverride1()
             Dim code =
 <Code>
@@ -397,9 +393,7 @@ class C : B
 
 #Region "FullName tests"
 
-        <WpfFact
-#Region "FullName tests"
->
+        <WpfFact>
         Public Sub TestFullName_Destructor()
             Dim code =
 <Code>
@@ -507,9 +501,7 @@ public class ComplexType
 
 #Region "FunctionKind tests"
 
-        <WpfFact
-#Region "FunctionKind tests"
->
+        <WpfFact>
         Public Sub TestFunctionKind_Destructor()
             Dim code =
 <Code>
@@ -591,9 +583,7 @@ public class C
 
 #Region "MustImplement tests"
 
-        <WpfFact
-#Region "MustImplement tests"
->
+        <WpfFact>
         Public Sub TestMustImplement1()
             Dim code =
 <Code>
@@ -780,9 +770,7 @@ public class ComplexType
 
 #Region "OverrideKind tests"
 
-        <WpfFact
-#Region "OverrideKind tests"
->
+        <WpfFact>
         Public Sub TestOverrideKind_Abstract()
             Dim code =
 <Code>
@@ -861,9 +849,7 @@ class C : B
 
 #Region "Prototype tests"
 
-        <WpfFact
-#Region "Prototype tests"
->
+        <WpfFact>
         Public Sub TestPrototype_FullNameOnly()
             Dim code =
 <Code>
@@ -1239,9 +1225,7 @@ class A
 
 #Region "Type tests"
 
-        <WpfFact
-#Region "Type tests"
->
+        <WpfFact>
         Public Sub TestType_Constructor()
             Dim code =
 <Code>
@@ -1311,9 +1295,7 @@ class A
 #End Region
 
 #Region "RemoveParameter tests"
-        <WpfFact
-#Region "RemoveParameter tests"
->
+        <WpfFact>
         Public Async Function TestRemoveParameter1() As Task
             Dim code =
 <Code>
@@ -1400,9 +1382,7 @@ class C
 #End Region
 
 #Region "AddParameter tests"
-        <WpfFact
-#Region "AddParameter tests"
->
+        <WpfFact>
         Public Async Function TestAddParameter1() As Task
             Dim code =
 <Code>
@@ -1489,9 +1469,7 @@ class C
 
 #Region "Set Access tests"
 
-        <WpfFact
-#Region "Set Access tests"
->
+        <WpfFact>
         Public Async Function TestSetAccess1() As Task
             Dim code =
 <Code>
@@ -1672,9 +1650,7 @@ interface I
 
 #Region "Set IsShared tests"
 
-        <WpfFact
-#Region "Set IsShared tests"
->
+        <WpfFact>
         Public Async Function TestSetIsShared1() As Task
             Dim code =
 <Code>
@@ -1778,9 +1754,7 @@ class C
 
 #Region "Set CanOverride tests"
 
-        <WpfFact
-#Region "Set CanOverride tests"
->
+        <WpfFact>
         Public Async Function TestSetCanOverride1() As Task
             Dim code =
 <Code>
@@ -1926,9 +1900,7 @@ interface I
 
 #Region "Set MustImplement tests"
 
-        <WpfFact
-#Region "Set MustImplement tests"
->
+        <WpfFact>
         Public Async Function TestSetMustImplement1() As Task
             Dim code =
 <Code>
@@ -2152,9 +2124,7 @@ interface I
 
 #Region "Set OverrideKind tests"
 
-        <WpfFact
-#Region "Set OverrideKind tests"
->
+        <WpfFact>
         Public Async Function TestSetOverrideKind1() As Task
             Dim code =
 <Code>
@@ -2231,9 +2201,7 @@ abstract class C
 
 #Region "Set Name tests"
 
-        <WpfFact
-#Region "Set Name tests"
->
+        <WpfFact>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
@@ -2262,9 +2230,7 @@ class C
 
 #Region "Set Type tests"
 
-        <WpfFact
-#Region "Set Type tests"
->
+        <WpfFact>
         Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
@@ -2293,9 +2259,7 @@ class C
 
 #Region "ExtensionMethodExtender"
 
-        <WpfFact
-#Region "ExtensionMethodExtender"
->
+        <WpfFact>
         Public Sub TestExtensionMethodExtender_IsExtension1()
             Dim code =
 <Code>
@@ -2329,9 +2293,7 @@ public static class C
 
 #Region "PartialMethodExtender"
 
-        <WpfFact
-#Region "PartialMethodExtender"
->
+        <WpfFact>
         Public Sub TestPartialMethodExtender_IsPartial1()
             Dim code =
 <Code>
@@ -2537,9 +2499,7 @@ public partial class C
 
 #Region "Overloads Tests"
 
-        <WpfFact
-#Region "Overloads Tests"
->
+        <WpfFact>
         Public Sub TestOverloads1()
             Dim code =
 <Code>
@@ -2623,9 +2583,7 @@ public class C
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact
-#Region "AddAttribute tests"
->
+        <WpfFact>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>

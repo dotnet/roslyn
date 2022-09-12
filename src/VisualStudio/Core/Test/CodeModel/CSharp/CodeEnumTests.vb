@@ -14,9 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "Access tests"
 
-        <WpfFact
-#Region "Access tests"
->
+        <WpfFact>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -93,9 +91,7 @@ public enum $$E { }
 
 #Region "Bases tests"
 
-        <WpfFact
-#Region "Bases tests"
->
+        <WpfFact>
         Public Sub TestBases1()
             Dim code =
 <Code>
@@ -112,9 +108,7 @@ enum $$E
 
 #Region "Attributes tests"
 
-        <WpfFact
-#Region "Attributes tests"
->
+        <WpfFact>
         Public Sub TestAttributes1()
             Dim code =
 <Code>
@@ -177,9 +171,7 @@ enum $$C
 
 #Region "FullName tests"
 
-        <WpfFact
-#Region "FullName tests"
->
+        <WpfFact>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -196,9 +188,7 @@ enum $$E
 
 #Region "Name tests"
 
-        <WpfFact
-#Region "Name tests"
->
+        <WpfFact>
         Public Sub TestName1()
             Dim code =
 <Code>
@@ -215,9 +205,7 @@ enum $$E
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact
-#Region "AddAttribute tests"
->
+        <WpfFact>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -307,9 +295,7 @@ enum E
 
 #Region "AddMember tests"
 
-        <WpfFact
-#Region "AddMember tests"
->
+        <WpfFact>
         Public Async Function TestAddMember1() As Task
             Dim code =
 <Code>
@@ -475,9 +461,7 @@ enum E
 
 #Region "RemoveMember tests"
 
-        <WpfFact
-#Region "RemoveMember tests"
->
+        <WpfFact>
         Public Async Function TestRemoveMember1() As Task
             Dim code =
 <Code>
@@ -568,9 +552,7 @@ enum E
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact
-#Region "Set Name tests"
->
+        <WpfFact>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>

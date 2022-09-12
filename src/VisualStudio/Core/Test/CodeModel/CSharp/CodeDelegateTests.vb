@@ -14,9 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact
-#Region "GetStartPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -81,9 +79,7 @@ delegate void $$Goo(int i);
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact
-#Region "GetEndPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -148,9 +144,7 @@ delegate void $$Goo(int i);
 
 #Region "BaseClass tests"
 
-        <WpfFact
-#Region "BaseClass tests"
->
+        <WpfFact>
         Public Sub TestBaseClass1()
             Dim code =
 <Code>
@@ -164,9 +158,7 @@ delegate void $$D();
 
 #Region "Prototype tests"
 
-        <WpfFact
-#Region "Prototype tests"
->
+        <WpfFact>
         Public Sub TestPrototype_UniqueSignature()
             Dim code =
 <Code>
@@ -222,9 +214,7 @@ namespace N
 
 #Region "Type tests"
 
-        <WpfFact
-#Region "Type tests"
->
+        <WpfFact>
         Public Sub TestType_Void()
             Dim code =
 <Code>
@@ -259,9 +249,7 @@ delegate C $$D();
 
 #Region "Set Type tests"
 
-        <WpfFact
-#Region "Set Type tests"
->
+        <WpfFact>
         Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
@@ -320,9 +308,7 @@ public delegate int $$M(int @int, string @string);
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact
-#Region "AddAttribute tests"
->
+        <WpfFact>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
