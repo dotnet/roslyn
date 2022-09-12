@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
         private readonly TodoCommentsListener _listener;
 
-        public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
+        public event EventHandler<TaskListUpdatedArgs>? TodoListUpdated;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
                 {
                     if (TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
-                        TodoListUpdated?.Invoke(this, new TodoItemsUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
+                        TodoListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
                 },
                 threadingContext.DisposalToken);
         }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// When an event handler is newly added, this event will fire for the currently available todo items and then
         /// afterward for any changes since.
         /// </summary>
-        event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;
+        event EventHandler<TaskListUpdatedArgs> TodoListUpdated;
 
         ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
     }

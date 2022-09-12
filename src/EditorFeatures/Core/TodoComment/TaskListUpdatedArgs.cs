@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class TodoItemsUpdatedArgs : UpdatedEventArgs
+    internal sealed class TaskListUpdatedArgs : UpdatedEventArgs
     {
         /// <summary>
         /// Solution this task items are associated with
@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<TodoCommentData> TodoItems { get; }
+        public ImmutableArray<TodoCommentData> TaskListItems { get; }
 
-        public TodoItemsUpdatedArgs(
-            object id, Solution solution, DocumentId documentId, ImmutableArray<TodoCommentData> todoItems)
+        public TaskListUpdatedArgs(
+            object id, Solution solution, DocumentId documentId, ImmutableArray<TodoCommentData> items)
             : base(id, solution.Workspace, documentId.ProjectId, documentId)
         {
             Solution = solution;
-            TodoItems = todoItems;
+            TaskListItems = items;
         }
 
         /// <summary>
