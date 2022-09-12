@@ -15,9 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "Imports statements"
 
-        <WpfFact
-#Region "Imports statements"
->
+        <WpfFact>
         Public Async Function TestImportsStatement_Add1() As Task
             Dim code =
 <Code>
@@ -280,9 +278,7 @@ Imports System.Linq
 
 #Region "Option statements"
 
-        <WpfFact
-#Region "Option statements"
->
+        <WpfFact>
         Public Async Function TestOptionsStatement_Add1() As Task
             Dim code =
 <Code>
@@ -483,9 +479,7 @@ Option Strict Goo
 
 #Region "File-level attributes"
 
-        <WpfFact
-#Region "File-level attributes"
->
+        <WpfFact>
         Public Async Function TestFileLevelAttribute_Add1() As Task
             Dim code =
 <Code>
@@ -776,9 +770,7 @@ Imports System.Reflection
 
 #Region "Namespaces"
 
-        <WpfFact
-#Region "Namespaces"
->
+        <WpfFact>
         Public Async Function TestNamespace_Add1() As Task
             Dim code =
 <Code>
@@ -922,9 +914,7 @@ End Namespace
 
 #Region "Classes"
 
-        <WpfFact
-#Region "Classes"
->
+        <WpfFact>
         Public Async Function TestClass_Add1() As Task
             Dim code =
 <Code>
@@ -1183,9 +1173,7 @@ End Class
 
 #Region "Enums"
 
-        <WpfFact
-#Region "Enums"
->
+        <WpfFact>
         Public Async Function TestEnum_Add1() As Task
             Dim code =
 <Code>
@@ -1223,9 +1211,7 @@ End Enum
 
 #Region "Fields"
 
-        <WpfFact
-#Region "Fields"
->
+        <WpfFact>
         Public Async Function TestField_Add1() As Task
             Dim code =
 <Code>
@@ -1618,9 +1604,7 @@ End Class
 
 #Region "Methods"
 
-        <WpfFact
-#Region "Methods"
->
+        <WpfFact>
         Public Async Function TestMethod_Add1() As Task
             Dim code =
 <Code>
@@ -1728,9 +1712,7 @@ End Class
 
 #Region "Parameters"
 
-        <WpfFact
-#Region "Parameters"
->
+        <WpfFact>
         Public Async Function TestParameter_Add1() As Task
             Dim code =
 <Code>
@@ -1888,9 +1870,7 @@ End Class
 
 #Region "Attribute Arguments"
 
-        <WpfFact
-#Region "Attribute Arguments"
->
+        <WpfFact>
         Public Async Function TestAttribute_AddArgument1() As Task
             Dim code =
 <Code>
@@ -1948,9 +1928,7 @@ End Class
 
 #Region "Other"
 
-        <WpfFact
-#Region "Other"
->
+        <WpfFact>
         Public Async Function TestRenameInterfaceMethod() As Task
             Dim code =
 <Code>
