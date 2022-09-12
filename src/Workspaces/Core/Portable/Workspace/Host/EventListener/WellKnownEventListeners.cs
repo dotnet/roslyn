@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public const string Workspace = nameof(Workspace);
         public const string DiagnosticService = nameof(DiagnosticService);
-        public const string TodoListProvider = nameof(TodoListProvider);
+        public const string TaskListProvider = nameof(TaskListProvider);
     }
 }

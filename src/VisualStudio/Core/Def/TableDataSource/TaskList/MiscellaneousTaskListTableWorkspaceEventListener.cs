@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [ExportEventListener(WellKnownEventListeners.TodoListProvider, WorkspaceKind.MiscellaneousFiles), Shared]
+    [ExportEventListener(WellKnownEventListeners.TaskListProvider, WorkspaceKind.MiscellaneousFiles), Shared]
     internal sealed class MiscellaneousTaskListTableWorkspaceEventListener : IEventListener<ITaskListProvider>
     {
         internal const string IdentifierString = nameof(MiscellaneousTaskListTable);

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [ExportEventListener(WellKnownEventListeners.TodoListProvider, WorkspaceKind.Host), Shared]
+    [ExportEventListener(WellKnownEventListeners.TaskListProvider, WorkspaceKind.Host), Shared]
     internal class VisualStudioTaskListTableWorkspaceEventListener : IEventListener<ITaskListProvider>
     {
         internal const string IdentifierString = nameof(VisualStudioTaskListTable);

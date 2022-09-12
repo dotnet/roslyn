@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
-            _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
+            _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TaskListProvider);
 
             _listener = new TaskListItemListener(
                 globalOptions,
