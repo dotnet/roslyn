@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class RaiseEventKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RaiseEventInCustomEventTest()
             Dim code = <File>
 Public Class Z
@@ -20,7 +20,6 @@ End Class</File>
         End Sub
 
         <Fact, WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RaiseEventInSingleLineLambdaTest()
             Dim code = <File>
 Public Class Z
@@ -33,7 +32,6 @@ End Class</File>
         End Sub
 
         <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotRaiseEventInCustomEventWithRaiseEventTest()
             Dim code = <File>
 Public Class Z

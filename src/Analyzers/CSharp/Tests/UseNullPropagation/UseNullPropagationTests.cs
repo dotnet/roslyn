@@ -804,8 +804,8 @@ class Program
 }");
         }
 
-        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         [Fact, WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         public async Task TestInExpressionTree2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -822,8 +822,8 @@ class C
 }");
         }
 
-        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         [Fact, WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         public async Task TestInExpressionTree3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -841,8 +841,8 @@ class C
 }");
         }
 
-        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         [Fact, WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
         public async Task TestInExpressionTree4()
         {
             await TestMissingInRegularAndScriptAsync(

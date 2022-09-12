@@ -340,8 +340,8 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         <Fact, WorkItem(597, "GitHub")>
+        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         Public Sub PseudoVariableType()
             Const source = "
 Public Class C

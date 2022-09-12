@@ -170,8 +170,8 @@ class @void { }
             await VerifyItemExistsAsync(text, "@void");
         }
 
-        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         [Fact, WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
+        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         public async Task ShowParameterNames()
         {
             var text = @"/// <see cref=""C.$$""/>

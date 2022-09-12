@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class EnumCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -13,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAlways() As Task
             Dim markup = <Text><![CDATA[
 Class P
@@ -38,7 +38,6 @@ End Enum
         End Function
 
         <Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberNever() As Task
             Dim markup = <Text><![CDATA[
 Class P
@@ -63,7 +62,6 @@ End Enum
         End Function
 
         <Fact, WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class P
@@ -102,7 +100,6 @@ End Enum
         End Function
 
         <Fact, WorkItem(566787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566787")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTriggeredOnOpenParen() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -126,7 +123,6 @@ End
         End Function
 
         <Fact, WorkItem(674390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674390")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRightSideOfAssignment() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -147,7 +143,6 @@ End
         End Function
 
         <Fact, WorkItem(530491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotCrashInObjectInitializer() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -172,7 +167,6 @@ End Module
         End Function
 
         <Fact, WorkItem(809332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809332")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaseStatement() As Task
             Dim markup = <Text><![CDATA[
 Enum E
@@ -197,7 +191,6 @@ End Module
         End Function
 
         <Fact, WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInComment() As Task
             Dim markup = <Text><![CDATA[
 Enum E
@@ -221,8 +214,7 @@ End Module
             Await VerifyNoItemsExistAsync(markup, usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
+        <Fact, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestInYieldReturn() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -238,8 +230,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Friday")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
+        <Fact, WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestInAsyncMethodReturnStatement() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -256,8 +247,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Friday")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(900625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900625")>
+        <Fact, WorkItem(900625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900625")>
         Public Async Function TestInIndexedProperty() As Task
             Dim markup = <Text><![CDATA[
 Module Module1
@@ -291,8 +281,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "MyEnum.flower")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(916483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916483")>
+        <Fact, WorkItem(916483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916483")>
         Public Async Function TestFullyQualified() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -309,8 +298,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "System.DayOfWeek.Friday")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(916467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916467")>
+        <Fact, WorkItem(916467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916467")>
         Public Async Function TestTriggeredForNamedArgument() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -327,8 +315,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.A", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(916467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916467")>
+        <Fact, WorkItem(916467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916467")>
         Public Async Function TestNotTriggeredAfterAssignmentEquals() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -345,8 +332,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "DayOfWeek.A", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        <Fact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestCaseStatementWithInt32InferredType() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -367,8 +353,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.B")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        <Fact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestNotInTrivia() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -389,8 +374,7 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        <Fact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestLocalNoAs() As Task
             Dim markup = <Text><![CDATA[
 Enum E
@@ -407,8 +391,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "e As E")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        <Fact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestIncludeEnumAfterTyping() As Task
             Dim markup = <Text><![CDATA[
 Enum E
@@ -424,8 +407,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "E")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(1015797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015797")>
+        <Fact, WorkItem(1015797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015797")>
         Public Async Function TestCommitOnComma() As Task
             Dim markup = <Text><![CDATA[
 Enum E
@@ -454,16 +436,14 @@ End Class
             Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(201807, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=201807&triage=true&_a=edit")>
+        <Fact, WorkItem(201807, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=201807&triage=true&_a=edit")>
         Public Async Function TestDoNotCrashAtPosition1AfterEquals() As Task
             Dim markup = <Text><![CDATA[=$$     
 ]]></Text>.Value
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(12733, "https://github.com/dotnet/roslyn/issues/12733")>
+        <Fact, WorkItem(12733, "https://github.com/dotnet/roslyn/issues/12733")>
         Public Async Function NotAfterDot() As Task
             Dim markup = <Text>Module Module1
     Sub Main()
@@ -474,8 +454,7 @@ End Module</Text>.Value
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        <Fact, WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
         Public Async Function TestInCollectionInitializer1() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -492,8 +471,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        <Fact, WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
         Public Async Function TestInCollectionInitializer2() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -510,8 +488,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        <Fact, WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
         Public Async Function TestInCollectionInitializer3() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -529,7 +506,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestInEnumHasFlag() As Task
             Dim markup = <Text><![CDATA[
 Imports System.IO

@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class IsKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInCaseClauseTest()
             VerifyRecommendationsContain(
                 <MethodBody>        
@@ -18,7 +18,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoIsKeywordAfterCaseAfterCaseElseTest()
             VerifyRecommendationsMissing(
                 <MethodBody>
@@ -31,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInMiddleCaseClauseTest()
             VerifyRecommendationsContain(
                 <MethodBody>
@@ -42,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInFinalCaseClauseTest()
             VerifyRecommendationsContain(
                 <MethodBody>
@@ -53,7 +50,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <Fact, WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInExistingIsClauseTest()
             VerifyRecommendationsContain(
                 <MethodBody>
@@ -63,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -75,8 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
 </MethodBody>, "Is")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>
@@ -87,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
 </MethodBody>, "Is")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>

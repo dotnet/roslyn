@@ -48,8 +48,8 @@ dotnet_naming_rule.parameters_should_be_camel_case.style    = p_camel_case
 dotnet_naming_style.p_camel_case.required_suffix            = _End
 ";
 
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         public async Task TestAdd1()
         {
             await new VerifyCS.Test
@@ -254,8 +254,8 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         public async Task TestAddOptional1()
         {
             await new VerifyCS.Test()
@@ -292,8 +292,8 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
             // behavior change with 33603, now all constructors offered
@@ -343,8 +343,8 @@ class Program
             }.RunAsync();
         }
 
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact, WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
             // Behavior change with #33603, now all constructors are offered

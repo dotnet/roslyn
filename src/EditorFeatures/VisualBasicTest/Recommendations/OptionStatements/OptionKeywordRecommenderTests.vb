@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class OptionKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionInBlankFileTest()
             VerifyRecommendationsContain(<File>|</File>, "Option")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionAfterAnotherOptionStatementTest()
             VerifyRecommendationsContain(<File>
 Option Strict On
@@ -21,7 +20,6 @@ Option Strict On
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionAfterBlankLineTest()
             VerifyRecommendationsContain(<File>
 Option Strict On
@@ -30,7 +28,6 @@ Option Strict On
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterImportsTest()
             VerifyRecommendationsMissing(<File>
 Imports Goo
@@ -38,7 +35,6 @@ Imports Goo
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterTypeTest()
             VerifyRecommendationsMissing(<File>
 Class Goo
@@ -47,7 +43,6 @@ End Class
         End Sub
 
         <Fact, WorkItem(543008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543008")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterRegionKeywordTest()
             VerifyRecommendationsMissing(<File>
 #Region |

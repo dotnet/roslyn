@@ -3306,8 +3306,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(1042918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042918")>
         <Fact, WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
+        <WorkItem(1042918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042918")>
         Public Sub ConditionalAccessExpressionType()
             Dim source =
 "Class C

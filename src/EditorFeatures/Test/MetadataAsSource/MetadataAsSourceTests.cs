@@ -416,8 +416,8 @@ public class C
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
         }
 
-        [WorkItem(546194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546194")]
         [Theory, WorkItem(546291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546291"), CombinatorialData]
+        [WorkItem(546194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546194")]
         public async Task TestEvent(OriginatingProjectLanguage language, bool signaturesOnly)
         {
             var metadataSource = "using System; public class C { public event Action E; }";

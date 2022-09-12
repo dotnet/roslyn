@@ -1575,11 +1575,11 @@ End Class
                 End Sub)
         End Sub
 
+        <Fact, WorkItem(12219, "https://github.com/dotnet/roslyn/issues/12219")>
         <WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")>
         <WorkItem(997613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997613")>
         <WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact, WorkItem(12219, "https://github.com/dotnet/roslyn/issues/12219")>
         Public Sub AsyncAndLambda()
             Const source =
 "Imports System

@@ -5430,8 +5430,8 @@ class C
 }");
         }
 
-        [WorkItem(545397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545397")]
         [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [WorkItem(545397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545397")]
         public async Task TestVarParameterTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -6873,8 +6873,8 @@ class C
 }");
         }
 
-        [WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")]
         [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")]
         public async Task TestGenerateMethodInConditionalAccess9()
         {
             await TestInRegularAndScriptAsync(

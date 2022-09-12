@@ -934,8 +934,8 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestInExpressionBodiedMembersProperty()
         {
             await VerifyKeywordAsync(@"
@@ -947,8 +947,8 @@ class C
 }");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestInExpressionBodiedMembersMethod()
         {
             await VerifyKeywordAsync(@"
@@ -958,8 +958,8 @@ class C
     int give() => $$");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestInExpressionBodiedMembersIndexer()
         {
             await VerifyKeywordAsync(@"
@@ -969,8 +969,8 @@ class C
     public object this[int i] => $$");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestNotInExpressionBodiedMembers_Static()
         {
             await VerifyAbsenceAsync(@"
@@ -980,8 +980,8 @@ class C
     static int M => $$");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestNotInExpressionBodiedMembersOperator()
         {
             await VerifyAbsenceAsync(@"
@@ -991,8 +991,8 @@ class C
     public static C operator - (C c1) => $$");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestNotInExpressionBodiedMembersConversionOperator()
         {
             await VerifyAbsenceAsync(@"
@@ -1006,8 +1006,8 @@ class C
     public static explicit operator F(C c1) => $$");
         }
 
-        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         [Fact, WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
         public async Task TestOutsideExpressionBodiedMember()
         {
             await VerifyAbsenceAsync(@"

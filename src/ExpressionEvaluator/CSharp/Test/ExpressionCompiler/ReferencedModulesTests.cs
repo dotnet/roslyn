@@ -1246,8 +1246,8 @@ IL_0030:  ret
 
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
-        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
         [Fact, WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
+        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
         public void CorLibWithAssemblyReferences()
         {
             string sourceLib =

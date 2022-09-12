@@ -942,8 +942,8 @@ using System;
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
-            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             public async Task TestPragmaWarningDirectiveAroundMultilineDiagnostic()
             {
                 await TestAsync(

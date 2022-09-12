@@ -134,8 +134,8 @@ class C
                 Region("span", "/* Hello C# ...", autoCollapse: true));
         }
 
-        [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
         [Fact, WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
+        [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
         public async Task TestIncompleteMultilineCommentZeroSpace()
         {
             const string code = @"
@@ -145,8 +145,8 @@ class C
                 Region("span", "/*  ...", autoCollapse: true));
         }
 
-        [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
         [Fact, WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
+        [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
         public async Task TestIncompleteMultilineCommentSingleSpace()
         {
             const string code = @"

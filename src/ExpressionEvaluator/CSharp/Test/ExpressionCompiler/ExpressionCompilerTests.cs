@@ -2401,8 +2401,8 @@ class C
         /// Flow analysis should catch definite assignment errors
         /// for variables declared within the expression.
         /// </summary>
-        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
+        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
         public void FlowAnalysis()
         {
             var source =
@@ -3462,8 +3462,8 @@ class B : A
         /// containing the current frame, so new instances can
         /// be used interchangeably with existing instances.
         /// </summary>
-        [WorkItem(3188, "https://github.com/dotnet/roslyn/issues/3188")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/3188")]
+        [WorkItem(3188, "https://github.com/dotnet/roslyn/issues/3188")]
         public void EvaluateExistingAnonymousType_2()
         {
             var source =

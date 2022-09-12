@@ -2435,8 +2435,8 @@ class Program
 }");
         }
 
-        [WorkItem(608180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
         [Fact, WorkItem(624252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624252")]
+        [WorkItem(608180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
         public async Task DontRemoveCastIfArgumentIsRestricted_TypedReference()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2718,8 +2718,8 @@ public struct B
 }");
         }
 
-        [WorkItem(844482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
         [Fact, WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")]
+        [WorkItem(844482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
         public async Task DontRemoveCastFromBaseToDerivedWithExplicitReference()
         {
             await TestMissingInRegularAndScriptAsync(

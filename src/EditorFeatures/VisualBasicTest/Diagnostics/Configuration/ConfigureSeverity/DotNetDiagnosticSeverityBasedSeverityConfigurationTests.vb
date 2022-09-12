@@ -53,6 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
             Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New CustomDiagnosticAnalyzer(), New ConfigureSeverityLevelCodeFixProvider())
         End Function
 
+        <Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
         Public Class NoneConfigurationTests
             Inherits DotNetDiagnosticSeverityBasedSeverityConfigurationTests
 
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
                 End Get
             End Property
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_Empty_None() As Task
                 Dim input = "
 <Workspace>
@@ -91,7 +92,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact>
             Public Async Function ConfigureEditorconfig_RuleExists_None() As Task
                 Dim input = "
 <Workspace>
@@ -120,7 +121,7 @@ dotnet_diagnostic.XYZ0001.severity = none   # Comment
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_InvalidHeader_None() As Task
                 Dim input = "
 <Workspace>
@@ -154,7 +155,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact>
             Public Async Function ConfigureEditorconfig_MaintainCurrentOption_None() As Task
                 Dim input = "
 <Workspace>
@@ -171,7 +172,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 Await TestMissingInRegularAndScriptAsync(input)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_InvalidRule_None() As Task
                 Dim input = "
 <Workspace>
@@ -203,7 +204,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureGlobalconfig_Empty_None() As Task
                 Dim input = "
 <Workspace>
@@ -232,7 +233,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact>
             Public Async Function ConfigureGlobalconfig_RuleExists_None() As Task
                 Dim input = "
 <Workspace>
@@ -261,7 +262,7 @@ dotnet_diagnostic.XYZ0001.severity = none   # Comment
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureGlobalconfig_InvalidHeader_None() As Task
                 Dim input = "
 <Workspace>

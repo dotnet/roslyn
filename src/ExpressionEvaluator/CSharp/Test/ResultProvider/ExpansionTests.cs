@@ -1603,8 +1603,8 @@ class EProxy
                 EvalResult("Raw View", null, "", "s.This, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown, DkmEvaluationResultCategory.Data));
         }
 
-        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         [Fact, WorkItem(967366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967366")]
+        [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
         public void ExceptionThrownFlag_DerivedExceptionType()
         {
             var source = @"
@@ -2536,8 +2536,8 @@ class C
                 EvalResult(rootExpr, message, "", rootExpr));
         }
 
-        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
         [Fact(Skip = "62156")]
+        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
         public void RefField()
         {
             var source =
