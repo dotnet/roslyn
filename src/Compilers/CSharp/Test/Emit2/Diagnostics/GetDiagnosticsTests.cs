@@ -775,5 +775,38 @@ class C
             var diagnosticsByAnalyzerMap = result.SemanticDiagnostics[syntaxTree];
             Assert.Empty(diagnosticsByAnalyzerMap);
         }
+
+        [Fact]
+        [WorkItem(63923, "https://github.com/dotnet/roslyn/issues/63923")]
+        public async Task TestEqualityForCompilerAnalyzerDiagnosticWithPropertyBag()
+        {
+            var source = @"using System;
+
+public class SomeClass
+{
+    [property: Test]
+    public string Name;
+}
+
+internal class TestAttribute : Attribute
+{
+}
+";
+            var compilation = CreateCompilation(source);
+            var compilationDiagnostics = compilation.GetDiagnostics();
+            compilationDiagnostics.Verify(
+                // (5,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
+                //     [property: Test]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "field").WithLocation(5, 6));
+            var compilationDiagnostic = compilationDiagnostics.Single();
+
+            // Verify equality for the compiler diagnostic fetched from Compilation and diagnostic reported from 'CSharpCompilerDiagnosticAnalyzer'.
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+            var analyzerDiagnostic = analyzerDiagnostics.Single();
+            Assert.Equal(analyzerDiagnostic, compilationDiagnostic);
+            Assert.Equal(analyzerDiagnostic, analyzerDiagnostic);
+        }
     }
 }

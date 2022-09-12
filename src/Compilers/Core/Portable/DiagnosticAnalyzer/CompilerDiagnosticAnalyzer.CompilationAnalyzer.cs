@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(Diagnostic? obj)
                 {
+                    if (obj is CompilerDiagnostic other)
+                        return _original.Equals(other._original);
+
                     return _original.Equals(obj);
                 }
 
