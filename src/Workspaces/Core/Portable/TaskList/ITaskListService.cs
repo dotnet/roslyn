@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.TaskList
     /// </summary>
     internal interface ITaskListService : ILanguageService
     {
-        Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> sescriptors, CancellationToken cancellationToken);
+        Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken);
     }
 }
