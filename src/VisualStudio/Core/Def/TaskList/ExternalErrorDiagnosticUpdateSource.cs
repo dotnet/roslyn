@@ -949,8 +949,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,
-                    Hash.Combine(obj.DataLocation?.MappedFileSpan?.Span.GetHashCode() ?? 0,
-                    Hash.Combine(obj.DataLocation?.OriginalFileSpan?.Span.GetHashCode() ?? 0, (int)obj.Severity)))));
+                    Hash.Combine(obj.DataLocation?.MappedFileSpan?.Span.Start.GetHashCode() ?? 0,
+                    Hash.Combine(obj.DataLocation?.OriginalFileSpan?.Span.Start.GetHashCode() ?? 0, (int)obj.Severity)))));
 
                 return obj.DocumentId != null ?
                     Hash.Combine(obj.DocumentId, result) :
