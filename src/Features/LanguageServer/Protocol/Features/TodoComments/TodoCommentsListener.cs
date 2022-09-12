@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal sealed class TodoCommentsListener : ITodoCommentsListener, IDisposable
+    internal sealed class TodoCommentsListener : ITaskListListener, IDisposable
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> infos, CancellationToken cancellationToken)
         {
             try
             {

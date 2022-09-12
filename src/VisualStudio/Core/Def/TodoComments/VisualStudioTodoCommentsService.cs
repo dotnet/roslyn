@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
-            await _listener.ReportTodoCommentDataAsync(
+            await _listener.ReportTaskListItemsAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
 

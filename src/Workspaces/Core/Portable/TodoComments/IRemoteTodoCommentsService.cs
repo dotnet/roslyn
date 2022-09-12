@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
         }
 
-        private ITodoCommentsListener GetListener(RemoteServiceCallbackId callbackId)
-            => (ITodoCommentsListener)GetCallback(callbackId);
+        private ITaskListListener GetListener(RemoteServiceCallbackId callbackId)
+            => (ITaskListListener)GetCallback(callbackId);
 
         public ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
-            => GetListener(callbackId).ReportTodoCommentDataAsync(documentId, data, cancellationToken);
+            => GetListener(callbackId).ReportTaskListItemsAsync(documentId, data, cancellationToken);
 
         public ValueTask<TaskListOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
             => GetListener(callbackId).GetOptionsAsync(cancellationToken);

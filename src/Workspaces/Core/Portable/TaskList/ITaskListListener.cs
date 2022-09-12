@@ -5,16 +5,15 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <summary>
     /// Callback the host (VS) passes to the OOP service to allow it to send batch notifications about todo comments.
     /// </summary>
-    internal interface ITodoCommentsListener
+    internal interface ITaskListListener
     {
-        ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
+        ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
         ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken);
     }
 }

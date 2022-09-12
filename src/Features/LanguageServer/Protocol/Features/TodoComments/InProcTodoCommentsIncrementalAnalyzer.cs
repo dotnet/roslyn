@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             => _listener = listener;
 
         protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
-            => _listener.ReportTodoCommentDataAsync(documentId, data, cancellationToken);
+            => _listener.ReportTaskListItemsAsync(documentId, data, cancellationToken);
 
         protected override ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
             => _listener.GetOptionsAsync(cancellationToken);
