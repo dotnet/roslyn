@@ -13,28 +13,28 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [ExportEventListener(WellKnownEventListeners.TodoListProvider, WorkspaceKind.MiscellaneousFiles), Shared]
-    internal sealed class MiscellaneousTodoListTableWorkspaceEventListener : IEventListener<ITaskListProvider>
+    [ExportEventListener(WellKnownEventListeners.TaskListProvider, WorkspaceKind.MiscellaneousFiles), Shared]
+    internal sealed class MiscellaneousTaskListTableWorkspaceEventListener : IEventListener<ITaskListProvider>
     {
-        internal const string IdentifierString = nameof(MiscellaneousTodoListTable);
+        internal const string IdentifierString = nameof(MiscellaneousTaskListTable);
 
         private readonly IThreadingContext _threadingContext;
         private readonly ITableManagerProvider _tableManagerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MiscellaneousTodoListTableWorkspaceEventListener(IThreadingContext threadingContext, ITableManagerProvider tableManagerProvider)
+        public MiscellaneousTaskListTableWorkspaceEventListener(IThreadingContext threadingContext, ITableManagerProvider tableManagerProvider)
         {
             _threadingContext = threadingContext;
             _tableManagerProvider = tableManagerProvider;
         }
 
         public void StartListening(Workspace workspace, ITaskListProvider service)
-            => _ = new MiscellaneousTodoListTable(workspace, _threadingContext, service, _tableManagerProvider);
+            => _ = new MiscellaneousTaskListTable(workspace, _threadingContext, service, _tableManagerProvider);
 
-        private sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
+        private sealed class MiscellaneousTaskListTable : VisualStudioBaseTodoListTable
         {
-            public MiscellaneousTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, ITableManagerProvider provider)
+            public MiscellaneousTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, ITableManagerProvider provider)
                 : base(workspace, threadingContext, todoListProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
