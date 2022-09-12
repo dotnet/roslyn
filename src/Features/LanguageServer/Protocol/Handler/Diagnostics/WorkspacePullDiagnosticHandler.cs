@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -116,8 +114,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var todoCommentsEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
-                if (!fullSolutionAnalysisEnabled && !todoCommentsEnabled)
+                var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
+                if (!fullSolutionAnalysisEnabled && !taskListEnabled)
                     return;
 
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (document.IsRazorDocument())
                         continue;
 
-                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTodoComments: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
+                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTaskListItems: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
                 }
 
                 // Finally if fsa is on, we also want to check for diagnostics associated with the project itself.

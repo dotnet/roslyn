@@ -16,13 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     [DataSource(VisualStudioTaskListTableWorkspaceEventListener.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
-    internal sealed class TodoListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TaskListTableItem>
+    internal sealed class TaskListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TaskListTableItem>
     {
-        internal const string Name = "C#/VB Task List Table Event Processor";
+        internal const string Name = "Task List Table Control Event Processor";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TodoListTableControlEventProcessorProvider()
+        public TaskListTableControlEventProcessorProvider()
         {
         }
     }

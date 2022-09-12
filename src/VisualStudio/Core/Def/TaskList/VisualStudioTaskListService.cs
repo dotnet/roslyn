@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
     [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 globalOptions,
                 workspace.Services.SolutionServices,
                 asynchronousOperationListenerProvider,
-                onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
+                onTaskListItemsUpdated: (documentId, oldComments, newComments) =>
                 {
                     if (TaskListUpdated != null && !oldComments.SequenceEqual(newComments))
                         TaskListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
@@ -117,6 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             => await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
 
         public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            => _listener.GetItems(documentId);
+            => _listener.GetTaskListItems(documentId);
     }
 }

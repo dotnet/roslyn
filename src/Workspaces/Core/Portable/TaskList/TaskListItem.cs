@@ -30,12 +30,7 @@ namespace Microsoft.CodeAnalysis.TaskList
         [DataMember(Order = 4)]
         public readonly FileLinePositionSpan MappedSpan;
 
-        public TaskListItem(
-            int priority,
-            string message,
-            DocumentId documentId,
-            FileLinePositionSpan span,
-            FileLinePositionSpan mappedSpan)
+        public TaskListItem(int priority, string message, DocumentId documentId, FileLinePositionSpan span, FileLinePositionSpan mappedSpan)
         {
             Priority = priority;
             Message = message;
@@ -44,27 +39,25 @@ namespace Microsoft.CodeAnalysis.TaskList
             MappedSpan = mappedSpan;
         }
 
+        public override bool Equals(object? obj)
+            => obj is TaskListItem other && Equals(other);
+
         public override int GetHashCode()
-        => GetHashCode(this);
+            => GetHashCode(this);
 
         public override string ToString()
             => $"{Priority} {Message} {MappedSpan.Path ?? ""} ({MappedSpan.StartLinePosition.Line}, {MappedSpan.StartLinePosition.Character}) [original: {Span.Path ?? ""} ({Span.StartLinePosition.Line}, {Span.StartLinePosition.Character})";
 
-        public override bool Equals(object? obj)
-            => obj is TaskListItem other && Equals(other);
-
-        public bool Equals(TaskListItem obj)
-            => DocumentId == obj.DocumentId &&
-               Priority == obj.Priority &&
-               Message == obj.Message &&
-               Span == obj.Span &&
-               MappedSpan == obj.MappedSpan;
+        public bool Equals(TaskListItem right)
+            => DocumentId == right.DocumentId &&
+               Priority == right.Priority &&
+               Message == right.Message &&
+               Span.Span == right.Span.Span;
 
         public static int GetHashCode(TaskListItem item)
             => Hash.Combine(item.DocumentId,
                Hash.Combine(item.Priority,
                Hash.Combine(item.Message,
-               Hash.Combine(item.Span.GetHashCode(),
-               Hash.Combine(item.MappedSpan.GetHashCode(), 0)))));
+               Hash.Combine(item.Span.Span.GetHashCode(), 0))));
     }
 }

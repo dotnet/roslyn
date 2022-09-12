@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor.TaskList
 {

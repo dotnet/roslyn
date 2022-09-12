@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.TaskList
         private readonly IGlobalOptionService _globalOptions;
         private readonly SolutionServices _services;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTodoCommentsUpdated;
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToItems = new();
+        private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTaskListItemsUpdated;
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToTaskListItems = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.TaskList
             IGlobalOptionService globalOptions,
             SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> onTodoCommentsUpdated,
+            Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> onTaskListItemsUpdated,
             CancellationToken disposalToken)
         {
             _globalOptions = globalOptions;
             _services = services;
-            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
-            _onTodoCommentsUpdated = onTodoCommentsUpdated;
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TaskList);
+            _onTaskListItemsUpdated = onTaskListItemsUpdated;
             _disposalToken = disposalToken;
 
             _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.TaskList
 
             foreach (var (documentId, newItems) in filteredArray)
             {
-                var oldComments = _documentToItems.TryGetValue(documentId, out var oldBoxedInfos)
+                var oldComments = _documentToTaskListItems.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
                     : ImmutableArray<TaskListItem>.Empty;
 
@@ -168,16 +168,16 @@ namespace Microsoft.CodeAnalysis.TaskList
                 // so it's safe to remove/add here.
                 if (newItems.IsEmpty)
                 {
-                    _documentToItems.TryRemove(documentId, out _);
+                    _documentToTaskListItems.TryRemove(documentId, out _);
                 }
                 else
                 {
-                    _documentToItems[documentId] = newItems;
+                    _documentToTaskListItems[documentId] = newItems;
                 }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
-                _onTodoCommentsUpdated(documentId, oldComments, newItems);
+                _onTaskListItemsUpdated(documentId, oldComments, newItems);
             }
 
             return ValueTaskFactory.CompletedTask;
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.TaskList
             }
         }
 
-        public ImmutableArray<TaskListItem> GetItems(DocumentId documentId)
+        public ImmutableArray<TaskListItem> GetTaskListItems(DocumentId documentId)
         {
-            return _documentToItems.TryGetValue(documentId, out var values)
+            return _documentToTaskListItems.TryGetValue(documentId, out var values)
                 ? values
                 : ImmutableArray<TaskListItem>.Empty;
         }

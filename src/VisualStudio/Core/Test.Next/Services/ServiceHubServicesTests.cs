@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
@@ -98,7 +98,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public async Task TestTodoComments()
+        public async Task TestTaskList()
         {
             var source = @"
 
@@ -131,7 +131,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 workspace.GlobalOptions,
                 workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
-                onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
+                onTaskListItemsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
 
             await listener.StartAsync();

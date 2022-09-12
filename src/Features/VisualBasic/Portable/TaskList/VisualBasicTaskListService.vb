@@ -5,11 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TaskList
-Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TaskList
     <ExportLanguageService(GetType(ITaskListService), LanguageNames.VisualBasic), [Shared]>
@@ -23,18 +21,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TaskList
 
         Protected Overrides Sub AppendTaskListItems(
                 commentDescriptors As ImmutableArray(Of TaskListItemDescriptor),
-                document As SyntacticDocument,
+                Document As SyntacticDocument,
                 trivia As SyntaxTrivia,
                 items As ArrayBuilder(Of TaskListItem))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTaskListItemsOnSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, items)
+                AppendTaskListItemsOnSingleLine(commentDescriptors, Document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, items)
                 Return
             End If
 
             If IsSingleLineComment(trivia) Then
-                ProcessMultilineComment(commentDescriptors, document, trivia, postfixLength:=0, items)
+                ProcessMultilineComment(commentDescriptors, Document, trivia, postfixLength:=0, items)
                 Return
             End If
 

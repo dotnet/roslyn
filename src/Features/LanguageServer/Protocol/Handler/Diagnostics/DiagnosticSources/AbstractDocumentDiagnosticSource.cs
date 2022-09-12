@@ -8,10 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -34,7 +32,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public Project GetProject() => Document.Project;
     public Uri GetUri() => Document.GetURI();
 
-    protected abstract bool IncludeTodoComments { get; }
+    protected abstract bool IncludeTaskListItems { get; }
     protected abstract bool IncludeStandardDiagnostics { get; }
 
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
@@ -43,12 +41,12 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
-        var todoComments = IncludeTodoComments ? await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var taskListItems = IncludeTaskListItems ? await this.GetTaskListDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        return todoComments.AddRange(diagnostics);
+        return taskListItems.AddRange(diagnostics);
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetTodoCommentDiagnosticsAsync(CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetTaskListDiagnosticsAsync(CancellationToken cancellationToken)
     {
         if (this.Document is not Document document)
             return ImmutableArray<DiagnosticData>.Empty;

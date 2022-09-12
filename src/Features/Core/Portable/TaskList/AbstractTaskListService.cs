@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
@@ -88,9 +89,7 @@ namespace Microsoft.CodeAnalysis.TaskList
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
-            {
                 return;
-            }
 
             var normalized = GetNormalizedText(message);
             foreach (var commentDescriptor in descriptors)
@@ -103,14 +102,12 @@ namespace Microsoft.CodeAnalysis.TaskList
                     continue;
                 }
 
-                if ((message.Length > index + token.Length) && IsIdentifierCharacter(message[index + token.Length]))
-                {
+                if (message.Length > index + token.Length && IsIdentifierCharacter(message[index + token.Length]))
                     // they wrote something like:
                     // todoboo
                     // instead of
                     // todo
                     continue;
-                }
 
                 var trimmedMessage = message[index..];
                 var position = start + index;
@@ -160,9 +157,7 @@ namespace Microsoft.CodeAnalysis.TaskList
 
             var length = fullSpan.End - endLine.Start;
             if (length >= postfixLength)
-            {
                 length -= postfixLength;
-            }
 
             var endMessage = text.ToString(new TextSpan(endLine.Start, length));
             AppendTaskListItemsOnSingleLine(commentDescriptors, document, endMessage, endLine.Start, items);

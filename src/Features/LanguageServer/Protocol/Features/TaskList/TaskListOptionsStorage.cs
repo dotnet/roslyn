@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             "TaskListOptionsStorage",
             "ComputeTaskListItemsForClosedFiles",
             defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTaskListItemsForClosedFiles"));
+            new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTaskListItemsForClosedFiles"));
 
         public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
             => new()
