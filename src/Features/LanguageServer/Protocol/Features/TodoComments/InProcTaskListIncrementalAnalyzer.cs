@@ -9,11 +9,11 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal sealed class InProcTodoCommentsIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
+    internal sealed class InProcTaskListIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {
-        private readonly TodoCommentsListener _listener;
+        private readonly TaskListListener _listener;
 
-        public InProcTodoCommentsIncrementalAnalyzer(TodoCommentsListener listener)
+        public InProcTaskListIncrementalAnalyzer(TaskListListener listener)
             => _listener = listener;
 
         protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)

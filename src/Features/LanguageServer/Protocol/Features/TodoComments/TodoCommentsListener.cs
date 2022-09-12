@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal sealed class TodoCommentsListener : ITaskListListener, IDisposable
+    internal sealed class TaskListListener : ITaskListListener, IDisposable
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// </summary>
         private readonly AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)> _workQueue;
 
-        public TodoCommentsListener(
+        public TaskListListener(
             IGlobalOptionService globalOptions,
             SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
         {
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcTodoCommentsIncrementalAnalyzerProvider(this);
+            var analyzerProvider = new InProcTaskListIncrementalAnalyzerProvider(this);
 
             registrationService.AddAnalyzerProvider(
                 analyzerProvider,
                 new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcTodoCommentsIncrementalAnalyzerProvider),
+                    nameof(InProcTaskListIncrementalAnalyzerProvider),
                     highPriorityForActiveFile: false,
                     workspaceKinds: WorkspaceKind.Host));
         }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private void GlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             // Notify remote service that TokenList changed and the solution needs to be re-analyzed:
-            if (e.Option == TodoCommentOptionsStorage.TokenList && _lazyConnection != null)
+            if (e.Option == TaskListOptionsStorage.TokenList && _lazyConnection != null)
             {
                 // only perform the call if connection has not been disposed:
                 _ = Task.Run(() => _lazyConnection?.TryInvokeAsync((service, cancellationToken) => service.ReanalyzeAsync(cancellationToken), _disposalToken))

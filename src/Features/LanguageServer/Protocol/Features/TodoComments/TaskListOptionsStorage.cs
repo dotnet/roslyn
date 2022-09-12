@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal static class TodoCommentOptionsStorage
+    internal static class TaskListOptionsStorage
     {
         public static readonly Option2<ImmutableArray<string>> TokenList = new(
             "TodoCommentOptions",

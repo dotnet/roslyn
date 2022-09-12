@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
-        private readonly TodoCommentsListener _listener;
+        private readonly TaskListListener _listener;
 
         public event EventHandler<TaskListUpdatedArgs>? TodoListUpdated;
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
 
-            _listener = new TodoCommentsListener(
+            _listener = new TaskListListener(
                 globalOptions,
                 workspace.Services.SolutionServices,
                 asynchronousOperationListenerProvider,

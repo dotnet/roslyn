@@ -57,7 +57,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
         if (service == null)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        var tokenList = document.Project.Solution.Options.GetOption(TodoCommentOptionsStorage.TokenList);
+        var tokenList = document.Project.Solution.Options.GetOption(TaskListOptionsStorage.TokenList);
         var descriptors = GetAndCacheDescriptors(tokenList);
 
         var comments = await service.GetTodoCommentsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);

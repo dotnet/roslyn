@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool includeTodoComments = false)
         {
             var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            optionService.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.ComputeTodoCommentsForClosedFiles), includeTodoComments);
+            optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTodoCommentsForClosedFiles), includeTodoComments);
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
