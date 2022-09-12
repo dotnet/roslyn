@@ -125,7 +125,7 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn),
+                location: new DiagnosticDataLocation(document.Id, null, new("originalFile1", new(startLine, startColumn), new(endLine, endColumn))),
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
@@ -145,8 +145,8 @@ namespace B
             var document = additionalDocument.Project.Documents.Single();
 
             var externalAdditionalLocation = new DiagnosticDataLocation(
-                additionalDocument.Id, sourceSpan: new TextSpan(0, 1), originalFilePath: additionalDocument.Name,
-                originalStartLine: 0, originalStartColumn: 0, originalEndLine: 0, originalEndColumn: 1);
+                additionalDocument.Id, sourceSpan: new TextSpan(0, 1), new(additionalDocument.Name,
+                new(0, 0), new(0, 1)));
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -169,11 +169,7 @@ namespace B
             var roundTripAdditionalLocation = Assert.Single(roundTripDiagnosticData.AdditionalLocations);
             Assert.Equal(externalAdditionalLocation.DocumentId, roundTripAdditionalLocation.DocumentId);
             Assert.Equal(externalAdditionalLocation.SourceSpan, roundTripAdditionalLocation.SourceSpan);
-            Assert.Equal(externalAdditionalLocation.OriginalFilePath, roundTripAdditionalLocation.OriginalFilePath);
-            Assert.Equal(externalAdditionalLocation.OriginalStartLine, roundTripAdditionalLocation.OriginalStartLine);
-            Assert.Equal(externalAdditionalLocation.OriginalStartColumn, roundTripAdditionalLocation.OriginalStartColumn);
-            Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
-            Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
+            Assert.Equal(externalAdditionalLocation.OriginalFileSpan, roundTripAdditionalLocation.OriginalFileSpan);
         }
 
         [Fact]
@@ -197,8 +193,8 @@ namespace B
 
             await VerifyTextSpanAsync(content, 3, 10, 3, 11, new TextSpan(28, 1));
             var location = new DiagnosticDataLocation(
-                documentId, sourceSpan: new TextSpan(28, 1), originalFilePath: document.FilePath,
-                originalStartLine: 3, originalStartColumn: 10, originalEndLine: 3, originalEndColumn: 11);
+                documentId, sourceSpan: new TextSpan(28, 1), new(document.FilePath,
+                new(3, 10), new(3, 11)));
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -222,11 +218,7 @@ namespace B
             Assert.NotNull(roundTripDiagnosticData.DataLocation);
             Assert.Equal(location.DocumentId, roundTripLocation.DocumentId);
             Assert.Equal(location.SourceSpan, roundTripLocation.SourceSpan);
-            Assert.Equal(location.OriginalFilePath, roundTripLocation.OriginalFilePath);
-            Assert.Equal(location.OriginalStartLine, roundTripLocation.OriginalStartLine);
-            Assert.Equal(location.OriginalStartColumn, roundTripLocation.OriginalStartColumn);
-            Assert.Equal(location.OriginalEndLine, roundTripLocation.OriginalEndLine);
-            Assert.Equal(location.OriginalEndLine, roundTripLocation.OriginalEndLine);
+            Assert.Equal(location.OriginalFileSpan, roundTripLocation.OriginalFileSpan);
         }
     }
 }
