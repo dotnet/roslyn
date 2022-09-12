@@ -57,18 +57,23 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 Contract.ThrowIfNull(_state.DelegatedConstructor);
                 var thisConstructor = _state.DelegatedConstructor.ContainingType == _state.ContainingType;
+                var delegatedParameterNames = _state.DelegatedConstructor.Parameters.Select(p => p.Name).ToImmutableHashSet();
                 var delegatedConstructorArguments = factory.CreateArguments(
-                    _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
+                    _state.Parameters.WhereAsArray(p => delegatedParameterNames.Contains(p.Name)));
 
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
                 using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
                 var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
+                for (var i = 0; i < _state.Parameters.Length; i++)
                 {
-                    var symbolName = _state.SelectedMembers[i].Name;
                     var parameter = _state.Parameters[i];
+
+                    if (delegatedParameterNames.Contains(parameter.Name))
+                        continue;
+
+                    var symbolName = _state.SelectedMembers[i].Name;
 
                     var fieldAccess = factory.MemberAccessExpression(
                         factory.ThisExpression(),
