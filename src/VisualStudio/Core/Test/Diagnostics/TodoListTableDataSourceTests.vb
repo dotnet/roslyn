@@ -384,7 +384,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         Private Class TestTodoListProvider
-            Implements ITodoListProvider
+            Implements ITaskListProvider
 
             Public Items As TodoCommentData()
 
@@ -392,9 +392,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Me.Items = items
             End Sub
 
-            Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITodoListProvider.TodoListUpdated
+            Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITaskListProvider.TodoListUpdated
 
-            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoCommentData) Implements ITodoListProvider.GetTodoItems
+            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoCommentData) Implements ITaskListProvider.GetTodoItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 

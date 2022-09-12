@@ -27,14 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoCommentsService :
-        ITodoListProvider,
+        ITaskListProvider,
         IVsTypeScriptTodoCommentService,
         IEventListener<object>,
         IDisposable
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
+        private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
         private readonly TodoCommentsListener _listener;
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
-            _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
+            _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
 
             _listener = new TodoCommentsListener(
                 globalOptions,

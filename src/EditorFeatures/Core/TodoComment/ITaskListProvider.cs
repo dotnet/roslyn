@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// <summary>
     /// Returns Roslyn todo list from the workspace.
     /// </summary>
-    internal interface ITodoListProvider
+    internal interface ITaskListProvider
     {
         /// <summary>
         /// An event that is raised when the todo list has changed.  

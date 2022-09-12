@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+        protected VisualStudioBaseTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, string identifier, ITableManagerProvider provider)
             : base(workspace, provider, StandardTables.TasksTable)
         {
             _source = new TableDataSource(workspace, threadingContext, todoListProvider, identifier);
@@ -70,9 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
-            private readonly ITodoListProvider _todoListProvider;
+            private readonly ITaskListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, IThreadingContext threadingContext, ITodoListProvider todoListProvider, string identifier)
+            public TableDataSource(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, string identifier)
                 : base(workspace, threadingContext)
             {
                 _workspace = workspace;

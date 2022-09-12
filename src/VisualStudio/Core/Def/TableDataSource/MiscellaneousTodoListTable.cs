@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [ExportEventListener(WellKnownEventListeners.TodoListProvider, WorkspaceKind.MiscellaneousFiles), Shared]
-    internal sealed class MiscellaneousTodoListTableWorkspaceEventListener : IEventListener<ITodoListProvider>
+    internal sealed class MiscellaneousTodoListTableWorkspaceEventListener : IEventListener<ITaskListProvider>
     {
         internal const string IdentifierString = nameof(MiscellaneousTodoListTable);
 
@@ -29,12 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _tableManagerProvider = tableManagerProvider;
         }
 
-        public void StartListening(Workspace workspace, ITodoListProvider service)
+        public void StartListening(Workspace workspace, ITaskListProvider service)
             => _ = new MiscellaneousTodoListTable(workspace, _threadingContext, service, _tableManagerProvider);
 
         private sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
         {
-            public MiscellaneousTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+            public MiscellaneousTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, ITableManagerProvider provider)
                 : base(workspace, threadingContext, todoListProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
