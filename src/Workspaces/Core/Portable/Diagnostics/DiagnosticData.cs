@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -295,33 +296,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
-        private static void AdjustBoundaries(int dataLocationStartLine, int dataLocationStartColumn, int dataLocationEndLine, int dataLocationEndColumn,
-            TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
+        private static void AdjustBoundaries(
+            int dataLocationStartLine,
+            int dataLocationStartColumn,
+            int dataLocationEndLine,
+            int dataLocationEndColumn,
+            TextLineCollection lines,
+            out int startLine,
+            out int startColumn,
+            out int endLine,
+            out int endColumn)
         {
             startLine = dataLocationStartLine;
+            endLine = dataLocationEndLine;
+
             var originalStartColumn = dataLocationStartColumn;
+            var originalEndColumn = dataLocationEndColumn;
 
             startColumn = Math.Max(originalStartColumn, 0);
+            endColumn = Math.Max(originalEndColumn, 0);
+
+            // If the start line is negative (e.g. before the start of the actual document) then move the start to the
+            // 0,0 position.
             if (startLine < 0)
             {
                 startLine = 0;
                 startColumn = 0;
             }
 
-            endLine = dataLocationEndLine;
-            var originalEndColumn = dataLocationEndColumn;
+            // if the start line is after the end of the document, move the start to the last location in the document.
+            if (startLine >= lines.Count)
+            {
+                startLine = lines.Count - 1;
+                startColumn = lines[startLine].EndIncludingLineBreak - lines[startLine].Start;
+            }
 
-            endColumn = Math.Max(originalEndColumn, 0);
+            // if the end is before the start of the document, then move the end to wherever the start position was
+            // determined to be.
             if (endLine < 0)
             {
                 endLine = startLine;
                 endColumn = startColumn;
             }
-            else if (endLine >= lines.Count)
+
+            // if the start line is after the end of the document, move the end to the last location in the document.
+            if (endLine >= lines.Count)
             {
                 endLine = lines.Count - 1;
-                endColumn = lines[endLine].EndIncludingLineBreak;
+                endColumn = lines[endLine].EndIncludingLineBreak - lines[endLine].Start;
             }
+
+            // now, ensure that the column of the start/end positions is within that line.
+            startColumn = Math.Max(0, Math.Min(startColumn, lines[startLine].EndIncludingLineBreak - lines[startLine].Start));
+            endColumn = Math.Max(0, Math.Min(endColumn, lines[endLine].EndIncludingLineBreak - lines[endLine].Start));
         }
 
         private static void SwapIfNeeded(ref LinePosition startLinePosition, ref LinePosition endLinePosition)
