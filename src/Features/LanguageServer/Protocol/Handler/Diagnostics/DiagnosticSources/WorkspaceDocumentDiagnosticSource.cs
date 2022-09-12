@@ -7,16 +7,27 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record class WorkspaceDocumentDiagnosticSource(TextDocument Document) : IDiagnosticSource
+internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
-    public ProjectOrDocumentId GetId() => new(Document.Id);
-    public Project GetProject() => Document.Project;
-    public Uri GetUri() => Document.GetURI();
+    protected override bool IncludeTodoComments { get; }
+    protected override bool IncludeStandardDiagnostics { get; }
 
-    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+    public WorkspaceDocumentDiagnosticSource(
+        TextDocument document,
+        bool includeTodoComments,
+        bool includeStandardDiagnostics) : base(document)
+    {
+        Contract.ThrowIfFalse(includeTodoComments || includeStandardDiagnostics,
+            $"At least one of includeTodoComments={includeTodoComments} or includeStandardDiagnostics={includeStandardDiagnostics} must be true.");
+        IncludeTodoComments = includeTodoComments;
+        IncludeStandardDiagnostics = includeStandardDiagnostics;
+    }
+
+    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
         DiagnosticMode diagnosticMode,
