@@ -1832,5 +1832,53 @@ using System.Collections.Generic;
     </Project>
 </Workspace>");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(63273, "https://github.com/dotnet/roslyn/issues/63273")]
+        public async Task TestBaseClass()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Person
+{
+    public string Name { get; }
+    public string Age { get; }
+
+    public Person(string name, string age)
+    {
+        Name = name;
+        Age = age;
+    }
+}
+class [||]Employee : Person
+{
+    public string Salary { get; }
+    public string Role { get; }
+}",
+@"
+class Person
+{
+    public string Name { get; }
+    public string Age { get; }
+
+    public Person(string name, string age)
+    {
+        Name = name;
+        Age = age;
+    }
+}
+class Employee : Person
+{
+    public Employee(string name, string age, string salary, string role{|Navigation:)|} : base(name, age)
+    {
+        Salary = salary;
+        Role = role;
+    }
+
+    public string Salary { get; }
+    public string Role { get; }
+}",
+chosenSymbols: null);
+        }
     }
 }
