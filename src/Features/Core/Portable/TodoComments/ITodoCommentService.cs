@@ -45,12 +45,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 priority: Descriptor.Priority,
                 message: Message,
                 documentId: document.Id,
-                originalLine: originalLineInfo.StartLinePosition.Line,
-                originalColumn: originalLineInfo.StartLinePosition.Character,
-                originalFilePath: document.FilePath,
-                mappedLine: mappedLineInfo.StartLinePosition.Line,
-                mappedColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist());
+                span: originalLineInfo,
+                mappedSpan: mappedLineInfo);
         }
 
         public static async Task ConvertAsync(

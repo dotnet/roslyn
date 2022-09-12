@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
                 var text = initialTextSnapshot.GetText(span.ToSpan());
 
-                Assert.Equal(todo.MappedLine, line.LineNumber);
-                Assert.Equal(todo.MappedColumn, span.Start - line.Start);
+                Assert.Equal(todo.MappedSpan.StartLinePosition.Line, line.LineNumber);
+                Assert.Equal(todo.MappedSpan.StartLinePosition.Character, span.Start - line.Start);
                 Assert.Equal(todo.Message, text);
             }
         }

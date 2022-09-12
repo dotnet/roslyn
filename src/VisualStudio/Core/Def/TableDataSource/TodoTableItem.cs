@@ -43,10 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new(Data.OriginalLine, Data.OriginalColumn);
+            => Data.Span.StartLinePosition;
 
         public override string? GetOriginalFilePath()
-            => Data.OriginalFilePath;
+            => Data.Span.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -72,13 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public bool Equals(TodoCommentData left, TodoCommentData right)
             {
                 // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
-                return
-                    left.OriginalLine == right.OriginalLine &&
-                    left.OriginalColumn == right.OriginalColumn;
+                return left.Span == right.Span;
             }
 
             public int GetHashCode(TodoCommentData data)
-                => Hash.Combine(data.OriginalLine, data.OriginalColumn);
+                => data.Span.GetHashCode();
 
             public bool Equals(TodoTableItem left, TodoTableItem right)
             {

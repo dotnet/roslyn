@@ -142,16 +142,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
             Assert.Equal(1, items.Length);
 
+            var pos = new LinePosition(2, 3);
             Assert.Equal(new TodoCommentData(
                 documentId: documentId,
                 priority: 1,
                 message: "HACK: Test",
-                mappedFilePath: null,
-                originalFilePath: "test1.cs",
-                originalLine: 2,
-                mappedLine: 2,
-                originalColumn: 3,
-                mappedColumn: 3), items[0]);
+                span: new("test1.cs", pos, pos),
+                mappedSpan: new("test1.cs", pos, pos)), items[0]);
 
             resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
 
@@ -161,16 +158,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
             Assert.Equal(1, items.Length);
 
+            pos = new LinePosition(3, 3);
             Assert.Equal(new TodoCommentData(
                 documentId: documentId,
                 priority: 1,
                 message: "TODO: Test",
-                mappedFilePath: null,
-                originalFilePath: "test1.cs",
-                originalLine: 3,
-                mappedLine: 3,
-                originalColumn: 3,
-                mappedColumn: 3), items[0]);
+                span: new("test1.cs", pos, pos),
+                mappedSpan: new("test1.cs", pos, pos)), items[0]);
 
             cancellationTokenSource.Cancel();
         }
