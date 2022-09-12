@@ -167,7 +167,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
                 if (newComments.IsEmpty)
+                {
                     _documentToInfos.TryRemove(documentId, out _);
+                }
                 else
                 {
                     _documentToInfos[documentId] = newComments;
