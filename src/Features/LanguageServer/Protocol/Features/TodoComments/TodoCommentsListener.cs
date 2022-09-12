@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<DocumentAndComments> _workQueue;
+        private readonly AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)> _workQueue;
 
         public TodoCommentsListener(
             IGlobalOptionService globalOptions,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             _onTodoCommentsUpdated = onTodoCommentsUpdated;
             _disposalToken = disposalToken;
 
-            _workQueue = new AsyncBatchingWorkQueue<DocumentAndComments>(
+            _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
                 TimeSpan.FromSeconds(1),
                 ProcessTodoCommentInfosAsync,
                 _asyncListener,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
             try
             {
-                _workQueue.AddWork(new DocumentAndComments(documentId, infos));
+                _workQueue.AddWork((documentId, infos));
                 return ValueTaskFactory.CompletedTask;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -151,18 +151,15 @@ namespace Microsoft.CodeAnalysis.TodoComments
             => ValueTaskFactory.FromResult(_globalOptions.GetTodoCommentOptions());
 
         private ValueTask ProcessTodoCommentInfosAsync(
-            ImmutableSegmentedList<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
+            using var _1 = ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)>.GetInstance(out var filteredArray);
             AddFilteredInfos(docAndCommentsArray, filteredArray);
 
-            foreach (var docAndComments in filteredArray)
+            foreach (var (documentId, newComments) in filteredArray)
             {
-                var documentId = docAndComments.DocumentId;
-                var newComments = docAndComments.Comments;
-
                 var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
                     : ImmutableArray<TaskListItem>.Empty;
@@ -187,8 +184,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private static void AddFilteredInfos(
-            ImmutableSegmentedList<DocumentAndComments> array,
-            ArrayBuilder<DocumentAndComments> filteredArray)
+            ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> array,
+            ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)> filteredArray)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
@@ -198,7 +195,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             for (var i = array.Count - 1; i >= 0; i--)
             {
                 var info = array[i];
-                if (seenDocumentIds.Add(info.DocumentId))
+                if (seenDocumentIds.Add(info.documentId))
                     filteredArray.Add(info);
             }
         }
