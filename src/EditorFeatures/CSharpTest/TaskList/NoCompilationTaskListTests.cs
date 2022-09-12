@@ -33,7 +33,7 @@ $@"<Workspace>
 </Workspace>"), composition: composition.AddParts(
                 typeof(NoCompilationContentTypeDefinitions),
                 typeof(NoCompilationContentTypeLanguageService),
-                typeof(NoCompilationTodoCommentService)));
+                typeof(NoCompilationTaskListService)));
 
             return workspace;
         }
@@ -49,11 +49,11 @@ $@"<Workspace>
 
     [PartNotDiscoverable]
     [ExportLanguageService(typeof(ITodoCommentService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTodoCommentService : ITodoCommentService
+    internal class NoCompilationTaskListService : ITodoCommentService
     {
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NoCompilationTodoCommentService()
+        public NoCompilationTaskListService()
         {
         }
 
