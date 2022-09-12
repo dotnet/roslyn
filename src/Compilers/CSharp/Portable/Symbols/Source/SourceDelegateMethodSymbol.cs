@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                 }
 
-                InitializeParameters(parameters);
+                InitializeParameters(parameters.Cast<SourceParameterSymbol, ParameterSymbol>());
             }
 
             public override string Name
