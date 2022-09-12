@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 return Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()));
             }
 
-            return LoadTextAndVersionAsync(cancellationToken);
+            return base.LoadTextAndVersionAsync(cancellationToken);
         }
     }
 }
