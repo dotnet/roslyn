@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.TaskList
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
-    <[UseExportProvider]>
+    <UseExportProvider>
     Public Class VisualBasicTaskListTests
         Inherits AbstractTaskListTests
 
@@ -125,8 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
             Await TestAsync(code, host)
         End Function
 
-        <Theory, CombinatorialData>
-        <WorkItem(606010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606010")>
+        <Theory, CombinatorialData, WorkItem(606010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606010")>
         Public Async Function TestLeftRightSingleQuote(host As TestHost) As Task
             Dim code = <code>
          ‘[|todo　ｆｕｌｌｗｉｄｔｈ 1|]
@@ -136,8 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
             Await TestAsync(code, host)
         End Function
 
-        <Theory, CombinatorialData>
-        <WorkItem(606019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606019")>
+        <Theory, CombinatorialData, WorkItem(606019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606019")>
         Public Async Function TestHalfFullTodo(host As TestHost) As Task
             Dim code = <code>
             '[|ｔoｄo whatever|]
@@ -145,8 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
             Await TestAsync(code, host)
         End Function
 
-        <Theory, CombinatorialData>
-        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
+        <Theory, CombinatorialData, WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid1(host As TestHost) As Task
             Dim code = <code>
             '' todo whatever
@@ -154,8 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
             Await TestAsync(code, host)
         End Function
 
-        <Theory, CombinatorialData>
-        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
+        <Theory, CombinatorialData, WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid2(host As TestHost) As Task
             Dim code = <code>
             '''' todo whatever
@@ -163,8 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
             Await TestAsync(code, host)
         End Function
 
-        <Theory, CombinatorialData>
-        <WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
+        <Theory, CombinatorialData, WorkItem(627723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627723")>
         Public Async Function TestSingleQuote_Invalid3(host As TestHost) As Task
             Dim code = <code>
             ' '' todo whatever
