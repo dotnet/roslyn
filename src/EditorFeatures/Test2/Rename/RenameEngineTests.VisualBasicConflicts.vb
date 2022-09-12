@@ -432,7 +432,7 @@ End Module
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
 
             <WorkItem(729401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729401")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub IntroduceWhitespaceTriviaToInvocationIfCallKeywordIsIntroduced(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -463,7 +463,7 @@ End Class
             End Sub
 
             <WorkItem(728646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728646")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ExpandInvocationInStaticMemberAccess(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -533,7 +533,7 @@ End Class
             End Sub
 
             <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -565,7 +565,7 @@ End Class
             End Sub
 
             <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_Nested(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -599,7 +599,7 @@ End Class
             End Sub
 
             <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_ReferenceType(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -653,7 +653,7 @@ End Class
             End Sub
 
             <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_DifferentScope1(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -687,7 +687,7 @@ End Class
             End Sub
 
             <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_ConstructedTypeArgumentGenericContainer(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -714,7 +714,7 @@ End Class
             End Sub
 
             <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_ConstructedTypeArgumentNonGenericContainer(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -2414,7 +2414,7 @@ End Namespace                             </Document>
             End Sub
 
             <WorkItem(628700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628700")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameModuleConflictWithLocal(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -2444,7 +2444,7 @@ End Namespace
             End Sub
 
             <WorkItem(633180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633180")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub VB_DetectOverLoadResolutionChangesInEnclosingInvocations(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2494,7 +2494,7 @@ End Module
             End Sub
 
             <WorkItem(673562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673562"), WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameNamespaceConflictsAndResolves(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2522,7 +2522,7 @@ End Namespace
             End Sub
 
             <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameUnnecessaryExpansion(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2548,7 +2548,7 @@ End Namespace
             End Sub
 
             <WorkItem(645152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645152")>
-            <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub AdjustTriviaForExtensionMethodRewrite(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

@@ -1599,7 +1599,7 @@ class [|$$Main|] : Attribute // Rename 'Main' to 'Special'
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameUsingToKeyword(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1680,7 +1680,7 @@ class [|t$$o|] // Rename 'to' to 'from'
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(522774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522774")>
         Public Sub RenameCrefWithConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1795,7 +1795,7 @@ class Program
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552522")>
         Public Sub RenameFunctionNameToDelegateTypeConflict1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1917,7 +1917,7 @@ class A
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Sub RenameActionTypeConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1945,7 +1945,7 @@ class A
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Sub RenameConflictAttribute1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1967,7 +1967,7 @@ class [|$$FooAttribute|] : System.Attribute
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConflictAttribute2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1990,7 +1990,7 @@ class AAttributeAttribute : Attribute
         End Sub
 
         <WorkItem(576573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576573")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug576573_ConflictAttributeWithNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2020,7 +2020,7 @@ namespace X
         End Sub
 
         <WorkItem(579602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579602")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579602_RenameFunctionWithDynamicParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2050,7 +2050,7 @@ class A
             End Using
         End Sub
 
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub IdentifyConflictsWithVar(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2077,7 +2077,7 @@ class [|$$vor|]
         End Sub
 
         <WorkItem(633180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633180")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_DetectOverLoadResolutionChangesInEnclosingInvocations(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2116,7 +2116,7 @@ static class E
         End Sub
 
         <WorkItem(635622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635622")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExpandingDynamicAddsObjectCast(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2179,7 +2179,7 @@ namespace N
         End Sub
 
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameUnnecessaryExpansion(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2248,7 +2248,7 @@ public class A
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
         <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2276,7 +2276,7 @@ class C
 
         <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
         <WorkItem(725934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/725934")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_This(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2304,7 +2304,7 @@ class C
         End Sub
 
         <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_Nested(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -2333,7 +2333,7 @@ class C
             End Using
         End Sub
         <WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
-        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_ReferenceType(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
