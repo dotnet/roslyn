@@ -87,7 +87,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
                 originalStartColumn: comment.Span.StartLinePosition.Character,
                 originalEndLine: comment.Span.EndLinePosition.Line,
                 originalEndColumn: comment.Span.EndLinePosition.Character,
-                mappedFilePath: comment.MappedSpan.HasMappedPath ? comment.MappedSpan.Path : null,
+                mappedFilePath: comment.MappedSpan.GetMappedFilePathIfExist(),
                 mappedStartLine: comment.MappedSpan.StartLinePosition.Line,
                 mappedStartColumn: comment.MappedSpan.StartLinePosition.Character,
                 mappedEndLine: comment.MappedSpan.EndLinePosition.Line,
