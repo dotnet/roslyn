@@ -391,9 +391,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Me.Items = items
             End Sub
 
-            Public Event TodoListUpdated As EventHandler(Of TaskListUpdatedArgs) Implements ITaskListProvider.TodoListUpdated
+            Public Event TaskListUpdated As EventHandler(Of TaskListUpdatedArgs) Implements ITaskListProvider.TaskListUpdated
 
-            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TaskListItem) Implements ITaskListProvider.GetTodoItems
+            Public Function GetTaskListItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TaskListItem) Implements ITaskListProvider.GetTaskListItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 
@@ -404,13 +404,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim map = Items.ToLookup(Function(t) t.DocumentId)
 
                 For Each group In map
-                    RaiseEvent TodoListUpdated(Me, New TaskListUpdatedArgs(
+                    RaiseEvent TaskListUpdated(Me, New TaskListUpdatedArgs(
                         Me, workspace.CurrentSolution, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
             Public Sub RaiseClearTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId)
-                RaiseEvent TodoListUpdated(Me, New TaskListUpdatedArgs(
+                RaiseEvent TaskListUpdated(Me, New TaskListUpdatedArgs(
                     Me, workspace.CurrentSolution, documentId, ImmutableArray(Of TaskListItem).Empty))
             End Sub
         End Class

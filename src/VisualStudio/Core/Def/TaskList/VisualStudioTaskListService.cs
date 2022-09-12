@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
         private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
         private readonly TaskListListener _listener;
 
-        public event EventHandler<TaskListUpdatedArgs>? TodoListUpdated;
+        public event EventHandler<TaskListUpdatedArgs>? TaskListUpdated;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -59,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 asynchronousOperationListenerProvider,
                 onTaskListItemsUpdated: (documentId, oldComments, newComments) =>
                 {
-                    if (TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
-                        TodoListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
+                    if (TaskListUpdated != null && !oldComments.SequenceEqual(newComments))
+                        TaskListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
                 },
                 threadingContext.DisposalToken);
         }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
 
-        public ImmutableArray<TaskListItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => _listener.GetTodoItems(documentId);
     }
 }

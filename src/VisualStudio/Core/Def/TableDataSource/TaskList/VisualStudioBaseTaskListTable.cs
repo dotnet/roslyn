@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _identifier = identifier;
 
                 _todoListProvider = todoListProvider;
-                _todoListProvider.TodoListUpdated += OnTodoListUpdated;
+                _todoListProvider.TaskListUpdated += OnTodoListUpdated;
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<TaskListTableItem> GetItems()
                 {
-                    return _source._todoListProvider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
+                    return _source._todoListProvider.GetTaskListItems(_workspace, _documentId, CancellationToken.None)
                                    .Select(data => TaskListTableItem.Create(_workspace, data))
                                    .ToImmutableArray();
                 }
