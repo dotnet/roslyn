@@ -7217,6 +7217,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
     <value>Analyzer reference specified multiple times</value>
   </data>
+  <data name="ERR_FileLocalDuplicateNameInNS" xml:space="preserve">
+    <value>The namespace '{1}' already contains a definition for '{0}' in this file.</value>
+  </data>
   <data name="ERR_UnscopedScoped" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
   </data>
