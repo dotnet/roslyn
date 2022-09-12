@@ -21,9 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "IsValidId Tests"
 
-        <WpfFact
-#Region "IsValidId Tests"
->
+        <WpfFact>
         Public Sub TestIsValidId_1()
             AssertValidId("field")
         End Sub
@@ -63,9 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "GetBaseClassName Tests"
 
-        <WpfFact
-#Region "GetBaseClassName Tests"
->
+        <WpfFact>
         Public Sub TestGetBaseClassName_NonexistingClass()
             Dim code As String = "class C { }"
             Using workspace = GetWorkspace(code)
@@ -152,9 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "CreateUniqueEventName Tests"
 
-        <WpfFact
-#Region "CreateUniqueEventName Tests"
->
+        <WpfFact>
         Public Sub TestCreateUniqueEventName_ButtonClick()
             Dim code As String = <text>
 public partial class _Default : System.Web.UI.Page
@@ -300,9 +294,7 @@ public class MyBaseClass
 
 #Region "GetCompatibleEventHandlers"
 
-        <WpfFact
-#Region "GetCompatibleEventHandlers"
->
+        <WpfFact>
         Public Sub TestGetCompatibleEventHandlers_EventDoesntExist()
             Dim code As String = <text>
 using System;
@@ -447,9 +439,7 @@ public class _Default
 
 #Region "GetEventHandlerMemberId"
 
-        <WpfFact
-#Region "GetEventHandlerMemberId"
->
+        <WpfFact>
         Public Sub TestGetEventHandlerMemberId_HandlerExists()
             Dim code As String = <text>
 using System;
@@ -520,9 +510,7 @@ public class _Default
 #Region "EnsureEventHandler"
 
         ' TODO: log a bug, Kevin doesn't use uint itemidInsertionPoint thats sent in.
-        <WpfFact
-#Region "EnsureEventHandler"
->
+        <WpfFact>
         Public Sub TestEnsureEventHandler_HandlerExists()
             Dim code As String = <text>
 using System;
@@ -621,9 +609,7 @@ protected void Button1_Click(object sender, EventArgs e)
 #End Region
 
 #Region "GetMemberNavigationPoint"
-        <WpfFact
-#Region "GetMemberNavigationPoint"
->
+        <WpfFact>
         Public Sub TestGetMemberNavigationPoint()
             Dim code As String = <text>
 using System;
@@ -679,9 +665,7 @@ public class _Default
 #End Region
 
 #Region "GetMembers"
-        <WpfFact
-#Region "GetMembers"
->
+        <WpfFact>
         Public Sub TestGetMembers_EventHandlersWrongParamType()
             Dim code As String = <text>
 using System;
@@ -838,9 +822,7 @@ public class Button
 
 #Region "OnRenamed (TryRenameElement)"
 
-        <WpfFact
-#Region "OnRenamed (TryRenameElement)"
->
+        <WpfFact>
         Public Sub TestTryRenameElement_ResolvableMembers()
             Dim code As String = <text>
 using System;

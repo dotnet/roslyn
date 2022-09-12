@@ -71,9 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         End Sub
 
 #Region "C#"
-        <Fact
-#Region "C#"
->
+        <Fact>
         Public Async Function CSTestBasicSubmit() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -431,9 +429,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 #End Region
 
 #Region "VB"
-        <Fact
-#Region "VB"
->
+        <Fact>
         Public Async Function VBTestBasicSubmit() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>

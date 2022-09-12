@@ -11,15 +11,13 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
-    <[UseExportProvider]>
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.ClassView)>
     Public Class SyncClassViewTests
 
 #Region "C# Tests"
 
-        <WpfFact
-#Region "C# Tests"
->
+        <WpfFact>
         Public Sub CSharp_TestClass1()
             Dim workspace =
 <Workspace>
@@ -464,9 +462,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #Region "Visual Basic Tests"
 
-        <WpfFact
-#Region "Visual Basic Tests"
->
+        <WpfFact>
         Public Sub VisualBasic_TestClass1()
             Dim workspace =
 <Workspace>
