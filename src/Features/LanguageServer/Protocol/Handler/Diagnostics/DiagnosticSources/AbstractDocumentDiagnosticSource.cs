@@ -35,7 +35,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public Project GetProject() => Document.Project;
     public Uri GetUri() => Document.GetURI();
 
-    protected abstract bool IncludeTodoComments { get; }
+    protected abstract bool IncludeTaskListItems { get; }
     protected abstract bool IncludeStandardDiagnostics { get; }
 
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
@@ -44,7 +44,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
-        var todoComments = IncludeTodoComments ? await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var todoComments = IncludeTaskListItems ? await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         return todoComments.AddRange(diagnostics);
     }

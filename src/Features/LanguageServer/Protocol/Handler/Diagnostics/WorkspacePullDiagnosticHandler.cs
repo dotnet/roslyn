@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (document.IsRazorDocument())
                         continue;
 
-                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTodoComments: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
+                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTaskListItems: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
                 }
 
                 // Finally if fsa is on, we also want to check for diagnostics associated with the project itself.

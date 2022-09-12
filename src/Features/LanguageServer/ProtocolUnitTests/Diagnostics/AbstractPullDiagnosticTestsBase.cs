@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
             bool useProgress = false,
-            bool includeTodoComments = false)
+            bool includeTaskListItems = false)
         {
             var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTodoComments);
+            optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
