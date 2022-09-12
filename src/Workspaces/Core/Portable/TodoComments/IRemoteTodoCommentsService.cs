@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         internal interface ICallback
         {
             ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
-            ValueTask<TodoCommentOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask<TaskListOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         }
 
         ValueTask ComputeTodoCommentsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => GetListener(callbackId).ReportTodoCommentDataAsync(documentId, data, cancellationToken);
 
-        public ValueTask<TodoCommentOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask<TaskListOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
             => GetListener(callbackId).GetOptionsAsync(cancellationToken);
     }
 }

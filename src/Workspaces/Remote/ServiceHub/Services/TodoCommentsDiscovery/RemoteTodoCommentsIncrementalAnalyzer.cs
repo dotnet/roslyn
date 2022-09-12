@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(_callbackId, documentId, data, cancellationToken),
                 cancellationToken);
 
-        protected override ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken)
+        protected override ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
             => _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.GetOptionsAsync(_callbackId, cancellationToken),
                 cancellationToken);

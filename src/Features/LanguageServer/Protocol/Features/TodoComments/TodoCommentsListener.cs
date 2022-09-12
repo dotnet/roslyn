@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken)
+        public ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetTodoCommentOptions());
 
         private ValueTask ProcessTodoCommentInfosAsync(

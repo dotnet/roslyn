@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
-        protected abstract ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken);
+        protected abstract ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken);
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 return;
 
             var options = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var descriptors = GetTodoCommentDescriptors(options.TokenList);
+            var descriptors = GetTodoCommentDescriptors(options.Descriptors);
 
             // We're out of date.  Recompute this info.
             var todoComments = await todoCommentService.GetTodoCommentsAsync(

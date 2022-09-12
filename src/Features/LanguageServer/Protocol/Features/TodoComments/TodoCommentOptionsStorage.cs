@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public static readonly Option2<ImmutableArray<string>> TokenList = new(
             "TodoCommentOptions",
             "TokenList",
-            TodoCommentOptions.Default.TokenList,
+            TaskListOptions.Default.Descriptors,
             new RoamingProfileStorageLocation("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens"));
 
         public static readonly Option2<bool> ComputeTodoCommentsForClosedFiles = new(
@@ -22,10 +23,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
             defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTodoCommentsForClosedFiles"));
 
-        public static TodoCommentOptions GetTodoCommentOptions(this IGlobalOptionService globalOptions)
+        public static TaskListOptions GetTodoCommentOptions(this IGlobalOptionService globalOptions)
             => new()
             {
-                TokenList = globalOptions.GetOption(TokenList),
+                Descriptors = globalOptions.GetOption(TokenList),
                 ComputeForClosedFiles = globalOptions.GetOption(ComputeTodoCommentsForClosedFiles)
             };
     }
