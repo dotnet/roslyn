@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.TaskList
     /// <summary>
     /// Callback the host (VS) passes to the OOP service to allow it to send batch notifications about todo comments.
     /// </summary>
-    internal interface ITaskListItemListener
+    internal interface ITaskListListener
     {
         ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
         ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken);

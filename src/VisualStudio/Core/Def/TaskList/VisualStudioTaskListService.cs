@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
-        private readonly TaskListItemListener _listener;
+        private readonly TaskListListener _listener;
 
         public event EventHandler<TaskListUpdatedArgs>? TaskListUpdated;
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TaskListProvider);
 
-            _listener = new TaskListItemListener(
+            _listener = new TaskListListener(
                 globalOptions,
                 workspace.Services.SolutionServices,
                 asynchronousOperationListenerProvider,

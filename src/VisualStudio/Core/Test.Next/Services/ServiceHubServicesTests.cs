@@ -127,7 +127,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
-            using var listener = new TaskListItemListener(
+            using var listener = new TaskListListener(
                 workspace.GlobalOptions,
                 workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),

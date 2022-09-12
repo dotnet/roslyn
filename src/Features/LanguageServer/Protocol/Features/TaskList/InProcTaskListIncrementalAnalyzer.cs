@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.TaskList
 {
     internal sealed class InProcTaskListIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {
-        private readonly TaskListItemListener _listener;
+        private readonly TaskListListener _listener;
 
-        public InProcTaskListIncrementalAnalyzer(TaskListItemListener listener)
+        public InProcTaskListIncrementalAnalyzer(TaskListListener listener)
             => _listener = listener;
 
         protected override ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)

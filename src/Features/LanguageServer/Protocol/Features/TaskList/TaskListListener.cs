@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
-    internal sealed class TaskListItemListener : ITaskListItemListener, IDisposable
+    internal sealed class TaskListListener : ITaskListListener, IDisposable
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// </summary>
         private readonly AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)> _workQueue;
 
-        public TaskListItemListener(
+        public TaskListListener(
             IGlobalOptionService globalOptions,
             SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,

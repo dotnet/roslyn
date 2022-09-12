@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.TaskList
         {
         }
 
-        private ITaskListItemListener GetListener(RemoteServiceCallbackId callbackId)
-            => (ITaskListItemListener)GetCallback(callbackId);
+        private ITaskListListener GetListener(RemoteServiceCallbackId callbackId)
+            => (ITaskListListener)GetCallback(callbackId);
 
         public ValueTask ReportTaskListItemsAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => GetListener(callbackId).ReportTaskListItemsAsync(documentId, data, cancellationToken);
