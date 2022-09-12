@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
     internal sealed class CSharpConvertToRecordRefactoringProvider : CodeRefactoringProvider
     {
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpConvertToRecordRefactoringProvider()
@@ -24,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-
 
             if (!context.Options.GetOptions(document.Project.Services).EnableConvertToRecord)
             {
