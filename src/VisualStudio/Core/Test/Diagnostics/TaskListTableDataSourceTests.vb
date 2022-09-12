@@ -5,11 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -123,7 +123,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(item.Span.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -131,11 +131,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedLine, line)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedColumn, column)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -172,7 +172,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(item.Span.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -180,11 +180,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedLine, line)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedColumn, column)
+                Assert.Equal(item.MappedSpan.StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -243,8 +243,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TaskListItem() {
-                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
-                    New TaskListItem(priority:=0, message:="test", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test1")
+                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22)), New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22))),
+                    New TaskListItem(priority:=0, message:="test", documentId:=documentId, New FileLinePositionSpan("test1", New LinePosition(11, 21), New LinePosition(11, 21)), New FileLinePositionSpan("test1", New LinePosition(11, 21), New LinePosition(11, 21)))
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -278,8 +278,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TaskListItem() {
-                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
-                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test3")
+                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22)), New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22))),
+                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 21)), New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 21)))
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -374,12 +374,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 priority:=0,
                 message:="test",
                 documentId:=documentId,
-                mappedLine:=10,
-                originalLine:=10,
-                mappedColumn:=20,
-                originalColumn:=20,
-                mappedFilePath:=Nothing,
-                originalFilePath:="test1")
+                New FileLinePositionSpan("test1", New LinePosition(10, 20), New LinePosition(10, 20)),
+                New FileLinePositionSpan("test1", New LinePosition(10, 20), New LinePosition(10, 20)))
         End Function
 
         Private Class TestTodoListProvider

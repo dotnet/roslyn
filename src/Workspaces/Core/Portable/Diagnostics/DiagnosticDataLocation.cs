@@ -78,16 +78,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal string? GetFilePath()
             => GetFilePath(OriginalFileSpan?.Path, MappedFileSpan?.Path);
 
-        internal static string? GetFilePath(string? original, string? mapped)
+        private static string? GetFilePath(string? original, string? mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
 
-            var directoryName = PathUtilities.GetDirectoryName(original);
-            if (string.IsNullOrEmpty(directoryName))
-                return mapped;
-
-            var combined = PathUtilities.CombinePaths(directoryName, mapped);
+            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), PathUtilities.GetFileName(mapped));
             try
             {
                 return Path.GetFullPath(combined);

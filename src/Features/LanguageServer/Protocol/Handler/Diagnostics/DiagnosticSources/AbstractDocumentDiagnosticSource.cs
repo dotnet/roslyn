@@ -83,12 +83,8 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
                 document.Id,
-                originalFileSpan: new(comment.OriginalFilePath!, new LinePosition(comment.OriginalLine, comment.OriginalColumn), new LinePosition(comment.OriginalLine, comment.OriginalColumn)),
-                mappedFileSpan: comment.MappedFilePath == null
-                    ? null
-                    : new(comment.MappedFilePath,
-                        new LinePosition(comment.MappedLine, comment.MappedColumn),
-                        new LinePosition(comment.MappedLine, comment.MappedColumn)))));
+                originalFileSpan: comment.Span,
+                mappedFileSpan: comment.MappedSpan.HasMappedPath ? null : comment.MappedSpan)));
     }
 
     private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
