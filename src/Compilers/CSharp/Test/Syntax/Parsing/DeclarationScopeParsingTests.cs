@@ -1436,12 +1436,15 @@ ref @scoped F4() { }";
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.ScopedType);
                                     {
-                                        N(SyntaxKind.IntKeyword);
+                                        N(SyntaxKind.ScopedKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -1452,15 +1455,18 @@ ref @scoped F4() { }";
                             }
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.RefType);
+                                    N(SyntaxKind.ScopedType);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.ScopedKeyword);
+                                        N(SyntaxKind.RefType);
                                         {
-                                            N(SyntaxKind.IntKeyword);
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
                                         }
                                     }
                                     N(SyntaxKind.VariableDeclarator);
@@ -1472,16 +1478,19 @@ ref @scoped F4() { }";
                             }
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.RefType);
+                                    N(SyntaxKind.ScopedType);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.ReadOnlyKeyword);
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.ScopedKeyword);
+                                        N(SyntaxKind.RefType);
                                         {
-                                            N(SyntaxKind.IntKeyword);
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ReadOnlyKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
                                         }
                                     }
                                     N(SyntaxKind.VariableDeclarator);
@@ -1614,12 +1623,15 @@ scoped ref int b;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -1633,15 +1645,18 @@ scoped ref int b;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
@@ -1716,16 +1731,19 @@ ref scoped int c;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "S");
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "S");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
@@ -1788,16 +1806,19 @@ scoped ref readonly scoped S c;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "S");
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "S");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
@@ -2173,12 +2194,15 @@ scoped ref readonly scoped c;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "scoped");
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -2248,12 +2272,15 @@ scoped ref readonly scoped c;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "scoped");
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -2363,12 +2390,15 @@ scoped ref var b;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -2382,15 +2412,18 @@ scoped ref var b;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
@@ -2465,16 +2498,19 @@ ref scoped var c;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
@@ -2537,16 +2573,19 @@ scoped ref readonly scoped var c;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
@@ -2714,12 +2753,15 @@ scoped scoped var b;
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
                         N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -2728,6 +2770,246 @@ scoped scoped var b;
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_13(LanguageVersion langVersion)
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+        scoped extern ref int b;
+    }
+}
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (5,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?
+                //         scoped extern ref int b;
+                Diagnostic(ErrorCode.ERR_ScopedNotBeforeType, "scoped").WithLocation(5, 9),
+                // (5,16): error CS0106: The modifier 'extern' is not valid for this item
+                //         scoped extern ref int b;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(5, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Main");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.ExternKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.RefType);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Local_14()
+        {
+            string source =
+@"scoped scoped R x = default;
+scoped scoped ref R z = ref x;
+";
+            UsingTree(source, TestOptions.RegularPreview,
+                // (1,8): error CS1031: Type expected
+                // scoped scoped R x = default;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithLocation(1, 8),
+                // (2,15): error CS1003: Syntax error, ',' expected
+                // scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(2, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "R");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_15(LanguageVersion langVersion)
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+        scoped scoped extern ref int b;
+    }
+}
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (5,23): error CS1002: ; expected
+                //         scoped scoped extern ref int b;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "extern").WithLocation(5, 23),
+                // (5,23): error CS0106: The modifier 'extern' is not valid for this item
+                //         scoped scoped extern ref int b;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(5, 23)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Main");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "scoped");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "scoped");
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.ExternKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.RefType);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3414,12 +3696,15 @@ using ref scoped r;
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
                         N(SyntaxKind.UsingKeyword);
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "R");
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "R");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -3598,12 +3883,15 @@ await using ref scoped r;
                     {
                         N(SyntaxKind.AwaitKeyword);
                         N(SyntaxKind.UsingKeyword);
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "R");
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "R");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {

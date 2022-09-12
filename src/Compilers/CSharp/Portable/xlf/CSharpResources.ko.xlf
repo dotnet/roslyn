@@ -1412,6 +1412,11 @@
         <target state="translated">매개 변수 '{0}'의 '범위 지정' 한정자가 대상 '{1}'과(와) 일치하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedNotBeforeType">
+        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?</source>
+        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
         <target state="translated">'scoped' 한정자는 ref 및 ref 구조체 값에만 사용할 수 있습니다.</target>

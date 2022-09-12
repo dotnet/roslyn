@@ -443,6 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarator = VariableDeclaratorNode;
             var fieldSyntax = GetFieldDeclaration(declarator);
             var typeSyntax = fieldSyntax.Declaration.Type;
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
 
             var compilation = this.DeclaringCompilation;
 
@@ -479,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    var typeOnly = typeSyntax.SkipRef(out refKind);
+                    var typeOnly = typeSyntax.SkipScoped(out _).SkipRef(out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
                     type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                     if (refKind != RefKind.None)

@@ -4474,7 +4474,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
-                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind);
+
+                            Debug.Assert(fieldSyntax.Declaration.Type is not ScopedTypeSyntax);
+                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRef(out RefKind refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {

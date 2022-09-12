@@ -9863,8 +9863,30 @@ tryAgain:
                     {
                         mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                     }
+                    else if (mod.Kind == SyntaxKind.ScopedKeyword)
+                    {
+                        // Make 'scoped' part of the type when it is the last token in the modifiers list
+                        if (i == mods.Count - 1)
+                        {
+                            type = _syntaxFactory.ScopedType(mod, type);
+                            mods.RemoveLast();
+                        }
+                        // ParseDeclarationModifiers already reports "type expected" error at duplicate modifier.
+                        // If duplicates follow each other, reporting ERR_ScopedNotBeforeType simply adds more noise,
+                        // basically saying the same thing - type should follow me.
+                        else if (((SyntaxToken)mods[i + 1]).Kind != SyntaxKind.ScopedKeyword)
+                        {
+                            mods[i] = this.AddError(mod, ErrorCode.ERR_ScopedNotBeforeType);
+                        }
+                        else
+                        {
+                            Debug.Assert(mods[i + 1].ContainsDiagnostics);
+                        }
+                    }
                 }
+
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+
                 return _syntaxFactory.LocalDeclarationStatement(
                     attributes,
                     awaitKeyword,

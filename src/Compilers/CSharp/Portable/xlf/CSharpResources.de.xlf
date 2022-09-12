@@ -1412,6 +1412,11 @@
         <target state="translated">Der 'Scoped'-Modifikator des Parameters '{0}' stimmt nicht mit dem Ziel '{1}' überein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedNotBeforeType">
+        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?</source>
+        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
         <target state="translated">Der Modifikator ‚Scoped‘ kann nur für Refs und Ref-Strukturwerte verwendet werden.</target>

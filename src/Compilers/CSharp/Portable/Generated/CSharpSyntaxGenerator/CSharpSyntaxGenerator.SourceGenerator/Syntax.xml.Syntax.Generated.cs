@@ -1036,6 +1036,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, type);
     }
 
+    /// <summary>The 'scoped' modifier of a local.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ScopedType"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ScopedTypeSyntax : TypeSyntax
+    {
+        private TypeSyntax? type;
+
+        internal ScopedTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken ScopedKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ScopedTypeSyntax)this.Green).scopedKeyword, Position, 0);
+
+        public TypeSyntax Type => GetRed(ref this.type, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.type : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitScopedType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitScopedType(this);
+
+        public ScopedTypeSyntax Update(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+            if (scopedKeyword != this.ScopedKeyword || type != this.Type)
+            {
+                var newNode = SyntaxFactory.ScopedType(scopedKeyword, type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ScopedTypeSyntax WithScopedKeyword(SyntaxToken scopedKeyword) => Update(scopedKeyword, this.Type);
+        public ScopedTypeSyntax WithType(TypeSyntax type) => Update(this.ScopedKeyword, type);
+    }
+
     public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
     {
         internal ExpressionOrPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)

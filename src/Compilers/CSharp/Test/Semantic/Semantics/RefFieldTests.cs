@@ -8835,6 +8835,15 @@ class Program
                 VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
                 VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
                 VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type;
+                    Assert.Null(model.GetTypeInfo(type).Type);
+                    Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                }
             }
         }
 
@@ -9009,13 +9018,110 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "r1").WithArguments("r1").WithLocation(6, 20)
                 );
 
+            verifyModel(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            verifyModel(comp);
+
+            static void verifyModel(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                foreach (SourceLocalSymbol local in locals)
+                {
+                    Assert.True(local.IsVar);
+                    Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
+                }
+
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type.SkipScoped(out _).SkipRef(out _);
+                    Assert.Equal("R<System.Int32>", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("R<System.Int32>", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_07()
+        {
+            var source =
+@"
+class Program
+{
+    static void Test(ref int x)
+    {
+        ref int a = ref x;
+        scoped extern ref int b = ref x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?
+                //         scoped extern ref int b = ref x;
+                Diagnostic(ErrorCode.ERR_ScopedNotBeforeType, "scoped").WithLocation(7, 9),
+                // (7,16): error CS0106: The modifier 'extern' is not valid for this item
+                //         scoped extern ref int b = ref x;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(7, 16)
+                );
+
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+            Assert.Equal(2, locals.Length);
+            VerifyLocalSymbol(locals[0], "ref System.Int32 a", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[1], "ref System.Int32 b", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void LocalScope_08()
+        {
+            var source =
+@"
+class Program
+{
+    static void Test(ref int x)
+    {
+        scoped ref int[M(out var b)] a;
+        b++;
+    }
+
+    static int M(out int x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 9),
+                // (6,16): error CS1001: Identifier expected
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(6, 16),
+                // (6,16): error CS1002: ; expected
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(6, 16),
+                // (6,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M(out var b)]").WithLocation(6, 23),
+                // (6,38): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "a").WithLocation(6, 38),
+                // (6,38): warning CS0168: The variable 'a' is declared but never used
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 38),
+                // (7,9): error CS0165: Use of unassigned local variable 'b'
+                //         b++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(7, 9)
+                );
         }
 
         [Fact]
