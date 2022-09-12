@@ -19,9 +19,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
 {
+    [Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
     public sealed class CloseBlockCommentTests : AbstractTypingCommandHandlerTest<TypeCharCommandArgs>
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void ClosedRegularlyAfterAsterisk()
         {
             var code = @"
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void ClosedAfterAsteriskSpace1()
         {
             var code = @"
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void ClosedAfterAsteriskSpace2()
         {
             var code = @"
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterSlashAsteriskSpace()
         {
             var code = @"
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterSlashDoubleAsteriskSpace()
         {
             var code = @"
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterSpaceWithoutAsterisk()
         {
             var code = @"
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk1()
         {
             var code = @"
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk2()
         {
             var code = @"
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk3()
         {
             var code = @"
@@ -155,7 +156,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor1()
         {
             var code = @"
@@ -171,7 +172,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor2()
         {
             var code = @"
@@ -187,7 +188,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor3()
         {
             var code = @"
@@ -203,7 +204,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithWhitespaceAfterCursor()
         {
             // Note: There is a single trailing space after the cursor.
@@ -220,7 +221,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskDoubleSpace()
         {
             var code = @"
@@ -236,7 +237,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void ClosedAfterAsteriskSpaceWithNothingBeforeAsterisk()
         {
             var code = @"
@@ -252,7 +253,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void ClosedAfterAsteriskSpaceWithTabsBeforeAsterisk()
         {
             var code = @"
@@ -268,7 +269,7 @@ a    * /$$
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithOptionOff()
         {
             var code = @"
@@ -288,7 +289,7 @@ a    * /$$
             });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceOutsideComment()
         {
             var code = @"
@@ -304,7 +305,7 @@ a    * /$$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceInsideString()
         {
             var code = @"
@@ -326,7 +327,7 @@ class C
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void ClosedAfterAsteriskSpaceEndOfFile()
         {
             var code = @"
@@ -338,7 +339,7 @@ class C
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterAsteriskSpaceStartOfFile()
         {
             var code = @"* $$";
@@ -347,7 +348,7 @@ class C
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAfterSpaceStartOfFile()
         {
             var code = @" $$";
@@ -356,7 +357,7 @@ class C
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotClosedAtStartOfFile()
         {
             var code = @"$$";

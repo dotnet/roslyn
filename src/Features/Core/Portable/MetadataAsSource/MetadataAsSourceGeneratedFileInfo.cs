@@ -25,20 +25,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         private readonly ParseOptions? _parseOptions;
 
-        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
+        public MetadataAsSourceGeneratedFileInfo(string rootPath, Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
         {
             this.SourceProjectId = sourceProject.Id;
-            this.Workspace = sourceProject.Solution.Workspace;
+            this.Workspace = sourceWorkspace;
             this.LanguageName = signaturesOnly ? sourceProject.Language : LanguageNames.CSharp;
             this.SignaturesOnly = signaturesOnly;
-            if (sourceProject.Language == LanguageName)
-            {
-                _parseOptions = sourceProject.ParseOptions;
-            }
-            else
-            {
-                _parseOptions = Workspace.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
-            }
+
+            _parseOptions = sourceProject.Language == LanguageName
+                ? sourceProject.ParseOptions
+                : sourceProject.Solution.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
 
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
             this.AssemblyIdentity = topLevelNamedType.ContainingAssembly.Identity;

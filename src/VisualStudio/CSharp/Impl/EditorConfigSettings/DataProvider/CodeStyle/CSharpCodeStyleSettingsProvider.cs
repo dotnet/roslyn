@@ -111,6 +111,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: ServicesVSResources.Prefer_static_local_functions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferReadOnlyStruct,
+                description: ServicesVSResources.Prefer_read_only_struct,
+                editorConfigOptions: editorConfigOptions,
+                visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetCodeBlockCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

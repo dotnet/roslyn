@@ -32,6 +32,8 @@ rootCommand.AddOption(new Option<string>("--architecture", "Architecture to test
 // Optional options
 rootCommand.AddOption(new Option<string>("--helixQueueName", () => "Windows.10.Amd64.Open", "Log file directory"));
 rootCommand.AddOption(new Option<string?>("--accessToken", "Pipeline access token with permissions to view test history"));
+rootCommand.AddOption(new Option<string?>("--projectUri", "Azure Devops project containing the pipeline"));
+rootCommand.AddOption(new Option<string?>("--pipelineDefinitionId", "DefinitionId of the pipeline running the tests"));
 rootCommand.AddOption(new Option<string?>("--phaseName", "Pipeline phase name associated with this test run"));
 rootCommand.AddOption(new Option<string?>("--targetBranchName", "Target branch of this pipeline run"));
 rootCommand.AddOption(new Option<string?>("--testFilter", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA"));
@@ -108,6 +110,8 @@ record HelixOptions(
     string Architecture,
     string HelixQueueName,
     string? AccessToken,
+    string? ProjectUri,
+    string? PipelineDefinitionId,
     string? PhaseName,
     string? TargetBranchName,
     string? TestFilter);

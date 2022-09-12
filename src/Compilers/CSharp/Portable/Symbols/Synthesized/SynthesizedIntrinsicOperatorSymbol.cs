@@ -418,6 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
+        internal sealed override bool UseUpdatedEscapeRules => false;
+
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
@@ -466,6 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, DeclarationScope.Unscoped, name)
             {
             }
+
+            internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+            internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

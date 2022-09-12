@@ -21,6 +21,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
     Public Class ErrorSquiggleProducerTests
 
         Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^")
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function ArgOutOfRangeExceptionBug_904382() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
@@ -50,7 +51,7 @@ End Class")
             Dim count = spans.Count
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function ErrorDoesNotCrashPastEOF() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
@@ -61,7 +62,7 @@ End Class")
             Assert.Equal(5, spans.Count())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function SemanticError() As Task
             Using workspace = TestWorkspace.CreateVisualBasic("Class C1
     Sub Goo(b as Bar)
@@ -88,7 +89,7 @@ End Class")
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact>
         Public Async Function CustomizableTagsForUnnecessaryCode() As Task
 
             Dim content = "

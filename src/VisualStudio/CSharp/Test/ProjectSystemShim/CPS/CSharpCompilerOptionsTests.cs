@@ -20,10 +20,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class CSharpCompilerOptionsTests : TestBase
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task DocumentationModeSetToDiagnoseIfProducingDocFile_CPS()
         {
             using var environment = new TestEnvironment();
@@ -33,7 +33,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task DocumentationModeSetToParseIfNotProducingDocFile_CPS()
         {
             using var environment = new TestEnvironment();
@@ -43,7 +42,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ProjectSettingsOptionAddAndRemove_CPS()
         {
             using var environment = new TestEnvironment();
@@ -57,7 +55,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ProjectOutputBinPathChange_CPS()
         {
             var initialObjPath = @"C:\test.dll";
@@ -101,7 +98,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task InvalidProjectOutputBinPaths_CPS()
         {
             using var environment = new TestEnvironment();
@@ -110,7 +106,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ProjectGuidSetter_CPS()
         {
             var initialGuid = Guid.NewGuid();
@@ -125,7 +120,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ProjectLastDesignTimeBuildSucceededSetter_CPS()
         {
             using var environment = new TestEnvironment();
@@ -137,7 +131,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ProjectDisplayNameSetter_CPS()
         {
             using var environment = new TestEnvironment();
@@ -153,7 +146,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ProjectFilePathSetter_CPS()
         {
             using var environment = new TestEnvironment();
