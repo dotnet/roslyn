@@ -70,15 +70,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (document == null)
             {
-                if (dataLocation.OriginalFilePath == null || dataLocation.SourceSpan == null)
-                {
+                if (dataLocation.OriginalFileSpan == null || dataLocation.SourceSpan == null)
                     return Location.None;
-                }
 
                 var span = dataLocation.SourceSpan.Value;
-                return Location.Create(dataLocation.OriginalFilePath, span, new LinePositionSpan(
-                    new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
-                    new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
+                return Location.Create(dataLocation.OriginalFileSpan.Value.Path, span, dataLocation.OriginalFileSpan.Value.Span);
             }
 
             Contract.ThrowIfFalse(dataLocation.DocumentId == document.Document.Id);

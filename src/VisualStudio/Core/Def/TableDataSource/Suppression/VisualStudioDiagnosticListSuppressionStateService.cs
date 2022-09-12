@@ -302,9 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var linePosition = new LinePosition(line, 0);
                             var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
                             var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
-                            location = new DiagnosticDataLocation(document.Id, textSpan, filePath,
-                                originalStartLine: linePosition.Line, originalStartColumn: linePosition.Character,
-                                originalEndLine: linePosition.Line, originalEndColumn: linePosition.Character);
+                            location = new DiagnosticDataLocation(document.Id, textSpan, new FileLinePositionSpan(filePath, linePosition, linePosition));
                         }
 
                         Contract.ThrowIfNull(project);

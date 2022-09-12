@@ -44,10 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
+            => Data.DataLocation?.OriginalFileSpan?.StartLinePosition ?? default;
 
         public override string? GetOriginalFilePath()
-            => Data.DataLocation?.OriginalFilePath;
+            => Data.DataLocation?.OriginalFileSpan?.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -98,8 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // location-less or project level diagnostic:
                 if (leftLocation == null ||
                     rightLocation == null ||
-                    leftLocation.OriginalFilePath == null ||
-                    rightLocation.OriginalFilePath == null ||
+                    leftLocation?.OriginalFileSpan?.Path == null ||
+                    rightLocation?.OriginalFileSpan?.Path == null ||
                     left.DocumentId == null ||
                     right.DocumentId == null)
                 {
@@ -107,15 +107,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 return
-                    leftLocation.OriginalStartLine == rightLocation.OriginalStartLine &&
-                    leftLocation.OriginalStartColumn == rightLocation.OriginalStartColumn &&
-                    leftLocation.OriginalEndLine == rightLocation.OriginalEndLine &&
-                    leftLocation.OriginalEndColumn == rightLocation.OriginalEndColumn &&
+                    leftLocation?.OriginalFileSpan?.Span == rightLocation?.OriginalFileSpan?.Span &&
                     left.Severity == right.Severity &&
                     left.IsSuppressed == right.IsSuppressed &&
                     left.Id == right.Id &&
                     left.Message == right.Message &&
-                    leftLocation.OriginalFilePath == rightLocation.OriginalFilePath;
+                    leftLocation?.OriginalFileSpan?.Path == rightLocation?.OriginalFileSpan?.Path;
             }
 
             public int GetHashCode(DiagnosticData data)
@@ -124,20 +121,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 // location-less or project level diagnostic:
                 if (location == null ||
-                    location.OriginalFilePath == null ||
+                    location?.OriginalFileSpan?.Path == null ||
                     data.DocumentId == null)
                 {
                     return data.GetHashCode();
                 }
 
                 return
-                    Hash.Combine(location.OriginalStartColumn,
-                    Hash.Combine(location.OriginalStartLine,
-                    Hash.Combine(location.OriginalEndColumn,
-                    Hash.Combine(location.OriginalEndLine,
-                    Hash.Combine(location.OriginalFilePath,
+                    Hash.Combine(location.OriginalFileSpan.Value.GetHashCode(),
                     Hash.Combine(data.IsSuppressed,
-                    Hash.Combine(data.Id, data.Severity.GetHashCode())))))));
+                    Hash.Combine(data.Id, data.Severity.GetHashCode())));
             }
 
             public bool Equals(DiagnosticTableItem left, DiagnosticTableItem right)

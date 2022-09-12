@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -80,16 +81,12 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
                 document.Id,
-                originalFilePath: comment.OriginalFilePath,
-                mappedFilePath: comment.MappedFilePath,
-                originalStartLine: comment.OriginalLine,
-                originalStartColumn: comment.OriginalColumn,
-                originalEndLine: comment.OriginalLine,
-                originalEndColumn: comment.OriginalColumn,
-                mappedStartLine: comment.MappedLine,
-                mappedStartColumn: comment.MappedColumn,
-                mappedEndLine: comment.MappedLine,
-                mappedEndColumn: comment.MappedColumn)));
+                originalFileSpan: new(comment.OriginalFilePath!, new LinePosition(comment.OriginalLine, comment.OriginalColumn), new LinePosition(comment.OriginalLine, comment.OriginalColumn)),
+                mappedFileSpan: comment.MappedFilePath == null
+                    ? null
+                    : new(comment.MappedFilePath,
+                        new LinePosition(comment.MappedLine, comment.MappedColumn),
+                        new LinePosition(comment.MappedLine, comment.MappedColumn)))));
     }
 
     private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
