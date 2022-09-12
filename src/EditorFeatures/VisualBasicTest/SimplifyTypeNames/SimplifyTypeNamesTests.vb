@@ -314,8 +314,8 @@ Class Goo
 End Class")
         End Function
 
-        <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
             Await TestInRegularAndScriptAsync(
@@ -2477,8 +2477,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         Public Async Function TestMyClassShouldNotBeRemoved() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeType
@@ -2490,8 +2490,8 @@ End Module")
 End Class")
         End Function
 
-        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         Public Async Function TestMyClassShouldBeRemoved() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeType
@@ -2510,8 +2510,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2529,8 +2529,8 @@ End Module",
                 options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
-        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2548,8 +2548,8 @@ End Module",
                 options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

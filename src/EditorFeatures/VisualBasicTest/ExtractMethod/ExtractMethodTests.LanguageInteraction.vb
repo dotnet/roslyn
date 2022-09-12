@@ -491,8 +491,8 @@ End Class</text>
             End Function
 
             <WorkItem(5170, "DevDiv_Projects/Roslyn")>
-            <WorkItem(530808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530808")>
             <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WorkItem(530808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530808")>
             Public Async Function TestStaticLocalVariable2() As Task
                 Dim code = <text>Public Class Class1
     Function MySub(ByVal sales As Decimal) As Decimal
@@ -1367,8 +1367,8 @@ End Module</text>
             End Function
 
             <WorkItem(540422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540422")>
-            <WorkItem(530596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530596")>
             <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WorkItem(530596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530596")>
             Public Async Function TestArrayWithDecrementIndex() As Task
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -2576,8 +2576,8 @@ End Module</code>
             End Sub
 
             <WorkItem(545153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545153")>
-            <WorkItem(530596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530596")>
             <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WorkItem(530596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530596")>
             Public Async Function TestCreateDelegateFromMethod() As Task
                 Dim code = <text>Imports System
 Imports System.Linq

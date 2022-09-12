@@ -3266,8 +3266,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3288,8 +3288,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3310,8 +3310,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3332,8 +3332,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3354,8 +3354,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis5() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -3387,8 +3387,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis6() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3418,8 +3418,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis7() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3449,8 +3449,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis8() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3480,8 +3480,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis9() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3511,8 +3511,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis10() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3542,8 +3542,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis11() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3573,8 +3573,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3595,8 +3595,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccess2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3617,8 +3617,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccess3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3639,8 +3639,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccess4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3661,8 +3661,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGeneratePropertyConditionalAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3686,8 +3686,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGeneratePropertyConditionalAccess2() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3711,8 +3711,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGeneratePropertyConditionalAccess3() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3736,8 +3736,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGeneratePropertyConditionalAccess4() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -3762,8 +3762,8 @@ index:=1)
         End Function
 
         <WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")>
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         Public Async Function TestGenerateMethodConditionalAccess5() As Task
             Await TestInRegularAndScriptAsync(
 "Public Structure C
@@ -3864,8 +3864,8 @@ Module C
 End Module")
         End Function
 
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestGenerateMethodConfigureAwaitFalse() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3892,8 +3892,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestGeneratePropertyConfigureAwaitFalse() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3923,8 +3923,8 @@ End Module",
 index:=1)
         End Function
 
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestGenerateMethodWithMethodChaining() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System 
@@ -3949,8 +3949,8 @@ Module M
 End Module")
         End Function
 
-        <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         Public Async Function TestGenerateMethodInTypeOfIsNot() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3977,8 +3977,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestInCollectionInitializers1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -4001,8 +4001,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestInCollectionInitializers2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

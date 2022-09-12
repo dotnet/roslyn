@@ -532,8 +532,8 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
         Public Async Function TestImplementClassWithInaccessibleMembers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

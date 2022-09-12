@@ -1792,8 +1792,8 @@ End Class
         End Function
 
         <WorkItem(542441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542441")>
-        <WorkItem(759729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(759729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759729")>
         Public Async Function TestNoNewAfterMyClassWhenFirstStatementInSingleCtor() As Task
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim test = <Text><![CDATA[
@@ -2566,8 +2566,8 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "baseEvent")
         End Function
 
-        <WorkItem(529116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(529116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
         Public Async Function TestInSingleLineLambda1() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -2581,8 +2581,8 @@ End Module
             Await VerifyItemExistsAsync(markup, "x5")
         End Function
 
-        <WorkItem(529116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(529116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529116")>
         Public Async Function TestInSingleLineLambda2() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -3102,8 +3102,8 @@ End Module
                     AddInsideMethod("String.$$"), "op_Equality")
         End Function
 
-        <WorkItem(736891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736891")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(736891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736891")>
         Public Async Function TestInBinaryConditionalExpression() As Task
             Dim code =
 <Code>
@@ -3117,8 +3117,8 @@ End Module
             Await VerifyItemExistsAsync(code, "args")
         End Function
 
-        <WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
         Public Async Function TestInTopLevelFieldInitializer() As Task
             Dim code =
 <Code>
@@ -5710,8 +5710,8 @@ End
 
 #End Region
 
-        <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         Public Async Function TestExtensionMethodsOffered() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5730,8 +5730,8 @@ End Module
             Await VerifyItemExistsAsync(markup, "Goo")
         End Function
 
-        <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         Public Async Function TestExtensionMethodsOffered2() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5751,8 +5751,8 @@ End Module
             Await VerifyItemExistsAsync(markup, "Goo")
         End Function
 
-        <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>
         Public Async Function TestLinqExtensionMethodsOffered() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -5770,8 +5770,8 @@ End Class
             Await VerifyItemExistsAsync(markup, "Average")
         End Function
 
-        <WorkItem(884060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884060")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(884060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884060")>
         Public Async Function TestNoCompletionOffTypeParameter() As Task
             Dim markup = <Text><![CDATA[
 Module Program

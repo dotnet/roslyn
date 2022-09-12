@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class ModuleNameSimplifierTest
         Inherits AbstractSimplificationTests
 
-        <WorkItem(624131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624131")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(624131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624131")>
         Public Async Function TestSimplifyModuleNameInNewStatement() As Task
             Dim input =
         <Workspace>

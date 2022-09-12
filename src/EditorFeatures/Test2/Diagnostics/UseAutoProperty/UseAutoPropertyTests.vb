@@ -97,8 +97,8 @@ end class
                 })
         End Function
 
-        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
         Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>

@@ -495,8 +495,8 @@ End Module",
 CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyEventAccess_AddHandler() As Task
             Await TestAsyncWithOption("
 Imports System
@@ -517,8 +517,8 @@ End Class",
 CodeStyleOptions2.QualifyEventAccess)
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyEventAccess_OnBase() As Task
             Await TestAsyncWithOption("
 Imports System

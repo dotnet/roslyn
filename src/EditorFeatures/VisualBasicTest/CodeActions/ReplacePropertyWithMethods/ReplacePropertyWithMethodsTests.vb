@@ -610,8 +610,8 @@ Structure AStruct
 End Structure")
         End Function
 
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18261"), Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment6() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ISomeInterface(Of T)

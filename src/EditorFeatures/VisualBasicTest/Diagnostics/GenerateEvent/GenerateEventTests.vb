@@ -107,8 +107,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         Public Async Function TestMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class BaseClass
@@ -134,8 +134,8 @@ Public Class DerivedClass
 End Class")
         End Function
 
-        <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         Public Async Function TestMe() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -152,8 +152,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         Public Async Function TestMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -170,8 +170,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(531251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531251")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(531251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531251")>
         Public Async Function TestNotIfEventMemberMissing() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Public Class A
@@ -183,8 +183,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(531267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531267")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(531267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531267")>
         Public Async Function TestMakeParamsNotOptional() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class B
@@ -205,8 +205,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(531267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531267")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(531267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531267")>
         Public Async Function TestMakeParamsNotParamArray() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class B
@@ -227,8 +227,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventStaticClass() As Task
             Await TestInRegularAndScriptAsync(
 "Class EventClass
@@ -256,8 +256,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventStaticClass() As Task
             Await TestInRegularAndScriptAsync(
 "Class EventClass
@@ -285,8 +285,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventVariable() As Task
             Await TestInRegularAndScriptAsync(
 "Class EventClass
@@ -314,8 +314,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventVariable() As Task
             Await TestInRegularAndScriptAsync(
 "Class EventClass
@@ -343,8 +343,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEvent() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Test
@@ -368,8 +368,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEvent() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Test
@@ -393,8 +393,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMe() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Test
@@ -418,8 +418,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMe() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Test
@@ -443,8 +443,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Test
@@ -468,8 +468,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Test
@@ -493,8 +493,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class EventClass
@@ -520,8 +520,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class EventClass
@@ -547,8 +547,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventDelegate() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -576,8 +576,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventDelegate() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -605,8 +605,8 @@ Public Class Test
 End Class")
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMyBaseIntoCSharp() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -643,8 +643,8 @@ public delegate void XEventHandler(string argument);
             Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMyBaseIntoCSharp() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -681,8 +681,8 @@ public delegate void XEventHandler(string argument);
             Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMyBaseIntoCSharpGeneric() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -723,8 +723,8 @@ public delegate void XEventHandler(object sender, EventArgs e);
             Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMyBaseIntoCSharpGeneric() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -765,8 +765,8 @@ public delegate void XEventHandler(object sender, EventArgs e);
             Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMultiLineLambdaIntoCSharp() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -806,8 +806,8 @@ public delegate void XEventHandler(object a, EventArgs b);
             Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMultiLineLambdaIntoCSharp() As Task
             Dim initialMarkup =
                 <Workspace>
@@ -847,8 +847,8 @@ public delegate void XEventHandler(object a, EventArgs b);
             Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForAddEventMyBaseIntoCSharpGenericExistingDelegate() As Task
             Dim initialMarkup =
                 "<Workspace>
@@ -883,8 +883,8 @@ public delegate void XEventHandler(object sender, EventArgs e);
             Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
 
-        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         Public Async Function TestGenerateEventForRemoveEventMyBaseIntoCSharpGenericExistingDelegate() As Task
             Dim initialMarkup =
                 "<Workspace>
