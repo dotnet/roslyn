@@ -28,15 +28,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 |</File>, recommendations)
         End Sub
 
-        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         Public Sub AccessibilityModifiersTest()
             VerifyContains("Public", "Friend")
             VerifyMissing("Protected", "Private", "Protected Friend")
         End Sub
 
-        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         Public Sub ClassModifiersTest()
             VerifyContains("MustInherit", "NotInheritable", "Partial")
         End Sub

@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
 #Region "VB"
-        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
         Public Async Function TestVisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -45,8 +45,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_RemoveParenthesesAroundEmptyXmlElement() As Task
             Dim input =
 <Workspace>
@@ -77,8 +77,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_RemoveParenthesesAroundEmptyXmlElementInInvocation() As Task
             Dim input =
 <Workspace>
@@ -109,8 +109,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_RemoveParenthesesAroundXmlElement() As Task
             Dim input =
 <Workspace>
@@ -141,8 +141,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_RemoveParenthesesAroundXmlElementInInvocation() As Task
             Dim input =
 <Workspace>
@@ -173,8 +173,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsLessThan() As Task
             Dim input =
 <Workspace>
@@ -205,8 +205,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsGreaterThan() As Task
             Dim input =
 <Workspace>
@@ -237,8 +237,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsLessThan() As Task
             Dim input =
 <Workspace>
@@ -269,8 +269,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
         Public Async Function TestVisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsGreaterThan() As Task
             Dim input =
 <Workspace>
@@ -301,8 +301,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         Public Async Function TestVisualBasic_RemoveEmptyArgumentListOnMethodGroup() As Task
             Dim input =
 <Workspace>
@@ -355,8 +355,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnInlineLambda() As Task
             Dim input =
 <Workspace>
@@ -405,8 +405,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnLocalLambda() As Task
             Dim input =
 <Workspace>
@@ -613,8 +613,8 @@ End Class
 #End Region
 
 #Region "VB Binary Expressions"
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestVisualBasic_SimplifyOnLeftSideOfBinaryExpression() As Task
             Dim input =
 <Workspace>
@@ -646,8 +646,8 @@ End Module
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestVisualBasic_SimplifyOnRightSideOfBinaryExpressionIfOperatorsAreCommutative() As Task
             Dim input =
 <Workspace>
@@ -679,8 +679,8 @@ End Module
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestVisualBasic_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
             Dim input =
 <Workspace>
@@ -712,8 +712,8 @@ End Module
 
         End Function
 
-        <WorkItem(738826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738826")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(738826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738826")>
         Public Async Function TestSimplifyParenthesisedGetTypeOperator() As Task
             Dim input =
 <Workspace>
@@ -971,8 +971,8 @@ class C
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_SimplifyParenthesesAroundExpressionInQueryClause() As Task
             Dim input =
 <Workspace>
@@ -1168,8 +1168,8 @@ class C
 
         End Function
 
-        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation3() As Task
             Dim input =
 <Workspace>
@@ -1201,8 +1201,8 @@ class C
 
         End Function
 
-        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation4() As Task
             Dim input =
 <Workspace>
@@ -1236,8 +1236,8 @@ class C
 
         End Function
 
-        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation5() As Task
             Dim input =
 <Workspace>
@@ -1271,8 +1271,8 @@ class C
 
         End Function
 
-        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation6() As Task
             Dim input =
 <Workspace>
@@ -1308,8 +1308,8 @@ class C
 
         End Function
 
-        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
         Public Async Function TestCSharp_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -1348,8 +1348,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
         Public Async Function TestCSharp_RemoveParensInExpressionBodiedProperty() As Task
             Dim input =
 <Workspace>
@@ -1374,8 +1374,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
         Public Async Function TestCSharp_RemoveParensInExpressionBodiedMethod() As Task
             Dim input =
 <Workspace>
@@ -1400,8 +1400,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
         Public Async Function TestCSharp_RemoveParensInLambdaExpression() As Task
             Dim input =
 <Workspace>
@@ -1430,8 +1430,8 @@ class C
 
 #Region "C# Binary Expressions"
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_SimplifyOnLeftSideOfBinaryExpression() As Task
             Dim input =
 <Workspace>
@@ -1467,8 +1467,8 @@ class Program
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_SimplifyOnRightSideOfBinaryExpressionIfOperatorsAreCommutative() As Task
             Dim input =
 <Workspace>
@@ -1504,8 +1504,8 @@ class Program
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_SimplifyOnRightSideOfBinaryExpressionForAssignment() As Task
             Dim input =
 <Workspace>
@@ -1543,8 +1543,8 @@ class Program
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_SimplifyOnRightSideOfBinaryExpressionForNullCoalescing() As Task
             Dim input =
 <Workspace>
@@ -1584,8 +1584,8 @@ class Program
 
         End Function
 
-        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         Public Async Function TestCSharp_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
             Dim input =
 <Workspace>
@@ -1620,8 +1620,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         Public Async Function TestCSharp_SimplifyInStringConcatenationIfItWouldNotChangeMeaning1() As Task
             Dim input =
 <Workspace>
@@ -1652,8 +1652,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         Public Async Function TestCSharp_SimplifyInStringConcatenationIfItWouldNotChangeMeaning2() As Task
             Dim input =
 <Workspace>
@@ -1684,8 +1684,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         Public Async Function TestCSharp_DontSimplifyIfItWouldChangeStringConcatenation() As Task
             Dim input =
 <Workspace>
@@ -1716,8 +1716,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         Public Async Function TestCSharp_DontSimplifyIfOperatorOverloadsWouldNoLongerByCalled() As Task
             Dim input =
 <Workspace>
@@ -1752,8 +1752,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         Public Async Function TestCSharp_SimplifyIfBinaryExpressionTypeIsIdentityConversion() As Task
             Dim input =
 <Workspace>
@@ -1778,8 +1778,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
         Public Async Function TestCSharp_SimplifyIfBinaryExpressionTypeIsImplicitNumericConversion() As Task
             Dim input =
 <Workspace>

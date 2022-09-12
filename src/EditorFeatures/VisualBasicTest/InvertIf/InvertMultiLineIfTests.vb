@@ -118,8 +118,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -194,8 +194,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -211,8 +211,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -248,8 +248,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -265,8 +265,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -282,8 +282,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition6() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -572,8 +572,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnlyOnElseIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -589,8 +589,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfMultiLineIfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program

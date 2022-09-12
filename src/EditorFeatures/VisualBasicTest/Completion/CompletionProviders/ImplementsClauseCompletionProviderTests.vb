@@ -33,8 +33,8 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestSuggestAliasedInterfaces() As Task
             Dim text = <text>Imports IAliasToI = I
 Imports IAliasToJ = J
@@ -57,8 +57,8 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestSuggestAliasedNamespace() As Task
             Dim text = <text>Imports AliasedNS = NS
 Namespace NS
@@ -467,8 +467,8 @@ End Class</text>.Value
             Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c)
         End Function
 
-        <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         Public Async Function TestKeywordIdentifierShowUnescaped() As Task
             Dim text = <text>Interface [Interface]
     Sub Goo()
@@ -508,8 +508,8 @@ End Class</text>.Value
             Await VerifyProviderCommitAsync(text, "Interface", expected, "."c)
         End Function
 
-        <WorkItem(543812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(543812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>
         Public Async Function TestEventsAfterDotInImplementsClause() As Task
             Dim markup = <Text>
 Interface i
@@ -603,8 +603,8 @@ End Class
             Await VerifyItemExistsAsync(test.Value, "Bar", "Sub IGoo.Bar()" & vbCrLf & "Some Summary")
         End Function
 
-        <WorkItem(530507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530507")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(530507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530507")>
         Public Async Function TestRootNamespaceInDefaultListing() As Task
 
             Dim element =
@@ -720,8 +720,8 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Quux")
         End Function
 
-        <WorkItem(402811, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402811")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(402811, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402811")>
         Public Async Function DoNotCrashWithOnlyDotTyped() As Task
             Dim text = <text>Interface I
     Sub Goo()
@@ -738,8 +738,8 @@ Class B
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
         Public Async Function ShowGenericTypes() As Task
             Dim text = <text>Interface I(Of T)
     Sub Goo()
@@ -755,8 +755,8 @@ Class B
             Await VerifyItemExistsAsync(text, "I(Of Integer)")
         End Function
 
-        <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
         Public Async Function ShowGenericTypes2() As Task
             Dim text = <text>Interface I(Of T)
     Sub Goo()
@@ -774,8 +774,8 @@ End Class
             Await VerifyItemExistsAsync(text, "I(Of T)")
         End Function
 
-        <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
         Public Async Function ShowGenericTypes3() As Task
             Dim text = <text>Interface I(Of T)
     Sub Goo()

@@ -361,8 +361,8 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(576176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576176")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <WorkItem(576176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576176")>
         Public Async Function TestFormatWrappedBlock() As Task
             Dim text = <File>
 Class C
@@ -393,8 +393,8 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(578253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578253")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <WorkItem(578253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578253")>
         Public Async Function TestDoNotWrapCLass() As Task
             Dim text = <File>
 Class C[||]

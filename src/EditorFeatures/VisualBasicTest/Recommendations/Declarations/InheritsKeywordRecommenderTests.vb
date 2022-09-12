@@ -51,8 +51,8 @@ Structure Goo
 |</File>, "Inherits")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub InheritsAfterInheritsInInterfaceTest()
             VerifyRecommendationsContain(<File>
 Public Interface ITest1
@@ -63,8 +63,8 @@ Public Interface ITest2
 </File>, "Inherits")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub InheritsNotAfterInheritsInClassTest()
             VerifyRecommendationsMissing(<File>
 Public Class Goo
@@ -73,8 +73,8 @@ Public Class Goo
 </File>, "Inherits")
         End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

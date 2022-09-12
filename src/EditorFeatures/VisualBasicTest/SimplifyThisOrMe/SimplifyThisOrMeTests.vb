@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyThisOrMe
                     New VisualBasicSimplifyThisOrMeCodeFixProvider())
         End Function
 
-        <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)>
+        <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
         Public Async Function TestSimplifyDiagnosticId() As Task
             Dim source =
         <Code>

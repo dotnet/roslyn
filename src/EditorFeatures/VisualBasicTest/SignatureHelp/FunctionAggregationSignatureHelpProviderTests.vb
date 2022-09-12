@@ -34,8 +34,8 @@ End Module
         End Function
 
 #Region "EditorBrowsable tests"
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateAlways() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -73,8 +73,8 @@ End Module
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateNever() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -112,8 +112,8 @@ End Module
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -160,8 +160,8 @@ End Module
                                                 hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateMixed() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic

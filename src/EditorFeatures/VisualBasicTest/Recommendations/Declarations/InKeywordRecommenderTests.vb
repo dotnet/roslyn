@@ -26,22 +26,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<MethodBody>Dim x = From x As Goo |</MethodBody>, "In")
         End Sub
 
-        <WorkItem(543231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543231")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543231")>
         Public Sub InInFromQuery3Test()
             VerifyRecommendationsAreExactly(<MethodBody>Dim x = From x As Integer |</MethodBody>, "In")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>For Each x 
 |</MethodBody>, "In")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>For Each x _

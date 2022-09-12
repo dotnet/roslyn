@@ -782,8 +782,8 @@ end class"
             Await TestAsync(text, "System.Boolean", TestMode.Position)
         End Function
 
-        <WorkItem(431509, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(431509, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
         Public Async Function InvocationWithNoArguments() As Task
             Dim text =
 "Module Program
@@ -795,8 +795,8 @@ End Module"
             Await TestAsync(text, "System.Object", TestMode.Position)
         End Function
 
-        <WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
         Public Async Function TestInferringAfterAwaitInAsync() As Task
             Dim text =
 "Imports System.Threading.Tasks

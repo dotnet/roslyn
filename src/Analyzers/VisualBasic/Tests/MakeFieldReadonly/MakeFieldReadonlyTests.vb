@@ -754,8 +754,8 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")>
         Public Async Function CopyPassedAsByRefParameter() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -914,8 +914,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(26850, "https://github.com/dotnet/roslyn/issues/26850")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(26850, "https://github.com/dotnet/roslyn/issues/26850")>
         Public Async Function FieldNotAssigned_FieldPartiallyDeclaredWithDim() As Task
             Await TestInRegularAndScript1Async(
 "Class C

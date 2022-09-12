@@ -37,8 +37,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")>
         Public Async Function TestNotWithThrow1() As Task
             Await TestMissingAsync(
 "
@@ -385,8 +385,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         Public Async Function TestOnYield() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -407,8 +407,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")>
         Public Async Function TestOnYield_IEnumerableReturnType() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -433,8 +433,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         Public Async Function TestMissingWhenCrossingPreprocessorDirective1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -450,8 +450,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         Public Async Function TestMissingWhenCrossingPreprocessorDirective2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

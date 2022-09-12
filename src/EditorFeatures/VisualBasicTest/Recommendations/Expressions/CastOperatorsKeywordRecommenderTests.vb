@@ -156,8 +156,8 @@ Loop Until |</MethodBody>, AllTypeConversionOperatorKeywords)
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NoneInDelegateCreationTest()
             Dim code =
 <File>

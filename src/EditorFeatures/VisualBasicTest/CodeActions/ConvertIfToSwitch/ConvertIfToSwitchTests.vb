@@ -393,8 +393,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

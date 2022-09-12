@@ -607,8 +607,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
         Public Async Function TestWrapLowerPrecedenceInLargeBinary() As Task
             Await TestAllWrappingCasesAsync(
 "class C

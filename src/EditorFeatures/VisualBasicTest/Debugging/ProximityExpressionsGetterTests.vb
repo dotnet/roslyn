@@ -280,8 +280,8 @@ End Module
                       </text>.NormalizedValue, "x", "e")
         End Function
 
-        <WorkItem(538847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538847")>
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WorkItem(538847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538847")>
         Public Async Function TestMultipleStatementsOnSameLine() As Task
             Await TestTryDoAsync(<text>
 Imports System

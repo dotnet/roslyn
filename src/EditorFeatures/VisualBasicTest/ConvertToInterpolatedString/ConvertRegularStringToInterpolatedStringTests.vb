@@ -54,8 +54,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
         Public Async Function TestMissingOnRegularStringWithBracesAssignedToConst() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -66,8 +66,8 @@ Public Class C
 End Class")
         End Function
 
-        <WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
         Public Async Function TestMissingOnAttributeStringParameterWithBraces() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

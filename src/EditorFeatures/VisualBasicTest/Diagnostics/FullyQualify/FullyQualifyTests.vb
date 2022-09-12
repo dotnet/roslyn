@@ -286,8 +286,8 @@ Namespace [Namespace]
 End Namespace")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestQualifierIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -310,8 +310,8 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestFullyQualifyInImportsStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -356,8 +356,8 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseSensitivityForNestedNamespace() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -384,8 +384,8 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -530,8 +530,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping1() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -554,8 +554,8 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping2() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -578,8 +578,8 @@ Namespace [Namespace]
 End Namespace")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping3() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -602,8 +602,8 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestInImport() As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -622,8 +622,8 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseInsensitivity() As Task
             Await TestInRegularAndScriptAsync(
 "Class GOo
@@ -650,8 +650,8 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         Public Async Function TestStandaloneMethod() As Task
             Await TestInRegularAndScriptAsync(
 "'Class [Class] 
@@ -666,8 +666,8 @@ End Sub
 End Class")
         End Function
 
-        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundFieldType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -679,8 +679,8 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundLocalType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -692,8 +692,8 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         Public Async Function TestCaseSensitivity2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -720,8 +720,8 @@ Namespace OUTER
 End Namespace")
         End Function
 
-        <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -738,8 +738,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         Public Async Function TestNotOnNamedArgument() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -749,8 +749,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -853,8 +853,8 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf))
                         New VisualBasicFullyQualifyCodeFixProvider())
             End Function
 
-            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestInRegularAndScriptAsync(
 "Module Program

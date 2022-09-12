@@ -105,8 +105,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub(x As Integer) x |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(541354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541354")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(541354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541354")>
         Public Sub AfterStringLiteralTest()
             VerifyRecommendationsContain(<MethodBody>test = "F" |</MethodBody>, s_expectedKeywords)
         End Sub
@@ -182,8 +182,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             VerifyRecommendationsMissing(<MethodBody>Dim query = Aggregate |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         Public Sub NoneInTypeArgumentListTest()
             Dim code =
             <File>
@@ -197,38 +197,38 @@ End Module
             VerifyRecommendationsMissing(code, s_expectedKeywords)
         End Sub
 
-        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         Public Sub NoneAfterAddHandlerEventNameTest()
             VerifyRecommendationsMissing(<MethodBody>AddHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         Public Sub NoneAfterAddHandlerIdentifierTest()
             VerifyRecommendationsContain(<MethodBody>AddHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         Public Sub NoneAfterAddHandlerAddressOfIdentifierTest()
             VerifyRecommendationsMissing(<MethodBody>AddHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         Public Sub NoneAfterRemoveHandlerEventNameTest()
             VerifyRecommendationsMissing(<MethodBody>RemoveHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         Public Sub NoneAfterRemoveHandlerIdentifierTest()
             VerifyRecommendationsContain(<MethodBody>RemoveHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         Public Sub NoneAfterRemoveHandlerAddressOfIdentifierTest()
             VerifyRecommendationsMissing(<MethodBody>RemoveHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
         End Sub
@@ -243,8 +243,8 @@ Imports S |
             VerifyRecommendationsMissing(code, s_expectedKeywords)
         End Sub
 
-        <WorkItem(546505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546505")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(546505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546505")>
         Public Sub NoCrashInVariableDeclarationTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x As New TypeInfo(New |)</MethodBody>, s_expectedKeywords)
         End Sub
@@ -274,16 +274,16 @@ Imports S |
             VerifyRecommendationsMissing(<MethodBody>For i = 1 |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>test = "F" 
 |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>test = "F" _
@@ -297,8 +297,8 @@ Imports S |
 |</MethodBody>, s_expectedKeywords)
         End Sub
 
-        <WorkItem(975804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/975804")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(975804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/975804")>
         Public Sub NotAfterIncompleteObjectCreationTest()
             VerifyRecommendationsMissing(
 <MethodBody>Dim x = new Goo.|

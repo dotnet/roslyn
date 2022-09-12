@@ -250,8 +250,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
         Public Async Function TestInExpressionOfT() As Task
             Await TestInRegularAndScriptAsync(
 "

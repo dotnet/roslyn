@@ -150,8 +150,8 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <WorkItem(546494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(546494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
         Public Async Function TestSuggestFieldDerivedEvent() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -168,8 +168,8 @@ End Class
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <WorkItem(546513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(546513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
         Public Async Function TestInheritedFieldOfNestedType() As Task
             Dim text = <text>Class container
     'Delegate Sub MyDele(x As Integer)
@@ -186,8 +186,8 @@ End Class
             Await VerifyItemExistsAsync(text, "obj")
         End Function
 
-        <WorkItem(546511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(546511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
         Public Async Function TestDoNotShowMeShadowedEvents() As Task
             Dim text = <text>Public Class Base
     Protected Event B()
@@ -224,8 +224,8 @@ End Class</text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WorkItem(8307, "https://github.com/dotnet/roslyn/issues/8307")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(8307, "https://github.com/dotnet/roslyn/issues/8307")>
         Public Async Function DontCrashOnDotAfterCompleteHandlesClause() As Task
             Dim text = "
 Imports System

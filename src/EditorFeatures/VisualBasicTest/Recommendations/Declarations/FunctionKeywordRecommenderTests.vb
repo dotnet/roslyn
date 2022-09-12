@@ -151,8 +151,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>Shared |</ClassDeclaration>, "Function")
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub FunctionInDelegateCreationTest()
             Dim code =
 <ModuleDeclaration>
@@ -190,8 +190,8 @@ Function M() As Boolean
             VerifyRecommendationsMissing(code, "Function")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <ClassDeclaration>
@@ -201,8 +201,8 @@ Function M() As Boolean
 </ClassDeclaration>, "Function")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <ClassDeclaration>
@@ -222,8 +222,8 @@ Function M() As Boolean
 </ClassDeclaration>, "Function")
         End Sub
 
-        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub AfterAsyncTest()
             VerifyRecommendationsContain(<ClassDeclaration>Async |</ClassDeclaration>, "Function")
         End Sub
@@ -233,8 +233,8 @@ Function M() As Boolean
             VerifyRecommendationsContain(<ClassDeclaration>Iterator |</ClassDeclaration>, "Function")
         End Sub
 
-        <WorkItem(531638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531638")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(531638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531638")>
         Public Sub InModuleAfterMethodTest()
             VerifyRecommendationsContain(
 <File>
@@ -247,8 +247,8 @@ End Module
 </File>, "Function")
         End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System
@@ -262,8 +262,8 @@ End Module
 </File>, "Function")
         End Sub
 
-        <WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterExtensionAttribute()
             VerifyRecommendationsContain(<ClassDeclaration>&lt;Extension&gt; |</ClassDeclaration>, "Function")
         End Sub

@@ -294,8 +294,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
         Public Async Function TestTrivia2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -323,8 +323,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
         Public Async Function TestMissingWithExplicitImplementedAddMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

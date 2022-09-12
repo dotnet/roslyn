@@ -414,8 +414,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -436,8 +436,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -695,8 +695,8 @@ End Structure
 ", index:=1, parameters:=Always_Warning)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -718,8 +718,8 @@ class C
 end class", index:=3)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -744,8 +744,8 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -770,8 +770,8 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields4() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -796,8 +796,8 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -819,8 +819,8 @@ class C
 end class", index:=2)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -846,8 +846,8 @@ class C
 end class", index:=3)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -873,8 +873,8 @@ class C
 end class", index:=3)
         End Function
 
-        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties4() As Task
             Await TestInRegularAndScript1Async(
 "

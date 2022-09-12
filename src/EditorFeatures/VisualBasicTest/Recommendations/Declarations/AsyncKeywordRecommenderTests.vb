@@ -42,38 +42,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Async")
         End Sub
 
-        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub NotAfterAsyncTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Async")
         End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         Public Sub NotAfterConstInClassTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Async")
         End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         Public Sub NotAfterConstInModuleTest()
             VerifyRecommendationsMissing(<ModuleDeclaration>Const |</ModuleDeclaration>, "Async")
         End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         Public Sub NotAfterWithEventsInClassTest()
             VerifyRecommendationsMissing(<ClassDeclaration>WithEvents |</ClassDeclaration>, "Async")
         End Sub
 
-        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(645060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645060")>
         Public Sub NotAfterWithEventsInModuleTest()
             VerifyRecommendationsMissing(<ModuleDeclaration>WithEvents |</ModuleDeclaration>, "Async")
         End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

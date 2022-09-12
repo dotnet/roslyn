@@ -64,8 +64,8 @@ End Sub</MethodBody>, "Dim")
             VerifyRecommendationsMissing(<ClassDeclaration>Partial |</ClassDeclaration>, "Dim")
         End Sub
 
-        <WorkItem(545036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545036")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(545036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545036")>
         Public Sub DimNotAfterDimTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim |</ClassDeclaration>, "Dim")
         End Sub
@@ -180,8 +180,8 @@ End Sub</MethodBody>, "Dim")
             VerifyRecommendationsContain(<ClassDeclaration>Shared |</ClassDeclaration>, "Dim")
         End Sub
 
-        <WorkItem(542720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542720")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(542720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542720")>
         Public Sub DimInSingleLineIfTest()
             VerifyRecommendationsContain(<MethodBody>If True Then Di|</MethodBody>, "Dim")
         End Sub
@@ -197,8 +197,8 @@ Dim X = Function() True
             VerifyRecommendationsContain(code, "Dim")
         End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

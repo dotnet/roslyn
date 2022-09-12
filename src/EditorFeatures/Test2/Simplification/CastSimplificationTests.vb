@@ -2068,8 +2068,8 @@ class A
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         Public Async Function TestCSharp_DoNotRemove_InsideThrowStatement() As Task
             Dim input =
 <Workspace>
@@ -2107,8 +2107,8 @@ class C
 
         End Function
 
-        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         Public Async Function TestCSharp_Remove_InsideThrowStatement() As Task
             Dim input =
 <Workspace>
@@ -2146,9 +2146,9 @@ class C
 
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_Remove_InsideThrowStatement2() As Task
             ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
@@ -2187,8 +2187,8 @@ class C
 
         End Function
 
-        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         Public Async Function TestCSharp_Remove_DelegateVarianceConversions1() As Task
             Dim input =
 <Workspace>
@@ -2229,8 +2229,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         Public Async Function TestCSharp_Remove_DelegateVarianceConversions2() As Task
             Dim input =
 <Workspace>
@@ -2271,8 +2271,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         Public Async Function TestCSharp_DoNotRemove_DelegateVarianceConversions1() As Task
             Dim input =
 <Workspace>
@@ -2428,8 +2428,8 @@ sealed class C : I
 
         End Function
 
-        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         Public Async Function TestCSharp_Remove_ParamDefaultValueZero() As Task
             Dim input =
 <Workspace>
@@ -2485,8 +2485,8 @@ sealed class C : I
 
         End Function
 
-        <WorkItem(529791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")>
         Public Async Function TestCsharp_Remove_UnnecessaryImplicitNullableCast() As Task
             Dim input =
 <Workspace>
@@ -2522,8 +2522,8 @@ class X
 
         End Function
 
-        <WorkItem(530744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530744")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530744")>
         Public Async Function TestCsharp_Remove_UnnecessaryImplicitEnumerationCast() As Task
             Dim input =
 <Workspace>
@@ -2561,8 +2561,8 @@ class Program
 
         End Function
 
-        <WorkItem(529831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")>
         Public Async Function TestCsharp_Remove_UnnecessaryInterfaceCast() As Task
             Dim input =
 <Workspace>
@@ -2670,8 +2670,8 @@ static class Program
 
         End Function
 
-        <WorkItem(529877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529877")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529877")>
         Public Async Function TestCSharp_Remove_UnnecessarySealedClassToInterfaceCast() As Task
             Dim input =
 <Workspace>
@@ -4879,8 +4879,8 @@ public struct S
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_DoNotRemove_NecessaryCastFromShortToUShort() As Task
             Dim input =
 <Workspace>
@@ -4913,8 +4913,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_DoNotRemove_NecessaryCastFromSByteToByte() As Task
             Dim input =
 <Workspace>
@@ -4947,8 +4947,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_DoNotRemove_NecessaryCastFromIntToUInt() As Task
             Dim input =
 <Workspace>
@@ -4981,8 +4981,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastFromSByteToShort() As Task
             Dim input =
 <Workspace>
@@ -5015,8 +5015,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastFromByteToUShort() As Task
             Dim input =
 <Workspace>
@@ -5049,8 +5049,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastFromUShortToUInt() As Task
             Dim input =
 <Workspace>
@@ -5915,8 +5915,8 @@ End Class
 
         End Function
 
-        <WorkItem(530080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530080")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530080")>
         Public Async Function TestVisualBasic_DoNotRemove_ForEachExpression() As Task
             ' Cast removal will change the GetEnumerator method being invoked.
 
@@ -5954,8 +5954,8 @@ End Class
 
         End Function
 
-        <WorkItem(529954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529954")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529954")>
         Public Async Function TestVisualBasic_Remove_InsideCollectionInitializer() As Task
             Dim input =
 <Workspace>
@@ -5987,8 +5987,8 @@ End Class
 
         End Function
 
-        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         Public Async Function TestVisualBasic_DoNotRemove_InsideThrowStatement() As Task
             Dim input =
 <Workspace>
@@ -6020,8 +6020,8 @@ End Class
 
         End Function
 
-        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         Public Async Function TestVisualBasic_Remove_InsideThrowStatement() As Task
             Dim input =
 <Workspace>
@@ -6053,9 +6053,9 @@ End Class
 
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530083")>
         <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontRemove_InsideThrowStatement2() As Task
             ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
@@ -6088,8 +6088,8 @@ End Class
 
         End Function
 
-        <WorkItem(530931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530931")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530931")>
         Public Async Function TestVisualBasic_DoNotRemove_InsideLateBoundInvocation() As Task
             Dim input =
 <Workspace>
@@ -6139,8 +6139,8 @@ End Module
 
         End Function
 
-        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         Public Async Function TestVisualBasic_DoNotRemove_RequiredDefaultValueConversionToDate() As Task
             Dim input =
 <Workspace>
@@ -6180,8 +6180,8 @@ End Class
 
         End Function
 
-        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         Public Async Function TestVisualBasic_DoNotRemove_RequiredDefaultValueConversionToNumericType() As Task
             Dim input =
 <Workspace>
@@ -6221,8 +6221,8 @@ End Class
 
         End Function
 
-        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         Public Async Function TestVisualBasic_DoNotRemove_RequiredDefaultValueConversionToBooleanType() As Task
             Dim input =
 <Workspace>
@@ -6264,8 +6264,8 @@ End Class
 
         End Function
 
-        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         Public Async Function TestVisualBasic_Remove_UnnecessaryDefaultValueConversionToDate() As Task
             Dim input =
 <Workspace>
@@ -6305,8 +6305,8 @@ End Class
 
         End Function
 
-        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         Public Async Function TestVisualBasic_Remove_UnnecessaryDefaultValueConversionToNumericType() As Task
             Dim input =
 <Workspace>
@@ -6346,8 +6346,8 @@ End Class
 
         End Function
 
-        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(604316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604316")>
         Public Async Function TestVisualBasic_Remove_UnnecessaryDefaultValueConversionToBooleanType() As Task
             Dim input =
 <Workspace>
@@ -6389,8 +6389,8 @@ End Class
 
         End Function
 
-        <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
         Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastInForEachExpression() As Task
             Dim input =
 <Workspace>
@@ -6666,8 +6666,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         Public Async Function TestVisualBasic_Remove_DelegateVarianceConversions() As Task
             Dim input =
 <Workspace>
@@ -6705,8 +6705,8 @@ End Class
 
         End Function
 
-        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         Public Async Function TestVisualBasic_DoNotRemove_ParamDefaultValueNegativeZero() As Task
             Dim input =
 <Workspace>
@@ -6758,8 +6758,8 @@ End Class
 
         End Function
 
-        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         Public Async Function TestVisualBasic_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
             Dim input =
 <Workspace>
@@ -6811,8 +6811,8 @@ End Class
 
         End Function
 
-        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884"), WorkItem(529927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529927")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884"), WorkItem(529927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529927")>
         Public Async Function TestVisualBasic_Remove_ParamDefaultValueZero() As Task
             Dim input =
 <Workspace>
@@ -6864,8 +6864,8 @@ End Class
 
         End Function
 
-        <WorkItem(529791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")>
         Public Async Function TestVisualBasic_Remove_UnnecessaryImplicitNullableCast() As Task
             Dim input =
 <Workspace>
@@ -6897,8 +6897,8 @@ End Class
 
         End Function
 
-        <WorkItem(529963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529963")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529963")>
         Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastInQueryForCollectionRangeVariable() As Task
             Dim input =
 <Workspace>
@@ -6944,8 +6944,8 @@ End Module
 
         End Function
 
-        <WorkItem(530072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530072")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(530072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530072")>
         Public Async Function TestVisualBasic_DoNotRemove_NecessaryCastInQueryForSelectMethod() As Task
             Dim input =
 <Workspace>
@@ -6997,8 +6997,8 @@ End Class
 
         End Function
 
-        <WorkItem(529831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")>
         Public Async Function TestVisualBasic_Remove_UnnecessaryInterfaceCast() As Task
             Dim input =
 <Workspace>
@@ -7134,8 +7134,8 @@ End Class
 
         End Function
 
-        <WorkItem(529877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529877")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529877")>
         Public Async Function TestVisualBasic_Remove_UnnecessarySealedClassToInterfaceCast() As Task
             Dim input =
 <Workspace>
@@ -9305,8 +9305,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         Public Async Function TestVisualBasic_Remove_IntegerToByte_OptionStrictOff() As Task
             Dim input =
 <Workspace>
@@ -9337,8 +9337,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn1() As Task
             Dim input =
 <Workspace>
@@ -9369,8 +9369,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn2() As Task
             Dim input =
 <Workspace>
@@ -9403,8 +9403,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn3() As Task
             Dim input =
 <Workspace>
@@ -9437,8 +9437,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn4() As Task
             Dim input =
 <Workspace>

@@ -331,8 +331,8 @@ end class")
 end class")
         End Function
 
-        <WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")>
         Public Async Function TestRightExpressionOnNextLine() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -382,8 +382,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
         Public Async Function TestParenthesizedExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -398,8 +398,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
         Public Async Function TestParenthesizedExpressionTrailingTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "public class C

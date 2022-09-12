@@ -632,8 +632,8 @@ Imports System
         End Function
 #End Region
 
-        <WorkItem(632305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(632305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>

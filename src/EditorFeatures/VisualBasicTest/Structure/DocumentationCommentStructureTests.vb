@@ -138,8 +138,8 @@ End Class
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
         End Function
 
-        <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
         Public Async Function CrefInSummary() As Task
             Const code = "
 Class C
@@ -156,8 +156,8 @@ End Class
                 Region("span", "''' <summary> Summary with SeeClass, SeeAlsoClass, Nothing, T, t, and not-supported.", autoCollapse:=True))
         End Function
 
-        <WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")>
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")>
         Public Async Function TestSummaryWithPunctuation() As Task
             Const code = "
 class C

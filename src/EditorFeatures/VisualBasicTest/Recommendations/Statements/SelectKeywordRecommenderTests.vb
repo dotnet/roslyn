@@ -28,8 +28,8 @@ Private _member = Sub() |
                                          </ClassDeclaration>, "Select")
         End Sub
 
-        <WorkItem(543396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543396")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543396")>
         Public Sub SelectInSingleLineIfTest()
             VerifyRecommendationsContain(<MethodBody>If True Then S|</MethodBody>, "Select")
         End Sub

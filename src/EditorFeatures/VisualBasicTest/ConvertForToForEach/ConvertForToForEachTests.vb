@@ -83,8 +83,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestBeforeFor() As Task
             Await TestInRegularAndScript1Async(
 "imports System

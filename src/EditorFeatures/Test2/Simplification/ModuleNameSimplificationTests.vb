@@ -164,8 +164,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField() As Task
             Dim input =
         <Workspace>
@@ -188,8 +188,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2() As Task
             Dim input =
         <Workspace>

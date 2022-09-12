@@ -318,8 +318,8 @@ interface I
 end interface")
         End Function
 
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestNotApplicableKeyword() As Task
             Await TestMissingAsync(
 "
@@ -328,8 +328,8 @@ class C(Of TKey)
 end class")
         End Function
 
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute() As Task
             Await TestMissingAsync(
 "
@@ -340,8 +340,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute2() As Task
             Await TestMissingAsync(
 "
@@ -352,8 +352,8 @@ class C
 end class")
         End Function
 
-        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -366,8 +366,8 @@ class C(Of TKey)
 end class")
         End Function
 
-        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "

@@ -505,8 +505,8 @@ End Module"
 
 #End Region
 
-        <WorkItem(540269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540269")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540269")>
         Public Async Function TestReplaceDottedExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -537,8 +537,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         Public Async Function TestReplaceSingleLineIfWithMultiLine1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -563,8 +563,8 @@ End Module",
 index:=2)
         End Function
 
-        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         Public Async Function TestReplaceSingleLineIfWithMultiLine2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -591,8 +591,8 @@ End Module",
 index:=2)
         End Function
 
-        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         Public Async Function TestReplaceSingleLineIfWithMultiLine3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -615,8 +615,8 @@ End Module",
 index:=3)
         End Function
 
-        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540457")>
         Public Async Function TestReplaceSingleLineIfWithMultiLine4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -643,8 +643,8 @@ End Module",
 index:=2)
         End Function
 
-        <WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")>
         Public Async Function TestCantExtractMethodTypeParameterToFieldCount() As Task
             Await TestActionCountAsync(
 "Imports System
@@ -658,8 +658,8 @@ End Module",
 count:=2)
         End Function
 
-        <WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")>
         Public Async Function TestCantExtractMethodTypeParameterToField() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -681,8 +681,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(540489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540489")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540489")>
         Public Async Function TestOnlyFieldsInsideConstructorInitializer() As Task
             Await TestActionCountAsync(
 "Class Goo
@@ -713,8 +713,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(540485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540485")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540485")>
         Public Async Function TestIntroduceLocalForConstantExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -731,8 +731,8 @@ End Module",
 index:=3)
         End Function
 
-        <WorkItem(1065689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065689")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1065689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065689")>
         Public Async Function TestIntroduceLocalForConstantExpressionWithTrailingTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -781,8 +781,8 @@ End Class
 index:=1)
         End Function
 
-        <WorkItem(540487, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540487")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540487, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540487")>
         Public Async Function TestFormattingForPartialExpression() As Task
             Dim code =
 "
@@ -806,8 +806,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=2)
         End Function
 
-        <WorkItem(540491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540491")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540491")>
         Public Async Function TestInAttribute1() As Task
             Await TestInRegularAndScriptAsync(
 "<Attr([|2 + 2|])>
@@ -825,8 +825,8 @@ Friend Class AttrAttribute
 End Class")
         End Function
 
-        <WorkItem(540490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540490")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(540490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540490")>
         Public Async Function TestInMyClassNew() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -947,8 +947,8 @@ End Module",
 index:=3)
         End Function
 
-        <WorkItem(541604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541604")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(541604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541604")>
         Public Async Function TestAttribute() As Task
             Await TestInRegularAndScriptAsync(
 "<Attr([|2 + 2|])>
@@ -966,8 +966,8 @@ Friend Class AttrAttribute
 End Class")
         End Function
 
-        <WorkItem(542092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542092")>
         Public Async Function TestRangeArgumentLowerBound1() As Task
             Await TestMissingInRegularAndScriptAsync("Module M
     Sub Main()
@@ -977,8 +977,8 @@ End Class")
 End Module")
         End Function
 
-        <WorkItem(542092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542092")>
         Public Async Function TestRangeArgumentLowerBound2() As Task
             Dim code =
 "
@@ -1006,8 +1006,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
-        <WorkItem(543029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543029"), WorkItem(542963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542963"), WorkItem(542295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542295")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543029"), WorkItem(542963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542963"), WorkItem(542295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542295")>
         Public Async Function TestUntypedExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1037,8 +1037,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(542374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542374")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542374")>
         Public Async Function TestFieldConstantInAttribute1() As Task
             Await TestInRegularAndScriptAsync(
 "<Goo(2 + 3 + 4)>
@@ -1062,8 +1062,8 @@ Friend Class GooAttribute
 End Class")
         End Function
 
-        <WorkItem(542374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542374")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542374")>
         Public Async Function TestFieldConstantInAttribute2() As Task
             Await TestAsync(
 "<Goo(2 + 3 + 4)>
@@ -1089,8 +1089,8 @@ index:=1,
 parseOptions:=Nothing)
         End Function
 
-        <WorkItem(542783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542783")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542783")>
         Public Async Function TestMissingOnAttributeName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<[|Obsolete|]>
@@ -1098,8 +1098,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(542811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542811")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542811")>
         Public Async Function TestMissingOnFilterClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -1111,8 +1111,8 @@ End Class")
 End Module")
         End Function
 
-        <WorkItem(542906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542906")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542906")>
         Public Async Function TestNoIntroduceLocalInAttribute() As Task
             Dim input =
 "Module Program \n <Obsolete([|""""|])> \n Sub Main(args As String()) \n End Sub \n End Module"
@@ -1132,8 +1132,8 @@ NewLines(input),
  End Module")
         End Function
 
-        <WorkItem(542947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542947")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542947")>
         Public Async Function TestNotOnMyBase() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class c1
@@ -1150,8 +1150,8 @@ Class c2
 End Class")
         End Function
 
-        <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
         Public Async Function TestNestedMultiLineIf1() As Task
             Dim code =
 "
@@ -1187,8 +1187,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
-        <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
         Public Async Function TestNestedMultiLineIf2() As Task
             Dim code =
 "
@@ -1224,8 +1224,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
-        <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
         Public Async Function TestNestedMultiLineIf3() As Task
             Dim code =
 "
@@ -1257,8 +1257,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
-        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         Public Async Function TestSingleLineLambda1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1277,8 +1277,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         Public Async Function TestSingleLineLambda2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1302,8 +1302,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         Public Async Function TestSingleLineLambda3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1327,8 +1327,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
         Public Async Function TestSingleLineLambda4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1349,8 +1349,8 @@ End Module",
 index:=1)
         End Function
 
-        <WorkItem(543299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543299")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543299")>
         Public Async Function TestSingleLineLambda5() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1371,8 +1371,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(542762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542762")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(542762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542762")>
         Public Async Function TestNotInIntoClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Linq
@@ -1384,8 +1384,8 @@ Module
 End Module")
         End Function
 
-        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         Public Async Function TestNotOnAttribute1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
@@ -1397,8 +1397,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         Public Async Function TestNotOnAttribute1CommentsAfterLineContinuation() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
@@ -1410,8 +1410,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         Public Async Function TestNotOnAttribute2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
@@ -1423,8 +1423,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         Public Async Function TestNotOnAttribute2CommentsAfterLineContinuation() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
@@ -1436,8 +1436,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         Public Async Function TestCollectionInitializer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -1447,8 +1447,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(543573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543573")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543573")>
         Public Async Function TestCaseInsensitiveNameConflict() As Task
             Await TestInRegularAndScriptAsync(
 "Class M
@@ -1464,8 +1464,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         Public Async Function TestQuery1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Linq
@@ -1487,8 +1487,8 @@ Public Class Base
 End Class")
         End Function
 
-        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         Public Async Function TestQueryCount1() As Task
             Await TestActionCountAsync(
 "Imports System.Linq
@@ -1502,8 +1502,8 @@ End Class",
 count:=2)
         End Function
 
-        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         Public Async Function TestQuery2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Linq
@@ -1526,8 +1526,8 @@ Public Class Base
 End Class")
         End Function
 
-        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         Public Async Function TestQuery3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Linq
@@ -1551,8 +1551,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543590")>
         Public Async Function TestQuery4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Linq
@@ -1601,9 +1601,9 @@ End Class",
 index:=1)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(543529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543529")>
         <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInStatementlessConstructorParameter() As Task
             Await TestMissingInRegularAndScriptAsync("Class C1
     Sub New(Optional ByRef x As String = [|Nothing|])
@@ -1611,8 +1611,8 @@ index:=1)
 End Class")
         End Function
 
-        <WorkItem(543650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543650")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543650")>
         Public Async Function TestReferenceToAnonymousTypeProperty() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class AM
@@ -1623,8 +1623,8 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(543698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543698")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543698")>
         Public Async Function TestIntegerArrayExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1640,8 +1640,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(544273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544273")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(544273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544273")>
         Public Async Function TestAttributeNamedParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class TestAttribute
@@ -1654,8 +1654,8 @@ Class Goo
 End Class")
         End Function
 
-        <WorkItem(544265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544265")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(544265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544265")>
         Public Async Function TestMissingOnWrittenToExpression() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -1666,8 +1666,8 @@ End Class")
 End Module")
         End Function
 
-        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         Public Async Function TestImplicitMemberAccess1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1683,8 +1683,8 @@ Public Class C2
 End Class")
         End Function
 
-        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         Public Async Function TestImplicitMemberAccess2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1700,8 +1700,8 @@ Public Class C2
 End Class")
         End Function
 
-        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         Public Async Function TestImplicitMemberAccess3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1717,8 +1717,8 @@ Public Class C2
 End Class")
         End Function
 
-        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         Public Async Function TestImplicitMemberAccess4() As Task
             Dim code =
 "
@@ -1770,8 +1770,8 @@ End Module"
             Await TestMissingInRegularAndScriptAsync(source)
         End Function
 
-        <WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
         Public Async Function TestMissingOnAddressOfInDelegate() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Module1
@@ -1785,8 +1785,8 @@ End Module"
 End Module")
         End Function
 
-        <WorkItem(545168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545168")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WorkItem(545168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545168")>
         Public Async Function TestMissingOnXmlName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module M
@@ -1796,9 +1796,9 @@ End Module")
 End Module")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
         <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInTernaryConditional() As Task
             Await TestMissingInRegularAndScriptAsync("Module Program
     Sub Main(args As String())
@@ -1808,8 +1808,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(545316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545316")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545316")>
         Public Async Function TestInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Module Module1
@@ -1821,8 +1821,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(545308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545308")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545308")>
         Public Async Function TestDoNotMergeAmpersand() As Task
             Dim code =
 "
@@ -1845,8 +1845,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
         Public Async Function TestVenusGeneration1() As Task
             Dim code =
 "
@@ -1878,8 +1878,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
         Public Async Function TestVenusGeneration2() As Task
             Dim code =
 "
@@ -1899,8 +1899,8 @@ End Class
                                        String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
         End Function
 
-        <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
         Public Async Function TestVenusGeneration3() As Task
             Dim code =
 "
@@ -1936,8 +1936,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(545525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545525")>
         Public Async Function TestInvocation() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -1961,8 +1961,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
         Public Async Function TestOnImplicitMemberAccess() As Task
             Await TestAsync(
 "Module Program
@@ -2001,8 +2001,8 @@ End Module",
 parseOptions:=GetScriptOptions())
         End Function
 
-        <WorkItem(545702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545702")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(545702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545702")>
         Public Async Function TestMissingInRefLocation() As Task
             Dim markup =
 "
@@ -2020,8 +2020,8 @@ End Module
             Await TestMissingInRegularAndScriptAsync(markup)
         End Function
 
-        <WorkItem(546139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546139")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(546139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546139")>
         Public Async Function TestAcrossPartialTypes() As Task
             Await TestInRegularAndScriptAsync(
 "Partial Class C
@@ -2045,8 +2045,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(544669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544669")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(544669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544669")>
         Public Async Function TestFunctionBody1() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -2064,8 +2064,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(1065689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065689")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1065689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065689")>
         Public Async Function TestTrailingTrivia() As Task
             Dim code =
 "
@@ -2094,8 +2094,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(546815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546815")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(546815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546815")>
         Public Async Function TestInIfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2120,8 +2120,8 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(830928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830928")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(830928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830928")>
         Public Async Function TestIntroduceLocalRemovesUnnecessaryCast() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -2141,8 +2141,8 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(546691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546691")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(546691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546691")>
         Public Async Function TestIntroLocalInSingleLineLambda() As Task
             Dim code =
 "
@@ -2169,8 +2169,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(530720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530720")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(530720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530720")>
         Public Async Function TestSingleToMultilineLambdaLineBreaks() As Task
             Dim code =
 "
@@ -2196,8 +2196,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(531478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531478")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(531478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531478")>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim code =
 "
@@ -2229,8 +2229,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(632327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632327")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(632327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632327")>
         Public Async Function TestInsertAfterPreprocessor1() As Task
             Dim code =
 "
@@ -2264,8 +2264,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(632327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632327")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(632327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632327")>
         Public Async Function TestInsertAfterPreprocessor2() As Task
             Dim code =
 "
@@ -2299,8 +2299,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")>
         Public Async Function TestDontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken() As Task
             Dim code =
 "
@@ -2328,8 +2328,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=2)
         End Function
 
-        <WorkItem(1022458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022458")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1022458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022458")>
         Public Async Function TestDontSimplifyParentUnlessEntireInnerNodeIsSelected() As Task
             Dim code =
 "
@@ -2366,8 +2366,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
-        <WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")>
         Public Async Function TestIntroduceLocalWithTriviaInMultiLineStatements() As Task
             Dim code =
 "
@@ -2399,8 +2399,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
-        <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
         Public Async Function TestMissingOnNothingLiteral() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -2417,8 +2417,8 @@ End Module
 ")
         End Function
 
-        <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         Public Async Function TestInParentConditionalAccessExpressions() As Task
             Dim code =
 "
@@ -2444,9 +2444,9 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingAcrossMultipleParentConditionalAccessExpressions() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -2460,8 +2460,8 @@ End Class
 ")
         End Function
 
-        <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         Public Async Function TestMissingOnInvocationExpressionInParentConditionalAccessExpressions() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -2475,8 +2475,8 @@ End Class
 ")
         End Function
 
-        <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         Public Async Function TestMissingOnMemberBindingExpressionInParentConditionalAccessExpressions() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -2490,8 +2490,8 @@ End Class
 ")
         End Function
 
-        <WorkItem(2026, "https://github.com/dotnet/roslyn/issues/2026")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(2026, "https://github.com/dotnet/roslyn/issues/2026")>
         Public Async Function TestReplaceAllFromInsideIfBlock() As Task
             Dim code =
 "
@@ -2557,8 +2557,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
-        <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
         Public Async Function TestIntroduceVariableTextDoesntSpanLines1() As Task
             Dim code = "
 Class C
@@ -2572,8 +2572,8 @@ End Class"
             Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), New TestParameters(index:=2))
         End Function
 
-        <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
         Public Async Function TestIntroduceVariableTextDoesntSpanLines2() As Task
             Dim code = "
 Class C
@@ -2587,8 +2587,8 @@ End Class"
             Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_for_0, "$""a b c"""))
         End Function
 
-        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         Public Async Function TestNoConstantForInterpolatedStrings1() As Task
             Dim code =
 "
@@ -2614,8 +2614,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         Public Async Function TestNoConstantForInterpolatedStrings2() As Task
             Dim code =
 "
@@ -2641,8 +2641,8 @@ End Module
             Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
-        <WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")>
         Public Async Function TestHandleFormattableStringTargetTyping1() As Task
             Const code = "
 Imports System
@@ -2674,8 +2674,8 @@ End Namespace"
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         Public Async Function TestInAutoPropertyInitializerEqualsClause() As Task
             Dim code =
 "
@@ -2695,8 +2695,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         Public Async Function TestInAutoPropertyWithCollectionInitializerAfterEqualsClause() As Task
             Dim code =
 "
@@ -2716,8 +2716,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         Public Async Function TestInAutoPropertyInitializerAsClause() As Task
             Dim code =
 "
@@ -2737,8 +2737,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
         Public Async Function TestInAutoPropertyObjectCreationExpressionWithinAsClause() As Task
             Dim code =
 "
@@ -2758,8 +2758,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")>
         Public Async Function TestGenerateLocalConflictingName1() As Task
             Await TestInRegularAndScriptAsync(
 "class Program
@@ -2935,8 +2935,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
         Public Async Function TestPickNameBasedOnArgument1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -2962,8 +2962,8 @@ structure TextSpan
 end structure")
         End Function
 
-        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
         Public Async Function TestPickNameBasedOnArgument2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -3055,8 +3055,8 @@ End Module"
             Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
-        <WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")>
         Public Async Function TestInAttribute() As Task
             Dim code = "
 Class C
@@ -3078,8 +3078,8 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         Public Async Function TestCaretAtEndOfExpression1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -3096,8 +3096,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         Public Async Function TestCaretAtEndOfExpression2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -3114,8 +3114,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         Public Async Function TestCaretAtEndOfExpression3() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -3132,8 +3132,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
         Public Async Function TestCaretAtEndOfExpression4() As Task
             Await TestInRegularAndScriptAsync(
 "class C

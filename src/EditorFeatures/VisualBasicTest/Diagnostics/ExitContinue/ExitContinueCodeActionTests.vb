@@ -670,8 +670,8 @@ End Class
             Await TestAsync(code, expected, index:=1)
         End Function
 
-        <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
         Public Async Function TestDoNotTryToExitFinally() As Task
             Dim code =
     <File>
@@ -706,8 +706,8 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
         Public Async Function TestMissingExitTokenInNonExitableBlock() As Task
             Dim code =
     <File>
@@ -783,8 +783,8 @@ End Module",
             3)
         End Function
 
-        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         Public Async Function TestReplaceInvalidTokenExit() As Task
             Dim code =
     <File>
@@ -822,8 +822,8 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         Public Async Function TestReplaceInvalidTokenContinue() As Task
             Dim code =
     <File>

@@ -139,8 +139,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn1XmlDocReferencingTypeParams() As Task
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -164,8 +164,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn2XmlDocReferencingTypeParams() As Task
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -544,10 +544,10 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         <WorkItem(544124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544124")>
         <WorkItem(544123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544123")>
         <WorkItem(684631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684631")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestCallingGenericExtensionMethod() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -692,8 +692,8 @@ End Class
 #End Region
 
 #Region "EditorBrowsable tests"
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -724,8 +724,8 @@ End Class
 
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -756,8 +756,8 @@ End Class
 
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -796,8 +796,8 @@ End Class
                                                        hideAdvancedMembers:=True)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableMixed() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -835,8 +835,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -863,8 +863,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -891,8 +891,8 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class Program

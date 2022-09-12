@@ -62,8 +62,8 @@ End Module
 ")
         End Function
 
-        <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
         Public Async Function TestAddEmptyArgumentListIfNeeded() As Task
             Dim markup =
 <File>
@@ -336,8 +336,8 @@ End Module
 ")
         End Function
 
-        <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim markup =
 <File>
@@ -355,8 +355,8 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim markup =
 <File>
@@ -374,8 +374,8 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim markup =
 <File>
@@ -393,8 +393,8 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim markup =
 <File>
@@ -421,8 +421,8 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim markup =
 <File>
@@ -440,8 +440,8 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -516,8 +516,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambdaMethod() As Task
             Await TestMissingAsync(
 "Module Program
@@ -528,8 +528,8 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfSingleLineIf() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -565,8 +565,8 @@ End If
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
 <File>
@@ -589,8 +589,8 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
         Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =
 <File>
@@ -617,8 +617,8 @@ End Module
 ")
         End Function
 
-        <WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
         Public Async Function TestWithMissingTrueStatementWithinUsing() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program

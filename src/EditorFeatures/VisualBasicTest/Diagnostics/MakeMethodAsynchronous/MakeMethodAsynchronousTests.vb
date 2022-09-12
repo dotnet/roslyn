@@ -363,8 +363,8 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =
 <File>
@@ -437,8 +437,8 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
         Public Async Function TestWithMissingParameterList() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

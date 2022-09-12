@@ -30,23 +30,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub goo Lib "Goo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NoAliasAfterEolTest()
             VerifyRecommendationsMissing(
 <ClassDeclaration>Declare Function goo Lib "Goo" 
     |</ClassDeclaration>, "Alias")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AliasAfterExplicitLineContinuationTest()
             VerifyRecommendationsAreExactly(
 <ClassDeclaration>Declare Function goo Lib "Goo" _
 |</ClassDeclaration>, "Alias")
         End Sub
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AliasAfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsAreExactly(
 <ClassDeclaration>Declare Function goo Lib "Goo" _ ' Test

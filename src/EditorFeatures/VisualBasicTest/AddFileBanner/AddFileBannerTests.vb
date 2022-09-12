@@ -147,8 +147,8 @@ end class
 </Workspace>")
         End Function
 
-        <WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>
+        <WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")>
         Public Async Function TestUpdateFileNameInComment() As Task
             Await TestInRegularAndScriptAsync(
 "

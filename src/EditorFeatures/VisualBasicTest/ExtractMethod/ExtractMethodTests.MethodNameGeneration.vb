@@ -138,8 +138,8 @@ End Class</text>
 
             ''' This is a special case in VB as it is case insensitive
             ''' Hence Get_FirstName() would conflict with the internal get_FirstName() that VB generates for the getter
-            <WorkItem(540483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540483")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WorkItem(540483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540483")>
             Public Async Function TestPropertyGetter() As Task
                 Dim code = <text>Class Program
     Private _FirstName As String
@@ -179,8 +179,8 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(530674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530674")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WorkItem(530674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530674")>
             Public Async Function TestEscapedParameterName() As Task
                 Dim code = <text>Imports System.Linq
 

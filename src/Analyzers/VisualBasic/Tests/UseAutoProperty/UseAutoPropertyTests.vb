@@ -898,8 +898,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         Public Async Function TestWriteInMultiLineSubLambdaInConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -927,8 +927,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         Public Async Function TestWriteInMultiLineFunctionLambdaInConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -958,8 +958,8 @@ end class",
 end class")
         End Function
 
-        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         Public Async Function TestWriteInSingleLineSubLambdaInConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -1015,8 +1015,8 @@ end class")
 End Class")
         End Function
 
-        <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
         Public Async Function ExplicitInterfaceImplementation() As Task
             Await TestInRegularAndScriptAsync("
 Namespace RoslynSandbox
@@ -1223,8 +1223,8 @@ indent_style = space
 </Workspace>")
         End Function
 
-        <WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")>
         Public Async Function TestNotOnSerializableType() As Task
             Await TestMissingAsync(
 "
@@ -1239,8 +1239,8 @@ class Class1
 end class")
         End Function
 
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestArraySizeAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1256,8 +1256,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestArrayInitializerAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1273,8 +1273,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestMultiDimArrayWithRankAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1290,8 +1290,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestMultiDimArrayWithInitialzerAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

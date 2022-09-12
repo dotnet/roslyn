@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypeAbstract
             Return (Nothing, New VisualBasicMakeTypeAbstractCodeFixProvider())
         End Function
 
-        <WorkItem(50003, "https://github.com/dotnet/roslyn/issues/50003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
+        <WorkItem(50003, "https://github.com/dotnet/roslyn/issues/50003")>
         Public Async Function TestMethod_CodeFix() As Task
             Await TestInRegularAndScript1Async("
 Public Class [|Foo|]
@@ -136,8 +136,8 @@ Namespace NS
 End Namespace")
         End Function
 
-        <WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
+        <WorkItem(54218, "https://github.com/dotnet/roslyn/issues/54218")>
         Public Async Function TestMethod_PartialClass() As Task
             Await TestInRegularAndScriptAsync("
 Partial Public Class [|Foo|]

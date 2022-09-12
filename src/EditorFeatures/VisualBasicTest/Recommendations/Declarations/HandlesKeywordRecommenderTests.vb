@@ -47,8 +47,8 @@ Sub Goo()
 </File>, "Handles")
         End Sub
 
-        <WorkItem(577941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577941")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(577941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577941")>
         Public Sub NoHandlesAfterIteratorTest()
             VerifyRecommendationsMissing(<File>
 Class C

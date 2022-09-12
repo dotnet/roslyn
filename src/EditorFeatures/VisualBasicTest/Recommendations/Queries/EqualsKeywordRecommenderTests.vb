@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
     Public Class EqualsKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         Public Sub EqualsAfterJoinInOnIdentifierTest()
             Dim method = <MethodBody>
                              Dim arr = New Integer() {4, 5}
@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
             VerifyRecommendationsAreExactly(method, "Equals")
         End Sub
 
-        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         Public Sub EqualsAfterJoinInOnBinaryExpressionTest()
             Dim method = <MethodBody>
                              Dim arr = New Integer() {4, 5}

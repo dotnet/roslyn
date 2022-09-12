@@ -1066,8 +1066,8 @@ class A
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
         Public Async Function TestCSharpDoNotSimplifyNameInNamespaceDeclaration() As Task
             Dim input =
         <Workspace>
@@ -1090,8 +1090,8 @@ namespace System.Goo
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         Public Async Function TestCS_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
 <Workspace>
@@ -1124,8 +1124,8 @@ namespace System.Goo
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529989")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529989")>
         Public Async Function TestCS_AliasReplacementKeepsUnicodeEscaping() As Task
             Dim input =
 <Workspace>
@@ -1468,8 +1468,8 @@ class C1
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
             Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
@@ -1506,8 +1506,8 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
             Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
@@ -1546,8 +1546,8 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
             Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
@@ -1615,9 +1615,9 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(734445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734445")>
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
             Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
@@ -1665,8 +1665,8 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
             Dim input =
 <Workspace>
@@ -1926,8 +1926,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
         Public Async Function TestSimplifyQualifiedCref() As Task
             Dim input =
         <Workspace>
@@ -1960,8 +1960,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         Public Async Function TestDontSimplifyToGenericNameCSharp() As Task
             Dim input =
         <Workspace>
@@ -2020,8 +2020,8 @@ class E
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         Public Async Function TestDoNotSimplifyToGenericName() As Task
             Dim input =
         <Workspace>
@@ -2447,8 +2447,8 @@ namespace N
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4859, "https://github.com/dotnet/roslyn/issues/4859")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4859, "https://github.com/dotnet/roslyn/issues/4859")>
         Public Async Function TestCSharp_DontSimplifyNullableInNameOfExpression() As Task
             Dim input =
         <Workspace>
@@ -2484,8 +2484,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithThis_AsLHS_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2525,8 +2525,8 @@ class C
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithThis_AsRHS_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2562,8 +2562,8 @@ class C
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithThis_AsMethodArgument_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2599,8 +2599,8 @@ class C
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithThis_ChainedAccess_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2636,8 +2636,8 @@ class C
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithThis_ConditionalAccess_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2673,8 +2673,8 @@ class C
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithThis_AsLHS_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2710,8 +2710,8 @@ class C
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithThis_AsRHS_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2747,8 +2747,8 @@ class C
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithThis_AsMethodArgument_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2784,8 +2784,8 @@ class C
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithThis_ChainedAccess_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2821,8 +2821,8 @@ class C
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithThis_ConditionalAccess_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2858,8 +2858,8 @@ class C
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithThis_AsVoidCallWithArguments_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2893,8 +2893,8 @@ class C
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithThis_WithReturnType_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2928,8 +2928,8 @@ class C
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithThis_ChainedAccess_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -2965,8 +2965,8 @@ class C
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithThis_ConditionalAccess_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -3000,8 +3000,8 @@ class C
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithThis_EventSubscription_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -3047,8 +3047,8 @@ class C
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyEventAccessWithThis_AddAndRemoveHandler_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -3088,8 +3088,8 @@ class C
             Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.CSharp))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyEventAccessWithThis_InvokeEvent_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -3307,8 +3307,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_1() As Task
             Dim input =
                     <Workspace>
@@ -3339,8 +3339,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_2() As Task
             Dim input =
                     <Workspace>
@@ -3371,8 +3371,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver1() As Task
             Dim input =
                     <Workspace>
@@ -3400,8 +3400,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver2() As Task
             Dim input =
                     <Workspace>
@@ -3428,8 +3428,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver3() As Task
             Dim input =
                     <Workspace>
@@ -4121,8 +4121,8 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(588099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588099")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(588099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588099")>
         Public Async Function TestVisualBasic_EscapeReservedNamesInAttributes() As Task
             Dim input =
 <Workspace>
@@ -4271,8 +4271,8 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(601160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601160")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(601160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601160")>
         Public Async Function TestExpandMultilineLambdaWithImports() As Task
             Dim input =
 <Workspace>
@@ -4308,8 +4308,8 @@ End Module
             End Using
         End Function
 
-        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
         Public Async Function TestVB_DoNotReduceNamesInNamespaceDeclarations() As Task
             Dim input =
 <Workspace>
@@ -4332,8 +4332,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         Public Async Function TestVB_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
 <Workspace>
@@ -4358,8 +4358,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         Public Async Function TestVB_NoNREForOmittedReceiverInWithBlock() As Task
             Dim input =
 <Workspace>
@@ -4398,8 +4398,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
         Public Async Function TestBugFix639971_VisualBasic_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
 <Workspace>
@@ -4448,8 +4448,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
         Public Async Function TestBugFix639971_CSharp_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
 <Workspace>
@@ -4656,8 +4656,8 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(769354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769354")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(769354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769354")>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameInCrefCausesConflict() As Task
             Dim input =
         <Workspace>
@@ -4739,8 +4739,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
         Public Async Function TestVisualBasic_TestSimplifyQualifiedCref() As Task
             Dim input =
         <Workspace>
@@ -4771,8 +4771,8 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         Public Async Function TestVisualBasic_DontSimplifyToGenericName() As Task
             Dim input =
         <Workspace>
@@ -4823,8 +4823,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         Public Async Function TestVisualBasic_DoNotSimplifyToGenericName() As Task
             Dim input =
         <Workspace>
@@ -5139,8 +5139,8 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(4859, "https://github.com/dotnet/roslyn/issues/4859")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4859, "https://github.com/dotnet/roslyn/issues/4859")>
         Public Async Function TestVisualBasic_DontSimplifyNullableInNameOfExpression() As Task
             Dim input =
         <Workspace>
@@ -5172,8 +5172,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithMe_AsLHS_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5205,8 +5205,8 @@ End Class
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithMe_AsRHS_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5238,8 +5238,8 @@ End Class
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithMe_AsMethodArgument_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5271,8 +5271,8 @@ End Class
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithMe_ChainedAccess_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5304,8 +5304,8 @@ End Class
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyFieldAccessWithMe_ConditionalAccess_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5337,8 +5337,8 @@ End Class
             Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithMe_AsLHS_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5370,8 +5370,8 @@ End Class
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithMe_AsRHS_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5403,8 +5403,8 @@ End Class
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithMe_AsMethodArgument_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5436,8 +5436,8 @@ End Class
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithMe_ChainedAccess_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5469,8 +5469,8 @@ End Class
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyPropertyAccessWithMe_ConditionalAccess_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5502,8 +5502,8 @@ End Class
             Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithMe_AsSubCallWithArguments_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5533,8 +5533,8 @@ End Class
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithMe_WithReturnType_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5564,8 +5564,8 @@ End Class
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithMe_ChainedAccess_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5597,8 +5597,8 @@ End Class
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithMe_ConditionalAccess_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5628,8 +5628,8 @@ End Class
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyMethodAccessWithMe_EventSubscription_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5671,8 +5671,8 @@ End Class
             Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
-        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         Public Async Function QualifyEventAccessWithMe_AddAndRemoveHandler_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -5836,8 +5836,8 @@ End Class
             Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption2.Error))
         End Function
 
-        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
         Public Async Function UsePredefinedTypeKeywordIfTextIsTheSame() As Task
             Dim input =
         <Workspace>
@@ -5869,8 +5869,8 @@ End Class
             Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
-        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
         Public Async Function DontUsePredefinedTypeKeyword() As Task
             Dim input =
         <Workspace>

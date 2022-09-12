@@ -144,14 +144,14 @@ Module Program
 End Module</MethodBody>, "From")
         End Sub
 
-        <WorkItem(542741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542741")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(542741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542741")>
         Public Sub FromAfterLambdaHeaderTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 As Func(Of Integer()) = Function() |</MethodBody>, "From")
         End Sub
 
-        <WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         Public Sub NoFromAfterDotTest()
             Dim code = <File>
 Class C
@@ -164,8 +164,8 @@ End Class
             VerifyRecommendationsMissing(code, "From")
         End Sub
 
-        <WorkItem(542252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542252")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(542252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542252")>
         Public Sub NoFromIfNotCollectionInitializerTest()
             Dim code = <File>
 System
@@ -185,8 +185,8 @@ End Class
             VerifyRecommendationsMissing(code, "From")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <File>Imports System.Collections.Generic
@@ -202,8 +202,8 @@ Class C
 End Class</File>, "From")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <File>Imports System.Collections.Generic
@@ -235,8 +235,8 @@ Class C
 End Class</File>, "From")
         End Sub
 
-        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         Public Sub FromForTypeInheritingCollectionInitializerPatternTest()
             Dim code = <File>
 Imports System.Collections
@@ -268,8 +268,8 @@ End Class
             VerifyRecommendationsContain(code, "From")
         End Sub
 
-        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         Public Sub FromForTypeInheritingCollectionInitializerPatternInAccessibleTest()
             Dim code = <File>
 Imports System.Collections
@@ -301,8 +301,8 @@ End Class
             VerifyRecommendationsMissing(code, "From")
         End Sub
 
-        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         Public Sub FromForTypeInheritingCollectionInitializerPatternAccessibleTest()
             Dim code = <File>
 Imports System.Collections

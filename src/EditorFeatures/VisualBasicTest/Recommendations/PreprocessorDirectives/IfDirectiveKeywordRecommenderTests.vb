@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
                                          </File>, "#If")
         End Sub
 
-        <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
         Public Sub NotAfterHashRegionTest()
             VerifyRecommendationsMissing(<File>
                                          Class C

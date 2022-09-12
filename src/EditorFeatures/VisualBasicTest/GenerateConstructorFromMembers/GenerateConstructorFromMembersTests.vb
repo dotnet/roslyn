@@ -275,8 +275,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
         Public Async Function TestSimpleDelegatingConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -301,8 +301,8 @@ End Class",
 index:=1)
         End Function
 
-        <WorkItem(542008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542008")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(542008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542008")>
         Public Async Function TestGenerateFromNormalProperties() As Task
             Await TestInRegularAndScriptAsync(
 "Class Z
@@ -320,8 +320,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         Public Async Function TestGetter_Only_Auto_Props() As Task
             Await TestInRegularAndScriptAsync(
 "Class Contribution
@@ -339,8 +339,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         Public Async Function TestAbstract_Getter_Only_Auto_Props() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Contribution
@@ -473,8 +473,8 @@ Class Program
 End Class")
         End Function
 
-        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
         Public Async Function TestWithDialogNoBackingField() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -493,8 +493,8 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
         Public Async Function TestWithDialogNoParameterizedProperty() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -539,8 +539,8 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
         Public Async Function TestWithDialogNoIndexer() As Task
             Await TestWithPickMembersDialogAsync(
 "
@@ -625,8 +625,8 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelection() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -641,8 +641,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelection2() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -657,8 +657,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelection3() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -673,8 +673,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelectionBeforeIdentifier() As Task
             Await TestMissingAsync(
 "Class Program
@@ -682,8 +682,8 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelectionAfterIdentifier() As Task
             Await TestMissingAsync(
 "Class Program
@@ -691,8 +691,8 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelectionIdentifierNotSelected() As Task
             Await TestMissingAsync(
 "Class Program
@@ -700,8 +700,8 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestPartialFieldSelectionIdentifierNotSelected2() As Task
             Await TestMissingAsync(
 "Class Program
@@ -709,8 +709,8 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialFieldSelection() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -728,8 +728,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialFieldSelection2() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -746,8 +746,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialFieldSelection3_1() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -762,8 +762,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialFieldSelection3_2() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -779,8 +779,8 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         Public Async Function TestMultiplePartialFieldSelection4() As Task
             Await TestMissingAsync(
 "Class Program

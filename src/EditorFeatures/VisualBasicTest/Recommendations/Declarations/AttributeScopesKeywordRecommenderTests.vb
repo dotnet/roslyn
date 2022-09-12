@@ -55,8 +55,8 @@ End Class
 </File>, "Assembly", "Module")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AttributeScopesAfterEolTest()
             VerifyRecommendationsContain(<File>
 Class goo

@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
                 Return (Nothing, New GenerateConversionCodeFixProvider())
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateExplicitConversionGenericClass() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Class Program
@@ -44,8 +44,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateExplicitConversionClass() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Class Program
@@ -73,8 +73,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateExplicitConversionAwaitExpression() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Imports System
@@ -108,8 +108,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateImplicitConversionTargetTypeNotInSource() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Imports System
@@ -154,8 +154,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateImplicitConversionGenericClass() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Class Program
@@ -183,8 +183,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateImplicitConversionClass() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Class Program
@@ -212,8 +212,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateImplicitConversionAwaitExpression() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Imports System
@@ -247,8 +247,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             Public Async Function TestGenerateExplicitConversionTargetTypeNotInSource() As Task
                 Await TestInRegularAndScriptAsync(
     <text>Imports System
