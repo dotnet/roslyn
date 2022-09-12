@@ -247,8 +247,7 @@ namespace N1 { }
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
+        <Theory, WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -278,8 +277,7 @@ class [|$$C|]
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
+        <Theory, WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_NoConflictBetweenLambdaParameterAndField(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -298,8 +296,7 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParametersInTypeDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -319,8 +316,7 @@ class Program<{|declconflict:A|}, [|$$B|]>
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -342,8 +338,7 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -365,8 +360,7 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParameterAndMember_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -388,8 +382,7 @@ class Program<{|declconflict:@a|}>
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
+        <Theory, WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParameterAndMember_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -410,8 +403,7 @@ class Program<{|declconflict:@a|}>
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
+        <Theory, WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_OverridingImplicitlyUsedMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -451,8 +443,7 @@ class C : A
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
+        <Theory, WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_OverridingImplicitlyUsedMethod_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -491,8 +482,7 @@ class C : A
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
+        <Theory, WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_OverridingImplicitlyUsedMethod_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

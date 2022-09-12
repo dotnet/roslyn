@@ -498,8 +498,7 @@ End Class
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(725934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/725934"), WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
+            <Theory, WorkItem(725934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/725934"), WorkItem(639136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639136")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionWithTypeInference_Me(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
@@ -2953,8 +2952,7 @@ End Class
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+            <Theory, WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub InvalidNamesDoNotCauseCrash_IntroduceQualifiedName(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
@@ -2973,8 +2971,7 @@ End Class
                 End Using
             End Sub
 
-            <Theory>
-            <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+            <Theory, WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
             <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub InvalidNamesDoNotCauseCrash_AccidentallyPasteLotsOfCode(host As RenameTestHost)
                 Dim renameTo = "

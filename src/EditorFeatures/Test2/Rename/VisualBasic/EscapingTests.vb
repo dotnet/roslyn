@@ -412,8 +412,7 @@ End Class
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
+        <Theory, WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -434,8 +433,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
+        <Theory, WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -457,8 +455,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938")>
+        <Theory, WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToEscapedIdentifierWithFullwidthSquareBracket(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -478,8 +475,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(529932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529932")>
+        <Theory, WorkItem(529932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529932")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeContextualKeywordsInQuery1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -517,8 +513,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(530805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530805")>
+        <Theory, WorkItem(530805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530805")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeMidIfNeeded(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -540,8 +535,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(607067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607067")>
+        <Theory, WorkItem(607067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607067")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToRemAndUsingTypeCharactersIsNotAllowed(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

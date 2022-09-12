@@ -2826,8 +2826,7 @@ class C
         End Sub
 #End Region
 
-        <Theory>
-        <WorkItem(1016652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016652")>
+        <Theory, WorkItem(1016652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016652")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeNamesInTypeConstraintSyntax(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3169,8 +3168,7 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(446, "https://github.com/dotnet/roslyn/issues/446")>
+        <Theory, WorkItem(446, "https://github.com/dotnet/roslyn/issues/446")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoCrashOrConflictOnRenameWithNameOfInAttribute(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3190,8 +3188,7 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Theory, WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenNameOfReferenceDoesNotBindToAnyOriginalSymbols(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3214,8 +3211,7 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Theory, WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictWhenNameOfReferenceDoesNotBindToSomeOriginalSymbols(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3233,8 +3229,7 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Theory, WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictWhenNameOfReferenceBindsToSymbolForFirstTime(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3252,8 +3247,7 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Theory, WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenNameOfReferenceChangesBindingFromMetadataToSource(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3278,8 +3272,7 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+        <Theory, WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub InvalidNamesDoNotCauseCrash_IntroduceQualifiedName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3296,8 +3289,7 @@ class {|conflict:C$$|} { }
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+        <Theory, WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub InvalidNamesDoNotCauseCrash_AccidentallyPasteLotsOfCode(host As RenameTestHost)
             Dim renameTo = "class C { public void M() { for (int i = 0; i < 10; i++) { System.Console.Writeline(""This is a test""); } } }"
@@ -3316,8 +3308,7 @@ class {|conflict:C$$|} { }
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Theory, WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DeclarationConflictInFileWithoutReferences_SameProject(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3348,8 +3339,7 @@ class Program2
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Theory, WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DeclarationConflictInFileWithoutReferences_DifferentProjects(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -3383,8 +3373,7 @@ class Program2
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Theory, WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
         <WorkItem(3303, "https://github.com/dotnet/roslyn/issues/3303")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DeclarationConflictInFileWithoutReferences_PartialTypes(host As RenameTestHost)

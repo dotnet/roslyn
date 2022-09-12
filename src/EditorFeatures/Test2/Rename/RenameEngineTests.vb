@@ -2129,8 +2129,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(576607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576607")>
+        <Theory, WorkItem(576607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576607")>
         <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCompilerGeneratedEventHandlerForNonCustomEvent(host As RenameTestHost)
@@ -2155,8 +2154,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(576966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576966")>
+        <Theory, WorkItem(576966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpRenameParenthesizedFunctionName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2178,8 +2176,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
+        <Theory, WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasicAwaitAsIdentifierInAsyncShouldBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2203,8 +2200,7 @@ End Module
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
+        <Theory, WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncMethodShouldBeEscaped0(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2237,8 +2233,7 @@ class M
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
+        <Theory, WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2270,8 +2265,7 @@ class s
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
+        <Theory, WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -2303,8 +2297,7 @@ class s
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
+        <Theory, WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldNotBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
