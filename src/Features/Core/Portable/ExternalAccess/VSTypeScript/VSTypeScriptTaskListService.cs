@@ -12,42 +12,41 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[ExportLanguageService(typeof(ITaskListService), InternalLanguageNames.TypeScript), Shared]
+internal sealed class VSTypeScriptTaskListService : ITaskListService
 {
-    [ExportLanguageService(typeof(ITaskListService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptTaskListService : ITaskListService
+    private readonly IVSTypeScriptTaskListServiceImplementation? _impl;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation impl)
     {
-        private readonly IVSTypeScriptTaskListServiceImplementation? _impl;
+        _impl = impl;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation impl)
+    public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
+    {
+        if (_impl is null)
+            return ImmutableArray<TaskListItem>.Empty;
+
+        var result = await _impl.GetTaskListItemsAsync(
+            document,
+            descriptors.SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d)),
+            cancellationToken).ConfigureAwait(false);
+        if (result.Length == 0)
+            return ImmutableArray<TaskListItem>.Empty;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        return result.SelectAsArray(d =>
         {
-            _impl = impl;
-        }
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, d.Position)), 0);
+            var location = Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan));
+            var span = location.GetLineSpan();
 
-        public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
-        {
-            if (_impl is null)
-                return ImmutableArray<TaskListItem>.Empty;
-
-            var result = await _impl.GetTaskListItemsAsync(
-                document,
-                descriptors.SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d)),
-                cancellationToken).ConfigureAwait(false);
-            if (result.Length == 0)
-                return ImmutableArray<TaskListItem>.Empty;
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            return result.SelectAsArray(d =>
-            {
-                var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, d.Position)), 0);
-                var location = Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan));
-                var span = location.GetLineSpan();
-
-                return new TaskListItem(d.Descriptor.Descriptor.Priority, d.Message, document.Id, span, span);
-            });
-        }
+            return new TaskListItem(d.Descriptor.Descriptor.Priority, d.Message, document.Id, span, span);
+        });
     }
 }
