@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected override void ShutdownSource()
             => _source.Shutdown();
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TaskListTableItem, TaskListItemsUpdatedArgs>
+        private class TableDataSource : AbstractRoslynTableDataSource<TaskListTableItem, TaskListUpdatedArgs>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
@@ -86,9 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(TaskListItemsUpdatedArgs data) => data.DocumentId;
+            public override object GetItemKey(TaskListUpdatedArgs data) => data.DocumentId;
 
-            protected override object GetOrUpdateAggregationKey(TaskListItemsUpdatedArgs data)
+            protected override object GetOrUpdateAggregationKey(TaskListUpdatedArgs data)
             {
                 var key = TryGetAggregateKey(data);
                 if (key == null)
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key;
             }
 
-            private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TaskListItemsUpdatedArgs args)
+            private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TaskListUpdatedArgs args)
             {
                 Contract.ThrowIfNull(args.Solution);
                 Contract.ThrowIfNull(args.DocumentId);
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key == documents;
             }
 
-            private object CreateAggregationKey(TaskListItemsUpdatedArgs data)
+            private object CreateAggregationKey(TaskListUpdatedArgs data)
             {
                 Contract.ThrowIfNull(data.Solution);
                 return GetDocumentsWithSameFilePath(data.Solution, data.DocumentId);
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                    .ThenBy(d => d.Data.Span.StartLinePosition.Character);
             }
 
-            private void OnTaskListUpdated(object sender, TaskListItemsUpdatedArgs e)
+            private void OnTaskListUpdated(object sender, TaskListUpdatedArgs e)
             {
                 if (_workspace != e.Workspace)
                 {
@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 Debug.Assert(e.DocumentId != null);
 
-                if (e.Items.Length == 0)
+                if (e.TaskListItems.Length == 0)
                 {
                     OnDataRemoved(e);
                     return;
@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSource<TaskListTableItem> CreateTableEntriesSource(object data)
             {
-                var item = (TaskListItemsUpdatedArgs)data;
+                var item = (TaskListUpdatedArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 

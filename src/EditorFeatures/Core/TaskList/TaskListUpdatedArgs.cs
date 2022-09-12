@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor.TaskList
 {
-    internal sealed class TaskListItemsUpdatedArgs : UpdatedEventArgs
+    internal sealed class TaskListUpdatedArgs : UpdatedEventArgs
     {
         /// <summary>
         /// Solution this task items are associated with
@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.TaskList
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<TaskListItem> Items { get; }
+        public ImmutableArray<TaskListItem> TaskListItems { get; }
 
-        public TaskListItemsUpdatedArgs(
+        public TaskListUpdatedArgs(
             object id, Solution solution, DocumentId documentId, ImmutableArray<TaskListItem> items)
             : base(id, solution.Workspace, documentId.ProjectId, documentId)
         {
             Solution = solution;
-            Items = items;
+            TaskListItems = items;
         }
 
         /// <summary>
