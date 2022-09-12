@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    log.Write("Project summary for '{0}': {1}", projectSummary, newProject.FilePath);
+                    log.Write("Project summary for '{0}': {1}", newProject.FilePath, projectSummary);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;

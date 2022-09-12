@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         internal readonly struct Arg
         {
+            // To display enums in Expression Evaluator we need to remember the type of the enum.
+            // The debugger currently does not support evaluating expressions that involve Type instances nor lambdas,
+            // so we need to manually special case the types of enums we care about displaying.
+
+            private enum EnumType
+            {
+                ProjectAnalysisSummary,
+                RudeEditKind,
+                ModuleUpdateStatus,
+                EditAndContinueCapabilities,
+            }
+
+            private static readonly StrongBox<EnumType> s_ProjectAnalysisSummary = new(EnumType.ProjectAnalysisSummary);
+            private static readonly StrongBox<EnumType> s_RudeEditKind = new(EnumType.RudeEditKind);
+            private static readonly StrongBox<EnumType> s_ModuleUpdateStatus = new(EnumType.ModuleUpdateStatus);
+            private static readonly StrongBox<EnumType> s_EditAndContinueCapabilities = new(EnumType.EditAndContinueCapabilities);
+
             public readonly object? Object;
             public readonly int Int32;
             public readonly ImmutableArray<int> Tokens;
@@ -45,18 +63,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Tokens = tokens;
             }
 
-            public Arg(int value, Type? type = null)
+            private Arg(int value, StrongBox<EnumType> enumKind)
             {
                 Int32 = value;
-                Object = type;
+                Object = enumKind;
                 Tokens = default;
             }
 
             public object? GetDebuggerDisplay()
                 => (!Tokens.IsDefault) ? string.Join(",", Tokens.Select(token => token.ToString("X8"))) :
                    (Object is null) ? Int32 :
-                   (Object is Type { IsEnum: true } type && Int32 >= 0) ? Enum.GetName(type, Int32) :
-                    Object;
+                   (Object is StrongBox<EnumType> { Value: var enumType }) ? enumType switch
+                   {
+                       EnumType.ProjectAnalysisSummary => (ProjectAnalysisSummary)Int32,
+                       EnumType.RudeEditKind => (RudeEditKind)Int32,
+                       EnumType.ModuleUpdateStatus => (ModuleUpdateStatus)Int32,
+                       EnumType.EditAndContinueCapabilities => (EditAndContinueCapabilities)Int32,
+                       _ => throw ExceptionUtilities.UnexpectedValue(enumType)
+                   } :
+                   Object;
 
             public static implicit operator Arg(string? value) => new(value);
             public static implicit operator Arg(int value) => new(value);
@@ -64,9 +89,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(ProjectId value) => new(value.DebugName);
             public static implicit operator Arg(DocumentId value) => new(value.DebugName);
             public static implicit operator Arg(Diagnostic value) => new(value);
-            public static implicit operator Arg(ProjectAnalysisSummary value) => new((int)value, typeof(ProjectAnalysisSummary));
-            public static implicit operator Arg(RudeEditKind value) => new((int)value, typeof(RudeEditKind));
-            public static implicit operator Arg((int enumValue, Type enumType) value) => new(value.enumValue, value.enumType);
+            public static implicit operator Arg(ProjectAnalysisSummary value) => new((int)value, s_ProjectAnalysisSummary);
+            public static implicit operator Arg(RudeEditKind value) => new((int)value, s_RudeEditKind);
+            public static implicit operator Arg(ModuleUpdateStatus value) => new((int)value, s_ModuleUpdateStatus);
+            public static implicit operator Arg(EditAndContinueCapabilities value) => new((int)value, s_EditAndContinueCapabilities);
             public static implicit operator Arg(ImmutableArray<int> tokens) => new(tokens);
         }
 
