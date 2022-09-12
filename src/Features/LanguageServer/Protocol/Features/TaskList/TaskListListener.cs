@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                ComputeTodoCommentsInCurrentProcess(cancellationToken);
+                ComputeTaskListItemsInCurrentProcess(cancellationToken);
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
+        private void ComputeTaskListItemsInCurrentProcess(CancellationToken cancellationToken)
         {
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             var analyzerProvider = new InProcTaskListIncrementalAnalyzerProvider(this);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _1 = ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)>.GetInstance(out var filteredArray);
-            AddFilteredInfos(docAndCommentsArray, filteredArray);
+            AddFilteredItems(docAndCommentsArray, filteredArray);
 
             foreach (var (documentId, newComments) in filteredArray)
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             return ValueTaskFactory.CompletedTask;
         }
 
-        private static void AddFilteredInfos(
+        private static void AddFilteredItems(
             ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> array,
             ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)> filteredArray)
         {
