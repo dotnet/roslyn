@@ -12,10 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 #Region "Same Project"
 #Region "SameProject SameFile"
-        <Fact
-#Region "Same Project"
-#Region "SameProject SameFile"
->
+        <Fact>
         Public Async Function GenerateTypeDefaultValues() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -295,9 +292,7 @@ isNewFile:=False)
 #End Region
 
 #Region "SameProject ExistingFile"
-        <Fact
-#Region "SameProject ExistingFile"
->
+        <Fact>
         Public Async Function GenerateTypeInExistingEmptyFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -404,9 +399,7 @@ existingFilename:="Test2.vb")
 #End Region
 
 #Region "SameProject NewFile"
-        <WpfFact
-#Region "SameProject NewFile"
->
+        <WpfFact>
         Public Async Function GenerateTypeInNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -620,10 +613,7 @@ newFileName:="Test2.vb")
 #End Region
 #Region "SameLanguage DifferentProject"
 #Region "SameLanguage DifferentProject ExistingFile"
-        <Fact
-#Region "SameLanguage DifferentProject"
-#Region "SameLanguage DifferentProject ExistingFile"
->
+        <Fact>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectEmptyFile() As Task
             Dim markupString = <Workspace>
@@ -920,9 +910,7 @@ projectName:="Assembly2")
 #End Region
 #End Region
 #Region "Different Language"
-        <WpfFact
-#Region "Different Language"
->
+        <WpfFact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1336,9 +1324,7 @@ projectName:="Assembly2")
         End Function
 #End Region
 #Region "Bugfix"
-        <Fact
-#Region "Bugfix"
->
+        <Fact>
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <WorkItem(873066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_1() As Task
@@ -1674,9 +1660,7 @@ isMissing:=True)
 
 #End Region
 #Region "Delegates"
-        <Fact
-#Region "Delegates"
->
+        <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2157,9 +2141,7 @@ typeKind:=TypeKind.Delegate)
         End Function
 #End Region
 #Region "Dev12Filtering"
-        <Fact
-#Region "Dev12Filtering"
->
+        <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_0() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program

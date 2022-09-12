@@ -9,9 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Scope Keywords"
 
-        <Fact
-#Region "Scope Keywords"
->
+        <Fact>
         Public Sub PublicDoesNotExistTest()
             VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Public")
         End Sub
@@ -40,9 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Narrowing and Widening Keywords"
 
-        <Fact
-#Region "Narrowing and Widening Keywords"
->
+        <Fact>
         Public Sub NarrowingDoesNotExistTest()
             VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Narrowing")
         End Sub
@@ -56,9 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "MustInherit and NotInheritable Keywords"
 
-        <Fact
-#Region "MustInherit and NotInheritable Keywords"
->
+        <Fact>
         Public Sub MustInheritDoesExistTest()
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "MustInherit")
         End Sub
@@ -72,9 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Overrides and Overridable Set of Keywords"
 
-        <Fact
-#Region "Overrides and Overridable Set of Keywords"
->
+        <Fact>
         Public Sub OverridesDoesNotExistTest()
             VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overrides")
         End Sub
@@ -103,9 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "ReadOnly and WriteOnly Keywords"
 
-        <Fact
-#Region "ReadOnly and WriteOnly Keywords"
->
+        <Fact>
         Public Sub ReadOnlyDoesExistTest()
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "ReadOnly")
         End Sub
@@ -119,9 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Partial Keyword"
 
-        <Fact
-#Region "Partial Keyword"
->
+        <Fact>
         Public Sub PartialDoesNotExistTest()
             VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Partial")
         End Sub
@@ -130,9 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Shadows Keyword"
 
-        <Fact
-#Region "Shadows Keyword"
->
+        <Fact>
         Public Sub ShadowsDoesExistTest()
             ' This is actually allowed by the spec. Be careful: the MSDN documentation is wrong
             ' here.
@@ -143,9 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Shared Keyword"
 
-        <Fact
-#Region "Shared Keyword"
->
+        <Fact>
         Public Sub SharedDoesNotExistTest()
             VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Shared")
         End Sub

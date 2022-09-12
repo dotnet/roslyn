@@ -9,9 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Scope Keywords"
 
-        <Fact
-#Region "Scope Keywords"
->
+        <Fact>
         Public Sub PublicExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Public")
         End Sub
@@ -131,9 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Narrowing and Widening Keywords"
 
-        <Fact
-#Region "Narrowing and Widening Keywords"
->
+        <Fact>
         Public Sub NarrowingExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Narrowing")
         End Sub
@@ -267,9 +263,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "MustInherit and NotInheritable Keywords"
 
-        <Fact
-#Region "MustInherit and NotInheritable Keywords"
->
+        <Fact>
         Public Sub MustInheritExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "MustInherit")
         End Sub
@@ -383,9 +377,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Overrides and Overridable Set of Keywords"
 
-        <Fact
-#Region "Overrides and Overridable Set of Keywords"
->
+        <Fact>
         Public Sub OverridesExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Overrides")
         End Sub
@@ -578,9 +570,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "ReadOnly and WriteOnly Keywords"
 
-        <Fact
-#Region "ReadOnly and WriteOnly Keywords"
->
+        <Fact>
         Public Sub ReadOnlyExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "ReadOnly")
         End Sub
@@ -694,9 +684,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Partial Keyword"
 
-        <Fact
-#Region "Partial Keyword"
->
+        <Fact>
         Public Sub PartialExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Partial")
         End Sub
@@ -789,9 +777,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Shadows Keyword"
 
-        <Fact
-#Region "Shadows Keyword"
->
+        <Fact>
         Public Sub ShadowsExistsTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Shadows")
         End Sub
@@ -865,9 +851,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
 #Region "Shared Keyword"
 
-        <Fact
-#Region "Shared Keyword"
->
+        <Fact>
         Public Sub SharedDoesExistTest()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Shared")
         End Sub

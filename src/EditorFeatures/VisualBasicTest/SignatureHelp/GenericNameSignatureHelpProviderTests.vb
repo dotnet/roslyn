@@ -16,9 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Declaring generic type objects"
 
-        <Fact
-#Region "Declaring generic type objects"
->
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWith1ParameterUnterminated() As Task
             Dim markup = <a><![CDATA[
 Class G(Of T)
@@ -195,9 +193,7 @@ End Class
 #End Region
 
 #Region "Constraints on generic types"
-        <Fact
-#Region "Constraints on generic types"
->
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsStructure() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S As Structure, T)
@@ -425,9 +421,7 @@ End Class
 
 #Region "Generic member invocation"
 
-        <Fact
-#Region "Generic member invocation"
->
+        <Fact>
         Public Async Function TestInvokingGenericMethodWith1ParameterUnterminated() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -585,9 +579,7 @@ End Class
 #End Region
 
 #Region "Constraints on generic methods"
-        <Fact
-#Region "Constraints on generic methods"
->
+        <Fact>
         Public Async Function TestInvokingGenericMethodTypeWithConstraintsMixed1() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -650,9 +642,7 @@ End Class
 
 #Region "Trigger tests"
 
-        <Fact
-#Region "Trigger tests"
->
+        <Fact>
         Public Async Function TestInvocationOnTriggerSpace() As Task
 
             Dim markup = <a><![CDATA[
@@ -703,9 +693,7 @@ End Class
 #End Region
 
 #Region "EditorBrowsable tests"
-        <Fact
-#Region "EditorBrowsable tests"
->
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[

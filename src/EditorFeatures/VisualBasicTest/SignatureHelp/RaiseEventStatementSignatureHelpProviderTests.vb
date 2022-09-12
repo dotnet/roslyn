@@ -16,9 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Regular tests"
 
-        <Fact
-#Region "Regular tests"
->
+        <Fact>
         Public Async Function TestRaiseEvent() As Task
             Dim markup = <a><![CDATA[
 Class C

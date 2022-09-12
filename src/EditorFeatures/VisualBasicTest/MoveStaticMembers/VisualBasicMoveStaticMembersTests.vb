@@ -16,9 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.MoveStaticMembers
         Private Shared ReadOnly s_testServices As TestComposition = FeaturesTestCompositions.Features.AddParts(GetType(TestMoveStaticMembersService))
 
 #Region "Perform New Type Action From Options"
-        <Fact
-#Region "Perform New Type Action From Options"
->
+        <Fact>
         Public Async Function TestMoveField() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -1969,9 +1967,7 @@ End Namespace
 
 #End Region
 #Region "Perform Existing Type Action From Options"
-        <Fact
-#Region "Perform Existing Type Action From Options"
->
+        <Fact>
         Public Async Function TestMoveFieldToExistingType() As Task
             Dim initialSourceMarkup = "
 Public Class Class1
@@ -2411,9 +2407,7 @@ End Class"
 #End Region
 #Region "SelectionTests"
 
-        <Fact
-#Region "SelectionTests"
->
+        <Fact>
         Public Async Function TestSelectBeforeDeclarationKeyword() As Task
             Dim initialMarkup = "
 Namespace TestNs

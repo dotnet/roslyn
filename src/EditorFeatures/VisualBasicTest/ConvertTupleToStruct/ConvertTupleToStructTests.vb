@@ -26,9 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
 
 #Region "update containing member tests"
 
-        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData
-#Region "update containing member tests"
->
+        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData>
         Public Async Function ConvertSingleTupleType(host As TestHost) As Task
             Dim text = "
 class Test
@@ -1797,9 +1795,7 @@ End Structure
 
 #Region "update containing type tests"
 
-        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData
-#Region "update containing type tests"
->
+        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData>
         Public Async Function TestCapturedTypeParameter_UpdateType(host As TestHost) As Task
             Dim text = "
 imports System
@@ -2158,9 +2154,7 @@ end class
 
 #Region "update containing project tests"
 
-        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData
-#Region "update containing project tests"
->
+        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData>
         Public Async Function UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(host As TestHost) As Task
             Dim text = "
 <Workspace>
@@ -2284,9 +2278,7 @@ end class
 
 #Region "update dependent projects"
 
-        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData
-#Region "update dependent projects"
->
+        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData>
         Public Async Function UpdateDependentProjects_DirectDependency(host As TestHost) As Task
             Dim text = "
 <Workspace>

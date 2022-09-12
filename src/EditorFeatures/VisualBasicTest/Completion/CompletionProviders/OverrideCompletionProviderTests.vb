@@ -19,9 +19,7 @@ Namespace Tests
 
 #Region "CompletionItem tests"
 
-        <WpfFact
-#Region "CompletionItem tests"
->
+        <WpfFact>
         Public Async Function TestNotOfferedBaseClassMember() As Task
             Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Goo()
@@ -622,9 +620,7 @@ End Class</a>
 
 #Region "Commit tests"
 
-        <WpfFact
-#Region "Commit tests"
->
+        <WpfFact>
         Public Async Function TestCommitInEmptyClass() As Task
             Dim markupBeforeCommit = <a>Class c
     Overrides $$
