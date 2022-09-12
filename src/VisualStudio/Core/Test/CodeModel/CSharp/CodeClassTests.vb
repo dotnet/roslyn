@@ -18,9 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact
-#Region "GetStartPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -408,9 +406,7 @@ class $$C
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact
-#Region "GetEndPoint() tests"
->
+        <WpfFact>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -798,9 +794,7 @@ class $$C
 
 #Region "Access tests"
 
-        <WpfFact
-#Region "Access tests"
->
+        <WpfFact>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -894,9 +888,7 @@ class C { public class $$D { } }
 
 #Region "Attributes tests"
 
-        <WpfFact
-#Region "Attributes tests"
->
+        <WpfFact>
         Public Sub TestAttributes1()
             Dim code =
 <Code>
@@ -947,9 +939,7 @@ class $$C { }
 
 #Region "Bases tests"
 
-        <WpfFact
-#Region "Bases tests"
->
+        <WpfFact>
         Public Sub TestBases1()
             Dim code =
 <Code>
@@ -1005,9 +995,7 @@ class $$C : System.Collections.Generic.List&lt;int&gt; { }
 
 #Region "Children tests"
 
-        <WpfFact
-#Region "Children tests"
->
+        <WpfFact>
         Public Sub TestChildren1()
             Dim code =
 <Code>
@@ -1042,9 +1030,7 @@ class $$C { void M() { } }
 
 #Region "ClassKind tests"
 
-        <WpfFact
-#Region "ClassKind tests"
->
+        <WpfFact>
         Public Sub TestClassKind_MainClass()
             Dim code =
 <Code>
@@ -1072,9 +1058,7 @@ partial class $$C
 
 #Region "Comment tests"
 
-        <WpfFact
-#Region "Comment tests"
->
+        <WpfFact>
         Public Sub TestComment1()
             Dim code =
 <Code>
@@ -1197,9 +1181,7 @@ class $$C { }
 
 #Region "DocComment tests"
 
-        <WpfFact
-#Region "DocComment tests"
->
+        <WpfFact>
         Public Sub TestDocComment1()
             Dim code =
 <Code>
@@ -1254,9 +1236,7 @@ class $$C { }
 
 #Region "InheritanceKind tests"
 
-        <WpfFact
-#Region "InheritanceKind tests"
->
+        <WpfFact>
         Public Sub TestInheritanceKind_None()
             Dim code =
 <Code>
@@ -1332,9 +1312,7 @@ class D
 
 #Region "IsAbstract tests"
 
-        <WpfFact
-#Region "IsAbstract tests"
->
+        <WpfFact>
         Public Sub TestIsAbstract1()
             Dim code =
 <Code>
@@ -1394,9 +1372,7 @@ abstract partial class C
 
 #Region "IsShared tests"
 
-        <WpfFact
-#Region "IsShared tests"
->
+        <WpfFact>
         Public Sub TestIsShared1()
             Dim code =
 <Code>
@@ -1456,9 +1432,7 @@ static partial class C
 
 #Region "IsDerivedFrom tests"
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273")
-#Region "IsDerivedFrom tests"
->
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273")>
         Public Sub TestIsDerivedFromObject_Explicit()
             Dim code =
 <Code>
@@ -1544,9 +1518,7 @@ namespace NS2
 #End Region
 
 #Region "Kind tests"
-        <WpfFact
-#Region "Kind tests"
->
+        <WpfFact>
         Public Sub TestKind1()
             Dim code =
 <Code>
@@ -1560,9 +1532,7 @@ class $$C
 #End Region
 
 #Region "Parts tests"
-        <WpfFact
-#Region "Parts tests"
->
+        <WpfFact>
         Public Sub TestParts1()
             Dim code =
 <Code>
@@ -1605,9 +1575,7 @@ partial class C
 
 #Region "AddAttribute tests"
 
-        <WpfFact
-#Region "AddAttribute tests"
->
+        <WpfFact>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -1721,9 +1689,7 @@ class C { }
 
 #Region "AddBase tests"
 
-        <WpfFact
-#Region "AddBase tests"
->
+        <WpfFact>
         Public Async Function TestAddBase1() As Task
             Dim code =
 <Code>
@@ -1773,9 +1739,7 @@ class C : B
 
 #Region "AddEvent tests"
 
-        <WpfFact
-#Region "AddEvent tests"
->
+        <WpfFact>
         Public Async Function TestAddEvent1() As Task
             Dim code =
 <Code>
@@ -1828,9 +1792,7 @@ class C
 
 #Region "AddFunction tests"
 
-        <WpfFact
-#Region "AddFunction tests"
->
+        <WpfFact>
         Public Async Function TestAddFunction1() As Task
             Dim code =
 <Code>
@@ -2095,9 +2057,7 @@ class C
 
 #Region "AddImplementedInterface tests"
 
-        <WpfFact
-#Region "AddImplementedInterface tests"
->
+        <WpfFact>
         Public Sub TestAddImplementedInterface1()
             Dim code =
 <Code>
@@ -2187,9 +2147,7 @@ interface K { }
 
 #Region "AddProperty tests"
 
-        <WpfFact
-#Region "AddProperty tests"
->
+        <WpfFact>
         Public Async Function TestAddProperty1() As Task
             Dim code =
 <Code>
@@ -2323,9 +2281,7 @@ class C
 
 #Region "AddVariable tests"
 
-        <WpfFact
-#Region "AddVariable tests"
->
+        <WpfFact>
         Public Async Function TestAddVariable1() As Task
             Dim code =
 <Code>
@@ -2765,9 +2721,7 @@ class C
 
 #Region "RemoveBase tests"
 
-        <WpfFact
-#Region "RemoveBase tests"
->
+        <WpfFact>
         Public Async Function TestRemoveBase1() As Task
             Dim code =
 <Code>
@@ -2799,9 +2753,7 @@ class C : B { }
 
 #Region "RemoveImplementedInterface tests"
 
-        <WpfFact
-#Region "RemoveImplementedInterface tests"
->
+        <WpfFact>
         Public Async Function TestRemoveImplementedInterface1() As Task
             Dim code =
 <Code>
@@ -2839,9 +2791,7 @@ interface I { }
 
 #Region "RemoveMember tests"
 
-        <WpfFact
-#Region "RemoveMember tests"
->
+        <WpfFact>
         Public Async Function TestRemoveMember1() As Task
             Dim code =
 <Code>
@@ -3168,9 +3118,7 @@ class C
 
 #Region "Set Access tests"
 
-        <WpfFact
-#Region "Set Access tests"
->
+        <WpfFact>
         Public Async Function TestSetAccess1() As Task
             Dim code =
 <Code>
@@ -3313,9 +3261,7 @@ class C
 
 #Region "Set ClassKind tests"
 
-        <WpfFact
-#Region "Set ClassKind tests"
->
+        <WpfFact>
         Public Async Function TestSetClassKind1() As Task
             Dim code =
 <Code>
@@ -3376,9 +3322,7 @@ class C
 
 #Region "Set Comment tests"
 
-        <WpfFact
-#Region "Set Comment tests"
->
+        <WpfFact>
         Public Async Function TestSetComment1() As Task
             Dim code =
 <Code>
@@ -3439,9 +3383,7 @@ class C { }
 
 #Region "Set DocComment tests"
 
-        <WpfFact
-#Region "Set DocComment tests"
->
+        <WpfFact>
         Public Async Function TestSetDocComment_Nothing() As Task
             Dim code =
 <Code>
@@ -3582,9 +3524,7 @@ namespace N
 
 #Region "Set InheritanceKind tests"
 
-        <WpfFact
-#Region "Set InheritanceKind tests"
->
+        <WpfFact>
         Public Async Function TestSetInheritanceKind1() As Task
             Dim code =
 <Code>
@@ -3676,9 +3616,7 @@ class C
 
 #Region "Set IsAbstract tests"
 
-        <WpfFact
-#Region "Set IsAbstract tests"
->
+        <WpfFact>
         Public Async Function TestSetIsAbstract1() As Task
             Dim code =
 <Code>
@@ -3794,9 +3732,7 @@ abstract class C
 
 #Region "Set IsShared tests"
 
-        <WpfFact
-#Region "Set IsShared tests"
->
+        <WpfFact>
         Public Async Function TestSetIsShared1() As Task
             Dim code =
 <Code>
@@ -3837,9 +3773,7 @@ class C
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact
-#Region "Set Name tests"
->
+        <WpfFact>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
