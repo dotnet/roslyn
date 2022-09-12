@@ -10,12 +10,15 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeEnumTests
         Inherits AbstractCodeEnumTests
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GetStartPoint() tests"
+>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -51,7 +54,9 @@ End Enum
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GetEndPoint() tests"
+>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -87,7 +92,9 @@ End Enum
 
 #Region "Access tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Access tests"
+>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -97,7 +104,7 @@ Enum $$E : End Enum
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess2()
             Dim code =
 <Code>
@@ -109,7 +116,7 @@ End Class
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess3()
             Dim code =
 <Code>
@@ -119,7 +126,7 @@ Private Enum $$E : End Enum
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess4()
             Dim code =
 <Code>
@@ -129,7 +136,7 @@ Protected Enum $$E : End Enum
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess5()
             Dim code =
 <Code>
@@ -139,7 +146,7 @@ Protected Friend Enum $$E : End Enum
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess6()
             Dim code =
 <Code>
@@ -149,7 +156,7 @@ Friend Enum $$E : End Enum
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess7()
             Dim code =
 <Code>
@@ -163,7 +170,9 @@ Public Enum $$E : End Enum
 
 #Region "AddAttribute tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddAttribute tests"
+>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -188,7 +197,7 @@ End Enum
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -216,7 +225,7 @@ End Enum
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
@@ -246,7 +255,9 @@ End Enum
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Name tests"
+>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
@@ -266,7 +277,9 @@ End Enum
 
 #Region "GenericExtender"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GenericExtender"
+>
         Public Sub TestGenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
@@ -277,7 +290,7 @@ End Enum
             TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
@@ -288,7 +301,7 @@ End Enum
             TestGenericNameExtender_GetBaseGenericName(code, 1, "System.Enum")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGenericExtender_GetImplementedTypesCount()
             Dim code =
 <Code>
@@ -299,7 +312,7 @@ End Enum
             TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGenericExtender_GetImplTypeGenericName()
             Dim code =
 <Code>

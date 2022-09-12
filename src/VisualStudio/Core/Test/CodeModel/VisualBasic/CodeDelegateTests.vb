@@ -10,12 +10,15 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeDelegateTests
         Inherits AbstractCodeDelegateTests
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GetStartPoint() tests"
+>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -45,7 +48,7 @@ Delegate Sub $$Goo(i As Integer)
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=30)))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetStartPoint2()
             Dim code =
 <Code>
@@ -80,7 +83,9 @@ Delegate Sub $$Goo(i As Integer)
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GetEndPoint() tests"
+>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -110,7 +115,7 @@ Delegate Sub $$Goo(i As Integer)
                      TextPoint(line:=1, lineOffset:=31, absoluteOffset:=31, lineLength:=30)))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetEndPoint2()
             Dim code =
 <Code>
@@ -145,7 +150,9 @@ Delegate Sub $$Goo(i As Integer)
 
 #Region "Attributes"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Attributes"
+>
         Public Sub TestAttributes1()
             Dim code =
 <Code>
@@ -162,7 +169,9 @@ Delegate Sub $$D()
 
 #Region "BaseClass tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "BaseClass tests"
+>
         Public Sub TestBaseClass1()
             Dim code =
 <Code>
@@ -176,7 +185,9 @@ Delegate Sub $$D()
 
 #Region "Type tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Type tests"
+>
         Public Sub TestType_Void()
             Dim code =
 <Code>
@@ -192,7 +203,7 @@ Delegate Sub $$D()
                          })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestType_Int()
             Dim code =
 <Code>
@@ -208,7 +219,7 @@ Delegate Function $$D() As Integer
                          })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestType_SourceClass()
             Dim code =
 <Code>
@@ -223,7 +234,9 @@ Delegate Function $$D() As C
 
 #Region "Set Type tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Type tests"
+>
         Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
@@ -238,7 +251,7 @@ Delegate Function D() As Integer
             Await TestSetTypeProp(code, expected, "Integer")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetType2() As Task
             Dim code =
 <Code>
@@ -253,7 +266,7 @@ Delegate Function D() As Decimal
             Await TestSetTypeProp(code, expected, "System.Decimal")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetType3() As Task
             Dim code =
 <Code>
@@ -268,7 +281,7 @@ Delegate Sub D()
             Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetType4() As Task
             Dim code =
 <Code>
@@ -287,7 +300,7 @@ End Class
             Await TestSetTypeProp(code, expected, "Integer")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetType5() As Task
             Dim code =
 <Code>
@@ -306,7 +319,7 @@ End Class
             Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetType6() As Task
             Dim code =
 <Code>
@@ -329,7 +342,9 @@ End Class
 
 #Region "AddParameter tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddParameter tests"
+>
         Public Async Function TestAddParameter1() As Task
             Dim code =
 <Code>
@@ -344,7 +359,7 @@ Delegate Sub M(a As Integer)
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddParameter2() As Task
             Dim code =
 <Code>
@@ -359,7 +374,7 @@ Delegate Sub M(b As String, a As Integer)
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddParameter3() As Task
             Dim code =
 <Code>
@@ -374,7 +389,7 @@ Delegate Sub M(b As String, c As Boolean, a As Integer)
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddParameter4() As Task
             Dim code =
 <Code>
@@ -393,7 +408,9 @@ Delegate Sub M(a As Integer, b As String)
 
 #Region "RemoveParameter tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "RemoveParameter tests"
+>
         Public Async Function TestRemoveParameter1() As Task
             Dim code =
 <Code>
@@ -408,7 +425,7 @@ Delegate Sub M()
             Await TestRemoveChild(code, expected, "a")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveParameter2() As Task
             Dim code =
 <Code>
@@ -423,7 +440,7 @@ Delegate Sub M(a As Integer)
             Await TestRemoveChild(code, expected, "b")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveParameter3() As Task
             Dim code =
 <Code>
@@ -438,7 +455,7 @@ Delegate Sub M(b As String)
             Await TestRemoveChild(code, expected, "a")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveParameter4() As Task
             Dim code =
 <Code>
@@ -457,7 +474,9 @@ Delegate Sub M(a As Integer, c As Integer)
 
 #Region "GenericExtender"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GenericExtender"
+>
         Public Sub TestGenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
@@ -467,7 +486,7 @@ Delegate Sub $$D()
             TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
@@ -477,7 +496,7 @@ Delegate Sub $$D()
             TestGenericNameExtender_GetBaseGenericName(code, 1, "System.MulticastDelegate")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGenericExtender_GetImplementedTypesCount()
             Dim code =
 <Code>
@@ -487,7 +506,7 @@ Delegate Sub $$D()
             TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGenericExtender_GetImplTypeGenericName()
             Dim code =
 <Code>
@@ -502,7 +521,7 @@ Delegate Sub $$D()
 #Region "Parameter name tests"
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
@@ -513,7 +532,7 @@ Delegate Sub $$D([integer] as Integer)
         End Sub
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =
 <Code>
@@ -527,7 +546,9 @@ Delegate Sub $$D([integer] as Integer, [string] as String)
 
 #Region "AddAttribute tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddAttribute tests"
+>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -546,7 +567,7 @@ Delegate Sub M()
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -568,7 +589,7 @@ Delegate Sub M()
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>

@@ -8,9 +8,9 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.LineCommit)>
     Public Class CommitOnEnterTests
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterEnterOnSimpleStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -24,7 +24,6 @@ imports System$$|]
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestNoCommitAfterEnterAfterQuery()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -42,7 +41,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestNoCommitAfterExplicitLineContinuation()
             Dim test = <Workspace>
@@ -61,7 +59,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestNoCommitAfterExplicitLineContinuationCommentsAfterLineContinuation()
             Dim test = <Workspace>
@@ -80,7 +77,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestCommitAfterBlankLineFollowingExplicitLineContinuation()
             Dim test = <Workspace>
@@ -100,7 +96,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterDeclaration()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -119,7 +114,6 @@ End Class|]
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterEndConstruct()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -138,7 +132,6 @@ End Class$$|]
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterBlankLineAfterQuery()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -157,7 +150,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestNoCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -175,7 +167,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -194,7 +185,6 @@ End Class
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterEnterOnBlankLine()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -212,7 +202,6 @@ End Class
         End Sub
 
         <WpfFact, WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterColon()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -230,7 +219,6 @@ End Class
         End Sub
 
         <WpfFact, WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterConstDirective()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -244,7 +232,6 @@ End Class
         End Sub
 
         <WpfFact, WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterComment()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -258,7 +245,6 @@ rem Hello World$$|]
         End Sub
 
         <WpfFact, WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub UndoAfterCommitOnBlankLine()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -275,7 +261,6 @@ rem Hello World$$|]
         End Sub
 
         <WpfFact, WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterThenTouchingThen()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
@@ -298,7 +283,6 @@ End Class
         End Sub
 
         <WpfFact, WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterThenTouchingStatement()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
@@ -321,7 +305,6 @@ End Class
         End Sub
 
         <WpfFact, WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitAfterPropertyStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -343,7 +326,6 @@ End Class
         End Sub
 
         <WpfFact, WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
-        <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestDontCommitInsideStringLiteral()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">

@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class IntoKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(543191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543191")>
         Public Sub IntoAfterAnonymousObjectCreationExprTest()
             Dim method = <MethodBody>
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
             VerifyRecommendationsAreExactly(method, "Into")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(543193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543193")>
         Public Sub IntoAfterExprRangeVariableInGroupByTest()
             Dim method = <MethodBody>
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
             VerifyRecommendationsAreExactly(method, "Into")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(543214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543214")>
         Public Sub IntoImmediatelyAfterAnonymousObjectCreationExprTest()
             Dim method = <MethodBody>
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
             VerifyRecommendationsAreExactly(method, "Into")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
         Public Sub IntoAfterNestedAggregateFromClauseTest()
             VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Into")

@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 Imports RoslynCompletion = Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class ObjectInitializerCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNothingToShow() As Task
             Dim text = <a>Public Class C
 End Class
@@ -47,7 +48,7 @@ End Class</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")>
         Public Async Function TestNotInArgumentList() As Task
             Dim text = <a>Public Class C
@@ -63,7 +64,7 @@ End Class</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestOneItem() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -78,7 +79,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestFieldAndProperty() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -95,7 +96,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestFieldAndPropertyBaseTypes() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -116,7 +117,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestMembersFromObjectInitializerSyntax() As Task
             Dim text = <a>Public Class C
 End Class
@@ -138,7 +139,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint1() As Task
             Dim text = <a>Class C
@@ -156,7 +157,7 @@ End Interface</a>.Value
             Await VerifyItemExistsAsync(text, "B")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint2() As Task
             Dim text = <a>Class C
@@ -169,7 +170,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint3() As Task
             Dim text = <a>Class C
@@ -182,7 +183,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestOneItemAfterComma() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -199,7 +200,7 @@ End Program</a>.Value
             Await VerifyItemIsAbsentAsync(text, "goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNothingLeftToShow() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -215,7 +216,7 @@ End Program</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestWithoutAsClause() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -232,7 +233,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestWithoutAsClauseNothingLeftToShow() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -248,7 +249,7 @@ End Program</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(544326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544326")>
         Public Async Function TestInactiveInRValue() As Task
             Dim text = <a>Class C
@@ -264,7 +265,7 @@ End Module</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNoBackingFields() As Task
             Dim text = <a>Class C
     Public Property Goo As Integer
@@ -278,7 +279,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "_Goo")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestReadOnlyPropertiesAreNotPresentOnLeftSide() As Task
             Dim text = <a>Class C
     Public Property Goo As Integer
@@ -297,7 +298,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "Bar")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(545881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545881")>
         Public Async Function TestNoReadonlyFieldsOrProperties() As Task
             Dim text = <a>Module M
@@ -309,7 +310,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Data")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestNoParameterizedProperties() As Task
             Dim text = <a>Module M
@@ -322,7 +323,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Item")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestShowParameterizedPropertiesWithAllOptionalArguments() As Task
             Dim text = <a>Imports System
@@ -345,7 +346,7 @@ End Class</a>.Value
             Await VerifyItemExistsAsync(text, "P")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestDoNotShowParameterizedPropertiesWithSomeMandatoryArguments() As Task
             Dim text = <a>Imports System
@@ -368,7 +369,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "P")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         Public Async Function TestParameterizedPropertiesWithParamArrays() As Task
             Dim text = <a>Option Strict On
@@ -397,7 +398,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "Q")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(530491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
         Public Async Function TestObjectInitializerOnInterface() As Task
             Dim text = <a><![CDATA[Option Strict On
@@ -423,7 +424,7 @@ End Class
             Await VerifyItemExistsAsync(text, "c")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function IsCommitCharacterTest() As Task
             Const code = "
 Public Class C
@@ -439,7 +440,7 @@ End Program"
             Await VerifyCommonCommitCharactersAsync(code, textTypedSoFar:="")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestIsExclusive() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -466,7 +467,7 @@ End Program</Document>
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function SendEnterThroughToEditorTest() As Task
             Const code = "
 Public Class C
@@ -482,7 +483,7 @@ End Program"
             Await VerifySendEnterThroughToEditorAsync(code, "bar", expected:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         <WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")>
         Public Async Function TestKeywordsEscaped() As Task
             Dim text = <a>Class C

@@ -7,12 +7,15 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class ExternalCodeFunctionTests
         Inherits AbstractCodeFunctionTests
 
 #Region "FullName tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "FullName tests"
+>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -31,7 +34,9 @@ class C
 
 #Region "Name tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Name tests"
+>
         Public Sub TestName1()
             Dim code =
 <Code>

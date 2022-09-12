@@ -8,12 +8,15 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeImportTests
         Inherits AbstractCodeImportTests
 
 #Region "FullName tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "FullName tests"
+>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -32,7 +35,9 @@ using $$Goo;
 
 #Region "Name tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Name tests"
+>
         Public Sub TestName1()
             Dim code =
 <Code>
@@ -51,7 +56,9 @@ using $$Goo;
 
 #Region "Namespace tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Namespace tests"
+>
         Public Sub TestNamespace1()
             Dim code =
 <Code>
@@ -61,7 +68,7 @@ using $$Goo;
             TestNamespace(code, "Goo")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestNamespace2()
             Dim code =
 <Code>
@@ -76,7 +83,7 @@ namespace Bar
 
 #End Region
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

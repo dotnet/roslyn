@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
+    <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
     Public Class EncapsulateFieldTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulatePrivateFieldAndUpdateReferences(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -53,7 +54,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateDimField(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -86,7 +87,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateGenericField(host As TestHost) As Task
             Dim text = <File>
 Class C(Of T)
@@ -119,7 +120,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulatePublicFieldIgnoringReferences(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -151,7 +152,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulatePublicFieldUpdatingReferences(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -183,7 +184,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateMultiplePrivateFieldsWithReferences(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -226,7 +227,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateMultiplePublicFieldsWithReferences(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -271,7 +272,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestNoSetterForConstField(host As TestHost) As Task
             Dim text = <File>
 Class Program
@@ -293,7 +294,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateEscapedIdentifier(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -318,7 +319,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateEscapedIdentifierWithQualifiedAccess(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -346,7 +347,7 @@ End Class</File>.ConvertTestSourceTag()
                 }, testHost:=host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestEncapsulateFieldNamedValue(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -371,7 +372,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateFieldName__(host As TestHost) As Task
             Dim text = <File>
 Class D
@@ -397,7 +398,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
         Public Async Function TestPreserveTrivia(host As TestHost) As Task
             Dim text = <File>
@@ -424,7 +425,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
         Public Async Function TestNewPropertyNameIsUnique(host As TestHost) As Task
             Dim text = <File>
@@ -467,7 +468,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
         Public Async Function TestAvailableNotJustOnVariableName(host As TestHost) As Task
             Dim text = <File>
@@ -478,7 +479,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestActionCountAsync(text, 2, New TestParameters(testHost:=host))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         <WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
         Public Async Function TestCopyAccessibility(host As TestHost) As Task
             Dim text = <File>
@@ -503,7 +504,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
         Public Async Function TestBackingFieldStartsWithUnderscore(host As TestHost) As Task
             Dim text = <File>
@@ -537,7 +538,7 @@ End Class
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateShadowingField(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -591,7 +592,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Theory, CombinatorialData>
         <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>
         Public Async Function TestDoNotEncapsulateOutsideTypeDeclaration(host As TestHost) As Task
             Dim globalField = <File>
@@ -616,7 +617,7 @@ End Enum
         End Function
 
         <WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ApplyCurrentMePrefixStyle(host As TestHost) As Task
             Await TestInRegularAndScriptAsync("
 Class C

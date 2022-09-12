@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ExtractMethod
+    <Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
     Public Class ExtractMethodTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
             Return New ExtractMethodCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(540686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540686")>
         Public Async Function TestExtractReturnExpression() As Task
             Await TestInRegularAndScriptAsync(
@@ -43,7 +44,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(540755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540755")>
         Public Async Function TestExtractMultilineLambda() As Task
             Await TestInRegularAndScriptAsync(
@@ -71,7 +72,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(541515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
         Public Async Function TestCollectionInitializerInObjectCollectionInitializer() As Task
             Await TestInRegularAndScriptAsync(
@@ -94,7 +95,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(542251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542251")>
         <WorkItem(543030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543030")>
         Public Async Function TestLambdaSelection() As Task
@@ -125,7 +126,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(542904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542904")>
         Public Async Function TestFormatBeforeAttribute() As Task
             Await TestInRegularAndScriptAsync(
@@ -155,7 +156,7 @@ End Module
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
         Public Async Function TestInTernaryConditional() As Task
             Await TestInRegularAndScriptAsync(
@@ -177,7 +178,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(545547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545547")>
         Public Async Function TestInRangeArgumentUpperBound() As Task
             Await TestInRegularAndScriptAsync(
@@ -197,7 +198,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(545655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545655")>
         Public Async Function TestInWhileUntilCondition() As Task
             Await TestInRegularAndScriptAsync(
@@ -223,7 +224,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         Public Async Function TestInInterpolation1() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -246,7 +247,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         Public Async Function TestInInterpolation2() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -269,7 +270,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
         Public Async Function TestMissingOnImplicitMemberAccess() As Task
             Await TestInRegularAndScriptAsync(
@@ -293,7 +294,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         Public Async Function TestPreserveCommentsBeforeDeclaration_1() As Task
             Await TestInRegularAndScriptAsync(
@@ -337,7 +338,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         Public Async Function TestPreserveCommentsBeforeDeclaration_2() As Task
             Await TestInRegularAndScriptAsync(
@@ -385,7 +386,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         Public Async Function TestPreserveCommentsBeforeDeclaration_3() As Task
             Await TestInRegularAndScriptAsync(
@@ -438,7 +439,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
+        <Fact, CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
         Public Async Function TestTuples() As Task
 
@@ -475,7 +476,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
+        <Fact, CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithNames() As Task
 
@@ -507,7 +508,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
+        <Fact, CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithSomeNames() As Task
 
@@ -539,7 +540,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
+        <Fact, CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
         Public Async Function TestTupleWith1Arity() As Task
 
@@ -573,7 +574,7 @@ End Structure")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
+        <Fact, CompilerTrait(CompilerFeature.Tuples)>
         Public Async Function TestTupleWithInferredNames() As Task
             Await TestAsync(
 "Class Program
@@ -605,7 +606,7 @@ End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBa
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
+        <Fact, CompilerTrait(CompilerFeature.Tuples)>
         Public Async Function TestTupleWithInferredNames_WithVB15() As Task
             Await TestAsync(
 "Class Program
@@ -637,7 +638,7 @@ End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBa
 
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalse() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -656,7 +657,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitTrue() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -675,7 +676,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitNonLiteral() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -694,7 +695,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithNoConfigureAwait() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -713,7 +714,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseInLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -732,7 +733,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseDifferentCase() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -751,7 +752,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -772,7 +773,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture2() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -793,7 +794,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture3() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -814,7 +815,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529")>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFor
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
     Partial Public Class ConvertForEachToForTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFo
             Return New VisualBasicConvertForEachToForCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function EmptyBlockBody() As Task
             Dim initial = "
@@ -41,7 +42,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function EmptyBody() As Task
             Dim initial = "
 Class Test
@@ -54,7 +55,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function Body() As Task
             Dim initial = "
 Class Test
@@ -67,7 +68,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function BlockBody() As Task
             Dim initial = "
 Class Test
@@ -94,7 +95,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function Comment() As Task
             Dim initial = "
 Class Test
@@ -123,7 +124,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function Comment2() As Task
             Dim initial = "
 Class Test
@@ -152,7 +153,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function Comment3() As Task
             Dim initial = "
 Class Test
@@ -179,7 +180,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function Comment4() As Task
             Dim initial = "
 Class Test
@@ -205,7 +206,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function Comment7() As Task
             Dim initial = "
@@ -232,7 +233,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function TestCommentsLiveBetweenForEachAndArrayDeclaration() As Task
             Dim initial = "
@@ -258,7 +259,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, Expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function CommentNotSupportedCommentsAfterLineContinuation() As Task
             Dim initial = "
@@ -286,7 +287,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function LineContinuation() As Task
             Dim initial = "
@@ -313,7 +314,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function CollectionStatement() As Task
             Dim initial = "
@@ -338,7 +339,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function CollectionConflict() As Task
             Dim initial = "
 Class Test
@@ -368,7 +369,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function IndexConflict() As Task
             Dim initial = "
 Class Test
@@ -396,7 +397,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function VariableWritten() As Task
             Dim initial = "
 Class Test
@@ -445,7 +446,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function StructPropertyRead() As Task
             Dim initial = "
 Class Test
@@ -470,7 +471,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function WrongCaretPosition() As Task
             Dim initial = "
 Class Test
@@ -484,7 +485,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestBefore() As Task
@@ -511,7 +512,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestAfter() As Task
@@ -538,7 +539,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
@@ -565,7 +566,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function Field() As Task
             Dim initial = "
@@ -593,7 +594,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function [Interface]() As Task
             Dim initial = "
@@ -623,7 +624,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function ExplicitInterface() As Task
             Dim initial = "
 Imports System
@@ -708,7 +709,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function MultipleNext() As Task
             Dim initial = "
 Class Test
@@ -723,7 +724,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function MultipleNext2() As Task
             Dim initial = "
 Class Test
@@ -738,7 +739,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function WrongNext() As Task
             Dim initial = "
 Class Test
@@ -752,7 +753,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function KeepNext() As Task
             Dim initial = "
@@ -777,7 +778,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function IndexConflict2() As Task
             Dim initial = "
 Class Test
@@ -803,7 +804,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function UseTypeAsUsedInForeach() As Task
             Dim initial = "
 Class Test
@@ -829,7 +830,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        <Fact>
         Public Async Function UniqueLocalName() As Task
             Dim initial = "
 Imports System

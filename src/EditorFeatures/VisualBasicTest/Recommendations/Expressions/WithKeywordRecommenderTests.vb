@@ -3,75 +3,76 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class WithKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneAfterFromTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneAfterWith1Test()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New With |</ClassDeclaration>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneAfterWith2Test()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterDimEqualsNewTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = New |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterDimEqualsNewTypeNameTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = New Goo |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterDimEqualsNewTypeNameAndParensTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = New Goo() |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterDimAsNewTest()
             VerifyRecommendationsContain(<MethodBody>Dim x As New |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterDimAsNewTypeNameTest()
             VerifyRecommendationsContain(<MethodBody>Dim x As New Goo |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterDimAsNewTypeNameAndParensTest()
             VerifyRecommendationsContain(<MethodBody>Dim x As New Goo() |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterAssignmentNewTest()
             VerifyRecommendationsContain(<MethodBody>x = New |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterAssignmentNewTypeNameTest()
             VerifyRecommendationsContain(<MethodBody>x = New Goo |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub WithAfterAssignmentNewTypeNameAndParensTest()
             VerifyRecommendationsContain(<MethodBody>x = New Goo() |</MethodBody>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         Public Sub NoWithAfterDotTest()
             Dim code = <File>
@@ -85,7 +86,7 @@ End Class
             VerifyRecommendationsMissing(code, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
@@ -93,7 +94,7 @@ End Class
 |</ClassDeclaration>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
@@ -101,7 +102,7 @@ End Class
 |</ClassDeclaration>, "With")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <ClassDeclaration>Dim x = New Goo _ ' Test

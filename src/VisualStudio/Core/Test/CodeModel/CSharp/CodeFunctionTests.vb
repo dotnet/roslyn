@@ -10,12 +10,13 @@ Imports Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeFunctionTests
         Inherits AbstractCodeFunctionTests
 
 #Region "Get Start Point"
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetStartPointConversionOperatorFunction()
             Dim code =
 <Code>
@@ -34,7 +35,7 @@ class D
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetStartPointExplicitlyImplementedMethod()
             Dim code =
 <Code>
@@ -60,7 +61,7 @@ public class C1 : I1
 
 #Region "Get End Point"
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetEndPointConversionOperatorFunction()
             Dim code =
 <Code>
@@ -79,7 +80,7 @@ class D
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetEndPointExplicitlyImplementedMethod()
             Dim code =
 <Code>
@@ -105,7 +106,9 @@ public class C1 : I1
 
 #Region "Access tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Access tests"
+>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -118,7 +121,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess2()
             Dim code =
 <Code>
@@ -131,7 +134,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess3()
             Dim code =
 <Code>
@@ -144,7 +147,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess4()
             Dim code =
 <Code>
@@ -157,7 +160,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess5()
             Dim code =
 <Code>
@@ -170,7 +173,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess6()
             Dim code =
 <Code>
@@ -183,7 +186,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess7()
             Dim code =
 <Code>
@@ -200,7 +203,7 @@ interface I
 
 #Region "Attribute Tests"
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPropertyGetAttribute_WithNoSet()
             Dim code =
 <Code>
@@ -221,7 +224,7 @@ public class Class1
         End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPropertySetAttribute_WithNoGet()
             Dim code =
 <Code>
@@ -241,7 +244,7 @@ public class Class1
         End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPropertyGetAttribute_WithSet()
             Dim code =
 <Code>
@@ -267,7 +270,7 @@ public class Class1
         End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPropertySetAttribute_WithGet()
             Dim code =
 <Code>
@@ -293,7 +296,7 @@ public class Class1
         End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAttribute_1()
             Dim code =
 <Code>
@@ -313,7 +316,9 @@ class Class2
 
 #Region "CanOverride tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "CanOverride tests"
+>
         Public Sub TestCanOverride1()
             Dim code =
 <Code>
@@ -326,7 +331,7 @@ abstract class C
             TestCanOverride(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestCanOverride2()
             Dim code =
 <Code>
@@ -339,7 +344,7 @@ interface I
             TestCanOverride(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestCanOverride3()
             Dim code =
 <Code>
@@ -352,7 +357,7 @@ class C
             TestCanOverride(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestCanOverride4()
             Dim code =
 <Code>
@@ -365,7 +370,7 @@ class C
             TestCanOverride(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestCanOverride5()
             Dim code =
 <Code>
@@ -392,7 +397,9 @@ class C : B
 
 #Region "FullName tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "FullName tests"
+>
         Public Sub TestFullName_Destructor()
             Dim code =
 <Code>
@@ -406,7 +413,7 @@ class C
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFullName_ExplicitlyImplementedMethod()
             Dim code =
 <Code>
@@ -428,7 +435,7 @@ public class C1 : I1
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFullName_ImplicitOperator()
             Dim code =
 <Code>
@@ -451,7 +458,7 @@ public class ComplexType
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFullName_ExplicitOperator()
             Dim code =
 <Code>
@@ -474,7 +481,7 @@ public class ComplexType
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFullName_OperatorOverload()
             Dim code =
 <Code>
@@ -500,7 +507,9 @@ public class ComplexType
 
 #Region "FunctionKind tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "FunctionKind tests"
+>
         Public Sub TestFunctionKind_Destructor()
             Dim code =
 <Code>
@@ -513,7 +522,7 @@ class C
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFunctionKind_ExplicitInterfaceImplementation()
             Dim code =
 <Code>
@@ -533,7 +542,7 @@ public class C1: I1
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFunctionKind_Operator()
             Dim code =
 <Code>
@@ -548,7 +557,7 @@ public class C
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFunctionKind_ExplicitConversion()
             Dim code =
 <Code>
@@ -563,7 +572,7 @@ public class C
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestFunctionKind_ImplicitConversion()
             Dim code =
 <Code>
@@ -582,7 +591,9 @@ public class C
 
 #Region "MustImplement tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "MustImplement tests"
+>
         Public Sub TestMustImplement1()
             Dim code =
 <Code>
@@ -595,7 +606,7 @@ abstract class C
             TestMustImplement(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestMustImplement2()
             Dim code =
 <Code>
@@ -608,7 +619,7 @@ interface I
             TestMustImplement(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestMustImplement3()
             Dim code =
 <Code>
@@ -621,7 +632,7 @@ class C
             TestMustImplement(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestMustImplement4()
             Dim code =
 <Code>
@@ -634,7 +645,7 @@ class C
             TestMustImplement(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestMustImplement5()
             Dim code =
 <Code>
@@ -662,7 +673,7 @@ class C : B
 #Region "Name tests"
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_ExplicitlyImplementedMethod()
             Dim code =
 <Code>
@@ -683,7 +694,7 @@ public class C1 : I1
             TestName(code, "I1.f1")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_Destructor()
             Dim code =
 <Code>
@@ -697,7 +708,7 @@ class C
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_ImplicitOperator()
             Dim code =
 <Code>
@@ -720,7 +731,7 @@ public class ComplexType
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_ExplicitOperator()
             Dim code =
 <Code>
@@ -743,7 +754,7 @@ public class ComplexType
         End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_OperatorOverload()
             Dim code =
 <Code>
@@ -769,7 +780,9 @@ public class ComplexType
 
 #Region "OverrideKind tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "OverrideKind tests"
+>
         Public Sub TestOverrideKind_Abstract()
             Dim code =
 <Code>
@@ -782,7 +795,7 @@ abstract class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestOverrideKind_Virtual()
             Dim code =
 <Code>
@@ -795,7 +808,7 @@ class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestOverrideKind_Sealed()
             Dim code =
 <Code>
@@ -808,7 +821,7 @@ class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestOverrideKind_Override()
             Dim code =
 <Code>
@@ -826,7 +839,7 @@ class C : B
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestOverrideKind_New()
             Dim code =
 <Code>
@@ -848,7 +861,9 @@ class C : B
 
 #Region "Prototype tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Prototype tests"
+>
         Public Sub TestPrototype_FullNameOnly()
             Dim code =
 <Code>
@@ -864,7 +879,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_UniqueSignature()
             Dim code =
 <Code>
@@ -880,7 +895,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "A.MethodC(int,bool)")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ParamTypesOnly()
             Dim code =
 <Code>
@@ -896,7 +911,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes, "MethodC (int, bool)")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ParamNamesOnly()
             Dim code =
 <Code>
@@ -912,7 +927,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeParamNames, "MethodC (intA, boolB)")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ReturnType()
             Dim code =
 <Code>
@@ -928,7 +943,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "bool MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName1()
             Dim code =
 <Code>
@@ -944,7 +959,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName2()
             Dim code =
 <Code>
@@ -960,7 +975,7 @@ class A&lt;T&gt;
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A<>.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName3()
             Dim code =
 <Code>
@@ -979,7 +994,7 @@ class C&lt;T&gt;
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C<>.A.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName4()
             Dim code =
 <Code>
@@ -998,7 +1013,7 @@ class C
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.A<>.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName5()
             Dim code =
 <Code>
@@ -1017,7 +1032,7 @@ class C
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.A.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName6()
             Dim code =
 <Code>
@@ -1036,7 +1051,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.MethodC")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Constructor_Unique()
             Dim code =
 <Code>
@@ -1051,7 +1066,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "A.#ctor()")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Finalizer_Unique()
             Dim code =
 <Code>
@@ -1066,7 +1081,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "A.#dtor()")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Unique_InvalidCombination()
             Dim code =
 <Code>
@@ -1082,7 +1097,7 @@ class A
             TestPrototypeThrows(Of ArgumentException)(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature Or EnvDTE.vsCMPrototype.vsCMPrototypeClassName)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Constructor_FullName()
             Dim code =
 <Code>
@@ -1097,7 +1112,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.A")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Finalizer_FullName()
             Dim code =
 <Code>
@@ -1112,7 +1127,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.~A")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Operator_FullName()
             Dim code =
 <Code>
@@ -1128,7 +1143,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.operator +")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Constructor_ReturnType()
             Dim code =
 <Code>
@@ -1143,7 +1158,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void A")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Finalizer_ReturnType()
             Dim code =
 <Code>
@@ -1158,7 +1173,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void ~A")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Operator_ReturnType()
             Dim code =
 <Code>
@@ -1174,7 +1189,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "A operator +")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Constructor_ClassName()
             Dim code =
 <Code>
@@ -1189,7 +1204,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.A")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Finalizer_ClassName()
             Dim code =
 <Code>
@@ -1204,7 +1219,7 @@ class A
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.~A")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Operator_ClassName()
             Dim code =
 <Code>
@@ -1224,7 +1239,9 @@ class A
 
 #Region "Type tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Type tests"
+>
         Public Sub TestType_Constructor()
             Dim code =
 <Code>
@@ -1246,7 +1263,7 @@ class A
                 })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestType_Finalizer()
             Dim code =
 <Code>
@@ -1268,7 +1285,7 @@ class A
                 })
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestType_Operator()
             Dim code =
 <Code>
@@ -1294,7 +1311,9 @@ class A
 #End Region
 
 #Region "RemoveParameter tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "RemoveParameter tests"
+>
         Public Async Function TestRemoveParameter1() As Task
             Dim code =
 <Code>
@@ -1315,7 +1334,7 @@ class C
             Await TestRemoveChild(code, expected, "a")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveParameter2() As Task
             Dim code =
 <Code>
@@ -1336,7 +1355,7 @@ class C
             Await TestRemoveChild(code, expected, "b")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveParameter3() As Task
             Dim code =
 <Code>
@@ -1357,7 +1376,7 @@ class C
             Await TestRemoveChild(code, expected, "a")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveParameter4() As Task
             Dim code =
 <Code>
@@ -1381,7 +1400,9 @@ class C
 #End Region
 
 #Region "AddParameter tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddParameter tests"
+>
         Public Async Function TestAddParameter1() As Task
             Dim code =
 <Code>
@@ -1402,7 +1423,7 @@ class C
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "int"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddParameter2() As Task
             Dim code =
 <Code>
@@ -1423,7 +1444,7 @@ class C
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "string"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddParameter3() As Task
             Dim code =
 <Code>
@@ -1444,7 +1465,7 @@ class C
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddParameter4() As Task
             Dim code =
 <Code>
@@ -1468,7 +1489,9 @@ class C
 
 #Region "Set Access tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Access tests"
+>
         Public Async Function TestSetAccess1() As Task
             Dim code =
 <Code>
@@ -1495,7 +1518,7 @@ class C
             Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetAccess2() As Task
             Dim code =
 <Code>
@@ -1522,7 +1545,7 @@ class C
             Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetAccess3() As Task
             Dim code =
 <Code>
@@ -1549,7 +1572,7 @@ class C
             Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetAccess4() As Task
             Dim code =
 <Code>
@@ -1576,7 +1599,7 @@ class C
             Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetAccess5() As Task
             Dim code =
 <Code>
@@ -1603,7 +1626,7 @@ class C
             Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetAccess6() As Task
             Dim code =
 <Code>
@@ -1624,7 +1647,7 @@ interface I
             Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetAccess7() As Task
             Dim code =
 <Code>
@@ -1649,7 +1672,9 @@ interface I
 
 #Region "Set IsShared tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set IsShared tests"
+>
         Public Async Function TestSetIsShared1() As Task
             Dim code =
 <Code>
@@ -1674,7 +1699,7 @@ class C
             Await TestSetIsShared(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetIsShared2() As Task
             Dim code =
 <Code>
@@ -1699,7 +1724,7 @@ class C
             Await TestSetIsShared(code, expected, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetIsShared3() As Task
             Dim code =
 <Code>
@@ -1724,7 +1749,7 @@ class C
             Await TestSetIsShared(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetIsShared4() As Task
             Dim code =
 <Code>
@@ -1753,7 +1778,9 @@ class C
 
 #Region "Set CanOverride tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set CanOverride tests"
+>
         Public Async Function TestSetCanOverride1() As Task
             Dim code =
 <Code>
@@ -1778,7 +1805,7 @@ class C
             Await TestSetCanOverride(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetCanOverride2() As Task
             Dim code =
 <Code>
@@ -1803,7 +1830,7 @@ class C
             Await TestSetCanOverride(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetCanOverride3() As Task
             Dim code =
 <Code>
@@ -1828,7 +1855,7 @@ class C
             Await TestSetCanOverride(code, expected, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetCanOverride4() As Task
             Dim code =
 <Code>
@@ -1853,7 +1880,7 @@ class C
             Await TestSetCanOverride(code, expected, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetCanOverride5() As Task
             Dim code =
 <Code>
@@ -1874,7 +1901,7 @@ interface I
             Await TestSetCanOverride(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetCanOverride6() As Task
             Dim code =
 <Code>
@@ -1899,7 +1926,9 @@ interface I
 
 #Region "Set MustImplement tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set MustImplement tests"
+>
         Public Async Function TestSetMustImplement1() As Task
             Dim code =
 <Code>
@@ -1922,7 +1951,7 @@ abstract class C
             Await TestSetMustImplement(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement2() As Task
             Dim code =
 <Code>
@@ -1949,7 +1978,7 @@ abstract class C
             Await TestSetMustImplement(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement3() As Task
             Dim code =
 <Code>
@@ -1973,7 +2002,7 @@ abstract class C
             Await TestSetMustImplement(code, expected, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement4() As Task
             Dim code =
 <Code>
@@ -1994,7 +2023,7 @@ abstract class C
             Await TestSetMustImplement(code, expected, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement5() As Task
             Dim code =
 <Code>
@@ -2019,7 +2048,7 @@ abstract class C
             Await TestSetMustImplement(code, expected, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement6() As Task
             Dim code =
 <Code>
@@ -2044,7 +2073,7 @@ class C
             Await TestSetMustImplement(code, expected, True, ThrowsArgumentException(Of Boolean))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement7() As Task
             Dim code =
 <Code>
@@ -2069,7 +2098,7 @@ class C
             Await TestSetMustImplement(code, expected, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement8() As Task
             Dim code =
 <Code>
@@ -2094,7 +2123,7 @@ interface I
             Await TestSetMustImplement(code, expected, False, ThrowsArgumentException(Of Boolean))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetMustImplement9() As Task
             Dim code =
 <Code>
@@ -2123,7 +2152,9 @@ interface I
 
 #Region "Set OverrideKind tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set OverrideKind tests"
+>
         Public Async Function TestSetOverrideKind1() As Task
             Dim code =
 <Code>
@@ -2148,7 +2179,7 @@ class C
             Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetOverrideKind2() As Task
             Dim code =
 <Code>
@@ -2173,7 +2204,7 @@ class C
             Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetOverrideKind3() As Task
             Dim code =
 <Code>
@@ -2200,7 +2231,9 @@ abstract class C
 
 #Region "Set Name tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Name tests"
+>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
@@ -2229,7 +2262,9 @@ class C
 
 #Region "Set Type tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Type tests"
+>
         Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
@@ -2258,7 +2293,9 @@ class C
 
 #Region "ExtensionMethodExtender"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "ExtensionMethodExtender"
+>
         Public Sub TestExtensionMethodExtender_IsExtension1()
             Dim code =
 <Code>
@@ -2273,7 +2310,7 @@ public static class C
             TestExtensionMethodExtender_IsExtension(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestExtensionMethodExtender_IsExtension2()
             Dim code =
 <Code>
@@ -2292,7 +2329,9 @@ public static class C
 
 #Region "PartialMethodExtender"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "PartialMethodExtender"
+>
         Public Sub TestPartialMethodExtender_IsPartial1()
             Dim code =
 <Code>
@@ -2313,7 +2352,7 @@ public partial class C
             TestPartialMethodExtender_IsPartial(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_IsPartial2()
             Dim code =
 <Code>
@@ -2334,7 +2373,7 @@ public partial class C
             TestPartialMethodExtender_IsPartial(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_IsPartial3()
             Dim code =
 <Code>
@@ -2355,7 +2394,7 @@ public partial class C
             TestPartialMethodExtender_IsPartial(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_IsDeclaration1()
             Dim code =
 <Code>
@@ -2376,7 +2415,7 @@ public partial class C
             TestPartialMethodExtender_IsDeclaration(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_IsDeclaration2()
             Dim code =
 <Code>
@@ -2397,7 +2436,7 @@ public partial class C
             TestPartialMethodExtender_IsDeclaration(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_IsDeclaration3()
             Dim code =
 <Code>
@@ -2418,7 +2457,7 @@ public partial class C
             TestPartialMethodExtender_IsDeclaration(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_HasOtherPart1()
             Dim code =
 <Code>
@@ -2439,7 +2478,7 @@ public partial class C
             TestPartialMethodExtender_HasOtherPart(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_HasOtherPart2()
             Dim code =
 <Code>
@@ -2460,7 +2499,7 @@ public partial class C
             TestPartialMethodExtender_HasOtherPart(code, True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_HasOtherPart3()
             Dim code =
 <Code>
@@ -2481,7 +2520,7 @@ public partial class C
             TestPartialMethodExtender_HasOtherPart(code, False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPartialMethodExtender_HasOtherPart4()
             Dim code =
 <Code>
@@ -2498,7 +2537,9 @@ public partial class C
 
 #Region "Overloads Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Overloads Tests"
+>
         Public Sub TestOverloads1()
             Dim code =
 <Code>
@@ -2516,7 +2557,7 @@ public static class C
             TestOverloadsUniqueSignatures(code, "C.Goo()", "C.Goo(C)")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestOverloads2()
             Dim code =
 <Code>
@@ -2530,7 +2571,7 @@ public static class C
             TestOverloadsUniqueSignatures(code, "C.Goo()")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestOverloads3()
             Dim code =
 <Code>
@@ -2550,7 +2591,7 @@ class A
 #Region "Parameter name tests"
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
@@ -2565,7 +2606,7 @@ public class C
         End Sub
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =
 <Code>
@@ -2582,7 +2623,9 @@ public class C
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddAttribute tests"
+>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -2607,7 +2650,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -2635,7 +2678,7 @@ class C
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
@@ -2664,7 +2707,7 @@ class C
 
 #End Region
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

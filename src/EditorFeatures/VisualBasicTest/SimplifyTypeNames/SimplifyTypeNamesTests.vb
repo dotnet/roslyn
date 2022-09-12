@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
     Partial Public Class SimplifyTypeNamesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -311,7 +312,6 @@ End Class")
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877")>
         <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -745,7 +745,6 @@ End Module")
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877")>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllFixesUnrelatedTypes() As Task
             Await TestInRegularAndScriptAsync(
 "Imports A
@@ -795,7 +794,6 @@ End Namespace")
         End Function
 
         <Fact(Skip:="1033012")>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestSimplifyFixesAllNestedTypeNames() As Task
             Dim source =
 "Imports A
@@ -982,7 +980,6 @@ End Module|]")
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877")>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestConflicts() As Task
             Await TestInRegularAndScriptAsync(
         <Text>

@@ -7,11 +7,15 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.GenerateType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateType
+    <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
     Partial Public Class GenerateTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 #Region "Same Project"
 #Region "SameProject SameFile"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact
+#Region "Same Project"
+#Region "SameProject SameFile"
+>
         Public Async Function GenerateTypeDefaultValues() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -33,7 +37,7 @@ End Class
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeInsideNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -59,7 +63,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeInsideQualifiedNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -85,7 +89,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithinQualifiedNestedNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -115,7 +119,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithinNestedQualifiedNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -145,7 +149,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithConstructorMembers() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -174,7 +178,7 @@ End Class
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithBaseTypes() As Task
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Imports System.Collections.Generic
@@ -199,7 +203,7 @@ End Class
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithPublicInterface() As Task
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
@@ -229,7 +233,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithInternalStruct() As Task
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
@@ -259,7 +263,7 @@ typeKind:=TypeKind.Structure,
 isNewFile:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeWithDefaultEnum() As Task
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
@@ -291,7 +295,9 @@ isNewFile:=False)
 #End Region
 
 #Region "SameProject ExistingFile"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact
+#Region "SameProject ExistingFile"
+>
         Public Async Function GenerateTypeInExistingEmptyFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -323,7 +329,7 @@ isNewFile:=False,
 existingFilename:="Test2.vb")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeInExistingEmptyFile_Usings_Folders() As Task
             Dim markupString = <Workspace>
@@ -362,7 +368,7 @@ isNewFile:=False,
 existingFilename:="Test2.vb")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName() As Task
             Dim markupString = <Workspace>
@@ -398,7 +404,9 @@ existingFilename:="Test2.vb")
 #End Region
 
 #Region "SameProject NewFile"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact
+#Region "SameProject NewFile"
+>
         Public Async Function GenerateTypeInNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -430,7 +438,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateType_UsingsNotNeeded_InNewFile_InFolder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -464,7 +472,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem(898452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateType_InValidFolderNameNotMadeNamespace() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -498,7 +506,7 @@ newFileName:="Test2.vb")
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         <WorkItem(907454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907454")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateType_UsingsNeeded_InNewFile_InFolder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -537,7 +545,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem(907454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907454")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateType_UsingsPresentAlready_InNewFile_InFolder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -578,7 +586,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -612,7 +620,10 @@ newFileName:="Test2.vb")
 #End Region
 #Region "SameLanguage DifferentProject"
 #Region "SameLanguage DifferentProject ExistingFile"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact
+#Region "SameLanguage DifferentProject"
+#Region "SameLanguage DifferentProject ExistingFile"
+>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectEmptyFile() As Task
             Dim markupString = <Workspace>
@@ -648,7 +659,7 @@ existingFilename:="Test2.vb",
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectExistingFile() As Task
             Dim markupString = <Workspace>
@@ -690,7 +701,7 @@ existingFilename:="Test2.vb",
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders() As Task
             Dim markupString = <Workspace>
@@ -749,7 +760,7 @@ projectName:="Assembly2")
 #End Region
 #Region "SameLanguage DifferentProject NewFile"
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -785,7 +796,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -828,7 +839,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -866,7 +877,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_ProjectReference() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
@@ -909,7 +920,9 @@ projectName:="Assembly2")
 #End Region
 #End Region
 #Region "Different Language"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact
+#Region "Different Language"
+>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -945,7 +958,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_Imports() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -995,7 +1008,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_NoImports_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1032,7 +1045,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_Imports_DefaultNamespace() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1082,7 +1095,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_NoImports_NotSimpleName_DefaultNamespace() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1120,7 +1133,7 @@ newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageExistingEmptyFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1157,7 +1170,7 @@ existingFilename:="Test2.cs",
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoDifferentLanguageExistingEmptyFile_Imports_Folder() As Task
             Dim markupString = <Workspace>
@@ -1200,7 +1213,7 @@ existingFilename:="Test2.cs",
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageExistingNonEmptyFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1243,7 +1256,7 @@ existingFilename:="Test2.cs",
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageExistingTargetFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1287,7 +1300,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem(858826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFileAdjustTheFileExtension() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1323,7 +1336,9 @@ projectName:="Assembly2")
         End Function
 #End Region
 #Region "Bugfix"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact
+#Region "Bugfix"
+>
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <WorkItem(873066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_1() As Task
@@ -1346,7 +1361,7 @@ accessibility:=Accessibility.Public,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_2() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1366,7 +1381,7 @@ isNewFile:=False,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Class))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_3() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1387,7 +1402,7 @@ typeKind:=TypeKind.Interface,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_4() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1409,7 +1424,7 @@ typeKind:=TypeKind.Interface,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         <WorkItem(869593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")>
         Public Async Function GenerateTypeWithModuleOption() As Task
@@ -1439,7 +1454,7 @@ typeKind:=TypeKind.Module,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         Public Async Function GenerateTypeInMemberAccessExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1465,7 +1480,7 @@ typeKind:=TypeKind.Module,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         Public Async Function GenerateTypeInMemberAccessExpressionWithNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1494,7 +1509,7 @@ typeKind:=TypeKind.Module,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(876202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")>
         <WorkItem(883531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")>
         Public Async Function GenerateType_NoParameterLessConstructor() As Task
@@ -1521,7 +1536,7 @@ typeKind:=TypeKind.Structure,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeWithoutEnumForGenericsInMemberAccessExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1553,7 +1568,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeWithoutEnumForGenericsInNameContext() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1585,7 +1600,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeInMemberAccessWithNSForModule() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1615,7 +1630,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeInMemberAccessWithGlobalNSForModule() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1641,7 +1656,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeInMemberAccessWithoutNS() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1659,7 +1674,9 @@ isMissing:=True)
 
 #End Region
 #Region "Delegates"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact
+#Region "Delegates"
+>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1689,7 +1706,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpressionIntoNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1719,7 +1736,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression_1() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1745,7 +1762,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression_2() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1769,7 +1786,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression_3() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1797,7 +1814,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1825,7 +1842,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_1() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1853,7 +1870,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_2() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1881,7 +1898,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_3() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1909,7 +1926,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithNoInitializer() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1933,7 +1950,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_MultiLineFunction() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1961,7 +1978,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_SingleLineFunction() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1985,7 +2002,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_MultiLineSub() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2011,7 +2028,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_SingleLineSub() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2035,7 +2052,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithCast() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2063,7 +2080,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateTypeDelegateWithCastAndError() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2087,7 +2104,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact>
         Public Async Function GenerateDelegateTypeIntoDifferentLanguageNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -2115,7 +2132,7 @@ newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         <WorkItem(860210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")>
         Public Async Function GenerateTypeDelegate_NoInfo() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -2140,7 +2157,9 @@ typeKind:=TypeKind.Delegate)
         End Function
 #End Region
 #Region "Dev12Filtering"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact
+#Region "Dev12Filtering"
+>
         Public Async Function GenerateType_Invocation_NoEnum_0() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2169,7 +2188,7 @@ typeKind:=TypeKind.Class,
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_1() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2194,7 +2213,7 @@ typeKind:=TypeKind.Class,
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_2() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
@@ -2229,7 +2248,7 @@ assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_3() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
@@ -2264,7 +2283,7 @@ assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_4() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Imports System
@@ -2295,7 +2314,7 @@ typeKind:=TypeKind.Class,
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_TypeConstraint_1() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2316,7 +2335,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_TypeConstraint_2() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2341,7 +2360,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_TypeConstraint_3() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2370,7 +2389,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_1() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2406,7 +2425,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_2() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2444,7 +2463,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_3() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2485,7 +2504,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_4() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2507,7 +2526,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_5() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2531,7 +2550,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_6() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2558,7 +2577,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_7() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2581,7 +2600,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_8() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2606,7 +2625,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_9() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2633,7 +2652,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_10() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2659,7 +2678,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_11() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2685,7 +2704,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Delegate))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_12() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2712,7 +2731,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact>
         Public Async Function GenerateType_Event_13() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>

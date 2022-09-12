@@ -6,9 +6,10 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
+    <Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
     Partial Public Class MethodXMLTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestVBInitializeComponent1()
             Dim definition =
     <Workspace>
@@ -51,7 +52,7 @@ End Class</Document>
             Test(definition, s_initializeComponentXML1)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestVBInitializeComponent2()
             Dim definition =
     <Workspace>

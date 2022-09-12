@@ -8,10 +8,11 @@ Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function TestReorderParameters_AcrossLanguages_InvokeFromDeclaration() As Task
             Dim workspace = <Workspace>
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -64,7 +65,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function TestReorderParameters_AcrossLanguages_InvokeFromReference() As Task
             Dim workspace = <Workspace>
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">

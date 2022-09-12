@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEnumMember
+    <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
     Public Class GenerateEnumMemberTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return (Nothing, New GenerateEnumMemberCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoEmpty() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -34,7 +35,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoEnumWithSingleMember() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -56,7 +57,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateAfterEnumWithValue() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -78,7 +79,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateBinaryLiteral() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -100,7 +101,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoLinearIncreasingSequence() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -124,7 +125,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoGeometricSequence() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -150,7 +151,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540540")>
         Public Async Function TestGenerateAfterEnumWithIntegerMaxValue() As Task
             Await TestInRegularAndScriptAsync(
@@ -175,7 +176,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestUnsigned16BitEnums() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -197,7 +198,7 @@ Enum Color As UShort
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540546")>
         Public Async Function TestGenerateEnumMemberOfTypeLong() As Task
             Await TestInRegularAndScriptAsync(
@@ -220,7 +221,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
         Public Async Function TestGenerateAfterEnumWithLongMaxValueInHex() As Task
             Await TestInRegularAndScriptAsync(
@@ -243,7 +244,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
         Public Async Function TestGenerateAfterEnumWithLongMinValueInHex() As Task
             Await TestInRegularAndScriptAsync(
@@ -266,7 +267,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateAfterNegativeLongInHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -288,7 +289,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateAfterPositiveLongInHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -312,7 +313,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateAfterPositiveLongExprInHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -334,7 +335,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540632")>
         Public Async Function TestGenerateAfterEnumWithULongMaxValue() As Task
             Await TestInRegularAndScriptAsync(
@@ -357,7 +358,7 @@ Enum Color As ULong
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestNegativeRangeIn64BitSignedEnums() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -379,7 +380,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestUnaryMinusOnUInteger1() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -401,7 +402,7 @@ Enum Color As UInteger
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestDoubleUnaryMinusOnUInteger() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -423,7 +424,7 @@ Enum Color As UInteger
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestDoubleUnaryMinusOnUInteger1() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -447,7 +448,7 @@ Enum Color As UInteger
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateWithImplicitValues() As Task
             ' Red is implicitly assigned to 0, Green is implicitly Red + 1, So Blue must be 2.
             Await TestInRegularAndScriptAsync(
@@ -474,7 +475,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateWithImplicitValues2() As Task
             Await TestInRegularAndScriptAsync(
 "Class B
@@ -500,7 +501,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540549")>
         Public Async Function TestNoExtraneousStatementTerminatorBeforeCommentedMember() As Task
             Dim code = <Text>Module Program
@@ -530,7 +531,7 @@ End Enum</Text>.Value.Replace(vbLf, vbCrLf)
                     expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>
         Public Async Function TestGenerateAfterEnumWithMinValue() As Task
             Await TestInRegularAndScriptAsync(
@@ -553,7 +554,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540553")>
         Public Async Function TestGenerateAfterEnumWithMinValuePlusConstant() As Task
             Await TestInRegularAndScriptAsync(
@@ -576,7 +577,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540556")>
         Public Async Function TestGenerateAfterEnumWithByteMaxValue() As Task
             Await TestInRegularAndScriptAsync(
@@ -599,7 +600,7 @@ Enum Color As Byte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoNegativeSByteInOctal() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -621,7 +622,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoPositiveSByteInOctal1() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -643,7 +644,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoPositiveSByteInOctal2() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -665,7 +666,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
         Public Async Function TestGenerateAfterEnumWithSByteMaxValueInOctal() As Task
             Await TestInRegularAndScriptAsync(
@@ -688,7 +689,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(528207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528207")>
         Public Async Function TestAbsenceOfFixWhenImportingEnums() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -703,7 +704,7 @@ Enum Color As Byte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestPresenceOfFixWhenImportingEnumsYetFullyQualifyingThem() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Color
@@ -727,7 +728,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540585")>
         Public Async Function TestGenerateIntoBitshiftEnum() As Task
             Await TestInRegularAndScriptAsync(
@@ -754,7 +755,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540566")>
         Public Async Function TestKeywordName() As Task
             Await TestInRegularAndScriptAsync(
@@ -779,7 +780,7 @@ Enum Color As Byte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540547")>
         Public Async Function TestStandaloneReference() As Task
             Await TestInRegularAndScriptAsync(
@@ -810,7 +811,7 @@ Enum Color As Integer
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestCircularEnumsForErrorTolerance() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -834,7 +835,7 @@ Enum Circular
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestEnumWithIncorrectValueForErrorTolerance() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -856,7 +857,7 @@ Enum Color As Byte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestHexValues() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -890,7 +891,7 @@ Enum RenderType
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoShadowedEnum() As Task
             Await TestInRegularAndScriptAsync(
 "Class B
@@ -926,7 +927,7 @@ Public Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoDerivedEnumMissingShadowsKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "Class B
@@ -962,7 +963,7 @@ Public Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerateIntoBaseEnum() As Task
             Await TestInRegularAndScriptAsync(
 "Class B
@@ -992,7 +993,7 @@ Public Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestErrorToleranceWithStrictSemantics() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -1020,7 +1021,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGeometricSequenceWithTypeConversions() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -1048,7 +1049,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestLinearSequenceWithTypeConversions() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -1076,7 +1077,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestGenerationWhenMembersShareValues() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
@@ -1106,7 +1107,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestInvokeFromAddAssignmentStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Class B
@@ -1134,7 +1135,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestMissingOnEnumsFromMetaData() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports Microsoft.VisualBasic
@@ -1145,7 +1146,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
         Public Async Function TestMaxHex() As Task
             Await TestInRegularAndScriptAsync(
@@ -1170,7 +1171,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
         Public Async Function TestMinHex() As Task
             Await TestInRegularAndScriptAsync(
@@ -1193,7 +1194,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
         Public Async Function TestOctalBounds1() As Task
             Await TestInRegularAndScriptAsync(
@@ -1216,7 +1217,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestULongMax() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -1238,7 +1239,7 @@ Enum Color As ULong
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(540604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540604")>
         Public Async Function TestWrapAround1() As Task
             Await TestInRegularAndScriptAsync(
@@ -1263,7 +1264,7 @@ Enum Color As Integer
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestMissingOnHiddenEnum() As Task
             Await TestMissingInRegularAndScriptAsync(
 "#ExternalSource (""Default.aspx"", 1) 
@@ -1280,7 +1281,7 @@ End Class
 #End ExternalSource")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         Public Async Function TestMissingOnPartiallyHiddenEnum() As Task
             Await TestMissingInRegularAndScriptAsync(
 "#ExternalSource (""Default.aspx"", 1) 
@@ -1300,7 +1301,7 @@ End Class
 #End ExternalSource")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(544656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544656")>
         Public Async Function TestShortHexidecimalLiterals() As Task
             Await TestInRegularAndScriptAsync(
@@ -1319,7 +1320,7 @@ Enum E As Short
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(545937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545937")>
         Public Async Function TestUShortEnums() As Task
             Await TestInRegularAndScriptAsync(
@@ -1340,7 +1341,7 @@ Enum E As UShort
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        <Fact>
         <WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")>
         Public Async Function TestWithLeftShift_Long() As Task
             Await TestInRegularAndScriptAsync(

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SpellCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellcheck
+    <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
     Public Class SpellCheckTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellc
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestNoSpellcheckForIfOnly2Characters() As Task
             Dim text = <File>Class Goo
     Sub Bar()
@@ -32,7 +33,7 @@ End Class</File>
             Await TestMissingAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestAfterNewExpression() As Task
             Dim text = <File>Class Goo
     Sub Bar()
@@ -42,7 +43,7 @@ End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestInAsClause() As Task
             Dim text = <File>Class Goo
     Sub Bar()
@@ -53,7 +54,7 @@ End Class</File>
                 {String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestInSimpleAsClause() As Task
             Dim text = <File>Class Goo
     Sub Bar()
@@ -64,7 +65,7 @@ End Class</File>
                 {String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestInFunc() As Task
             Dim text = <File>Class Goo
     Sub Bar(a as Func(Of [|Goa|]))
@@ -74,7 +75,7 @@ End Class</File>
                 {String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestCorrectIdentifier() As Task
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -85,7 +86,7 @@ End Module</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(1065708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
         Public Async Function TestInTypeOfIsExpression() As Task
             Dim text = <File>Imports System
@@ -98,7 +99,7 @@ End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(1065708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
         Public Async Function TestInTypeOfIsNotExpression() As Task
             Dim text = <File>Imports System
@@ -111,7 +112,7 @@ End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean")})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestInvokeCorrectIdentifier() As Task
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -130,7 +131,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestAfterDot() As Task
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -147,7 +148,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestNotInaccessibleProperty() As Task
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -166,7 +167,7 @@ End Class</File>
             Await TestMissingAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestGenericName1() As Task
             Dim text = <File>Class Goo(Of T)
     Dim x As [|Goo2(Of T)|]
@@ -179,7 +180,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestGenericName2() As Task
             Dim text = <File>Class Goo(Of T)
     Dim x As [|Goo2|]
@@ -192,7 +193,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestQualifiedName1() As Task
             Dim text = <File>Module Program
     Dim x As New [|Goo2.Bar|]
@@ -217,7 +218,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestQualifiedName2() As Task
             Dim text = <File>Module Program
     Dim x As New [|Goo.Ba2|]
@@ -242,7 +243,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestMiddleOfDottedExpression() As Task
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -275,7 +276,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(547161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547161")>
         Public Async Function TestNotForOverloadResolutionFailure() As Task
             Dim text = <File>Module Program
@@ -294,7 +295,7 @@ End Module</File>
             Await TestMissingAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(547169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547169")>
         Public Async Function TestHandlePredefinedTypeKeywordCorrectly() As Task
             Dim text = <File>
@@ -323,7 +324,7 @@ End Module</File>
             Await TestAsync(text, expected, index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(547166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
         Public Async Function TestKeepEscapedIdentifiersEscaped() As Task
             Dim text = <File>
@@ -351,7 +352,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(547166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
         Public Async Function TestNoDuplicateCorrections() As Task
             Dim text = <File>
@@ -381,7 +382,6 @@ End Module</File>
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
         Public Async Function TestSuggestEscapedPredefinedTypes() As Task
             Dim text = <File>
@@ -431,7 +431,7 @@ End Module</File>
             Await TestAsync(text, expected1, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -466,7 +466,7 @@ End Class</File>
             Await TestAsync(text, expected, index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(908322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
         Public Async Function TestObjectConstruction() As Task
             Await TestInRegularAndScriptAsync(
@@ -482,14 +482,14 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
         Public Async Function TestTestMissingName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<Assembly: Microsoft.CodeAnalysis.[||]>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "Class AwesomeClass

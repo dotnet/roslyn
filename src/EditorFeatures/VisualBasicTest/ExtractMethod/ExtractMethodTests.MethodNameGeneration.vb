@@ -5,9 +5,10 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         <[UseExportProvider]>
+        <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
         Public Class MethodNameGeneration
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             Public Async Function TestGetLiteralGeneratesSmartName() As Task
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -28,7 +29,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             Public Async Function TestGetLiteralDoesNotGenerateSmartName() As Task
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -49,7 +50,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             Public Async Function TestGetLiteralGeneratesSmartName2() As Task
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -72,7 +73,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             Public Async Function TestAppendingNumberedSuffixToGetMethods() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -105,7 +106,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             Public Async Function TestAppendingNumberedSuffixToNewMethods() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -138,7 +139,7 @@ End Class</text>
 
             ''' This is a special case in VB as it is case insensitive
             ''' Hence Get_FirstName() would conflict with the internal get_FirstName() that VB generates for the getter
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             <WorkItem(540483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540483")>
             Public Async Function TestPropertyGetter() As Task
                 Dim code = <text>Class Program
@@ -179,7 +180,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact>
             <WorkItem(530674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530674")>
             Public Async Function TestEscapedParameterName() As Task
                 Dim code = <text>Imports System.Linq

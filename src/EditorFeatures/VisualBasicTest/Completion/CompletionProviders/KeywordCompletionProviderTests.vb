@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class KeywordCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -12,31 +13,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(KeywordCompletionProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function IsCommitCharacterTest() As Task
             Await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar:="C")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub IsTextualTriggerCharacterTest()
             TestCommonIsTextualTriggerCharacter()
 
             VerifyTextualTriggerCharacter("goo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function SendEnterThroughToEditorTest() As Task
             Await VerifySendEnterThroughToEditorAsync("$$", "Class", expected:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function InEmptyFile() As Task
 
             Dim markup = "$$"
             Await VerifyAnyItemExistsAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function TestNoTypeKeywordsInAsyncMemberDeclaration() As Task
             Dim code = <Text>
 Class C
@@ -64,7 +65,7 @@ End Class
             Await VerifyItemIsAbsentAsync(code, "UShort")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function TestNotInInactiveCode() As Task
             Dim code = <Text>
 Class C
@@ -79,7 +80,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function TestNotInString() As Task
             Dim code = <Text>
 Class C
@@ -92,7 +93,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function TestNotInUnterminatedString() As Task
             Dim code = <Text>
 Class C
@@ -105,7 +106,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Async Function TestNotInSingleLineComment() As Task
             Dim code = <Text>
 Class C
@@ -118,7 +119,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")>
         Public Async Function TestUnionOfKeywordsFromBothFiles() As Task
             Dim markup = <Workspace>
@@ -146,7 +147,7 @@ End Class]]>
             Await VerifyItemInLinkedFilesAsync(markup, "For", Nothing)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInInteger() As Task
             Dim code = <Text>
@@ -160,7 +161,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInDecimal() As Task
             Dim code = <Text>
@@ -174,7 +175,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInFloat() As Task
             Dim code = <Text>
@@ -188,7 +189,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         Public Async Function TestNotInDate() As Task
             Dim code = <Text>
@@ -202,7 +203,7 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
         Public Async Function ImplementsAfterSub() As Task
             Dim code = "

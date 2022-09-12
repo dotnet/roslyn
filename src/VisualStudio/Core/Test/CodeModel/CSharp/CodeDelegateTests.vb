@@ -8,12 +8,15 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeDelegateTests
         Inherits AbstractCodeDelegateTests
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GetStartPoint() tests"
+>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -43,7 +46,7 @@ delegate void $$Goo(int i);
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=25)))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetStartPoint2()
             Dim code =
 <Code>
@@ -78,7 +81,9 @@ delegate void $$Goo(int i);
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "GetEndPoint() tests"
+>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -108,7 +113,7 @@ delegate void $$Goo(int i);
                      TextPoint(line:=1, lineOffset:=26, absoluteOffset:=26, lineLength:=25)))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestGetEndPoint2()
             Dim code =
 <Code>
@@ -143,7 +148,9 @@ delegate void $$Goo(int i);
 
 #Region "BaseClass tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "BaseClass tests"
+>
         Public Sub TestBaseClass1()
             Dim code =
 <Code>
@@ -157,7 +164,9 @@ delegate void $$D();
 
 #Region "Prototype tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Prototype tests"
+>
         Public Sub TestPrototype_UniqueSignature()
             Dim code =
 <Code>
@@ -170,7 +179,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "N.D")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_ClassName()
             Dim code =
 <Code>
@@ -183,7 +192,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "delegate N.D")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_FullName()
             Dim code =
 <Code>
@@ -196,7 +205,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "delegate N.D")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestPrototype_Type()
             Dim code =
 <Code>
@@ -213,7 +222,9 @@ namespace N
 
 #Region "Type tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Type tests"
+>
         Public Sub TestType_Void()
             Dim code =
 <Code>
@@ -223,7 +234,7 @@ delegate void $$D();
             TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "System.Void", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestType_Int()
             Dim code =
 <Code>
@@ -233,7 +244,7 @@ delegate int $$D();
             TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "System.Int32", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestType_SourceClass()
             Dim code =
 <Code>
@@ -248,7 +259,9 @@ delegate C $$D();
 
 #Region "Set Type tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Type tests"
+>
         Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
@@ -263,7 +276,7 @@ public delegate void D();
             Await TestSetTypeProp(code, expected, "void")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestSetType2() As Task
             Dim code =
 <Code>
@@ -283,7 +296,7 @@ public delegate int? D();
 #Region "Parameter name tests"
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
@@ -294,7 +307,7 @@ public delegate int $$M(int @int);
         End Sub
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =
 <Code>
@@ -307,7 +320,9 @@ public delegate int $$M(int @int, string @string);
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddAttribute tests"
+>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -326,7 +341,7 @@ delegate void D();
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -348,7 +363,7 @@ delegate void D();
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
@@ -371,7 +386,7 @@ delegate void D();
 
 #End Region
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

@@ -7,12 +7,15 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class ExternalCodeParameterTests
         Inherits AbstractCodeParameterTests
 
 #Region "FullName tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "FullName tests"
+>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -28,7 +31,9 @@ End Class
 
 #Region "Name tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Name tests"
+>
         Public Sub TestName_NoModifiers()
             Dim code =
 <Code>
@@ -43,7 +48,7 @@ End Class
             TestName(code, "p1")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_ByValModifier()
             Dim code =
 <Code>
@@ -58,7 +63,7 @@ End Class
             TestName(code, "p2")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_ByRefModifier()
             Dim code =
 <Code>
@@ -73,7 +78,7 @@ End Class
             TestName(code, "p3")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_OptionalByValModifiers()
             Dim code =
 <Code>
@@ -88,7 +93,7 @@ End Class
             TestName(code, "p4")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_ByValParamArrayModifiers()
             Dim code =
 <Code>
@@ -103,7 +108,7 @@ End Class
             TestName(code, "p5")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestName_TypeCharacter()
             Dim code =
 <Code>

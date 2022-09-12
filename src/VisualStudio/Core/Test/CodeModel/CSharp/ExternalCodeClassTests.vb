@@ -7,12 +7,15 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class ExternalCodeClassTests
         Inherits AbstractCodeClassTests
 
 #Region "Doc Comment"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Doc Comment"
+>
         Public Sub TestDocComment1()
             Dim code =
 <Code>
@@ -25,7 +28,7 @@ class C$$
             TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestDocComment2()
             Dim code =
 <Code>
@@ -41,7 +44,7 @@ class C$$
 
 #End Region
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestExpectedClassMembers()
             Dim code =
 <Code>

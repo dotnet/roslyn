@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class GenericNameSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
@@ -15,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Declaring generic type objects"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "Declaring generic type objects"
+>
         Public Async Function TestDeclaringGenericTypeWith1ParameterUnterminated() As Task
             Dim markup = <a><![CDATA[
 Class G(Of T)
@@ -34,7 +37,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWith1ParameterTerminated() As Task
             Dim markup = <a><![CDATA[
 Class G(Of T)
@@ -53,7 +56,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn1() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S, T)
@@ -72,7 +75,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn2() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S, T)
@@ -91,7 +94,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn1XmlDoc() As Task
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -115,7 +118,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn2XmlDoc() As Task
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -139,7 +142,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn1XmlDocReferencingTypeParams() As Task
             Dim markup = <a><![CDATA[
@@ -164,7 +167,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn2XmlDocReferencingTypeParams() As Task
             Dim markup = <a><![CDATA[
@@ -192,7 +195,9 @@ End Class
 #End Region
 
 #Region "Constraints on generic types"
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "Constraints on generic types"
+>
         Public Async Function TestDeclaringGenericTypeWithConstraintsStructure() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S As Structure, T)
@@ -211,7 +216,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsClass() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S As Class, T)
@@ -230,7 +235,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsNew() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S As New, T)
@@ -249,7 +254,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsBase() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -271,7 +276,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsBaseGenericWithGeneric() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass(Of X)
@@ -293,7 +298,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsBaseGenericWithNonGeneric() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass(Of X)
@@ -315,7 +320,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsBaseGenericWithGenericNested() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass(Of X)
@@ -337,7 +342,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsDeriveFromAnotherGenericParameter() As Task
             Dim markup = <a><![CDATA[
 Class G(Of S As T, T)
@@ -356,7 +361,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsMixed1() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -386,7 +391,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestDeclaringGenericTypeWithConstraintsMixed2() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -420,7 +425,9 @@ End Class
 
 #Region "Generic member invocation"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "Generic member invocation"
+>
         Public Async Function TestInvokingGenericMethodWith1ParameterUnterminated() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -439,7 +446,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvokingGenericMethodWith1ParameterTerminated() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -458,7 +465,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvokingGenericMethodWith2ParametersOn1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -477,7 +484,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvokingGenericMethodWith2ParametersOn2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -496,7 +503,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvokingGenericMethodWith2ParametersOn1XmlDoc() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -520,7 +527,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvokingGenericMethodWith2ParametersOn2XmlDoc() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -544,7 +551,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(544124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544124")>
         <WorkItem(544123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544123")>
         <WorkItem(684631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684631")>
@@ -578,7 +585,9 @@ End Class
 #End Region
 
 #Region "Constraints on generic methods"
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "Constraints on generic methods"
+>
         Public Async Function TestInvokingGenericMethodTypeWithConstraintsMixed1() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -608,7 +617,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvokingGenericMethodWithConstraintsMixed2() As Task
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -641,7 +650,9 @@ End Class
 
 #Region "Trigger tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "Trigger tests"
+>
         Public Async Function TestInvocationOnTriggerSpace() As Task
 
             Dim markup = <a><![CDATA[
@@ -661,7 +672,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestInvocationOnTriggerComma() As Task
 
             Dim markup = <a><![CDATA[
@@ -681,7 +692,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Sub TestTriggerCharacters()
             Dim expectedTriggerCharacters() As Char = {","c, " "c}
             Dim unexpectedTriggerCharacters() As Char = {"["c, "<"c, "("c}
@@ -692,7 +703,9 @@ End Class
 #End Region
 
 #Region "EditorBrowsable tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "EditorBrowsable tests"
+>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
@@ -724,7 +737,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
@@ -756,7 +769,7 @@ End Class
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[
@@ -796,7 +809,7 @@ End Class
                                                        hideAdvancedMembers:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericMethod_BrowsableMixed() As Task
             Dim markup = <Text><![CDATA[
@@ -835,7 +848,7 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
@@ -863,7 +876,7 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
@@ -891,7 +904,7 @@ End Class
                                                        referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[

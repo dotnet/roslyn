@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
+    <Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
     Public Class FixIncorrectFunctionReturnTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
             Return (Nothing, New IncorrectFunctionReturnTypeCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <Fact>
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestAsyncFunction1() As Task
             Await TestInRegularAndScriptAsync(
@@ -32,7 +33,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <Fact>
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestAsyncFunction2() As Task
             Await TestInRegularAndScriptAsync(
@@ -50,7 +51,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <Fact>
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestAsyncFunction3() As Task
             Await TestInRegularAndScriptAsync(
@@ -74,7 +75,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <Fact>
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestIteratorFunction1() As Task
             Await TestInRegularAndScriptAsync(
@@ -94,7 +95,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <Fact>
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestIteratorFunction2() As Task
             Await TestInRegularAndScriptAsync(
@@ -114,7 +115,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <Fact>
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         Public Async Function TestIteratorFunction3() As Task
             Await TestInRegularAndScriptAsync(

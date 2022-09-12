@@ -6,9 +6,10 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
+    <Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
     Partial Public Class MethodXMLTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_NoInitializer()
             Dim definition =
     <Workspace>
@@ -36,7 +37,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithInitializer()
             Dim definition =
     <Workspace>
@@ -69,7 +70,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_EscapedKeywordName()
             Dim definition =
 <Workspace>
@@ -102,7 +103,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_ArrayNoInitializer()
             Dim definition =
     <Workspace>
@@ -132,7 +133,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_ArrayWithInitializer()
             Dim definition =
     <Workspace>
@@ -176,7 +177,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithBinaryPlusInitializer()
             Dim definition =
     <Workspace>
@@ -218,7 +219,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithBitwiseOrInitializer()
             Dim definition =
     <Workspace>
@@ -260,7 +261,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithBitwiseAndInitializer()
             Dim definition =
     <Workspace>
@@ -302,7 +303,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithCastInitializer()
             Dim definition =
     <Workspace>
@@ -340,7 +341,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithObjectCreationInitializer()
             Dim definition =
     <Workspace>
@@ -381,7 +382,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithParenthesizedInitializer()
             Dim definition =
     <Workspace>
@@ -427,7 +428,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithNullInitializer()
             Dim definition =
     <Workspace>
@@ -460,7 +461,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithNegativeInitializer()
             Dim definition =
     <Workspace>
@@ -493,7 +494,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithBooleanInitializer()
             Dim definition =
     <Workspace>
@@ -536,7 +537,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithStringInitializer()
             Dim definition =
     <Workspace>
@@ -569,7 +570,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithCharInitializer()
             Dim definition =
     <Workspace>
@@ -602,7 +603,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_WithArrayInitializer()
             Dim definition =
     <Workspace>
@@ -646,7 +647,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_DifferentBlocks()
             Dim definition =
     <Workspace>
@@ -698,7 +699,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSLocalDeclarations_TypeOfInitializer()
             Dim definition =
     <Workspace>

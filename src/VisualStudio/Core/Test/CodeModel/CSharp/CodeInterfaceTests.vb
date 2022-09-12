@@ -8,12 +8,15 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
+    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeInterfaceTests
         Inherits AbstractCodeInterfaceTests
 
 #Region "Access tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Access tests"
+>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -23,7 +26,7 @@ interface $$I { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess2()
             Dim code =
 <Code>
@@ -33,7 +36,7 @@ internal interface $$I { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAccess3()
             Dim code =
 <Code>
@@ -47,7 +50,9 @@ public interface $$I { }
 
 #Region "Attributes tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Attributes tests"
+>
         Public Sub TestAttributes1()
             Dim code =
 <Code>
@@ -57,7 +62,7 @@ interface $$C { }
             TestAttributes(code, NoElements)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAttributes2()
             Dim code =
 <Code>
@@ -70,7 +75,7 @@ interface $$C { }
             TestAttributes(code, IsElement("Serializable"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAttributes3()
             Dim code =
 <Code>using System;
@@ -83,7 +88,7 @@ interface $$C { }
             TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestAttributes4()
             Dim code =
 <Code>using System;
@@ -97,7 +102,9 @@ interface $$C { }
 #End Region
 
 #Region "Parts tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Parts tests"
+>
         Public Sub TestParts1()
             Dim code =
 <Code>
@@ -109,7 +116,7 @@ interface $$I
             TestParts(code, 1)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParts2()
             Dim code =
 <Code>
@@ -121,7 +128,7 @@ partial interface $$I
             TestParts(code, 1)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestParts3()
             Dim code =
 <Code>
@@ -139,7 +146,9 @@ partial interface I
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddAttribute tests"
+>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -158,7 +167,7 @@ interface I { }
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -180,7 +189,7 @@ interface I { }
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
@@ -205,7 +214,9 @@ interface I { }
 
 #Region "AddBase tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddBase tests"
+>
         Public Async Function TestAddBase1() As Task
             Dim code =
 <Code>
@@ -219,7 +230,7 @@ interface I : B { }
             Await TestAddBase(code, "B", Nothing, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddBase2() As Task
             Dim code =
 <Code>
@@ -233,7 +244,7 @@ interface I : A, B { }
             Await TestAddBase(code, "A", Nothing, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddBase3() As Task
             Dim code =
 <Code>
@@ -247,7 +258,7 @@ interface I : B, A { }
             Await TestAddBase(code, "A", Type.Missing, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddBase4() As Task
             Dim code =
 <Code>
@@ -261,7 +272,7 @@ interface I : B, A { }
             Await TestAddBase(code, "A", -1, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddBase5() As Task
             Dim code =
 <Code>
@@ -275,7 +286,7 @@ interface I : A, B { }
             Await TestAddBase(code, "A", 0, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddBase6() As Task
             Dim code =
 <Code>
@@ -297,7 +308,9 @@ interface I : B
 
 #Region "AddEvent tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddEvent tests"
+>
         Public Async Function TestAddEvent1() As Task
             Dim code =
 <Code>
@@ -317,7 +330,7 @@ interface I
             Await TestAddEvent(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler"})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestAddEvent2() As Task
             Dim code =
 <Code>
@@ -342,7 +355,9 @@ interface I
 
 #Region "AddFunction tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "AddFunction tests"
+>
         Public Async Function TestAddFunction1() As Task
             Dim code =
 <Code>
@@ -364,7 +379,9 @@ interface I
 
 #Region "RemoveBase tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "RemoveBase tests"
+>
         Public Async Function TestRemoveBase1() As Task
             Dim code =
 <Code>
@@ -378,7 +395,7 @@ interface I { }
             Await TestRemoveBase(code, "B", expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Async Function TestRemoveBase2() As Task
             Dim code =
 <Code>
@@ -395,7 +412,9 @@ interface I : B { }
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact
+#Region "Set Name tests"
+>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
@@ -415,7 +434,7 @@ interface Bar
         End Function
 #End Region
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

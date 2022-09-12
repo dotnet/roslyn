@@ -6,9 +6,10 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
+    <Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
     Partial Public Class MethodXMLTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSEvents_AddDelegate()
             Dim definition =
 <Workspace>
@@ -58,7 +59,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler1()
             Dim definition =
 <Workspace>
@@ -105,7 +106,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler2()
             Dim definition =
 <Workspace>
@@ -156,7 +157,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact>
         Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler3()
             Dim definition =
 <Workspace>

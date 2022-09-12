@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class RaiseEventStatementSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
@@ -15,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Regular tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact
+#Region "Regular tests"
+>
         Public Async Function TestRaiseEvent() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -34,7 +37,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestRaiseEvent_NoDerivedEvents() As Task
             Dim markup = <a><![CDATA[
 Class B
@@ -57,7 +60,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         <WorkItem(543558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543558")>
         Public Async Function TestRaiseEvent_Shared() As Task
             Dim markup = <a><![CDATA[
@@ -77,7 +80,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact>
         Public Async Function TestRaiseEvent_NoInstanceInSharedContext() As Task
             Dim markup = <a><![CDATA[
 Class C

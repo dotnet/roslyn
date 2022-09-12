@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.IntroduceVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceVariable
     <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
     Public Class IntroduceVariableTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -1719,7 +1720,7 @@ End Module"
             Await TestMissingInRegularAndScriptAsync(source)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
         Public Async Function TestMissingOnAddressOfInDelegate() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -1734,7 +1735,7 @@ End Module"
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <Fact>
         <WorkItem(545168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545168")>
         Public Async Function TestMissingOnXmlName() As Task
             Await TestMissingInRegularAndScriptAsync(

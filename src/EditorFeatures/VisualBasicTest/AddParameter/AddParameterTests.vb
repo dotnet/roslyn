@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddParameter
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
     Public Class AddParameterTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(23927, "https://github.com/dotnet/roslyn/issues/23927")>
         Public Async Function TestMissingOnOmittedArgument() As Task
             Await TestMissingAsync(
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestMissingWithImplicitConstructor() As Task
             Await TestMissingAsync(
 "
@@ -54,7 +55,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestOnEmptyConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -81,7 +82,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")>
         Public Async Function TestNothingArgument1() As Task
             Await TestInRegularAndScriptAsync(
@@ -109,7 +110,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestNamedArg() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -136,7 +137,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestMissingWithConstructorWithSameNumberOfParams() As Task
             Await TestMissingAsync(
 "
@@ -152,7 +153,7 @@ class D
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestAddBeforeMatchingArg() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -181,7 +182,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestAddAfterMatchingConstructorParam() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -210,7 +211,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestParams1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -241,7 +242,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         Public Async Function TestParams2() As Task
             Await TestMissingAsync(
 "
@@ -258,7 +259,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
         Public Async Function TestMultiLineParameters1() As Task
             Await TestInRegularAndScriptAsync(
@@ -285,7 +286,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
         Public Async Function TestMultiLineParameters2() As Task
             Await TestInRegularAndScriptAsync(
@@ -312,7 +313,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
         Public Async Function TestMultiLineParameters3() As Task
             Await TestInRegularAndScriptAsync(
@@ -339,7 +340,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
         Public Async Function TestMultiLineParameters4() As Task
             Await TestInRegularAndScriptAsync(
@@ -368,7 +369,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
         Public Async Function TestMultiLineParameters5() As Task
             Await TestInRegularAndScriptAsync(
@@ -397,7 +398,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
         Public Async Function TestMultiLineParameters6() As Task
             Await TestInRegularAndScriptAsync(
@@ -426,7 +427,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_InstanceMethod1() As Task
             ' error BC30057: Too many arguments to 'Private Sub M1()'.
@@ -455,7 +456,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_StaticMethod() As Task
             ' error BC30057: Too many arguments to 'Private Shared Sub M1()'.
@@ -482,7 +483,7 @@ End Class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_ExtensionMethod() As Task
             ' error BC36582: Too many arguments to extension method 'Public Sub ExtensionM1()' defined in 'Extensions'.
@@ -525,7 +526,7 @@ End Namespace
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationExtensionMethod_StaticInvocationStyle() As Task
             ' error BC30057: Too many arguments to 'Public Sub ExtensionM1(i As Integer)'.
@@ -562,7 +563,7 @@ End Namespace
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationOverride() As Task
             ' error BC30516: Overload resolution failed because no accessible 'M1' accepts this number of arguments.
@@ -621,7 +622,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, fixCascading, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationInterface() As Task
             ' error BC30057: Too many arguments to 'Public Sub M1()'.
@@ -680,7 +681,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, fixCascading, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationRecursion() As Task
             ' error BC30057: Too many arguments to 'Private Sub M1()'.
@@ -701,7 +702,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationTuple1() As Task
             ' error BC30057: Too many arguments to 'Private Sub M1(t1 As (Integer, Integer))'.
@@ -722,7 +723,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationTuple2() As Task
             ' error BC30057: Too many arguments to 'Private Sub M1(t1 As (Integer, Integer))'.
@@ -745,7 +746,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocationTuple3() As Task
             ' error BC30057: Too many arguments to 'Private Sub M1(t1 As (Integer, Integer))'.
@@ -768,7 +769,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_OverloadResolution_Missing() As Task
             ' error BC30311: Value of type 'Exception' cannot be converted to 'String'.
@@ -801,7 +802,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_OverloadResolution_WrongNumberOfArguments() As Task
             ' error BC30516: Overload resolution failed because no accessible 'M' accepts this number of arguments.
@@ -834,7 +835,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_LambdaExpressionParameter() As Task
             ' error BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
@@ -867,7 +868,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_NamedParameter() As Task
             ' error BC30272: 'i2' is not a parameter of 'Private Sub M1(i1 As Integer)'.
@@ -894,7 +895,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_AddParameterToMethodWithParams() As Task
             ' error BC30311: Value of type 'String' cannot be converted to 'Exception'.
@@ -921,7 +922,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_PartialMethodsInOneDocument() As Task
             ' error BC30057: Too many arguments to 'Private Sub PartialM()'.
@@ -964,7 +965,7 @@ End Namespace"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_InvocationStyles_Positional_WithOptionalParam() As Task
             ' error BC30057: Too many arguments to 'Private Sub M([i As Integer = 1])'.
@@ -991,7 +992,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_InvocationStyles_Named_WithOptionalParam() As Task
             ' error BC30272: 'i3' is not a parameter of 'Private Sub M(i1 As Integer, [i2 As Integer = 2])'.
@@ -1018,7 +1019,7 @@ End Class"
             Await TestInRegularAndScriptAsync(code, fix)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         Public Async Function TestInvocation_Indexer_NotSupported() As Task
             ' error BC30057: Too many arguments to 'Public Default Property Item(i1 As Integer) As Integer'.
@@ -1042,7 +1043,7 @@ End Class
             Await TestMissingAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")>
         Public Async Function TestConstructorInitializer_DontOfferFixForConstructorWithDiagnostic() As Task
             ' Error BC30057: Too many arguments to 'Public Sub New()'.
@@ -1057,7 +1058,7 @@ End Class
             Await TestMissingAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")>
         Public Async Function TestConstructorInitializer_OfferFixForOtherConstructors() As Task
             ' Error BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
@@ -1087,7 +1088,7 @@ End Class
             Await TestActionCountAsync(code, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <Fact>
         <WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")>
         Public Async Function TestConstructorInitializer_OfferFixForBaseConstrcutors() As Task
             ' error BC30057: Too many arguments to 'Public Sub New()'.
