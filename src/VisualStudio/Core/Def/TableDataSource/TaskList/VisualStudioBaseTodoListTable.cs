@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected override void ShutdownSource()
             => _source.Shutdown();
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem, TaskListUpdatedArgs>
+        private class TableDataSource : AbstractRoslynTableDataSource<TaskListTableItem, TaskListUpdatedArgs>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
@@ -127,13 +127,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return GetDocumentsWithSameFilePath(data.Solution, data.DocumentId);
             }
 
-            public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            public override AbstractTableEntriesSnapshot<TaskListTableItem> CreateSnapshot(AbstractTableEntriesSource<TaskListTableItem> source, int version, ImmutableArray<TaskListTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 => new TableEntriesSnapshot(ThreadingContext, version, items, trackingPoints);
 
-            public override IEqualityComparer<TodoTableItem> GroupingComparer
-                => TodoTableItem.GroupingComparer.Instance;
+            public override IEqualityComparer<TaskListTableItem> GroupingComparer
+                => TaskListTableItem.GroupingComparer.Instance;
 
-            public override IEnumerable<TodoTableItem> Order(IEnumerable<TodoTableItem> groupedItems)
+            public override IEnumerable<TaskListTableItem> Order(IEnumerable<TaskListTableItem> groupedItems)
             {
                 return groupedItems.OrderBy(d => d.Data.OriginalLine)
                                    .ThenBy(d => d.Data.OriginalColumn);
@@ -157,13 +157,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 OnDataAddedOrChanged(e);
             }
 
-            public override AbstractTableEntriesSource<TodoTableItem> CreateTableEntriesSource(object data)
+            public override AbstractTableEntriesSource<TaskListTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (TaskListUpdatedArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
-            private sealed class TableEntriesSource : AbstractTableEntriesSource<TodoTableItem>
+            private sealed class TableEntriesSource : AbstractTableEntriesSource<TaskListTableItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
@@ -178,20 +178,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => _documentId;
 
-                public override ImmutableArray<TodoTableItem> GetItems()
+                public override ImmutableArray<TaskListTableItem> GetItems()
                 {
                     return _source._todoListProvider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(data => TodoTableItem.Create(_workspace, data))
+                                   .Select(data => TaskListTableItem.Create(_workspace, data))
                                    .ToImmutableArray();
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTableItem> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TaskListTableItem> items)
                     => _workspace.CreateTrackingPoints(_documentId, items);
             }
 
-            private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
+            private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TaskListTableItem>
             {
-                public TableEntriesSnapshot(IThreadingContext threadingContext, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                public TableEntriesSnapshot(IThreadingContext threadingContext, int version, ImmutableArray<TaskListTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                     : base(threadingContext, version, items, trackingPoints)
                 {
                 }
@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 // TODO: Apply location mapping when creating the TODO item (https://github.com/dotnet/roslyn/issues/36217)
-                private static LinePosition GetLineColumn(TodoTableItem item)
+                private static LinePosition GetLineColumn(TaskListTableItem item)
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                         item.Data.DocumentId,
