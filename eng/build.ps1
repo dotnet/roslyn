@@ -540,7 +540,7 @@ function EnableRegistryDumpCollection()
   New-Item -Path $localDumpsRegKey -Force
   New-ItemProperty -Path $localDumpsRegKey -Name DumpType -PropertyType DWord -Value 2 -Force
   New-ItemProperty -Path $localDumpsRegKey -Name DumpCount -PropertyType DWord -Value 2 -Force
-  New-ItemProperty -Path $localDumpsRegKey -Name DumpType -PropertyType String -Value $LogDir -Force
+  New-ItemProperty -Path $localDumpsRegKey -Name DumpFolder -PropertyType String -Value $LogDir -Force
 
   Write-Host (Get-ItemProperty -Path $localDumpsRegKey)
 }
@@ -559,7 +559,7 @@ function DisableRegistryDumpCollection()
     Write-Host "Deleting local dumps registry values at $localDumpsRegKey"
     Remove-ItemProperty -Path $localDumpsRegKey -Name DumpType -Force
     Remove-ItemProperty -Path $localDumpsRegKey -Name DumpCount -Force
-    Remove-ItemProperty -Path $localDumpsRegKey -Name DumpType -Force
+    Remove-ItemProperty -Path $localDumpsRegKey -Name DumpFolder -Force
   }
   
 }
