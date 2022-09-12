@@ -135,10 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 => TaskListTableItem.GroupingComparer.Instance;
 
             public override IEnumerable<TaskListTableItem> Order(IEnumerable<TaskListTableItem> groupedItems)
-            {
-                return groupedItems.OrderBy(d => d.Data.Span.StartLinePosition.Line)
-                                   .ThenBy(d => d.Data.Span.StartLinePosition.Character);
-            }
+                => groupedItems.OrderBy(d => d.Data.Span.StartLinePosition);
 
             private void OnTaskListUpdated(object sender, TaskListUpdatedArgs e)
             {
@@ -218,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = DiagnosticDataLocation.GetFilePath(data.Span.Path, data.MappedSpan.Path);
+                            content = data.MappedSpan.HasMappedPath ? data.MappedSpan.Path : data.Span.Path;
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

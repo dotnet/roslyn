@@ -77,11 +77,11 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             location: new DiagnosticDataLocation(
                 document.Id,
                 originalFilePath: i.Span.Path,
-                mappedFilePath: i.MappedSpan.Path,
                 originalStartLine: i.Span.StartLinePosition.Line,
                 originalStartColumn: i.Span.StartLinePosition.Character,
                 originalEndLine: i.Span.EndLinePosition.Line,
                 originalEndColumn: i.Span.EndLinePosition.Character,
+                mappedFilePath: i.MappedSpan.Path,
                 mappedStartLine: i.MappedSpan.StartLinePosition.Line,
                 mappedStartColumn: i.MappedSpan.StartLinePosition.Character,
                 mappedEndLine: i.MappedSpan.EndLinePosition.Line,

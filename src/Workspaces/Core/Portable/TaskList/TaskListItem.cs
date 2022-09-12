@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TaskList
@@ -43,7 +42,9 @@ namespace Microsoft.CodeAnalysis.TaskList
             => obj is TaskListItem other && Equals(other);
 
         public override int GetHashCode()
-            => GetHashCode(this);
+            => Hash.Combine(this.DocumentId,
+               Hash.Combine(this.Priority,
+               Hash.Combine(this.Message, this.Span.Span.GetHashCode())));
 
         public override string ToString()
             => $"{Priority} {Message} {MappedSpan.Path ?? ""} ({MappedSpan.StartLinePosition.Line}, {MappedSpan.StartLinePosition.Character}) [original: {Span.Path ?? ""} ({Span.StartLinePosition.Line}, {Span.StartLinePosition.Character})";
@@ -53,11 +54,5 @@ namespace Microsoft.CodeAnalysis.TaskList
                Priority == right.Priority &&
                Message == right.Message &&
                Span.Span == right.Span.Span;
-
-        public static int GetHashCode(TaskListItem item)
-            => Hash.Combine(item.DocumentId,
-               Hash.Combine(item.Priority,
-               Hash.Combine(item.Message,
-               Hash.Combine(item.Span.Span.GetHashCode(), 0))));
     }
 }

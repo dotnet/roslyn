@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
                 var text = initialTextSnapshot.GetText(span.ToSpan());
 
-                Assert.Equal(todo.MappedSpan.Span.Start.Line, line.LineNumber);
-                Assert.Equal(todo.MappedSpan.Span.Start.Character, span.Start - line.Start);
+                Assert.Equal(todo.MappedSpan.StartLinePosition.Line, line.LineNumber);
+                Assert.Equal(todo.MappedSpan.StartLinePosition.Character, span.Start - line.Start);
                 Assert.Equal(todo.Message, text);
             }
         }
