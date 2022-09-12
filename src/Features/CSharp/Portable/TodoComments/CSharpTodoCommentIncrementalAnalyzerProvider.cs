@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
             => new CSharpTodoCommentService();
     }
 
-    internal class CSharpTodoCommentService : AbstractTodoCommentService
+    internal class CSharpTodoCommentService : AbstractTaskListService
     {
         private static readonly int s_multilineCommentPostfixLength = "*/".Length;
         private const string SingleLineCommentPrefix = "//";

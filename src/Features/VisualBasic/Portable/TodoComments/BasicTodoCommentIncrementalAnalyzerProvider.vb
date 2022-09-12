@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
     End Class
 
     Friend Class VisualBasicTodoCommentService
-        Inherits AbstractTodoCommentService
+        Inherits AbstractTaskListService
 
         Protected Overrides Sub AppendTodoComments(
                 commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
