@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 {
     internal static class TaskListOptionsStorage
     {

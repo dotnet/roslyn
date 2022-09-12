@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 {
     internal sealed class TaskListListener : ITaskListListener, IDisposable
     {
@@ -167,9 +167,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
                 if (newComments.IsEmpty)
-                {
                     _documentToInfos.TryRemove(documentId, out _);
-                }
                 else
                 {
                     _documentToInfos[documentId] = newComments;

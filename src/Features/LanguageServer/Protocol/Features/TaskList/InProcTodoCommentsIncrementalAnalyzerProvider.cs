@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 {
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the workspace
     /// to automatically load this.  Instead, VS waits until it is ready

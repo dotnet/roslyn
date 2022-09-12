@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 {
     internal sealed class InProcTaskListIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {
