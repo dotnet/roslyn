@@ -1325,9 +1325,7 @@ End Class
 #End Region
 
 #Region "FAR on primitive types"
-        <WpfTheory, CombinatorialData
-#Region "FAR on primitive types"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_PrimitiveTypeAsMethodParameter(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1385,9 +1383,7 @@ End Class
 #End Region
 
 #Region "FAR on value types"
-        <WpfTheory, CombinatorialData
-#Region "FAR on value types"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_Struct(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1450,9 +1446,7 @@ End Class
 #End Region
 
 #Region "FAR on across projects"
-        <WpfTheory, CombinatorialData
-#Region "FAR on across projects"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_NonDependentProjectCSharpRefsCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1546,9 +1540,7 @@ End Class
 #End Region
 
 #Region "FAR in namespaces"
-        <WpfTheory, CombinatorialData
-#Region "FAR in namespaces"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_InNamespace(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1572,9 +1564,7 @@ End Class
 #End Region
 
 #Region "FAR with case sensitivity"
-        <WpfTheory, CombinatorialData
-#Region "FAR with case sensitivity"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CaseSensitivity(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1617,9 +1607,7 @@ End Class
 #End Region
 
 #Region "FAR through alias"
-        <WpfTheory, CombinatorialData
-#Region "FAR through alias"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1699,9 +1687,7 @@ End Class
 #End Region
 
 #Region "FAR on object initializers"
-        <WpfTheory, CombinatorialData
-#Region "FAR on object initializers"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_ReferenceInObjectInitializers(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1749,9 +1735,7 @@ End Class
 #End Region
 
 #Region "FAR on collection initializers"
-        <WpfTheory, CombinatorialData
-#Region "FAR on collection initializers"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestLocal_CSharpColInitWithMultipleExpressionContainSameIdentifier(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1793,9 +1777,7 @@ End Class
 #End Region
 
 #Region "FAR on array initializers"
-        <WpfTheory, CombinatorialData
-#Region "FAR on array initializers"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpArrayInitializerContainsALongExpression(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1967,9 +1949,7 @@ End Class
 #End Region
 
 #Region "FAR on query expressions"
-        <WpfTheory, CombinatorialData
-#Region "FAR on query expressions"
->
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpQueryExpressionInitializedViaColInitializer(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

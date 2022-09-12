@@ -8,9 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     <Trait(Traits.Feature, Traits.Features.NamingStyle)>
     Partial Public Class NamingStyleTests
 #Region "PascalCase"
-        <Fact
-#Region "PascalCase"
->
+        <Fact>
         Public Sub TestPascalCaseWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.PascalCase)
             TestNameCreation(namingStyle, "")
@@ -42,9 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "camelCase"
-        <Fact
-#Region "camelCase"
->
+        <Fact>
         Public Sub TestCamelCaseWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.CamelCase)
             TestNameCreation(namingStyle, "")
@@ -82,9 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "Firstupper"
-        <Fact
-#Region "Firstupper"
->
+        <Fact>
         Public Sub TestFirstUpperWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "")
@@ -122,9 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "alllower"
-        <Fact
-#Region "alllower"
->
+        <Fact>
         Public Sub TestAllLowerWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllLower)
             TestNameCreation(namingStyle, "")
@@ -162,9 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #End Region
 
 #Region "ALLUPPER"
-        <Fact
-#Region "ALLUPPER"
->
+        <Fact>
         Public Sub TestAllUpperWithZeroWords()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllUpper)
             TestNameCreation(namingStyle, "")

@@ -3,15 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-    <[UseExportProvider]>
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.GoToDefinition)>
     Public Class CSharpGoToDefinitionTests
         Inherits GoToDefinitionTestsBase
 #Region "P2P Tests"
 
-        <WpfFact
-#Region "P2P Tests"
->
+        <WpfFact>
         Public Async Function TestP2PClassReference() As Task
             Dim workspace =
 <Workspace>
@@ -43,9 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
 #Region "Normal CSharp Tests"
 
-        <WpfFact
-#Region "Normal CSharp Tests"
->
+        <WpfFact>
         Public Async Function TestCSharpGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -1237,9 +1233,7 @@ namespace System
 
 #Region "CSharp Venus Tests"
 
-        <WpfFact
-#Region "CSharp Venus Tests"
->
+        <WpfFact>
         Public Async Function TestCSharpVenusGotoDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -1305,9 +1299,7 @@ namespace System
 
 #Region "CSharp Script Tests"
 
-        <WpfFact
-#Region "CSharp Script Tests"
->
+        <WpfFact>
         Public Async Function TestCSharpScriptGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -1708,9 +1700,7 @@ class Program
 
 #Region "Show notification tests"
 
-        <WpfFact
-#Region "Show notification tests"
->
+        <WpfFact>
         Public Async Function TestShowNotificationCS() As Task
             Dim workspace =
 <Workspace>
