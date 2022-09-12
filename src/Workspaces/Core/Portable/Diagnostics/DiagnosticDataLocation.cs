@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return IsMapped
                 ? new(filePath, MappedFileSpan.Value.StartLinePosition, MappedFileSpan.Value.EndLinePosition)
-                : new(filePath, OriginalFileSpan.Value!.StartLinePosition, OriginalFileSpan.Value!.EndLinePosition);
+                : new(filePath, OriginalFileSpan!.Value.StartLinePosition, OriginalFileSpan!.Value.EndLinePosition);
         }
 
         internal string? GetFilePath()
