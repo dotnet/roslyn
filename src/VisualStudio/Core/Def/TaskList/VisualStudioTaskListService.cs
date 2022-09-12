@@ -23,11 +23,11 @@ using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
+namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
     [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioTodoCommentsService :
+    internal class VisualStudioTaskListService :
         ITaskListProvider,
         IVsTypeScriptTodoCommentService,
         IEventListener<object>,
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioTodoCommentsService(
+        public VisualStudioTaskListService(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,

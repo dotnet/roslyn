@@ -196,6 +196,9 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TodoComments\" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 
   <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
