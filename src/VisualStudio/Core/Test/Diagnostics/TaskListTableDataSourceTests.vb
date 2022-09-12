@@ -376,8 +376,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 priority:=0,
                 message:="test",
                 documentId:=documentId,
-                New FileLinePositionSpan("test1", New LinePosition(11, 21), New LinePosition(11, 22)),
-                New FileLinePositionSpan("test1", New LinePosition(11, 21), New LinePosition(11, 22)))
+                New FileLinePositionSpan("test1", New LinePosition(10, 20), New LinePosition(10, 20)),
+                New FileLinePositionSpan("test1", New LinePosition(10, 20), New LinePosition(10, 20)))
         End Function
 
         Private Class TestTodoListProvider
