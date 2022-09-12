@@ -64,8 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     var extensionType_HeaderProperty = extensionType.GetRuntimeProperty("Header");
                     var extension_Header = extensionType_HeaderProperty.GetValue(extension);
                     var extension_HeaderType = extension_Header.GetType();
-                    var extension_HeaderType_Identity = extension_HeaderType.GetRuntimeProperty("Identifier");
-                    var identity = extension_HeaderType_Identity.GetValue(extension_Header) as string;
+                    var extension_HeaderType_Identifier = extension_HeaderType.GetRuntimeProperty("Identifier");
+                    var identifier = extension_HeaderType_Identifier.GetValue(extension_Header) as string;
 
                     var extensionType_ContentProperty = extensionType.GetRuntimeProperty("Content");
                     var extension_Content = (IEnumerable<object>)extensionType_ContentProperty.GetValue(extension);
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                             continue;
                         }
 
-                        analyzePaths.Add(assemblyPath, identity);
+                        analyzePaths.Add(assemblyPath, identifier);
                     }
                 }
 
