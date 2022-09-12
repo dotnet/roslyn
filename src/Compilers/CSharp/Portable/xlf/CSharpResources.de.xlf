@@ -5107,8 +5107,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Ein params-Parameter muss der letzte Parameter in einer formellen Parameterliste sein.</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Ein params-Parameter muss der letzte Parameter in einer formellen Parameterliste sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5222,8 +5222,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Ein __arglist-Parameter muss der letzte Parameter in einer formellen Parameterliste sein.</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Ein __arglist-Parameter muss der letzte Parameter in einer formellen Parameterliste sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9935,8 +9935,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Es wurde kein Argument angegeben, das dem formalen Parameter "{0}" von "{1}" entspricht.</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">Es wurde kein Argument angegeben, das dem formalen Parameter "{0}" von "{1}" entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

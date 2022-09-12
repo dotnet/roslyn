@@ -5107,8 +5107,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">params パラメーターは、仮パラメーター リストの最後のパラメーターでなければなりません</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">params パラメーターは、仮パラメーター リストの最後のパラメーターでなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5222,8 +5222,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">__arglist パラメーターは、仮パラメーター リストの最後のパラメーターでなければなりません</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">__arglist パラメーターは、仮パラメーター リストの最後のパラメーターでなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9935,8 +9935,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">'{1}' の必要な仮パラメーター '{0}' に対応する特定の引数がありません</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">'{1}' の必要な仮パラメーター '{0}' に対応する特定の引数がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
