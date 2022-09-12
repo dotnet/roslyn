@@ -494,8 +494,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
+        [Fact, WorkItem(36909, "https://github.com/dotnet/roslyn/issues/36909")]
         public async Task TestMissingWithNoSystemIndex()
         {
             var source =
@@ -761,8 +760,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        [Fact, WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
         public async Task TestNotInExpressionTree()
         {
             var source =
