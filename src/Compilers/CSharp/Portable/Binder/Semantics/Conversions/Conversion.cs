@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>, IConvertibleConversion
+    public readonly struct Conversion : IEquatable<Conversion>, IConvertibleConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData? _uncommonData;
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
-    internal struct DeconstructMethodInfo
+    internal readonly struct DeconstructMethodInfo
     {
         internal DeconstructMethodInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)

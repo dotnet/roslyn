@@ -932,8 +932,7 @@ public class Test
             }.RunAsync();
         }
 
-        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [Theory, WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183"), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         [InlineData(
             "c.Prop.Substring([|42|])",
             "c.Prop[42..]")]

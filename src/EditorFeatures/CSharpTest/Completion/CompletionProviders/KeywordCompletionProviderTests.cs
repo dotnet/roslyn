@@ -539,8 +539,7 @@ $@"{declarationType} C {{
             await VerifyItemExistsAsync(markup, "readonly");
         }
 
-        [WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921"), CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCastExpressionThatMightBeParenthesizedExpression1(bool hasNewline)
         {
 

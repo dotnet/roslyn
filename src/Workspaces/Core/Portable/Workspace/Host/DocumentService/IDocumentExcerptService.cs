@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Result of excerpt
     /// </summary>
-    internal struct ExcerptResult
+    internal readonly struct ExcerptResult
     {
         /// <summary>
         /// excerpt content

@@ -144,8 +144,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
+        <WpfFact, WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
         Public Sub TestPeekAcrossProjectsInvolvingPortableReferences()
             Dim workspaceDefinition =
 <Workspace>

@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DeclarationScope EffectiveScope => _underlyingParameter.EffectiveScope;
 
+        internal sealed override bool UseUpdatedEscapeRules => _underlyingParameter.UseUpdatedEscapeRules;
+
         #endregion
     }
 }

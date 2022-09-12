@@ -773,8 +773,7 @@ End Class</Code>
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(545358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545358")>
+        <WpfFact, WorkItem(545358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545358")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestCommitWithNextStatementWithMultipleControlVariables()
             Using testData = CommitTestData.Create(
@@ -809,8 +808,7 @@ End Module</Code>
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(608438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608438")>
+        <WpfFact, WorkItem(608438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608438")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestBugfix_608438()
             Using testData = CommitTestData.Create(

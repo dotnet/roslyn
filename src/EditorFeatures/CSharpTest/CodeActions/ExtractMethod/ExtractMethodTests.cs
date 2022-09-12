@@ -40,8 +40,7 @@ dotnet_naming_symbols.local_functions.required_modifiers =
 
 dotnet_naming_style.camel_case.capitalization = camel_case";
 
-        [Fact]
-        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        [Fact, WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public async Task LocalFuncExtract()
         {
             await TestInRegularAndScript1Async(@"
@@ -1767,8 +1766,7 @@ class C
 }", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
-        [Fact]
-        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        [Fact, WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCall()
         {
             var code = @"
@@ -1810,8 +1808,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        [Fact, WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
             var code = @"
@@ -1826,8 +1823,7 @@ class C
             await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
         }
 
-        [Fact]
-        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        [Fact, WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1841,8 +1837,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        [Fact, WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionInterior()
         {
             await TestInRegularAndScript1Async(@"
@@ -4426,8 +4421,7 @@ class C
 }");
         }
 
-        [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Theory, WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         [InlineData("record")]
         [InlineData("record class")]
         public async Task TestInRecord(string record)

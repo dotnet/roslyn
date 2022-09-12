@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 
         #region "Declaring generic type objects"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task NestedGenericTerminated()
         {
             var markup = @"
@@ -45,7 +46,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWith1ParameterTerminated()
         {
             var markup = @"
@@ -65,7 +66,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWith2ParametersOn1()
         {
             var markup = @"
@@ -85,7 +86,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWith2ParametersOn2()
         {
             var markup = @"
@@ -105,7 +106,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWith2ParametersOn1XmlDoc()
         {
             var markup = @"
@@ -133,7 +134,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWith2ParametersOn2XmlDoc()
         {
             var markup = @"
@@ -162,7 +163,7 @@ class C
 
         #region "Constraints on generic types"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsStruct()
         {
             var markup = @"
@@ -183,7 +184,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsClass()
         {
             var markup = @"
@@ -204,7 +205,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsNew()
         {
             var markup = @"
@@ -225,7 +226,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsBase()
         {
             var markup = @"
@@ -248,7 +249,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsBaseGenericWithGeneric()
         {
             var markup = @"
@@ -271,7 +272,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsBaseGenericWithNonGeneric()
         {
             var markup = @"
@@ -294,7 +295,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsBaseGenericNested()
         {
             var markup = @"
@@ -317,7 +318,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsDeriveFromAnotherGenericParameter()
         {
             var markup = @"
@@ -338,7 +339,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsMixed1()
         {
             var markup = @"
@@ -370,7 +371,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task DeclaringGenericTypeWithConstraintsMixed2()
         {
             var markup = @"
@@ -406,7 +407,7 @@ class C
 
         #region "Generic member invocation"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task InvokingGenericMethodWith1ParameterTerminated()
         {
             var markup = @"
@@ -426,8 +427,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn1()
         {
             var markup = @"
@@ -455,8 +455,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn2()
         {
             var markup = @"
@@ -476,8 +475,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn1XmlDoc()
         {
             var markup = @"
@@ -502,8 +500,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn2XmlDoc()
         {
             var markup = @"
@@ -528,7 +525,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task CallingGenericExtensionMethod()
         {
             var markup = @"
@@ -560,8 +557,7 @@ static class GooClass
 
         #region "Constraints on generic methods"
 
-        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWithConstraintsMixed1()
         {
             var markup = @"
@@ -592,8 +588,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWithConstraintsMixed2()
         {
             var markup = @"
@@ -624,7 +619,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestUnmanagedConstraint()
         {
             var markup = @"
@@ -655,7 +650,7 @@ class C
 
         #region "Trigger tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = { ',', '<' };
@@ -664,7 +659,7 @@ class C
             VerifyTriggerCharacters(expectedCharacters, unexpectedCharacters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -693,7 +688,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -733,8 +728,7 @@ class C
 
         #region "EditorBrowsable tests"
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType_BrowsableAlways()
         {
             var markup = @"
@@ -763,8 +757,7 @@ public class C<T>
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType_BrowsableNever()
         {
             var markup = @"
@@ -793,8 +786,7 @@ public class C<T>
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType_BrowsableAdvanced()
         {
             var markup = @"
@@ -833,8 +825,7 @@ public class C<T>
         }
         #endregion
 
-        [WorkItem(1083601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083601")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(1083601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083601")]
         public async Task DeclaringGenericTypeWithBadTypeArgumentList()
         {
             var markup = @"
@@ -852,8 +843,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(50114, "https://github.com/dotnet/roslyn/issues/50114")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, WorkItem(50114, "https://github.com/dotnet/roslyn/issues/50114")]
         public async Task DeclaringGenericTypeWithDocCommentList()
         {
             var markup = @"

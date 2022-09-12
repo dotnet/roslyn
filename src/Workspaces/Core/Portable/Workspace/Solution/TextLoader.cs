@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis
             return TextAndVersion.Create(
                 SourceText.From(string.Empty, Encoding.UTF8),
                 VersionStamp.Default,
-                string.Empty,
                 Diagnostic.Create(WorkspaceDiagnosticDescriptors.ErrorReadingFileContent, location, new[] { display, message }));
         }
 

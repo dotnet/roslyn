@@ -1982,8 +1982,7 @@ class C { int Y => 2; }
             Assert.Equal(1, generatorExecutionCount);
         }
 
-        [Fact]
-        [WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
+        [Fact, WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
         [WorkItem(1371694, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
@@ -2164,8 +2163,7 @@ class C { int Y => 2; }
             }, _telemetryLog);
         }
 
-        [Fact]
-        [WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
+        [Fact, WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
         public async Task Capabilities_NoTypesEmitted()
         {
             var sourceV1 = @"
@@ -3929,8 +3927,7 @@ class C
             EndDebuggingSession(debuggingSession);
         }
 
-        [Fact]
-        [WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
+        [Fact, WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
         public async Task ActiveStatements_EncSessionFollowedByHotReload()
         {
             var markedSource1 = @"
@@ -4471,7 +4468,7 @@ class C
                 loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
-            var hotReload = new WatchHotReloadService(workspace.Services.SolutionServices, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+            var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
             await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -4538,7 +4535,7 @@ class C
                 loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
-            var hotReload = new UnitTestingHotReloadService(workspace.Services.SolutionServices);
+            var hotReload = new UnitTestingHotReloadService(workspace.Services);
 
             await hotReload.StartSessionAsync(solution, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"), CancellationToken.None);
 

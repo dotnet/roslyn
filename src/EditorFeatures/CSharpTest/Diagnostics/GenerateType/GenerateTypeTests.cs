@@ -356,8 +356,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Theory, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         [InlineData("public", "internal", "internal")]
         [InlineData("public", "private", "internal")]
         [InlineData("internal", "protected", "internal")]
@@ -5488,8 +5487,7 @@ expectedDocumentName: "Goo.cs",
 new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a banner")));
         }
 
-        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Theory, WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         [InlineData("void")]
         [InlineData("int")]
         public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)

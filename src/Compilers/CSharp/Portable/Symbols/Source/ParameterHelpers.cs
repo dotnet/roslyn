@@ -188,12 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
-                if (scope == DeclarationScope.Unscoped &&
-                    IsRefScopedByDefault(refKind, parameterType))
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
-
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
@@ -326,11 +320,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            return IsRefScopedByDefault(parameter.RefKind, parameter.TypeWithAnnotations);
+            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind, parameter.TypeWithAnnotations);
         }
 
-        internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
+        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind, TypeWithAnnotations parameterType)
         {
+            if (!useUpdatedEscapeRules)
+            {
+                return false;
+            }
+
             switch (refKind)
             {
                 case RefKind.Out:
@@ -341,6 +340,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     return false;
             }
+        }
+
+        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
+        {
+            var declaredScope = parameter.DeclaredScope;
+            return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
+                DeclarationScope.RefScoped :
+                declaredScope;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
@@ -418,7 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
-        internal static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams, bool parsingLambdaParams)
+        internal static void CheckParameterModifiers(
+            BaseParameterSyntax parameter,
+            BindingDiagnosticBag diagnostics,
+            bool parsingFunctionPointerParams,
+            bool parsingLambdaParams)
         {
             var seenThis = false;
             var seenRef = false;
@@ -432,6 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.ThisKeyword:
+                        Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod, diagnostics);
+
+                        if (seenRef || seenIn)
+                        {
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                        }
+
                         if (parsingLambdaParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_ThisInBadContext, modifier.GetLocation());
@@ -455,6 +473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.RefKeyword:
+                        if (seenThis)
+                        {
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                        }
+
                         if (seenRef)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
@@ -536,6 +559,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.InKeyword:
+                        Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences, diagnostics);
+
+                        if (seenThis)
+                        {
+                            Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                        }
+
                         if (seenIn)
                         {
                             addERR_DupParamMod(diagnostics, modifier);
@@ -585,8 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
+                    case SyntaxKind.ReadOnlyKeyword:
+                        diagnostics.Add(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, modifier.GetLocation());
+                        break;
+
                     case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
-                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
                     case SyntaxKind.ScopedKeyword when parsingFunctionPointerParams:
                         diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
                         break;

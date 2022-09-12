@@ -2498,15 +2498,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var declaringReferences = symbolEvent.DeclaringSyntaxReferences;
                 for (var i = 0; i < declaringReferences.Length; i++)
                 {
-                    var decl = declaringReferences[i];
-                    ClearCachedAnalysisDataIfAnalyzed(decl, symbol, i, analysisState);
+                    ClearCachedAnalysisDataIfAnalyzed(symbol, i, analysisState);
                 }
             }
 
             return success;
         }
 
-        private void ClearCachedAnalysisDataIfAnalyzed(SyntaxReference declaration, ISymbol symbol, int declarationIndex, AnalysisState analysisState)
+        private void ClearCachedAnalysisDataIfAnalyzed(ISymbol symbol, int declarationIndex, AnalysisState analysisState)
         {
             Debug.Assert(analysisState != null);
 
@@ -2515,7 +2514,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            CurrentCompilationData.ClearDeclarationAnalysisData(declaration);
+            CurrentCompilationData.ClearDeclarationAnalysisData(symbol, declarationIndex);
         }
 
         private DeclarationAnalysisData ComputeDeclarationAnalysisData(
@@ -2580,7 +2579,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 (!analysisScope.FilterSpanOpt.HasValue || analysisScope.FilterSpanOpt.Value.Length >= decl.SyntaxTree.GetRoot(cancellationToken).Span.Length);
 
             var declarationAnalysisData = CurrentCompilationData.GetOrComputeDeclarationAnalysisData(
-                decl,
+                symbol,
+                declarationIndex,
                 computeDeclarationAnalysisData: () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken),
                 cacheAnalysisData: cacheAnalysisData);
 
@@ -2612,7 +2612,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (cacheAnalysisData)
                 {
-                    ClearCachedAnalysisDataIfAnalyzed(decl, symbol, declarationIndex, analysisState);
+                    ClearCachedAnalysisDataIfAnalyzed(symbol, declarationIndex, analysisState);
                 }
             }
 

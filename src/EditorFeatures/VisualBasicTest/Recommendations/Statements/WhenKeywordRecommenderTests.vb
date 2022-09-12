@@ -25,15 +25,13 @@ Catch x |
 End Try</MethodBody>, "When")
         End Sub
 
-        <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
-        <Fact>
+        <Fact, WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoWhenAfterDimStatementTest()
             VerifyRecommendationsMissing(<MethodBody>Dim ex As Exception |</MethodBody>, "When")
         End Sub
 
-        <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
-        <Fact>
+        <Fact, WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoWhenAfterLambdaInExceptionFilterTest()
             VerifyRecommendationsMissing(

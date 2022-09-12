@@ -20,6 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
     public class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTests
     {
         private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
@@ -33,12 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             => new Tuple<Analyzer, IConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
 
         [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
-        [WorkItem(1007071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [Fact, WorkItem(1007071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
         public async Task TestPragmaWarningOnEveryNodes()
             => await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [Fact]
         public async Task TestSuppressionWithAttributeOnEveryNodes()
         {
             await TestSuppressionWithAttributeAsync(

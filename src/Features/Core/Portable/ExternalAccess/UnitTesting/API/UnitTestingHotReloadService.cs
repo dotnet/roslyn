@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
 
-        public UnitTestingHotReloadService(SolutionServices services)
+        public UnitTestingHotReloadService(HostWorkspaceServices services)
             => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         /// <summary>

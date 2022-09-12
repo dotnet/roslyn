@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a compilation action or compilation end action.
     /// A compilation action or compilation end action can use a <see cref="CompilationAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see cref="CodeAnalysis.Compilation"/>.
     /// </summary>
-    public struct CompilationAnalysisContext
+    public readonly struct CompilationAnalysisContext
     {
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a semantic model action.
     /// A semantic model action operates on the <see cref="CodeAnalysis.SemanticModel"/> of a code document, and can use a <see cref="SemanticModelAnalysisContext"/> to report <see cref="Diagnostic"/>s about the model.
     /// </summary>
-    public struct SemanticModelAnalysisContext
+    public readonly struct SemanticModelAnalysisContext
     {
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a symbol action.
     /// A symbol action can use a <see cref="SymbolAnalysisContext"/> to report <see cref="Diagnostic"/>s about an <see cref="ISymbol"/>.
     /// </summary>
-    public struct SymbolAnalysisContext
+    public readonly struct SymbolAnalysisContext
     {
         private readonly ISymbol _symbol;
         private readonly Compilation _compilation;
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a code block action or code block end action.
     /// A code block action or code block end action can use a <see cref="CodeBlockAnalysisContext"/> to report <see cref="Diagnostic"/>s about a code block.
     /// </summary>
-    public struct CodeBlockAnalysisContext
+    public readonly struct CodeBlockAnalysisContext
     {
         private readonly SyntaxNode _codeBlock;
         private readonly ISymbol _owningSymbol;
@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for an operation block action or operation block end action.
     /// An operation block action or operation block end action can use an <see cref="OperationAnalysisContext"/> to report <see cref="Diagnostic"/>s about an operation block.
     /// </summary>
-    public struct OperationBlockAnalysisContext
+    public readonly struct OperationBlockAnalysisContext
     {
         private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a syntax tree action.
     /// A syntax tree action can use a <see cref="SyntaxTreeAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see cref="SyntaxTree"/> for a code document.
     /// </summary>
-    public struct SyntaxTreeAnalysisContext
+    public readonly struct SyntaxTreeAnalysisContext
     {
         private readonly SyntaxTree _tree;
         private readonly Compilation? _compilationOpt;
@@ -1474,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for a syntax node action.
     /// A syntax node action can use a <see cref="SyntaxNodeAnalysisContext"/> to report <see cref="Diagnostic"/>s for a <see cref="SyntaxNode"/>.
     /// </summary>
-    public struct SyntaxNodeAnalysisContext
+    public readonly struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
         private readonly ISymbol? _containingSymbol;
@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for an operation action.
     /// An operation action can use an <see cref="OperationAnalysisContext"/> to report <see cref="Diagnostic"/>s for an <see cref="IOperation"/>.
     /// </summary>
-    public struct OperationAnalysisContext
+    public readonly struct OperationAnalysisContext
     {
         private readonly IOperation _operation;
         private readonly ISymbol _containingSymbol;
@@ -1667,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Context for suppressing analyzer and/or compiler non-error diagnostics reported for the compilation.
     /// </summary>
-    public struct SuppressionAnalysisContext
+    public readonly struct SuppressionAnalysisContext
     {
         private readonly Action<Suppression> _addSuppression;
         private readonly Func<SuppressionDescriptor, bool> _isSupportedSuppressionDescriptor;

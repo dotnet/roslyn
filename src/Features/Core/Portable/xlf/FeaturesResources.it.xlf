@@ -715,6 +715,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Estrai classe di base...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_base_record">
+        <source>Extract base record...</source>
+        <target state="new">Extract base record...</target>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Estrai interfaccia...</target>
@@ -2652,7 +2657,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">L'assembly dell'analizzatore '{0}' fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -3417,6 +3422,11 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
         <source>external</source>
         <target state="translated">external</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="new">foreach loop</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

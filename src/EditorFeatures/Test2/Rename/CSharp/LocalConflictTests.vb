@@ -220,8 +220,7 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <Theory, WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInSameMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -248,8 +247,7 @@ public class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <Theory, WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelInMethodAndLambda(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -276,8 +274,7 @@ public class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <Theory, WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInLambda(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -303,8 +300,7 @@ public class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <Theory, WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLabelsInTwoNonNestedLambdas(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

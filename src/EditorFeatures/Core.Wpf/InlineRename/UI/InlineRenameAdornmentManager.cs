@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _dashboardColorUpdater?.UpdateColors();
 
-                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
+                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment);
                 if (useInlineAdornment)
                 {
                     if (!_textView.HasAggregateFocus)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var identifierSelection = new TextSpan(start, length);
 
                     var adornment = new RenameFlyout(
-                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true)),
+                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService)),
                         _textView);
 
                     _adornmentLayer.AddAdornment(

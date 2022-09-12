@@ -5985,7 +5985,7 @@ End Module
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
         End Sub
 
         <Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>

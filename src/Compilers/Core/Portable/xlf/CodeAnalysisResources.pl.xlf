@@ -17,6 +17,21 @@
         <target state="translated">Zestaw zawierający typ „{0}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="new">Illegal built-in operator name '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="new">Unsupported built-in operator: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="new">'{0}' was not a valid built-in operator name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Zmiany muszą należeć do zakresu elementu SourceText</target>

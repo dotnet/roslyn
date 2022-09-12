@@ -818,8 +818,7 @@ class Z
 }");
         }
 
-        [WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Theory, WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         [InlineData('m')]
         [InlineData('s')]
         [InlineData('t')]

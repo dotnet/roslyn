@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion;
 
         public static void Deconstruct(this SyntaxNode node, out SyntaxKind kind)
-        {
-            kind = node.Kind();
-        }
+            => kind = node.Kind();
 
         public static bool IsKind<TNode>([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(returnValue: true)] out TNode? result)
             where TNode : SyntaxNode
@@ -289,6 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 AccessorDeclarationSyntax accessor => accessor.AttributeLists,
                 ParameterSyntax parameter => parameter.AttributeLists,
                 CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
+                StatementSyntax statementSyntax => statementSyntax.AttributeLists,
+                TypeParameterSyntax typeParameter => typeParameter.AttributeLists,
+                LambdaExpressionSyntax lambdaExpressionSyntax => lambdaExpressionSyntax.AttributeLists,
                 _ => default,
             };
 

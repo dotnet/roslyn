@@ -141,8 +141,7 @@ End Module
             VerifyRecommendationsContain(code, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddressOfNotAfterAddressOfTest()
             Dim code = <ModuleDeclaration><![CDATA[
@@ -156,8 +155,7 @@ End Function
             VerifyRecommendationsMissing(code, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddressOfNotAfterAddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
@@ -169,8 +167,7 @@ Delegate Sub Goo()
             VerifyRecommendationsMissing(code, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddressOfNestedInsideAddressOfExpressionTest()
             Dim code = <ModuleDeclaration><![CDATA[

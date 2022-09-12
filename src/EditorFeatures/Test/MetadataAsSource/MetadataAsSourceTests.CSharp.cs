@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests
     {
+        [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public class CSharp : AbstractMetadataAsSourceTests
         {
-            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact]
             public void ExtractXMLFromDocComment()
             {
                 var docCommentText = @"/// <summary>
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
             public async Task TestNativeInteger(bool signaturesOnly)
             {
@@ -76,7 +77,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             public async Task TestInitOnlyProperty(bool signaturesOnly)
             {
                 var metadataSource = @"public class C { public int Property { get; init; } }
@@ -120,7 +121,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             public async Task TestTupleWithNames(bool signaturesOnly)
             {
                 var metadataSource = "public class C { public (int a, int b) t; }";
@@ -404,7 +405,7 @@ namespace System
                 await context.GenerateAndVerifySourceAsync("System.ValueTuple", expected, signaturesOnly: signaturesOnly);
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             public async Task TestExtendedPartialMethod1(bool signaturesOnly)
             {
                 var metadataSource = "public partial class C { public partial void F(); public partial void F() { } }";
@@ -445,7 +446,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             [WorkItem(44566, "https://github.com/dotnet/roslyn/issues/44566")]
             public async Task TestRecordType(bool signaturesOnly)
             {
@@ -570,7 +571,7 @@ public record [|R|]
             /// <summary>
             /// This test must be updated when we switch to a new version of the decompiler that supports checked ops.
             /// </summary>
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
             public async Task TestCheckedOperators(bool signaturesOnly)
             {
@@ -664,8 +665,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-            [WorkItem(60567, "https://github.com/dotnet/roslyn/issues/60567")]
+            [Fact, WorkItem(60567, "https://github.com/dotnet/roslyn/issues/60567")]
             public async Task TestStaticInterfaceMembers()
             {
                 var metadataSource = @"
@@ -709,7 +709,7 @@ internal interface I<T> where T : I<T>
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: true, metadataCommonReferences: "CommonReferencesNet6");
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             public async Task UnsignedRightShift(bool signaturesOnly)
             {
                 var metadataSource = "public class C { public static C operator >>>(C x, int y) => x; }";
@@ -754,11 +754,15 @@ public class C
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
             }
 
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData]
             public async Task TestRequiredProperty(bool signaturesOnly)
             {
                 var metadataSource = """
-                    public class C { public required int Property { get; set; } }
+                    public class C
+                    {
+                        public required int Property { get; set; }
+                        public required int Field;
+                    }
                     namespace System.Runtime.CompilerServices
                     {
                         public sealed class RequiredMemberAttribute : Attribute { }
@@ -783,14 +787,12 @@ public class C
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System.Runtime.CompilerServices;
-
-[RequiredMember]
 public class [|C|]
 {{
+    public required int Field;
+
     public C();
 
-    [RequiredMember]
     public required int Property {{ get; set; }}
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -804,6 +806,9 @@ using System.Runtime.CompilerServices;
 [RequiredMember]
 public class [|C|]
 {{
+    [RequiredMember]
+    public int Field;
+
     [RequiredMember]
     public int Property {{ get; set; }}
 

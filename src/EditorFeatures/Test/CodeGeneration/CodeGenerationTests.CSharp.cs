@@ -24,6 +24,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public partial class CodeGenerationTests
     {
         [UseExportProvider]
@@ -1596,8 +1597,7 @@ namespace N
             }
         }
 
-        [WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(665008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
         public async Task TestExtensionMethods()
         {
             var generationSource = @"
@@ -1615,8 +1615,7 @@ public static class [|C|]
                 onlyGenerateMembers: true);
         }
 
-        [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
         public async Task TestVBPropertiesWithParams()
         {
             var generationSource = @"
@@ -1646,8 +1645,7 @@ End Namespace
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
-        [WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
         public async Task TestRefParamsWithDefaultValue()
         {
             var generationSource = @"
@@ -1665,8 +1663,7 @@ End Class";
                 onlyGenerateMembers: true);
         }
 
-        [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
         public async Task TestConstraints()
         {
             var generationSource = @"
