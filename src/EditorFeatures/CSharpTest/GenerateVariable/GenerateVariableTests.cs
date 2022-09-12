@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         private const int ParameterAndOverrides = 5;
 
         public GenerateVariableTests(ITestOutputHelper logger)
-          : base(logger)
+            : base(logger)
         {
         }
 
