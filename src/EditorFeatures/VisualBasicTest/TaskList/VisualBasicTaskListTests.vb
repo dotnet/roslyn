@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.TaskList
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
     <UseExportProvider>
-    Public Class TodoCommentTests
+    Public Class VisualBasicTaskListTests
         Inherits AbstractTaskListTests
 
         Protected Overrides Function CreateWorkspace(codeWithMarker As String, composition As TestComposition) As TestWorkspace
