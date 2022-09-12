@@ -129,9 +129,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
 
-            if (original == mapped)
-                return original;
-
             var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), PathUtilities.GetFileName(mapped));
             try
             {
