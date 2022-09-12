@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
     public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
             => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestLogicalPrecedence()
         {
             await TestAsync(
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNoLogicalOnLowerPrecedence()
         {
             await TestMissingAsync(
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfLogicalPrecedenceStaysTheSame()
         {
             await TestMissingAsync(
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
         {
             await TestMissingAsync(
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireArithmeticBinaryParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
         {
             await TestAsync(
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 }", RequireAllParenthesesForClarity);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        [Fact]
         public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
         {
             await TestAsync(

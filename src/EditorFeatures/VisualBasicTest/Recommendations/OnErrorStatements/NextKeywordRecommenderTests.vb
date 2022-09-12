@@ -3,23 +3,21 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class NextKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterOnErrorResumeTest()
             VerifyRecommendationsAreExactly(<MethodBody>On Error Resume |</MethodBody>, "Next")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterResumeStatementTest()
             VerifyRecommendationsAreExactly(<MethodBody>Resume |</MethodBody>, "Next")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInLambdaAfterResumeTest()
             ' On Error statements are never allowed within lambdas
             VerifyRecommendationsMissing(<MethodBody>
@@ -29,7 +27,6 @@ End Sub</MethodBody>, "Next")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInLambdaAfterOnErrorResumeTest()
             ' On Error statements are never allowed within lambdas
             VerifyRecommendationsMissing(<MethodBody>
@@ -38,23 +35,21 @@ Dim x = Sub()
 End Sub</MethodBody>, "Next")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>On Error Resume 
 |</MethodBody>, "Next")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>On Error Resume _
 |</MethodBody>, "Next")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>On Error Resume _ ' Test

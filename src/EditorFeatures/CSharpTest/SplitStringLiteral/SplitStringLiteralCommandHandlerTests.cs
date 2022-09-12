@@ -31,6 +31,7 @@ using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentS
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
     public class SplitStringLiteralCommandHandlerTests
     {
         /// <summary>
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             Assert.True(notHandled);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingBeforeString()
         {
             TestNotHandled(
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingBeforeUtf8String()
         {
             TestNotHandled(
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingBeforeInterpolatedString()
         {
             TestNotHandled(
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_1()
         {
             TestNotHandled(
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_2()
         {
             TestNotHandled(
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_3()
         {
             TestNotHandled(
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterString_4()
         {
             TestNotHandled(
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_1()
         {
             TestNotHandled(
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_2()
         {
             TestNotHandled(
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_3()
         {
             TestNotHandled(
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterInterpolatedString_4()
         {
             TestNotHandled(
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterUtf8String_1()
         {
             TestNotHandled(
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterUtf8String_2()
         {
             TestNotHandled(
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterUtf8String_3()
         {
             TestNotHandled(
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterUtf8String_4()
         {
             TestNotHandled(
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingAfterUtf8String_5()
         {
             TestNotHandled(
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInUtf8VerbatimString()
         {
             TestNotHandled(
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInInterpolatedVerbatimString()
         {
             TestNotHandled(
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyString()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             verifyUndo: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyString_BlockIndent()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -437,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             IndentStyle.Block);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyString_NoneIndent()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -462,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             IndentStyle.None);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyInterpolatedString()
         {
             TestHandled(
@@ -483,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyInterpolatedString_BlockIndent()
         {
             TestHandled(
@@ -504,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }", indentStyle: IndentStyle.Block);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInEmptyInterpolatedString_NoneIndent()
         {
             TestHandled(
@@ -525,7 +526,7 @@ $""[||]"";
 }", indentStyle: IndentStyle.None);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestSimpleString1()
         {
             TestHandled(
@@ -546,7 +547,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestUtf8String_1()
         {
             TestHandled(
@@ -567,7 +568,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestUtf8String_2()
         {
             TestHandled(
@@ -588,7 +589,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInterpolatedString1()
         {
             TestHandled(
@@ -609,7 +610,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInterpolatedString2()
         {
             TestHandled(
@@ -630,7 +631,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInterpolatedString3()
         {
             TestHandled(
@@ -651,7 +652,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInInterpolation1()
         {
             TestNotHandled(
@@ -664,7 +665,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInInterpolation2()
         {
             TestNotHandled(
@@ -677,7 +678,7 @@ $""[||]"";
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestSelection()
         {
             TestNotHandled(
@@ -691,7 +692,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote1()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -728,7 +729,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote2()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -765,7 +766,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote3()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -802,7 +803,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote4()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -839,7 +840,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote5()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -876,7 +877,7 @@ $""[||]"";
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestBeforeEndQuote6()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -913,7 +914,7 @@ $""[||]"";
         }
 
         [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMultiCaretSingleLine()
         {
             TestHandled(
@@ -936,7 +937,7 @@ $""[||]"";
         }
 
         [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMultiCaretMultiLines()
         {
             TestHandled(
@@ -964,7 +965,7 @@ $""[||]"";
         }
 
         [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMultiCaretInterpolatedString()
         {
             TestHandled(
@@ -993,7 +994,7 @@ $""[||]"";
         }
 
         [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInStringWithKeepTabsEnabled1()
         {
             TestHandled(
@@ -1016,7 +1017,7 @@ $""[||]"";
         }
 
         [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestInStringWithKeepTabsEnabled2()
         {
             TestHandled(
@@ -1040,7 +1041,7 @@ $""[||]"";
             useTabs: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInRawStringLiteral()
         {
             TestNotHandled(
@@ -1055,7 +1056,7 @@ world
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInRawStringLiteralInterpolation()
         {
             TestNotHandled(
@@ -1070,7 +1071,7 @@ world
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInRawStringLiteralInterpolation_MultiBrace()
         {
             TestNotHandled(
@@ -1085,7 +1086,7 @@ world
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        [WpfFact]
         public void TestMissingInRawUtf8StringLiteral()
         {
             TestNotHandled(

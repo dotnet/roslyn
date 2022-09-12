@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
+    <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertMultiLineIfTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -51,7 +52,7 @@ End Module
 "
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestMultiLineIdentifier() As Task
             Await TestFixOneAsync(
 "
@@ -70,7 +71,7 @@ End Module
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestElseIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -86,7 +87,7 @@ Sub Main()
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestKeepElseIfKeyword() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -102,7 +103,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestMissingOnIfElseIfElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -118,8 +119,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -138,7 +138,7 @@ End Module")
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestDoesNotOverlapHiddenPosition1() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -167,7 +167,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestDoesNotOverlapHiddenPosition2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -194,8 +194,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -211,8 +210,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -230,7 +228,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestMissingOnOverlapsHiddenPosition3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -248,8 +246,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -265,8 +262,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -282,8 +278,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition6() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -299,7 +294,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestMultipleStatementsMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -326,7 +321,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestTriviaAfterMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -349,7 +344,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestKeepExplicitLineContinuationTriviaMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -374,7 +369,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestKeepTriviaInStatementsInMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -402,7 +397,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -427,7 +422,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -452,7 +447,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero4() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -477,7 +472,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero5() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -502,7 +497,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestDoesNotSimplifyToLengthEqualsZero() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -527,7 +522,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function TestDoesNotSimplifyToLengthEqualsZero2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -554,7 +549,7 @@ End Module")
 
         <WorkItem(529748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529748")>
         <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
-        <WpfFact(Skip:="Bug 530593"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="Bug 530593")>
         Public Async Function TestColonAfterSingleLineIfWithEmptyElse() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -572,8 +567,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnlyOnElseIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -589,8 +583,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfMultiLineIfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -614,7 +607,7 @@ End Module")
         End Function
 
         <WorkItem(531474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
-        <WpfFact(Skip:="531474"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WpfFact(Skip:="531474")>
         Public Async Function TestDoNotRemoveTypeCharactersDuringComplexification() As Task
             Dim markup =
 <File>
@@ -655,7 +648,7 @@ Imports System
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function InvertIfWithoutStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -681,7 +674,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function InvertIfWithOnlyComment() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -710,7 +703,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact>
         Public Async Function InvertIfWithoutElse() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -734,8 +727,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB12() As Task
             Await TestFixOneAsync(
 "
@@ -754,8 +746,7 @@ end class")
 ", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB14() As Task
             Await TestFixOneAsync(
 "
@@ -774,8 +765,7 @@ end class")
 ", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIsNot() As Task
             Await TestFixOneAsync(
 "

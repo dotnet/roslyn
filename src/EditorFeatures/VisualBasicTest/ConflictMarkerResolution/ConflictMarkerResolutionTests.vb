@@ -8,9 +8,10 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution.VisualBasicResolveConflictMarkerCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConflictMarkerResolution
+    <Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
     Public Class ConflictMarkerResolutionTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestTakeTop1() As Task
             Dim source =
 "
@@ -55,7 +56,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestTakeBottom1() As Task
             Dim source =
 "
@@ -100,7 +101,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestTakeBoth1() As Task
             Dim source =
 "
@@ -151,8 +152,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
         Public Async Function TestFixAll1() As Task
             Dim source =
 "
@@ -196,8 +196,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
         Public Async Function TestFixAll2() As Task
             Dim source =
 "
@@ -241,8 +240,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
         Public Async Function TestFixAll3() As Task
             Dim source =
 "
@@ -290,7 +288,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestTakeTop1_WithBaseline() As Task
             Dim source =
 "
@@ -338,7 +336,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestTakeBottom1_WithBaseline() As Task
             Dim source =
 "
@@ -386,7 +384,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestTakeBoth1_WithBaseline() As Task
             Dim source =
 "
@@ -440,7 +438,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestFixAll1_WithBaseline() As Task
             Dim source =
 "
@@ -490,7 +488,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestFixAll2_WithBaseline() As Task
             Dim source =
 "
@@ -540,7 +538,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        <Fact>
         Public Async Function TestFixAll3_WithBaseline() As Task
             Dim source =
 "

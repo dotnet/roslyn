@@ -1215,7 +1215,10 @@ public class FileModifierTests : CSharpTestBase
     [Fact]
     public void Duplication_06()
     {
+        // note: we avoid `using System;` here because we don't want to attempt to bind to `System.Number`
         var source1 = """
+            namespace NS;
+
             partial class C
             {
                 public static void M()
@@ -1226,7 +1229,7 @@ public class FileModifierTests : CSharpTestBase
             """;
 
         var source2 = """
-            using System;
+            namespace NS;
 
             partial class C
             {
@@ -1237,21 +1240,19 @@ public class FileModifierTests : CSharpTestBase
             {
                 public static void M()
                 {
-                    Console.Write(2);
+                    System.Console.Write(2);
                 }
             }
             """;
 
         var comp = CreateCompilation(new[] { (source1, "file1.cs"), (source2, "file2.cs") });
-        // https://github.com/dotnet/roslyn/issues/62333: should this diagnostic be more specific?
-        // the issue more precisely is that a definition for 'C' already exists in the current file--not that it's already in this namespace.
         comp.VerifyDiagnostics(
-            // file2.cs(8,12): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+            // file2.cs(8,12): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
             // file class C
-            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(8, 12)
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(8, 12)
             );
 
-        var cs = comp.GetMembers("C");
+        var cs = comp.GetMembers("NS.C");
         Assert.Equal(2, cs.Length);
 
         var c0 = cs[0];
@@ -1268,18 +1269,18 @@ public class FileModifierTests : CSharpTestBase
 
         comp = CreateCompilation(new[] { (source2, "file2.cs"), (source1, "file1.cs") });
         comp.VerifyDiagnostics(
-            // file2.cs(3,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+            // file1.cs(5,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
             //     public static void M()
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(3, 24),
-            // file2.cs(5,30): error CS0103: The name 'Number' does not exist in the current context
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "NS.C").WithLocation(5, 24),
+            // file1.cs(7,30): error CS0103: The name 'Number' does not exist in the current context
             //         System.Console.Write(Number);
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Number").WithArguments("Number").WithLocation(5, 30),
-            // file1.cs(8,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Number").WithArguments("Number").WithLocation(7, 30),
+            // file2.cs(8,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
             // file class C
             Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(8, 12)
             );
 
-        var c = comp.GetMember("C");
+        var c = comp.GetMember("NS.C");
         Assert.True(c is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         syntaxReferences = c.DeclaringSyntaxReferences;
         Assert.Equal(3, syntaxReferences.Length);
@@ -1737,6 +1738,82 @@ public class FileModifierTests : CSharpTestBase
 
         var verifier = CompileAndVerify(new[] { (userCode, "file1.cs"), (generatedCode, "file2.cs") }, expectedOutput: "OtherFile.cs");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Duplication_16()
+    {
+        var source = """
+            namespace NS;
+
+            file class C { }
+            class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,7): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // class C { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(4, 7));
+    }
+
+    [Fact]
+    public void Duplication_17()
+    {
+        var source = """
+            namespace NS;
+
+            class C { }
+            file class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,12): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // file class C { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(4, 12));
+    }
+
+    [Fact]
+    public void Duplication_18()
+    {
+        var source = """
+            namespace NS;
+
+            file class C { }
+            class C { }
+            class C { }
+            """;
+
+        var comp = CreateCompilation((source, "file1.cs"));
+        comp.VerifyDiagnostics(
+            // file1.cs(4,7): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // class C { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(4, 7),
+            // file1.cs(5,7): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // class C { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(5, 7));
+    }
+
+    [Fact]
+    public void Duplication_19()
+    {
+        var source = """
+            namespace NS;
+
+            class C { }
+            file class C { }
+            class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,12): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // file class C { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(4, 12),
+            // (5,7): error CS9070: The namespace 'NS' already contains a definition for 'C' in this file.
+            // class C { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "NS").WithLocation(5, 7));
     }
 
     [Fact]
@@ -3637,9 +3714,9 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source1);
         comp.VerifyDiagnostics(
-            // (2,12): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+            // (2,12): error CS9070: The namespace '<global namespace>' already contains a definition for 'C' in this file.
             // file class C { }
-            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 12));
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 12));
 
         const string metadataName = "<>FE3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855__C";
         var sourceType = ((Compilation)comp).GetTypeByMetadataName(metadataName);

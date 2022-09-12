@@ -43,10 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => Data.Span.StartLinePosition;
+            => new(Data.OriginalLine, Data.OriginalColumn);
 
         public override string? GetOriginalFilePath()
-            => Data.Span.Path;
+            => Data.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -70,10 +70,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public static readonly GroupingComparer Instance = new();
 
             public bool Equals(TodoCommentData left, TodoCommentData right)
-                => left.Span == right.Span;
+            {
+                // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
+                return
+                    left.OriginalLine == right.OriginalLine &&
+                    left.OriginalColumn == right.OriginalColumn;
+            }
 
             public int GetHashCode(TodoCommentData data)
-                => data.Span.GetHashCode();
+                => Hash.Combine(data.OriginalLine, data.OriginalColumn);
 
             public bool Equals(TodoTableItem left, TodoTableItem right)
             {
