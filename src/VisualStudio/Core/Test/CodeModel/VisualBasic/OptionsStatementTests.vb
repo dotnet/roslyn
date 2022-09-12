@@ -7,15 +7,12 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
-    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class OptionsStatementTests
         Inherits AbstractCodeElementTests
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact
-#Region "GetStartPoint() tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -52,9 +49,7 @@ End Class
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact
-#Region "GetEndPoint() tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -91,9 +86,7 @@ End Class
 
 #Region "Kind tests"
 
-        <WpfFact
-#Region "Kind tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestKind1()
             Dim code =
 <Code>
@@ -107,9 +100,7 @@ $$Option Strict On
 
 #Region "Name tests"
 
-        <WpfFact
-#Region "Name tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName1()
             Dim code =
 <Code>

@@ -6,10 +6,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
-    <Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
     Partial Public Class MethodXMLTests
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestCSInvocations_InvocationWithThis()
             Dim definition =
     <Workspace>
@@ -51,7 +50,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestCSInvocations_InvocationWithThisAndArgs()
             Dim definition =
     <Workspace>
@@ -107,7 +106,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestCSInvocations_InvocationWithoutThis()
             Dim definition =
     <Workspace>
@@ -149,7 +148,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestCSInvocations_WithArrayInitializer()
             Dim definition =
     <Workspace>
@@ -231,7 +230,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestCSInvocations_CastOfParenthesizedExpression()
             Dim definition =
 <Workspace>

@@ -8,15 +8,12 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
-    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeAttributeTests
         Inherits AbstractCodeAttributeTests
 
 #Region "GetStartPoint() tests"
 
-        <WpfFact
-#Region "GetStartPoint() tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>Imports System
@@ -49,7 +46,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=2, absoluteOffset:=18, lineLength:=16)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint2()
             Dim code =
 <Code>Imports System
@@ -82,7 +79,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=2, absoluteOffset:=18, lineLength:=20)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint3()
             Dim code =
 <Code>
@@ -116,9 +113,7 @@ End Class
 
 #Region "GetEndPoint() tests"
 
-        <WpfFact
-#Region "GetEndPoint() tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>Imports System
@@ -151,7 +146,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=16, absoluteOffset:=32, lineLength:=16)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint2()
             Dim code =
 <Code>Imports System
@@ -184,7 +179,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=20, absoluteOffset:=36, lineLength:=20)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint3()
             Dim code =
 <Code>
@@ -218,9 +213,7 @@ End Class
 
 #Region "AttributeArgument GetStartPoint() tests"
 
-        <WpfFact
-#Region "AttributeArgument GetStartPoint() tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentStartPoint1()
             Dim code =
 <Code>
@@ -262,7 +255,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=16, absoluteOffset:=32, lineLength:=25)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentStartPoint2()
             Dim code =
 <Code>
@@ -304,7 +297,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=17, absoluteOffset:=33, lineLength:=25)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentStartPoint3()
             Dim code =
 <Code>
@@ -346,7 +339,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=15, absoluteOffset:=31, lineLength:=23)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentStartPoint4()
             Dim code =
 <Code>
@@ -392,9 +385,7 @@ End Class
 
 #Region "AttributeArgument GetEndPoint() tests"
 
-        <WpfFact
-#Region "AttributeArgument GetEndPoint() tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentEndPoint1()
             Dim code =
 <Code>
@@ -436,7 +427,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=17, absoluteOffset:=33, lineLength:=25)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentEndPoint2()
             Dim code =
 <Code>
@@ -478,7 +469,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=18, absoluteOffset:=34, lineLength:=25)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentEndPoint3()
             Dim code =
 <Code>
@@ -520,7 +511,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=16, absoluteOffset:=32, lineLength:=23)))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetAttributeArgumentEndPoint4()
             Dim code =
 <Code>
@@ -565,9 +556,7 @@ End Class
 #End Region
 
 #Region "FullName tests"
-        <WpfFact
-#Region "FullName tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetFullName1()
             Dim code =
 <Code>
@@ -581,7 +570,7 @@ End Class
             TestFullName(code, "System.SerializableAttribute")
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetFullName2()
             Dim code =
 <Code>
@@ -596,9 +585,7 @@ End Class
 #End Region
 
 #Region "Parent tests"
-        <WpfFact
-#Region "Parent tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetParent1()
             Dim code =
 <Code>
@@ -612,7 +599,7 @@ End Class
             TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetParent2()
             Dim code =
 <Code>
@@ -629,9 +616,7 @@ End Class
 
 #Region "Attribute argument tests"
 
-        <WpfFact
-#Region "Attribute argument tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetArguments1()
             Dim code =
 <Code>
@@ -645,7 +630,7 @@ End Class
             TestAttributeArguments(code, NoElements)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetArguments2()
             Dim code =
 <Code>
@@ -659,7 +644,7 @@ End Class
             TestAttributeArguments(code, NoElements)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetArguments3()
             Dim code =
 <Code>
@@ -673,7 +658,7 @@ End Class
             TestAttributeArguments(code, IsAttributeArgument(value:="True"))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetArguments4()
             Dim code =
 <Code>
@@ -689,7 +674,7 @@ End Class
 
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetArguments5_Omitted()
             Dim code =
 <Code>
@@ -719,9 +704,7 @@ End Class
 #End Region
 
 #Region "Target tests"
-        <WpfFact
-#Region "Target tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetTarget1()
             Dim code =
 <Code>
@@ -735,9 +718,7 @@ Imports System
 #End Region
 
 #Region "Value tests"
-        <WpfFact
-#Region "Value tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetValue1()
             Dim code =
 <Code>
@@ -751,7 +732,7 @@ End Class
             TestValue(code, "")
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetValue2()
             Dim code =
 <Code>
@@ -765,7 +746,7 @@ End Class
             TestValue(code, "")
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetValue3()
             Dim code =
 <Code>
@@ -780,7 +761,7 @@ End Class
 
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetValue4()
             Dim code =
 <Code>
@@ -797,9 +778,7 @@ End Class
 #End Region
 
 #Region "AddAttributeArgument tests"
-        <WpfFact
-#Region "AddAttributeArgument tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttributeArgument1() As Task
             Dim code =
 <Code>
@@ -823,7 +802,7 @@ End Class
 
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttributeArgument2() As Task
             Dim code =
 <Code>
@@ -847,7 +826,7 @@ End Class
 
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddArgument3() As Task
             Dim code =
 <Code>
@@ -875,9 +854,7 @@ End Class
 #End Region
 
 #Region "Delete tests"
-        <WpfFact
-#Region "Delete tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete1() As Task
             Dim code =
 <Code><![CDATA[
@@ -896,7 +873,7 @@ End Class
 
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete2() As Task
             Dim code =
 <Code><![CDATA[
@@ -915,7 +892,7 @@ End Class
             Await TestDelete(code, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete3() As Task
             Dim code =
 <Code><![CDATA[
@@ -935,7 +912,7 @@ End Class
             Await TestDelete(code, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete4() As Task
             Dim code =
 <Code><![CDATA[
@@ -949,7 +926,7 @@ End Class
             Await TestDelete(code, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete5() As Task
             Dim code =
 <Code><![CDATA[
@@ -964,7 +941,7 @@ End Class
             Await TestDelete(code, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete6() As Task
             Dim code =
 <Code><![CDATA[
@@ -980,7 +957,7 @@ End Class
             Await TestDelete(code, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete7() As Task
             Dim code =
 <Code><![CDATA[
@@ -1004,7 +981,7 @@ End Class
             Await TestDelete(code, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDelete8() As Task
             Dim code =
 <Code><![CDATA[
@@ -1026,9 +1003,7 @@ End Class
 
 #Region "Delete attribute argument tests"
 
-        <WpfFact
-#Region "Delete attribute argument tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDeleteAttributeArgument1() As Task
             Dim code =
 <Code><![CDATA[
@@ -1047,7 +1022,7 @@ End Class
             Await TestDeleteAttributeArgument(code, expected, 1)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDeleteAttributeArgument2() As Task
             Dim code =
 <Code><![CDATA[
@@ -1068,7 +1043,7 @@ End Class
             Await TestDeleteAttributeArgument(code, expected, 1)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDeleteAttributeArgument3() As Task
             Dim code =
 <Code><![CDATA[
@@ -1092,9 +1067,7 @@ End Class
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact
-#Region "Set Name tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_NewName() As Task
             Dim code =
 <Code><![CDATA[
@@ -1113,7 +1086,7 @@ End Class
             Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_SimpleNameToDottedName() As Task
             Dim code =
 <Code><![CDATA[
@@ -1132,7 +1105,7 @@ End Class
             Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_DottedNameToSimpleName() As Task
             Dim code =
 <Code><![CDATA[
@@ -1153,9 +1126,7 @@ End Class
 #End Region
 
 #Region "Set Target tests"
-        <WpfFact
-#Region "Set Target tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetTarget1() As Task
             Dim code =
 <Code>
@@ -1174,7 +1145,7 @@ Imports System
             Await TestSetTarget(code, expected, "Module")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetTarget2() As Task
             Dim code =
 <Code>
@@ -1197,7 +1168,7 @@ End Class
             Await TestSetTarget(code, expected, "Assembly")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetTarget3() As Task
             Dim code =
 <Code>
@@ -1218,9 +1189,7 @@ Imports System
 #End Region
 
 #Region "Set Value tests"
-        <WpfFact
-#Region "Set Value tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetValue1() As Task
             Dim code =
 <Code>
@@ -1239,7 +1208,7 @@ Imports System
             Await TestSetValue(code, expected, "True")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetValue2() As Task
             Dim code =
 <Code>
@@ -1258,7 +1227,7 @@ Imports System
             Await TestSetValue(code, expected, "True")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetValue3() As Task
             Dim code =
 <Code>
@@ -1277,7 +1246,7 @@ Imports System
             Await TestSetValue(code, expected, "True")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetValue4() As Task
             Dim code =
 <Code>

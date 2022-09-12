@@ -8,13 +8,12 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
-    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeEnumTests
         Inherits AbstractCodeEnumTests
 
 #Region "Access tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess1()
             Dim code =
 <Code>
@@ -24,7 +23,7 @@ enum $$E { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess2()
             Dim code =
 <Code>
@@ -37,7 +36,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess3()
             Dim code =
 <Code>
@@ -47,7 +46,7 @@ private enum $$E { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess4()
             Dim code =
 <Code>
@@ -57,7 +56,7 @@ protected enum $$E { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess5()
             Dim code =
 <Code>
@@ -67,7 +66,7 @@ protected internal enum $$E { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess6()
             Dim code =
 <Code>
@@ -77,7 +76,7 @@ internal enum $$E { }
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess7()
             Dim code =
 <Code>
@@ -91,7 +90,7 @@ public enum $$E { }
 
 #Region "Bases tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestBases1()
             Dim code =
 <Code>
@@ -108,7 +107,7 @@ enum $$E
 
 #Region "Attributes tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAttributes1()
             Dim code =
 <Code>
@@ -121,7 +120,7 @@ enum $$C
             TestAttributes(code, NoElements)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAttributes2()
             Dim code =
 <Code>
@@ -137,7 +136,7 @@ enum $$C
             TestAttributes(code, IsElement("Flags"))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAttributes3()
             Dim code =
 <Code>using System;
@@ -153,7 +152,7 @@ enum $$C
             TestAttributes(code, IsElement("Serializable"), IsElement("Flags"))
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAttributes4()
             Dim code =
 <Code>using System;
@@ -171,7 +170,7 @@ enum $$C
 
 #Region "FullName tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -188,7 +187,7 @@ enum $$E
 
 #Region "Name tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName1()
             Dim code =
 <Code>
@@ -205,7 +204,7 @@ enum $$E
 #End Region
 
 #Region "AddAttribute tests"
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -232,7 +231,7 @@ enum E
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -262,7 +261,7 @@ enum E
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
@@ -295,7 +294,7 @@ enum E
 
 #Region "AddMember tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember1() As Task
             Dim code =
 <Code>
@@ -315,7 +314,7 @@ enum E
             Await TestAddEnumMember(code, expected, New EnumMemberData With {.Name = "V"})
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember2() As Task
             Dim code =
 <Code>
@@ -335,7 +334,7 @@ enum E
             Await TestAddEnumMember(code, expected, New EnumMemberData With {.Name = "V", .Value = "1"})
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember3() As Task
             Dim code =
 <Code>
@@ -358,7 +357,7 @@ enum E
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember4() As Task
             Dim code =
 <Code>
@@ -381,7 +380,7 @@ enum E
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember5() As Task
             Dim code =
 <Code>
@@ -406,7 +405,7 @@ enum E
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember6() As Task
             Dim code =
 <Code>
@@ -431,7 +430,7 @@ enum E
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember7() As Task
             Dim code =
 <Code>
@@ -461,7 +460,7 @@ enum E
 
 #Region "RemoveMember tests"
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveMember1() As Task
             Dim code =
 <Code>
@@ -481,7 +480,7 @@ enum E
             Await TestRemoveChild(code, expected, "A")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveMember2() As Task
             Dim code =
 <Code>
@@ -503,7 +502,7 @@ enum E
             Await TestRemoveChild(code, expected, "A")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveMember3() As Task
             Dim code =
 <Code>
@@ -525,7 +524,7 @@ enum E
             Await TestRemoveChild(code, expected, "B")
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveMember4() As Task
             Dim code =
 <Code>
@@ -552,7 +551,7 @@ enum E
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
@@ -572,7 +571,7 @@ enum Bar
         End Function
 #End Region
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

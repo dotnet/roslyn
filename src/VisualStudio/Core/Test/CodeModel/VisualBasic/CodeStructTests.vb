@@ -11,14 +11,11 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
-    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeStructTests
         Inherits AbstractCodeStructTests
 
 #Region "Parts tests"
-        <WpfFact
-#Region "Parts tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParts1()
             Dim code =
 <Code>
@@ -29,7 +26,7 @@ End Structure
             TestParts(code, 1)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParts2()
             Dim code =
 <Code>
@@ -40,7 +37,7 @@ End Structure
             TestParts(code, 1)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParts3()
             Dim code =
 <Code>
@@ -57,9 +54,7 @@ End Structure
 
 #Region "AddAttribute tests"
 
-        <WpfFact
-#Region "AddAttribute tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -80,7 +75,7 @@ End Structure
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -104,7 +99,7 @@ End Structure
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
@@ -131,9 +126,7 @@ End Structure
 
 #Region "AddImplementedInterface tests"
 
-        <WpfFact
-#Region "AddImplementedInterface tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImplementedInterface1() As Task
             Dim code =
 <Code>
@@ -151,7 +144,7 @@ End Structure
             Await TestAddImplementedInterface(code, "I", Nothing, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImplementedInterface2() As Task
             Dim code =
 <Code>
@@ -171,7 +164,7 @@ End Structure
             Await TestAddImplementedInterface(code, "J", Nothing, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImplementedInterface3() As Task
             Dim code =
 <Code>
@@ -191,7 +184,7 @@ End Structure
             Await TestAddImplementedInterface(code, "J", -1, expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAddImplementedInterface4()
             Dim code =
 <Code>
@@ -206,9 +199,7 @@ End Structure
 
 #Region "RemoveImplementedInterface tests"
 
-        <WpfFact
-#Region "RemoveImplementedInterface tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveImplementedInterface1() As Task
             Dim code =
 <Code>
@@ -225,7 +216,7 @@ End Structure
             Await TestRemoveImplementedInterface(code, "I", expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestRemoveImplementedInterface2()
             Dim code =
 <Code>
@@ -236,7 +227,7 @@ End Structure
             TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveImplementedInterface3() As Task
             Dim code =
 <Code>
@@ -254,7 +245,7 @@ End Structure
             Await TestRemoveImplementedInterface(code, "J", expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveImplementedInterface4() As Task
             Dim code =
 <Code>
@@ -272,7 +263,7 @@ End Structure
             Await TestRemoveImplementedInterface(code, "I", expected)
         End Function
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemoveImplementedInterface5() As Task
             Dim code =
 <Code>
@@ -293,9 +284,7 @@ End Structure
 #End Region
 
 #Region "Set Name tests"
-        <WpfFact
-#Region "Set Name tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
@@ -315,9 +304,7 @@ End Structure
 
 #Region "GenericExtender"
 
-        <WpfFact
-#Region "GenericExtender"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
@@ -328,7 +315,7 @@ End Structure
             TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
@@ -339,7 +326,7 @@ End Structure
             TestGenericNameExtender_GetBaseGenericName(code, 1, "System.ValueType")
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGenericExtender_GetImplementedTypesCount1()
             Dim code =
 <Code>
@@ -350,7 +337,7 @@ End Structure
             TestGenericNameExtender_GetImplementedTypesCount(code, 0)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGenericExtender_GetImplementedTypesCount2()
             Dim code =
 <Code>
@@ -368,7 +355,7 @@ End Namespace
             TestGenericNameExtender_GetImplementedTypesCount(code, 1)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGenericExtender_GetImplTypeGenericName1()
             Dim code =
 <Code>
@@ -379,7 +366,7 @@ End Structure
             TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGenericExtender_GetImplTypeGenericName2()
             Dim code =
 <Code>

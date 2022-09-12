@@ -6,10 +6,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
-    <Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
     Partial Public Class MethodXMLTests
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvocationWithoutMe()
             Dim definition =
 <Workspace>
@@ -49,7 +48,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvocationWithMe()
             Dim definition =
 <Workspace>
@@ -89,7 +88,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_WithArrayInitializer1()
             Dim definition =
 <Workspace>
@@ -164,7 +163,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvokeOnCast()
             Dim definition =
 <Workspace>
@@ -234,7 +233,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvokeFixInCast()
             Dim definition =
 <Workspace>
@@ -289,7 +288,7 @@ End Class
         End Sub
 
         <WorkItem(870422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870422")>
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_MethodCallWithoutTypeQualification()
             Dim definition =
 <Workspace>

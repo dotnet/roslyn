@@ -7,15 +7,12 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
-    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class CodeAccessorFunctionTests
         Inherits AbstractCodeFunctionTests
 
 #Region "Access tests"
 
-        <WpfFact
-#Region "Access tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess1()
             Dim code =
     <Code>
@@ -37,7 +34,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess2()
             Dim code =
     <Code>
@@ -61,7 +58,7 @@ class C
 
 #End Region
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

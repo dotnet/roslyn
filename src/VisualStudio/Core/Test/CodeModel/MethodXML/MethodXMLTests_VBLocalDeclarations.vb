@@ -6,10 +6,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
-    <Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
     Partial Public Class MethodXMLTests
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_NoInitializer()
             Dim definition =
 <Workspace>
@@ -36,7 +35,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_WithLiteralInitializer()
             Dim definition =
 <Workspace>
@@ -68,7 +67,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_WithInvocationInitializer1()
             Dim definition =
 <Workspace>
@@ -111,7 +110,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_WithInvocationInitializer2()
             Dim definition =
 <Workspace>
@@ -161,7 +160,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_WithEscapedNameAndAsNewClause()
             ' Note: The behavior here is different than Dev10 where escaped keywords
             ' would not be escaped in the generated XML.
@@ -196,7 +195,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_TwoInferredDeclarators()
             Dim definition =
 <Workspace>
@@ -237,7 +236,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_StaticLocal()
             Dim definition =
 <Workspace>
@@ -269,7 +268,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ConstLocal()
             ' NOTE: Dev10 didn't generate *any* XML for Const locals because it walked the
             ' lowered IL tree. We're now generating the same thing that C# does (which has
@@ -305,7 +304,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_TwoNamesWithAsNewClause()
             Dim definition =
 <Workspace>
@@ -343,7 +342,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithNoBoundOrInitializer1()
             Dim definition =
 <Workspace>
@@ -372,7 +371,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithNoBoundOrInitializer2()
             Dim definition =
 <Workspace>
@@ -401,7 +400,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithSimpleBound()
             Dim definition =
 <Workspace>
@@ -444,7 +443,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithRangeBound()
             Dim definition =
 <Workspace>
@@ -487,7 +486,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithSimpleAndRangeBounds()
             Dim definition =
 <Workspace>
@@ -537,7 +536,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithStringBound()
             Dim definition =
 <Workspace>
@@ -561,7 +560,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithStringAndCastBound()
             Dim definition =
 <Workspace>
@@ -585,7 +584,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithPropertyAccessBound()
             Dim definition =
     <Workspace>
@@ -609,7 +608,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithNoBoundAndCollectionInitializer1()
             Dim definition =
     <Workspace>
@@ -667,7 +666,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_ArrayWithNoBoundAndCollectionInitializer2()
             Dim definition =
     <Workspace>
@@ -725,7 +724,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_InitializeWithStringConcatenation()
             Dim definition =
     <Workspace>
@@ -765,7 +764,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_DirectCast()
             Dim definition =
     <Workspace>
@@ -801,7 +800,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WpfFact>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBLocalDeclarations_TryCast()
             Dim definition =
     <Workspace>

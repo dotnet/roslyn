@@ -7,15 +7,12 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
-    <Trait(Traits.Feature, Traits.Features.CodeModel)>
     Public Class ExternalCodeFunctionTests
         Inherits AbstractCodeFunctionTests
 
 #Region "FullName tests"
 
-        <WpfFact
-#Region "FullName tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -32,9 +29,7 @@ End Class
 
 #Region "Name tests"
 
-        <WpfFact
-#Region "Name tests"
->
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName1()
             Dim code =
 <Code>
