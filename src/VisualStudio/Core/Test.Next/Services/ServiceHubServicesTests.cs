@@ -102,7 +102,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public async Task TestTodoComments()
+        public async Task TestTaskList()
         {
             var source = @"
 

@@ -44,12 +44,12 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
-        var todoComments = IncludeTaskListItems ? await this.GetTodoCommentDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var taskListItems = IncludeTaskListItems ? await this.GetTaskListDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        return todoComments.AddRange(diagnostics);
+        return taskListItems.AddRange(diagnostics);
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetTodoCommentDiagnosticsAsync(CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DiagnosticData>> GetTaskListDiagnosticsAsync(CancellationToken cancellationToken)
     {
         if (this.Document is not Document document)
             return ImmutableArray<DiagnosticData>.Empty;
