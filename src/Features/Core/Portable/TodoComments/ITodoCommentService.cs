@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var location = tree == null
                 ? Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan))
                 : tree.GetLocation(textSpan);
-            var originalLineInfo = location.GetLineSpan();
-            var mappedLineInfo = location.GetMappedLineSpan();
 
             return new TaskListItem(
                 Descriptor.Priority,
