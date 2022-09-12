@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// notifying the host about documents with empty-todo lists (the common case). Note: no locking is needed for
         /// this set as the incremental analyzer is guaranteed to make all calls sequentially to us.
         /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
+        private readonly HashSet<DocumentId> _documentsWithTaskListItems = new();
 
         protected AbstractTaskListIncrementalAnalyzer()
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.TaskList
 
             // If the doc that is being removed is not in the set of docs we've told the host has todo comments,
             // then no need to notify the host at all about it.
-            if (!_documentsWithTodoComments.Remove(documentId))
+            if (!_documentsWithTaskListItems.Remove(documentId))
                 return Task.CompletedTask;
 
             // Otherwise, report that there should now be no todo comments for this doc.
@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.TaskList
                 // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
                 // had todo comments in it, then fall through and notify the host so it can clear them out.
                 // Otherwise, bail out as there's no need to inform the host of this.
-                if (!_documentsWithTodoComments.Remove(document.Id))
+                if (!_documentsWithTaskListItems.Remove(document.Id))
                     return;
             }
             else
             {
                 // Doc has some todo comments, record that, and let the host know.
-                _documentsWithTodoComments.Add(document.Id);
+                _documentsWithTaskListItems.Add(document.Id);
             }
 
             // Now inform VS about this new information
