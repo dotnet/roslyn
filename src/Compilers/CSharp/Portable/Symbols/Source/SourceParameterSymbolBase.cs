@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ParameterHelpers.RequiresScopedRefAttribute(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, DeclaredScope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, EffectiveScope));
             }
 
             if (type.Type.ContainsTupleNames())
