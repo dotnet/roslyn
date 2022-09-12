@@ -130,7 +130,7 @@ internal static class MinimizeUtil
             var fileList = new List<string>();
             var grouping = idToFilePathMap
                 .Where(x => x.Value.Count > 1)
-                .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
+                .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp, Count: pair.Value.Count)))
                 .GroupBy(fp => getGroupDirectory(fp.FilePath.RelativeDirectory));
 
             // The "rehydrate-all" script assumes we are running all tests on a single machine instead of on Helix.
@@ -150,34 +150,35 @@ internal static class MinimizeUtil
             foreach (var group in grouping)
             {
                 builder.Clear();
-                if (isUnix)
+
+                if (group.Any(g => g.Count > 1))
                 {
-                    writeUnixRehydrateContent(builder, group);
-                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, fileName) + @"""");
+                    // We have duplicates for this assembly folder, write the rehydrate script.
+                    if (isUnix)
+                    {
+                        writeUnixRehydrateContent(builder, group);
+                        rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, fileName) + @"""");
+                    }
+                    else
+                    {
+                        writeWindowsRehydrateContent(builder, group);
+                        rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, fileName));
+                    }
+
+                    File.WriteAllText(Path.Combine(destinationDirectory, group.Key, fileName), builder.ToString());
                 }
                 else
                 {
-                    writeWindowsRehydrateContent(builder, group);
-                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, fileName));
+                    // No duplicates for this folder - write out a no-op rehydrate script since later steps rely on its existence.
+                    var file = Path.Combine(destinationDirectory, group.Key, fileName);
+                    File.WriteAllText(file, "echo \"Nothing to rehydrate\"");
                 }
-
-                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, fileName), builder.ToString());
-            }
-
-            // Even if we didn't have any duplicates, write out a file since later scripts rely on its existence.
-            var noDuplicatesGrouping = idToFilePathMap.Values
-                .SelectMany(v => v)
-                .GroupBy(v => getGroupDirectory(v.RelativeDirectory));
-            foreach (var noDuplicate in noDuplicatesGrouping)
-            {
-                var file = Path.Combine(destinationDirectory, noDuplicate.Key, fileName);
-                File.WriteAllText(file, "echo \"Nothing to rehydrate\"");
             }
 
             string rehydrateAllFilename = isUnix ? "rehydrate-all.sh" : "rehydrate-all.cmd";
             File.WriteAllText(Path.Combine(destinationDirectory, rehydrateAllFilename), rehydrateAllBuilder.ToString());
 
-            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath, int Count)> group)
             {
                 builder.AppendLine("@echo off");
                 var count = 0;
@@ -222,7 +223,7 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
 ");
             }
 
-            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath, int Count)> group)
             {
                 writeUnixHeaderContent(builder);
 
