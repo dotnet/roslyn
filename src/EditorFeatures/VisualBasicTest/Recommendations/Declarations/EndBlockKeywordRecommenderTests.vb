@@ -196,8 +196,8 @@ End |</ClassDeclaration>, "Function", "Sub")
         End Sub
 
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
-        <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         <Fact>
+        <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         Public Sub EndFunctionDoesNotSuggestEndSubTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Function Goo()
 |</ClassDeclaration>, "End Sub")
