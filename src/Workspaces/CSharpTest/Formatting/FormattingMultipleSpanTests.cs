@@ -106,8 +106,7 @@ class A { }";
             await AssertFormatAsync(content, expected);
         }
 
-        [Fact]
-        [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
+        [Fact, WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
         public async Task FormatSpanNullReference01()
         {
             var code = @"/*1*/class C
@@ -132,8 +131,7 @@ class A { }";
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
-        [Fact]
-        [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
+        [Fact, WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
         public async Task FormatSpanNullReference02()
         {
             var code = @"class C/*1*/
@@ -158,8 +156,7 @@ class A { }";
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
-        [WorkItem(539231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539231")]
-        [Fact]
+        [Fact, WorkItem(539231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539231")]
         public async Task EmptySpan()
         {
             using var workspace = new AdhocWorkspace();

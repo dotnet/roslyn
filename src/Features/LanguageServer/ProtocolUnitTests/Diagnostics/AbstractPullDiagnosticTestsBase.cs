@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool includeTodoComments = false)
         {
             var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            optionService.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.ComputeTodoCommentsForClosedFiles), includeTodoComments);
+            optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTodoComments);
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)

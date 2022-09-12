@@ -70,8 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     renameOverloads:=True)
         End Function
 
-        <WpfTheory>
-        <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <WpfTheory, WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
             Await VerifyViewModels(

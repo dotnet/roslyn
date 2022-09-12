@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(26679, "https://github.com/dotnet/roslyn/issues/26679")]
-        [Fact]
+        [Fact, WorkItem(26679, "https://github.com/dotnet/roslyn/issues/26679")]
         public async Task FixAllInDocument3()
         {
             await TestInRegularAndScriptAsync(
@@ -238,8 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [WorkItem(26680, "https://github.com/dotnet/roslyn/issues/26680")]
-        [Fact]
+        [Fact, WorkItem(26680, "https://github.com/dotnet/roslyn/issues/26680")]
         public async Task FixAllInDocument4()
         {
             await TestInRegularAndScriptAsync(

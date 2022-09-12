@@ -841,8 +841,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact]
-        [WorkItem(50104, "https://github.com/dotnet/roslyn/issues/50104")]
+        [Fact, WorkItem(50104, "https://github.com/dotnet/roslyn/issues/50104")]
         public async Task TestInImplicitObjectCreation()
         {
             await TestInRegularAndScript1Async(

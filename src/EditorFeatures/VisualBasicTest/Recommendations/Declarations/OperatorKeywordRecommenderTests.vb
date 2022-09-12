@@ -42,8 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Operator")
         End Sub
 
-        <Fact>
-        <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
+        <Fact, WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OperatorNotInModuleTest()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Operator")

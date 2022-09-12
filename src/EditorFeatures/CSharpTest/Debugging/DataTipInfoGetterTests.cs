@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WorkItem(539910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539910")]
-        [Fact]
+        [Fact, WorkItem(539910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539910")]
         public async Task TestLiterals()
         {
             await TestAsync(
@@ -250,8 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")]
-        [Fact]
+        [Fact, WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")]
         public async Task TestCatchIdentifier()
         {
             await TestAsync(
@@ -321,8 +319,7 @@ static class Static
 }");
         }
 
-        [WorkItem(540921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540921")]
-        [Fact]
+        [Fact, WorkItem(540921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540921")]
         public async Task TestForEachIdentifier()
         {
             await TestAsync(
@@ -337,8 +334,7 @@ static class Static
 }");
         }
 
-        [WorkItem(546328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546328")]
-        [Fact]
+        [Fact, WorkItem(546328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546328")]
         public async Task TestProperty()
         {
             await TestAsync(

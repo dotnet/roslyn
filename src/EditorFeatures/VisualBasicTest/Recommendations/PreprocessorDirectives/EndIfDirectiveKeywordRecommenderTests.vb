@@ -57,8 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 #End |</File>, "If")
         End Sub
 
-        <WorkItem(957458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957458")>
-        <Fact>
+        <Fact, WorkItem(957458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957458")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotIfWithEndPartiallyTypedTest()
             VerifyRecommendationsMissing(<File>

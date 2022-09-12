@@ -330,8 +330,7 @@ Console.WriteLine(x);
 ");
         }
 
-        [WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
-        [Fact]
+        [Fact, WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
         public async Task TestMissingWhenReferencedInDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -373,8 +372,7 @@ Console.WriteLine(i);
 ");
         }
 
-        [Fact]
-        [WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
+        [Fact, WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
         public async Task Regression8190()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -573,8 +571,7 @@ Bar(x);
                 Options.Regular);
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes1()
         {
             await TestInRegularAndScriptAsync(
@@ -609,8 +606,7 @@ class Program
 }");
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes1_TopLevelStatement()
         {
             await TestAsync(
@@ -637,8 +633,7 @@ new[] { 1 }.AsParallel().ForAll((i) =>
                 Options.Regular);
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes2()
         {
             await TestInRegularAndScriptAsync(
@@ -674,8 +669,7 @@ class Program
 }");
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes2_TopLevelStatement()
         {
             await TestAsync(
@@ -703,8 +697,7 @@ foreach (var v in new[] { 1 })
                 Options.Regular);
         }
 
-        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
-        [Fact]
+        [Fact, WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
         public async Task TestWarnOnChangingScopes3()
         {
             await TestInRegularAndScriptAsync(
@@ -740,8 +733,7 @@ class Program
 }");
         }
 
-        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
-        [Fact]
+        [Fact, WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
         public async Task TestWarnOnChangingScopes3_TopLevelStatement()
         {
             await TestAsync(
@@ -769,8 +761,7 @@ void LocalFunction()
                 Options.Regular);
         }
 
-        [WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
-        [Fact]
+        [Fact, WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
         public async Task InsertCastIfNecessary1()
         {
             await TestInRegularAndScriptAsync(
@@ -815,8 +806,7 @@ static class C
 }");
         }
 
-        [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
-        [Fact]
+        [Fact, WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
         public async Task InsertCastIfNecessary2()
         {
             await TestInRegularAndScriptAsync(
@@ -857,8 +847,7 @@ class X
 }");
         }
 
-        [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
-        [Fact]
+        [Fact, WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
         public async Task MissingIfNotInDeclarationSpan()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1576,8 +1565,7 @@ Console.WriteLine();
                 Options.Regular);
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1606,8 +1594,7 @@ class Program
 }");
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1639,8 +1626,7 @@ class Program
 }");
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1671,8 +1657,7 @@ class Program
 }");
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction4()
         {
             await TestMissingInRegularAndScriptAsync(

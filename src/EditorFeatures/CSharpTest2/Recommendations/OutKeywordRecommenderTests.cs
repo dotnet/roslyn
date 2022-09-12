@@ -191,8 +191,7 @@ $$");
     public C(int i, [Goo]$$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -200,8 +199,7 @@ $$");
     public C():this($$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -209,8 +207,7 @@ $$");
     public C():this(Goo:$$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -218,8 +215,7 @@ $$");
     public C():base($$");
         }
 
-        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
-        [Fact]
+        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -248,8 +244,7 @@ $$");
 @"delegate void D(int i, [Goo]$$");
         }
 
-        [Fact]
-        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        [Fact, WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestNotAfterOperator()
         {
             await VerifyAbsenceAsync(
@@ -417,8 +412,7 @@ $$");
             await VerifyKeywordAsync(text);
         }
 
-        [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
-        [Fact]
+        [Fact, WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
         public async Task TestInLocalFunction()
         {
             await VerifyKeywordAsync(AddInsideMethod(

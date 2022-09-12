@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public static IEnumerable<object[]> UnaryOperators()
             => PostfixOperators().Union(PrefixOperators());
 
-        [Fact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsNotOfferedAfterNumberLiteral()
         {
             // User may want to type a floating point literal.
@@ -90,8 +89,7 @@ public class Program
 ", SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
@@ -111,8 +109,7 @@ public class Program
 ", "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [Theory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$", true)]
         [InlineData("c.$$;", true)]
         [InlineData("c.a$$", true)]
@@ -145,8 +142,7 @@ public class Program
 ");
         }
 
-        [Fact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsNotSuggestedOnStaticAccess()
         {
             await VerifyNoItemsExistAsync(@"
@@ -165,8 +161,7 @@ public class Program
 ");
         }
 
-        [Fact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsNotSuggestedInNameoOfContext()
         {
             await VerifyNoItemsExistAsync(@"
@@ -186,8 +181,7 @@ public class Program
 ");
         }
 
-        [Fact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorsAreSortedByImporttanceAndGroupedByTopic()
         {
             var items = await GetCompletionItemsAsync(@"
@@ -257,8 +251,7 @@ public class Program
             );
         }
 
-        [Theory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("bool", 0)]
         [InlineData("System.Boolean", 0)]
         [InlineData("char", 0)]
@@ -312,8 +305,7 @@ public class Program
                 completionItems.Count(c => c.Properties[UnnamedSymbolCompletionProvider.KindName] == UnnamedSymbolCompletionProvider.OperatorKindName));
         }
 
-        [Fact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorNoSuggestionForTrueAndFalse()
         {
             await VerifyNoItemsExistAsync(@"
@@ -334,8 +326,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(BinaryOperators))]
         public async Task OperatorBinaryIsCompleted(string binaryOperator)
         {
@@ -370,8 +361,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(PostfixOperators))]
         public async Task OperatorPostfixIsCompleted(string postfixOperator)
         {
@@ -406,8 +396,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(PrefixOperators))]
         public async Task OperatorPrefixIsCompleted(string prefixOperator)
         {
@@ -442,8 +431,7 @@ public class Program
 ");
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorDuplicateOperatorsAreListedBoth()
         {
             var items = await GetCompletionItemsAsync($@"
@@ -475,8 +463,7 @@ public class Program
                 });
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorDuplicateOperatorsAreCompleted()
         {
             await VerifyCustomCommitProviderAsync($@"
@@ -512,8 +499,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$",
                     "c + $$")]
         [InlineData("c. $$",
@@ -593,8 +579,7 @@ public class Program
 ");
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(UnaryOperators))]
         public async Task OperatorLiftingUnary(string operatorSign)
         {
@@ -621,8 +606,7 @@ public class Program
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(BinaryArithmeticAndLogicalOperators))]
         public async Task OperatorLiftingBinary(string operatorSign)
         {
@@ -648,8 +632,7 @@ public class Program
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
         }
 
-        [WpfTheory]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(BinaryEqualityAndRelationalOperators))]
         public async Task OperatorLiftingEqualityRelational(string operatorSign)
         {
@@ -673,8 +656,7 @@ public class Program
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, object b)"));
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorLiftingIsApplied()
         {
             await VerifyCustomCommitProviderAsync(@"
@@ -706,8 +688,7 @@ public class Program
 }");
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorOfBaseTypeIsSuggested()
         {
             await VerifyItemExistsAsync(@"
@@ -728,8 +709,7 @@ public class Program
 }", "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorForRecordsAreSuggested()
         {
             await VerifyItemExistsAsync(@"
@@ -746,8 +726,7 @@ public class Program
 }", "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateNever()
         {
             var markup = @"
@@ -786,8 +765,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateAdvanced()
         {
             var markup = @"
@@ -839,8 +817,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorBinaryNullForgivingHandling()
         {
             await VerifyCustomCommitProviderAsync(@"

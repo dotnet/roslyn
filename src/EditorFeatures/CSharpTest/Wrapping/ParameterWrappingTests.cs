@@ -812,8 +812,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact]
-        [WorkItem(38986, "https://github.com/dotnet/roslyn/issues/38986")]
+        [Fact, WorkItem(38986, "https://github.com/dotnet/roslyn/issues/38986")]
         public async Task TestInConstructorWithSyntaxErrorAfter()
         {
             await TestInRegularAndScript1Async(
@@ -979,8 +978,7 @@ GetIndentionColumn(30),
                 string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
 
-        [Fact]
-        [WorkItem(61362, "https://github.com/dotnet/roslyn/issues/61362")]
+        [Fact, WorkItem(61362, "https://github.com/dotnet/roslyn/issues/61362")]
         public async Task TestWithMissingParameterList()
         {
             await TestMissingAsync(

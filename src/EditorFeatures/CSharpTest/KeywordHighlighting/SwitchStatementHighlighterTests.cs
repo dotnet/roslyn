@@ -486,8 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithUnrelatedGotoStatement_OnGotoCaseGotoKeyword()
         {
             await TestAsync(
@@ -512,8 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithUnrelatedGotoStatement_OnGotoDefaultGotoKeyword()
         {
             await TestAsync(
@@ -538,8 +536,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithUnrelatedGotoStatement_NotOnGotoLabelGotoKeyword()
         {
             await TestAsync(
@@ -564,8 +561,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithNestedStatements_OnSwitchKeyword()
         {
             await TestAsync(
@@ -595,8 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithNestedStatements_OnBreakKeyword()
         {
             await TestAsync(
@@ -626,8 +621,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithGotoCaseAndBreakInsideLoop_OnSwitchKeyword()
         {
             await TestAsync(
@@ -655,8 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithGotoCaseAndBreakInsideLoop_OnGotoCaseGotoKeyword()
         {
             await TestAsync(
@@ -684,8 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
-        [Fact]
+        [Fact, WorkItem(25039, "https://github.com/dotnet/roslyn/issues/25039")]
         public async Task TestWithGotoCaseAndBreakInsideLoop_NotOnLoopBreakKeyword()
         {
             await TestAsync(

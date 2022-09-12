@@ -815,8 +815,7 @@ class C { }
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -842,8 +841,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersAndNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -862,8 +860,7 @@ namespace $$N;",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -891,8 +888,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test

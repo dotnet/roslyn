@@ -15,10 +15,17 @@ namespace Microsoft.CodeAnalysis.TaskList
             TaskListOptions.Default.Descriptors,
             new RoamingProfileStorageLocation("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens"));
 
+        public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new(
+            "TaskListOptionsStorage",
+            "ComputeTaskListItemsForClosedFiles",
+            defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTaskListItemsForClosedFiles"));
+
         public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
             => new()
             {
-                Descriptors = globalOptions.GetOption(Descriptors)
+                Descriptors = globalOptions.GetOption(Descriptors),
+                ComputeForClosedFiles = globalOptions.GetOption(ComputeTaskListItemsForClosedFiles)
             };
     }
 }

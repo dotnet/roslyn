@@ -156,8 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
             => TestHandled(@"@$[||]", @"$@""[||]");
 

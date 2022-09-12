@@ -234,8 +234,7 @@ class C
             await TestWithUseBlockBody(code, fixedCode);
         }
 
-        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
-        [Fact]
+        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
         {
             var code = @"
@@ -256,8 +255,7 @@ class C
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
 
-        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
-        [Fact]
+        [Fact, WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
         public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
         {
             var code = @"

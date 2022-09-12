@@ -135,8 +135,7 @@ class C
         }
 
         [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
-        [WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
-        [Fact]
+        [Fact, WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
         public async Task TestIncompleteMultilineCommentZeroSpace()
         {
             const string code = @"
@@ -147,8 +146,7 @@ class C
         }
 
         [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
-        [WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
-        [Fact]
+        [Fact, WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
         public async Task TestIncompleteMultilineCommentSingleSpace()
         {
             const string code = @"

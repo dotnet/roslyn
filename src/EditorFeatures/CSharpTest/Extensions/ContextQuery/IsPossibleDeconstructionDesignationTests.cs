@@ -113,18 +113,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         public void False1()
             => VerifyFalse(AddInsideMethod(@"var $$"));
 
-        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
-        [Fact]
+        [Fact, WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
         public void FalseAfterPattern1()
             => VerifyFalse(AddInsideMethod(@"if (1 is int i $$"));
 
-        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
-        [Fact]
+        [Fact, WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
         public void FalseAfterPattern2()
             => VerifyFalse(AddInsideMethod(@"if (1 is int i $$);"));
 
-        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
-        [Fact]
+        [Fact, WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-369075537")]
         public void FalseAfterPattern3()
             => VerifyFalse(AddInsideMethod(@"switch (1) { case int i $$ }"));
     }

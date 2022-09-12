@@ -195,8 +195,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact]
-        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickFirst()
         {
             var markup = @"
@@ -242,8 +241,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact]
-        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        [Fact, WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickSecond()
         {
             var markup = @"
@@ -466,8 +464,7 @@ class C
 
         #region "EditorBrowsable tests"
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableAlways()
         {
             var markup = @"
@@ -499,8 +496,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableNever()
         {
             var markup = @"
@@ -532,8 +528,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableAdvanced()
         {
             var markup = @"
@@ -573,8 +568,7 @@ public class Goo
                                     hideAdvancedMembers: false);
         }
 
-        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Constructor_BrowsableMixed()
         {
             var markup = @"
@@ -680,8 +674,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        [Fact]
+        [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -690,8 +683,7 @@ class C
             await TestAsync(markup);
         }
 
-        [WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
-        [Fact]
+        [Fact, WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
         public async Task TestSigHelpInIncorrectObjectCreationExpression()
         {
             var markup = @"

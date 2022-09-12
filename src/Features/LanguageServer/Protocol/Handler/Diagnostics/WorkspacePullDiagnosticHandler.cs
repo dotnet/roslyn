@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var todoCommentsEnabled = globalOptions.GetTodoCommentOptions().ComputeForClosedFiles;
+                var todoCommentsEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
                 if (!fullSolutionAnalysisEnabled && !todoCommentsEnabled)
                     return;
 

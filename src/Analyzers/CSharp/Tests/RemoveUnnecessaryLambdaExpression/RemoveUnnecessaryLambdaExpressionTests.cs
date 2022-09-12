@@ -651,8 +651,7 @@ class C
 }");
         }
 
-        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact]
+        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -679,8 +678,7 @@ class A
 }");
         }
 
-        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact]
+        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint1()
         {
             var code = @"
@@ -729,8 +727,7 @@ class A
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact]
+        [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint2()
         {
             var code = @"
@@ -757,8 +754,7 @@ class A
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-        [Fact]
+        [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -792,8 +788,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-        [Fact]
+        [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestWithLambdaWithDynamic()
         {
             await TestInRegularAndScriptAsync(
@@ -865,8 +860,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
-        [Fact]
+        [Fact, WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -904,8 +898,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
-        [Fact]
+        [Fact, WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
         public async Task TestNotWithSideEffects()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -920,8 +913,7 @@ class C
 }");
         }
 
-        [WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
-        [Fact]
+        [Fact, WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         public async Task TestExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1492,8 +1484,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestNotWithPartialDefinition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1513,8 +1504,7 @@ public partial class C
 }");
         }
 
-        [Fact]
-        [WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
+        [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestWithPartialDefinitionAndImplementation()
         {
             await TestInRegularAndScriptAsync(

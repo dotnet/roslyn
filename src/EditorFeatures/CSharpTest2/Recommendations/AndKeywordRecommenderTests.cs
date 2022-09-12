@@ -515,16 +515,14 @@ namespace N
 @"if (e is int)$$"));
         }
 
-        [WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
-        [Fact]
+        [Fact, WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
         public async Task TestMissingAfterColonColonPatternSyntax()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is null or global::$$) { }"));
         }
 
-        [WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
-        [Fact]
+        [Fact, WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
         public async Task TestMissingAfterColonColonPatternSyntax_SwitchExpression()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
@@ -534,8 +532,7 @@ x = e switch
     global::$$"));
         }
 
-        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
-        [Fact]
+        [Fact, WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
         public async Task TestNotAtIncompleteSwitchPattern()
         {
             await VerifyAbsenceAsync(

@@ -6,8 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ev
     Public Class RaiseEventKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RaiseEventInCustomEventTest()
             Dim code = <File>
@@ -20,8 +19,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "RaiseEvent")
         End Sub
 
-        <Fact>
-        <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
+        <Fact, WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RaiseEventInSingleLineLambdaTest()
             Dim code = <File>
@@ -34,8 +32,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "RaiseEvent")
         End Sub
 
-        <Fact>
-        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
+        <Fact, WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotRaiseEventInCustomEventWithRaiseEventTest()
             Dim code = <File>

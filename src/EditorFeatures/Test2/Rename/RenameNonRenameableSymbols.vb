@@ -113,8 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <WpfTheory, WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameCandidateSymbol(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -273,8 +272,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(539554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539554")>
+        <WpfTheory, WorkItem(539554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539554")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenamePredefinedType(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -292,8 +290,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(542937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542937")>
+        <WpfTheory, WorkItem(542937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542937")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameContextualKeyword(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -320,8 +317,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(543714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543714")>
+        <WpfTheory, WorkItem(543714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543714")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameOperator(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -348,8 +344,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")>
+        <WpfTheory, WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameExternAlias(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
