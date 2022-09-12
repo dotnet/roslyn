@@ -272,9 +272,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #endif
 
                     // Step 5: Rename declaration files
+<<<<<<< HEAD
                     foreach (var (symbol, symbolicRenameLocation) in _symbolToRenameLocations)
                     {
                         if (symbolicRenameLocation.Options.RenameFile && _symbolToReplacementTextValid[symbol])
+=======
+                    if (_replacementTextValid && RenameOptions.RenameFile)
+                    {
+                        var definitionLocations = _renameLocationSet.Symbol.Locations;
+                        var definitionDocuments = definitionLocations
+                            .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree!))
+                            .Distinct();
+
+                        if (definitionDocuments.Count() == 1)
+>>>>>>> upstream/main
                         {
                             var definitionLocations = symbol.Locations;
                             var definitionDocuments = definitionLocations

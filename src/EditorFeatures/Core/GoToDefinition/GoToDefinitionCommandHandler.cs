@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                     return _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         // determine the location first.
-                        var location = await asyncService.FindDefinitionLocationAsync(
-                            document, position, cancellationToken).ConfigureAwait(false);
+                        var (location, _) = await asyncService.FindDefinitionLocationAsync(
+                            document, position, includeType: true, cancellationToken).ConfigureAwait(false);
                         return await location.TryNavigateToAsync(
                             _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                     });
@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 var cancellationToken = backgroundIndicator.UserCancellationToken;
 
                 // determine the location first.
-                var location = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var (location, _) = await service.FindDefinitionLocationAsync(
+                    document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
                 // make sure that if our background indicator got canceled, that we do not still perform the navigation.
                 if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)

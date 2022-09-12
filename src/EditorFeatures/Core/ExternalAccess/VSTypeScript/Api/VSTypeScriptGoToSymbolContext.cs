@@ -3,29 +3,32 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.GoToDefinition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal sealed class VSTypeScriptGoToSymbolContext
     {
-        internal readonly GoToSymbolContext UnderlyingObject;
+        internal DefinitionItem? DefinitionItem;
 
-        internal VSTypeScriptGoToSymbolContext(GoToSymbolContext underlyingObject)
-            => UnderlyingObject = underlyingObject;
-
-        public Document Document => UnderlyingObject.Document;
-        public int Position => UnderlyingObject.Position;
-        public CancellationToken CancellationToken => UnderlyingObject.CancellationToken;
-
-        public TextSpan Span
+        internal VSTypeScriptGoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
         {
-            get => UnderlyingObject.Span;
-            set => UnderlyingObject.Span = value;
+            Document = document;
+            Position = position;
+            CancellationToken = cancellationToken;
         }
 
+        public Document Document { get; }
+        public int Position { get; }
+        public CancellationToken CancellationToken { get; }
+
+        public TextSpan Span { get; set; }
+
         public void AddItem(string key, VSTypeScriptDefinitionItem item)
-            => UnderlyingObject.AddItem(key, item.UnderlyingObject);
+        {
+            _ = key;
+            this.DefinitionItem = item.UnderlyingObject;
+        }
     }
 }

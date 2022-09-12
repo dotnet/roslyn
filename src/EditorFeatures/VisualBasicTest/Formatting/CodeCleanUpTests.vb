@@ -30,6 +30,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
     Partial Public Class CodeCleanUpTests
         ' Format Document tests are handled by Format Document Test
 
@@ -38,7 +39,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
         'Apply file header preferences
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemoveUnusedImports() As Task
             Dim code = "Imports System.Collections.Generic
 Imports System
@@ -59,7 +59,6 @@ End Class
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicSortImports() As Task
             Dim code = "Imports System.Reflection
 Imports System.IO
@@ -90,7 +89,6 @@ End Class
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicGroupUsings() As Task
             'Apply imports directive placement preference
             Dim code As String = "Imports M
@@ -137,7 +135,6 @@ End Namespace
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicSortAndGroupUsings() As Task
             'Apply imports directive placement preference
             Dim code As String = "Imports M
@@ -185,7 +182,6 @@ End Namespace
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemoveUnusedVariable() As Task
             'Remove unused variables
             Dim code As String = "Public Class Program
@@ -203,7 +199,6 @@ End Class
         End Function
 
         <Fact(Skip:="Not implemented")>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemovePrivateMemberIfUnused() As Task
             Dim code As String = "Friend Class Program
     Private Shared Sub Method()
@@ -217,7 +212,6 @@ End Class
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicAddAccessibilityModifiers() As Task
             Dim code As String = "Class Program
     Public Shared Sub Method()
@@ -235,7 +229,6 @@ End Class
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemoveUnnecessaryCast() As Task
             Dim code As String = "Public Class Program
     Public Shared Sub Method()
@@ -255,7 +248,6 @@ End Class
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Function VisualBasicSortAccessibilityModifiers() As Task
             Dim code As String = "Public Class Program
     Shared Public Sub Method()
@@ -273,7 +265,6 @@ End Class
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicMakePrivateFieldReadOnly() As Task
             Dim code = "Friend Class Program
     Private _a() As String
@@ -296,7 +287,6 @@ End Class"
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Function VisualBasicApplyMeQualification() As Task
             Dim code As String = "Public Class Program
     Private _value As String
@@ -482,7 +472,6 @@ End Class
 "
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Async Function RunThirdPartyFixer() As Task
             Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer)(_expected, _code)
         End Function
@@ -490,7 +479,6 @@ End Class
         <Theory>
         <InlineData(DiagnosticSeverity.Warning)>
         <InlineData(DiagnosticSeverity.Error)>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Async Function RunThirdPartyFixerWithSeverityOfWarningOrHigher(severity As DiagnosticSeverity) As Task
             Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer)(_expected, _code, severity)
         End Function
@@ -498,25 +486,21 @@ End Class
         <Theory>
         <InlineData(DiagnosticSeverity.Hidden)>
         <InlineData(DiagnosticSeverity.Info)>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Async Function DoNotRunThirdPartyFixerWithSeverityLessThanWarning(severity As DiagnosticSeverity) As Task
             Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer)(_code, _code, severity)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Async Function DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope() As Task
             Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer)(_code, _code)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Async Function DoNotApplyFixerIfChangesAreMadeOutsideDocument() As Task
             Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer)(_code, _code)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Async Function DoNotRunThirdPartyFixerWithNoFixAll() As Task
             Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer)(_code, _code)
         End Function

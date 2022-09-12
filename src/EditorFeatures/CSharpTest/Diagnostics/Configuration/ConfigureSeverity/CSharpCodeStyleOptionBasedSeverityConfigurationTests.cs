@@ -29,11 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                         new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class ErrorConfigurationTests : CSharpCodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 4;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_Error()
             {
                 var input = @"
@@ -82,7 +83,7 @@ dotnet_diagnostic.IDE0059.severity = error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_ExistingRule_Error()
             {
                 var input = @"
@@ -136,7 +137,7 @@ dotnet_diagnostic.IDE0059.severity = error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
             {
                 var input = @"
@@ -190,7 +191,7 @@ dotnet_diagnostic.IDE0059.severity = error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
             {
                 var input = @"
@@ -247,7 +248,7 @@ dotnet_style_qualification_for_field = false:silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
             {
                 var input = @"

@@ -39,20 +39,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 If (OperatorKind And BinaryOperatorKind.Error) = 0 Then
-                    Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind)
+                    Dim op As BinaryOperatorKind = (OperatorKind And BinaryOperatorKind.OpMask)
+                    Dim leftType = TryCast(Left.Type.GetNullableUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
-                    If opName IsNot Nothing Then
-                        Dim op As BinaryOperatorKind = (OperatorKind And BinaryOperatorKind.OpMask)
-                        Dim leftType = DirectCast(Left.Type.GetNullableUnderlyingTypeOrSelf(), NamedTypeSymbol)
-                        Return New SynthesizedIntrinsicOperatorSymbol(leftType,
-                                                                      opName,
-                                                                      Right.Type.GetNullableUnderlyingTypeOrSelf(),
-                                                                      Type.GetNullableUnderlyingTypeOrSelf(),
-                                                                      Checked AndAlso leftType.IsIntegralType() AndAlso
-                                                                          (op = BinaryOperatorKind.Multiply OrElse
-                                                                           op = BinaryOperatorKind.Add OrElse
-                                                                           op = BinaryOperatorKind.Subtract OrElse
-                                                                           op = BinaryOperatorKind.IntegerDivide))
+                    If leftType IsNot Nothing Then
+                        Dim isChecked = Checked AndAlso leftType.IsIntegralType() AndAlso
+                            (op = BinaryOperatorKind.Multiply OrElse
+                             op = BinaryOperatorKind.Add OrElse
+                             op = BinaryOperatorKind.Subtract OrElse
+                             op = BinaryOperatorKind.IntegerDivide)
+                        Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind, isChecked)
+
+                        If opName IsNot Nothing Then
+                            Return New SynthesizedIntrinsicOperatorSymbol(
+                                leftType,
+                                opName,
+                                Right.Type.GetNullableUnderlyingTypeOrSelf(),
+                                Type.GetNullableUnderlyingTypeOrSelf())
+                        End If
                     End If
                 End If
 

@@ -189,7 +189,16 @@ ref struct R { }
         public void ExplicitAttribute_UnexpectedParameterTargets()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
@@ -226,7 +235,7 @@ ref struct R { }
   }
 }
 ";
-            var ref0 = CompileIL(source0);
+            var ref0 = CompileIL(source0, prependDefaultHeader: false);
 
             var source1 =
 @"class Program
@@ -251,22 +260,22 @@ ref struct R { }
             var method = comp.GetMember<MethodSymbol>("A.F1");
             Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F2");
             Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.Unscoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
             Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
             Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
         }
 
         [Fact]

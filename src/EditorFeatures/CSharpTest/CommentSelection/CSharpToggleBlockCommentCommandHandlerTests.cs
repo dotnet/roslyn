@@ -19,9 +19,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
     public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CommentMarkerStringBeforeSelection()
         {
             var markup =
@@ -50,7 +51,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_DirectiveWithCommentInsideSelection()
         {
             var markup =
@@ -83,7 +84,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_MarkerInsideSelection()
         {
             var markup =
@@ -112,7 +113,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CloseCommentMarkerStringInSelection()
         {
             var markup =
@@ -141,7 +142,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CommentMarkerStringAfterSelection()
         {
             var markup =
@@ -170,7 +171,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CommentMarkerStringNearSelection()
         {
             var markup =
@@ -201,7 +202,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CommentMarkerStringInSelection()
         {
             var markup =

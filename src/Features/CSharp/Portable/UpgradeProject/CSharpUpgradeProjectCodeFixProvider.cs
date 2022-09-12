@@ -110,12 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             var parseOptions = (CSharpParseOptions)project.ParseOptions!;
             var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
 
-            var workspace = project.Solution.Workspace;
-
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
             return mappedVersion >= parseOptions.LanguageVersion &&
                 parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion &&
-                workspace.CanApplyParseOptionChange(parseOptions, parseOptions.WithLanguageVersion(parsedNewVersion), project);
+                project.CanApplyParseOptionChange(parseOptions, parseOptions.WithLanguageVersion(parsedNewVersion));
         }
     }
 }

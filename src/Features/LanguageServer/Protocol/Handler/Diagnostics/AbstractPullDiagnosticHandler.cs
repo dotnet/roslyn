@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -17,13 +18,14 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
+
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
     /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
     /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
+    internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
         /// <summary>
         /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
@@ -336,6 +338,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     diagnostic.Range = GetRange(diagnosticData.DataLocation);
                 }
 
+                // Defines an identifier used by the client for merging diagnostics across projects.
+                // We want diagnostics to be merged from separate projects if they have the same code, filepath, range, and message.
+                var filePath = diagnosticData.DataLocation?.GetFilePath();
+                if (filePath != null)
+                {
+                    diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
+                }
+
                 if (capabilities.HasVisualStudioLspCapability())
                 {
                     diagnostic.DiagnosticType = diagnosticData.Category;
@@ -408,6 +418,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 result.Add(VSDiagnosticTags.VisibleInErrorList);
             }
+
+            if (diagnosticData.CustomTags.Contains(PullDiagnosticConstants.TaskItemCustomTag))
+                result.Add(VSDiagnosticTags.TaskItem);
 
             if (potentialDuplicate)
                 result.Add(VSDiagnosticTags.PotentialDuplicate);

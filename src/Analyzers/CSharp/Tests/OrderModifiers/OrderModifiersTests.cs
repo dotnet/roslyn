@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
     public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public OrderModifiersTests(ITestOutputHelper logger)
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpOrderModifiersDiagnosticAnalyzer(), new CSharpOrderModifiersCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestClass()
         {
             await TestInRegularAndScript1Async(
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestStruct()
         {
             await TestInRegularAndScript1Async(
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestInterface()
         {
             await TestInRegularAndScript1Async(
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestEnum()
         {
             await TestInRegularAndScript1Async(
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestDelegate()
         {
             await TestInRegularAndScript1Async(
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 @"public unsafe delegate void D();");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestMethod()
         {
             await TestInRegularAndScript1Async(
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestField()
         {
             await TestInRegularAndScript1Async(
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestProperty()
         {
             await TestInRegularAndScript1Async(
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestAccessor()
         {
             await TestInRegularAndScript1Async(
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestPropertyEvent()
         {
             await TestInRegularAndScript1Async(
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestFieldEvent()
         {
             await TestInRegularAndScript1Async(
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestOperator()
         {
             await TestInRegularAndScript1Async(
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestConversionOperator()
         {
             await TestInRegularAndScript1Async(
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -252,7 +253,7 @@ internal static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await TestInRegularAndScript1Async(
@@ -266,7 +267,7 @@ internal static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestTrivia3()
         {
             await TestInRegularAndScript1Async(
@@ -286,7 +287,7 @@ internal static class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndClass1()
         {
             await TestInRegularAndScript1Async(
@@ -294,7 +295,7 @@ internal static class C
 @"public partial class C { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndClass2()
         {
             await TestInRegularAndScript1Async(
@@ -302,7 +303,7 @@ internal static class C
 @"abstract partial class C { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndClass3()
         {
             await TestInRegularAndScript1Async(
@@ -310,7 +311,7 @@ internal static class C
 @"sealed partial class C { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndClass4()
         {
             await TestInRegularAndScript1Async(
@@ -318,7 +319,7 @@ internal static class C
 @"static partial class C { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndClass5()
         {
             await TestInRegularAndScript1Async(
@@ -326,7 +327,7 @@ internal static class C
 @"unsafe partial class C { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndStruct1()
         {
             await TestInRegularAndScript1Async(
@@ -334,7 +335,7 @@ internal static class C
 @"public partial struct S { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndStruct2()
         {
             await TestInRegularAndScript1Async(
@@ -342,7 +343,7 @@ internal static class C
 @"unsafe partial struct S { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndInterface()
         {
             await TestInRegularAndScript1Async(
@@ -350,7 +351,7 @@ internal static class C
 @"public partial interface I { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndMethod1()
         {
             await TestInRegularAndScript1Async(
@@ -364,7 +365,7 @@ internal static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task PartialAtTheEndMethod2()
         {
             await TestInRegularAndScript1Async(
@@ -378,8 +379,7 @@ internal static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
-        [WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
+        [Fact, WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
         public async Task TestInLocalFunction()
         {
             // Not handled for performance reason.
@@ -393,7 +393,7 @@ internal static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestFixAllInContainingMember_NotApplicable()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -408,7 +408,7 @@ static internal class C2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestFixAllInContainingType()
         {
             await TestInRegularAndScript1Async(
@@ -432,7 +432,7 @@ static internal class C2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task RequiredAfterAllOnProp()
         {
             await TestInRegularAndScriptAsync("""
@@ -449,7 +449,7 @@ static internal class C2
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task RequiredAfterAllButVolatileOnField()
         {
             await TestInRegularAndScriptAsync("""
@@ -466,7 +466,7 @@ static internal class C2
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact]
         public async Task TestFileClass()
         {
             await TestInRegularAndScriptAsync("""

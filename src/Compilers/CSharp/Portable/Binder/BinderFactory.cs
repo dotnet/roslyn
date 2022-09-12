@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // key in the binder cache.
         // PERF: we are not using ValueTuple because its Equals is relatively slow.
-        private struct BinderCacheKey : IEquatable<BinderCacheKey>
+        private readonly struct BinderCacheKey : IEquatable<BinderCacheKey>
         {
             public readonly CSharpSyntaxNode syntaxNode;
             public readonly NodeUsage usage;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // more than 50 items added before getting collected.
             _binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
 
-            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, syntaxTree);
+            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxTree));
         }
 
         internal SyntaxTree SyntaxTree

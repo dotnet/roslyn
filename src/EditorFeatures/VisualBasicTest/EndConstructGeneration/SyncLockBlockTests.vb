@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SyncLockBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub ApplyAfterSyncLockStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -24,7 +25,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyForMatchedUsing()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -36,7 +37,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNestedSyncBlock()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -59,7 +60,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -70,7 +71,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidLocation()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
