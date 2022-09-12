@@ -404,7 +404,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     customTags:=ImmutableArray(Of String).Empty,
                     properties:=ImmutableDictionary(Of String, String).Empty,
                     project.Id,
-                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), Nothing)),
+                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), New LinePosition(4, 4))),
                     language:=project.Language)
 
                     AddHandler service.DiagnosticsUpdated, Sub(o, args)
