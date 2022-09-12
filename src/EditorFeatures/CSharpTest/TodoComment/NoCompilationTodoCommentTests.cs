@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
+using Microsoft.CodeAnalysis.Test.Utilities.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 {
     [UseExportProvider]
-    public class NoCompilationTodoCommentTests : AbstractTodoCommentTests
+    public class NoCompilationTodoCommentTests : AbstractTaskListTests
     {
         protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
         {

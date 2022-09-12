@@ -18,9 +18,9 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
+namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
 {
-    public abstract class AbstractTodoCommentTests
+    public abstract class AbstractTaskListTests
     {
         private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
         private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);

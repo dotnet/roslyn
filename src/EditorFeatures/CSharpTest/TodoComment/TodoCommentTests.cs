@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
+using Microsoft.CodeAnalysis.Test.Utilities.TaskList;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 {
     [UseExportProvider]
-    public class TodoCommentTests : AbstractTodoCommentTests
+    public class TodoCommentTests : AbstractTaskListTests
     {
         protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
             => TestWorkspace.CreateCSharp(codeWithMarker, composition: composition);
