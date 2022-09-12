@@ -632,7 +632,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     ClearAndZeroCapacity(_projectReferencesRemovedInBatch);
 
                     // Analyzer reference adding...
-
                     solutionChanges.UpdateSolutionForProjectAction(
                         Id,
                         newSolution: solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch.Select(a => a.GetReference())));
