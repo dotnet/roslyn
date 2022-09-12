@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _callbackId = callbackId;
         }
 
-        protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
+        protected override ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.ReportTaskListItemsAsync(_callbackId, documentId, data, cancellationToken),
                 cancellationToken);

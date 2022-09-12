@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         public InProcTaskListIncrementalAnalyzer(TaskListListener listener)
             => _listener = listener;
 
-        protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
+        protected override ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => _listener.ReportTaskListItemsAsync(documentId, data, cancellationToken);
 
         protected override ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)

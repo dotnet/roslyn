@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.TaskList
         {
         }
 
-        protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
         protected abstract ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken);
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                 return Task.CompletedTask;
 
             // Otherwise, report that there should now be no todo comments for this doc.
-            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TaskListItem>.Empty, cancellationToken).AsTask();
+            return ReportTaskListItemsAsync(documentId, ImmutableArray<TaskListItem>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(ImmutableArray<string> tokenList)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             }
 
             // Now inform VS about this new information
-            await ReportTodoCommentDataAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
+            await ReportTaskListItemsAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
         }
     }
 }
