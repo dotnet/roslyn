@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
@@ -24,6 +23,6 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// </summary>
         event EventHandler<TaskListUpdatedArgs> TodoListUpdated;
 
-        ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
+        ImmutableArray<TaskListItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
     }
 }

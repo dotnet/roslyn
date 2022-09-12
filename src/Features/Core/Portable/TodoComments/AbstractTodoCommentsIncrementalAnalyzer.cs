@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
         }
 
-        protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
         protected abstract ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken);
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 return Task.CompletedTask;
 
             // Otherwise, report that there should now be no todo comments for this doc.
-            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
+            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TaskListItem>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(ImmutableArray<string> tokenList)
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 document, descriptors, cancellationToken).ConfigureAwait(false);
 
             // Convert the roslyn-level results to the more VS oriented line/col data.
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+            using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
             await TodoComment.ConvertAsync(
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 

@@ -5,19 +5,19 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal sealed class TodoTableItem : TableItem
     {
-        public readonly TodoCommentData Data;
+        public readonly TaskListItem Data;
 
         private TodoTableItem(
             Workspace workspace,
-            TodoCommentData data,
+            TaskListItem data,
             string? projectName,
             Guid projectGuid,
             string[] projectNames,
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Data = data;
         }
 
-        public static TodoTableItem Create(Workspace workspace, TodoCommentData data)
+        public static TodoTableItem Create(Workspace workspace, TaskListItem data)
         {
             GetProjectNameAndGuid(workspace, data.DocumentId.ProjectId, out var projectName, out var projectGuid);
             return new TodoTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
@@ -65,11 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// We want to avoid displaying diagnostic multuple times when it is reported from 
         /// multi-targeted projects and/or files linked to multiple projects.
         /// </summary>
-        internal sealed class GroupingComparer : IEqualityComparer<TodoCommentData>, IEqualityComparer<TodoTableItem>
+        internal sealed class GroupingComparer : IEqualityComparer<TaskListItem>, IEqualityComparer<TodoTableItem>
         {
             public static readonly GroupingComparer Instance = new();
 
-            public bool Equals(TodoCommentData left, TodoCommentData right)
+            public bool Equals(TaskListItem left, TaskListItem right)
             {
                 // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
                 return
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     left.OriginalColumn == right.OriginalColumn;
             }
 
-            public int GetHashCode(TodoCommentData data)
+            public int GetHashCode(TaskListItem data)
                 => Hash.Combine(data.OriginalLine, data.OriginalColumn);
 
             public bool Equals(TodoTableItem left, TodoTableItem right)

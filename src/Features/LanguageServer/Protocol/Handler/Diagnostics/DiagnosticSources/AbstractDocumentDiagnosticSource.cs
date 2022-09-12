@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -63,7 +64,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
         if (comments.Length == 0)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+        using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
         await TodoComment.ConvertAsync(document, comments, converted, cancellationToken).ConfigureAwait(false);
 
         return converted.SelectAsArray(comment => new DiagnosticData(

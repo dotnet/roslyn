@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface ITodoCommentsListener
     {
-        ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+        ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
         ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken);
     }
 }

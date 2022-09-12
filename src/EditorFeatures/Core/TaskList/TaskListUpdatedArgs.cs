@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
@@ -18,10 +17,10 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<TodoCommentData> TaskListItems { get; }
+        public ImmutableArray<TaskListItem> TaskListItems { get; }
 
         public TaskListUpdatedArgs(
-            object id, Solution solution, DocumentId documentId, ImmutableArray<TodoCommentData> items)
+            object id, Solution solution, DocumentId documentId, ImmutableArray<TaskListItem> items)
             : base(id, solution.Workspace, documentId.ProjectId, documentId)
         {
             Solution = solution;

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
 using Xunit;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
             var service = document.GetLanguageService<ITodoCommentService>();
             var todoComments = await service.GetTodoCommentsAsync(document, TodoCommentDescriptor.Parse(tokenList), CancellationToken.None);
 
-            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+            using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
             await TodoComment.ConvertAsync(document, todoComments, converted, CancellationToken.None);
 
             var expectedLists = hostDocument.SelectedSpans;

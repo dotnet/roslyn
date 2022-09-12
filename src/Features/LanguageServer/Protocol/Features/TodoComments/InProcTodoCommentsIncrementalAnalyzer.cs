@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public InProcTodoCommentsIncrementalAnalyzer(TodoCommentsListener listener)
             => _listener = listener;
 
-        protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+        protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => _listener.ReportTodoCommentDataAsync(documentId, data, cancellationToken);
 
         protected override ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken)

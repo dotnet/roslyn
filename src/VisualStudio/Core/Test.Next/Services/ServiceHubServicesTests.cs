@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -127,7 +128,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
             using var listener = new TodoCommentsListener(
                 workspace.GlobalOptions,
@@ -142,7 +143,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
             Assert.Equal(1, items.Length);
 
-            Assert.Equal(new TodoCommentData(
+            Assert.Equal(new TaskListItem(
                 documentId: documentId,
                 priority: 1,
                 message: "HACK: Test",
@@ -153,7 +154,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 originalColumn: 3,
                 mappedColumn: 3), items[0]);
 
-            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("TODO:1"));
 
@@ -161,7 +162,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
             Assert.Equal(1, items.Length);
 
-            Assert.Equal(new TodoCommentData(
+            Assert.Equal(new TaskListItem(
                 documentId: documentId,
                 priority: 1,
                 message: "TODO: Test",

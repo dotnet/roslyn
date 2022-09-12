@@ -7,13 +7,13 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <summary>
     /// Serialization type used to pass information to/from OOP and VS.
     /// </summary>
     [DataContract]
-    internal readonly struct TodoCommentData : IEquatable<TodoCommentData>
+    internal readonly struct TaskListItem : IEquatable<TaskListItem>
     {
         [DataMember(Order = 0)]
         public readonly int Priority;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         [DataMember(Order = 8)]
         public readonly int OriginalColumn;
 
-        public TodoCommentData(int priority, string message, DocumentId documentId, string? mappedFilePath, string? originalFilePath, int mappedLine, int mappedColumn, int originalLine, int originalColumn)
+        public TaskListItem(int priority, string message, DocumentId documentId, string? mappedFilePath, string? originalFilePath, int mappedLine, int mappedColumn, int originalLine, int originalColumn)
         {
             Priority = priority;
             Message = message;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         public override bool Equals(object? obj)
-            => obj is TodoCommentData other && Equals(other);
+            => obj is TaskListItem other && Equals(other);
 
         public override int GetHashCode()
             => GetHashCode(this);
@@ -64,14 +64,14 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override string ToString()
             => $"{Priority} {Message} {MappedFilePath ?? ""} ({MappedLine}, {MappedColumn}) [original: {OriginalFilePath ?? ""} ({OriginalLine}, {OriginalColumn})";
 
-        public bool Equals(TodoCommentData right)
+        public bool Equals(TaskListItem right)
             => DocumentId == right.DocumentId &&
                Priority == right.Priority &&
                Message == right.Message &&
                OriginalLine == right.OriginalLine &&
                OriginalColumn == right.OriginalColumn;
 
-        public static int GetHashCode(TodoCommentData item)
+        public static int GetHashCode(TaskListItem item)
             => Hash.Combine(item.DocumentId,
                Hash.Combine(item.Priority,
                Hash.Combine(item.Message,
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             writer.WriteInt32(OriginalColumn);
         }
 
-        internal static TodoCommentData ReadFrom(ObjectReader reader)
+        internal static TaskListItem ReadFrom(ObjectReader reader)
             => new(priority: reader.ReadInt32(),
                    message: reader.ReadString(),
                    documentId: DocumentId.ReadFrom(reader),

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
@@ -26,8 +27,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private readonly IGlobalOptionService _globalOptions;
         private readonly SolutionServices _services;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly Action<DocumentId, ImmutableArray<TodoCommentData>, ImmutableArray<TodoCommentData>> _onTodoCommentsUpdated;
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
+        private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTodoCommentsUpdated;
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToInfos = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             IGlobalOptionService globalOptions,
             SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            Action<DocumentId, ImmutableArray<TodoCommentData>, ImmutableArray<TodoCommentData>> onTodoCommentsUpdated,
+            Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> onTodoCommentsUpdated,
             CancellationToken disposalToken)
         {
             _globalOptions = globalOptions;
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TaskListItem> infos, CancellationToken cancellationToken)
         {
             try
             {
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
                 var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
-                    : ImmutableArray<TodoCommentData>.Empty;
+                    : ImmutableArray<TaskListItem>.Empty;
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
@@ -202,11 +203,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
-        public ImmutableArray<TodoCommentData> GetTodoItems(DocumentId documentId)
+        public ImmutableArray<TaskListItem> GetTodoItems(DocumentId documentId)
         {
             return _documentToInfos.TryGetValue(documentId, out var values)
                 ? values
-                : ImmutableArray<TodoCommentData>.Empty;
+                : ImmutableArray<TaskListItem>.Empty;
         }
     }
 }

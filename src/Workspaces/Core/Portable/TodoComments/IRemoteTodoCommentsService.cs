@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     {
         internal interface ICallback
         {
-            ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+            ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
             ValueTask<TodoCommentOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         }
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private ITodoCommentsListener GetListener(RemoteServiceCallbackId callbackId)
             => (ITodoCommentsListener)GetCallback(callbackId);
 
-        public ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+        public ValueTask ReportTodoCommentDataAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken)
             => GetListener(callbackId).ReportTodoCommentDataAsync(documentId, data, cancellationToken);
 
         public ValueTask<TodoCommentOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)

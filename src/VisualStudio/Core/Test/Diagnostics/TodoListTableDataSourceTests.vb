@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.TodoComments
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -88,11 +87,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
 
-                provider.Items = New TodoCommentData() {CreateItem(documentId)}
+                provider.Items = New TaskListItem() {CreateItem(documentId)}
                 provider.RaiseTodoListUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
-                provider.Items = Array.Empty(Of TodoCommentData)()
+                provider.Items = Array.Empty(Of TaskListItem)()
                 provider.RaiseClearTodoListUpdated(workspace, documentId)
                 Assert.Equal(0, sink.Entries.Count)
             End Using
@@ -243,9 +242,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TaskListUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                provider.Items = New TodoCommentData() {
-                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
-                    New TodoCommentData(priority:=0, message:="test", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test1")
+                provider.Items = New TaskListItem() {
+                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TaskListItem(priority:=0, message:="test", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test1")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -278,9 +277,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TaskListUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                provider.Items = New TodoCommentData() {
-                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
-                    New TodoCommentData(priority:=0, message:="test3", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test3")
+                provider.Items = New TaskListItem() {
+                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test3")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -342,7 +341,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
 
-                provider.Items = New TodoCommentData() {item1, item2}
+                provider.Items = New TaskListItem() {item1, item2}
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -370,8 +369,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        Private Shared Function CreateItem(documentId As DocumentId) As TodoCommentData
-            Return New TodoCommentData(
+        Private Shared Function CreateItem(documentId As DocumentId) As TaskListItem
+            Return New TaskListItem(
                 priority:=0,
                 message:="test",
                 documentId:=documentId,
@@ -386,15 +385,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestTodoListProvider
             Implements ITaskListProvider
 
-            Public Items As TodoCommentData()
+            Public Items As TaskListItem()
 
-            Public Sub New(ParamArray items As TodoCommentData())
+            Public Sub New(ParamArray items As TaskListItem())
                 Me.Items = items
             End Sub
 
             Public Event TodoListUpdated As EventHandler(Of TaskListUpdatedArgs) Implements ITaskListProvider.TodoListUpdated
 
-            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoCommentData) Implements ITaskListProvider.GetTodoItems
+            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TaskListItem) Implements ITaskListProvider.GetTodoItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 
@@ -412,7 +411,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Sub RaiseClearTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId)
                 RaiseEvent TodoListUpdated(Me, New TaskListUpdatedArgs(
-                    Me, workspace.CurrentSolution, documentId, ImmutableArray(Of TodoCommentData).Empty))
+                    Me, workspace.CurrentSolution, documentId, ImmutableArray(Of TaskListItem).Empty))
             End Sub
         End Class
     End Class
