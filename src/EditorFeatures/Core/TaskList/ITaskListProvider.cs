@@ -7,9 +7,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <summary>
     /// Returns Roslyn todo list from the workspace.

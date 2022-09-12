@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;

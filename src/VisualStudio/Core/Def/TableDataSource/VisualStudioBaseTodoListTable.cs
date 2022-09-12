@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
