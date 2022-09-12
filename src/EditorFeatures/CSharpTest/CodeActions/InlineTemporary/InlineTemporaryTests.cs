@@ -2496,8 +2496,8 @@ class A<T>
             parseOptions: null);
         }
 
-        [WorkItem(545170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(545170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
         public async Task InsertCorrectCastForDelegateCreationExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -3757,8 +3757,8 @@ class C
 }", parseOptions: TestOptions.Regular7);
         }
 
-        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108")]
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestInRegularAndScriptAsync(

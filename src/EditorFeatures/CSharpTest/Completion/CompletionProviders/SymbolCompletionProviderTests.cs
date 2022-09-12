@@ -10250,8 +10250,8 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(420697, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21766"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(420697, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
         public async Task DoNotCrashInExtensionMethoWithExpressionBodiedMember()
         {
             var markup =

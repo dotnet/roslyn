@@ -727,8 +727,8 @@ class Test
             }.RunAsync();
         }
 
-        [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
         public async Task RemoveUnneededCastInsideADelegateConstructor()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -823,8 +823,8 @@ class Test
 }");
         }
 
-        [WorkItem(545578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(545578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
         public async Task RemoveUnneededCastInsideGotoCaseStatement()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -10984,8 +10984,8 @@ class C
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
         public async Task DoRemoveNRTCastInConditional1()
         {
             await new VerifyCS.Test

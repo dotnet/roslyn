@@ -1085,8 +1085,8 @@ class C
 CodeStyleOptions2.QualifyMethodAccess);
         }
 
-        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587")]
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         public async Task QualifyEventAccess_EventSubscription()
         {
             await TestAsyncWithOption(
@@ -1115,8 +1115,8 @@ class C
 CodeStyleOptions2.QualifyEventAccess);
         }
 
-        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587")]
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         public async Task QualifyEventAccessAsProperty_EventSubscription()
         {
             await TestAsyncWithOption(
@@ -1163,8 +1163,8 @@ class C
 CodeStyleOptions2.QualifyEventAccess);
         }
 
-        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587")]
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         public async Task QualifyEventAccess_InvokeEvent1()
         {
             await TestAsyncWithOption(
@@ -1193,8 +1193,8 @@ class C
 CodeStyleOptions2.QualifyEventAccess);
         }
 
-        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587")]
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         public async Task QualifyEventAccess_InvokeEvent2()
         {
             await TestAsyncWithOption(
@@ -1223,8 +1223,8 @@ class C
 CodeStyleOptions2.QualifyEventAccess);
         }
 
-        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587")]
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         public async Task QualifyEventAccess_InvokeEvent3()
         {
             await TestAsyncWithOption(
@@ -1253,8 +1253,8 @@ class C
 CodeStyleOptions2.QualifyEventAccess);
         }
 
-        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587")]
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         public async Task QualifyEventAccess_OnBase()
         {
             await TestAsyncWithOption(
@@ -1429,8 +1429,8 @@ CodeStyleOptions2.QualifyPropertyAccess, NotificationOption2.Warning);
 CodeStyleOptions2.QualifyPropertyAccess, NotificationOption2.Error);
         }
 
-        [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839")]
+        [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
         public async Task QualifyInstanceMethodInDelegateCreation()
         {
             await TestAsyncWithOption(

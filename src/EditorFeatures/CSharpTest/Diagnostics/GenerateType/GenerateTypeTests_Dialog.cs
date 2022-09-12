@@ -2518,8 +2518,8 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
-        [WorkItem(872935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
         [Fact(Skip = "872935")]
+        [WorkItem(872935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
         {
             await TestWithMockedGenerateTypeDialog(

@@ -2536,8 +2536,8 @@ class C
                 EvalResult(rootExpr, message, "", rootExpr));
         }
 
-        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
         [Fact(Skip = "62156")]
+        [WorkItem(62156, "https://github.com/dotnet/roslyn/issues/62156")]
         public void RefField()
         {
             var source =

@@ -2048,8 +2048,8 @@ class Program
 }");
         }
 
-        [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
         [Fact(Skip = "Tuples"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
         public async Task BugFix5538()
         {
             await TestInRegularAndScriptAsync(

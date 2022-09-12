@@ -1458,8 +1458,8 @@ class Test
             // await VerifyItemExistsAsync(markup, "action");
         }
 
-        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact(Skip = "Not yet supported")]
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         public async Task TupleElementInGenericTypeArgument()
         {
             var markup = @"
