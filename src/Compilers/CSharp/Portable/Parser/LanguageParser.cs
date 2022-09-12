@@ -4913,6 +4913,13 @@ tryAgain:
             {
                 this.ParseVariableDeclarators(type, flags: 0, variables: variables, parentKind: parentKind);
 
+                // Make 'scoped' part of the type when it is the last token in the modifiers list
+                if (modifiers.Count != 0 && modifiers[modifiers.Count - 1] is SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword)
+                {
+                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
+                    modifiers.RemoveLast();
+                }
+
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.FieldDeclaration(
                     attributes,

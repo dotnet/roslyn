@@ -8638,7 +8638,7 @@ readonly scoped record struct C();
         }
 
         [Fact]
-        public void FieldTypeScope()
+        public void FieldTypeScope_01()
         {
             var source =
 @"#pragma warning disable 169
@@ -8669,6 +8669,40 @@ ref struct R2
                 // (6,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int F3;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void FieldTypeScope_02()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct R1 { }
+ref struct R2
+{
+    scoped private R1 F1;
+    scoped private ref int F3;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private R1 F1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 23),
+                // (6,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(6, 20),
+                // (6,28): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 28));
+
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private R1 F1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 23),
+                // (6,28): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 28));
         }
 
         [Theory]
