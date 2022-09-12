@@ -3423,6 +3423,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">外部</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="new">foreach loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">メタデータから</target>

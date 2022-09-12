@@ -145,6 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
 
+            internal ImmutableArray<byte> lazyFilePathChecksum = default;
+            internal string lazyDisplayFileName;
+
 #if DEBUG
             internal bool IsDefaultValue()
             {
@@ -159,7 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
-                    !lazyHasRequiredMembers.HasValue();
+                    !lazyHasRequiredMembers.HasValue() &&
+                    lazyFilePathChecksum.IsDefault &&
+                    lazyDisplayFileName == null;
             }
 #endif
         }
@@ -313,6 +318,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 mangleName = !ReferenceEquals(_name, metadataName);
             }
 
+            if (_lazyUncommonProperties is not null)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            // when a file-local type from source is loaded from metadata, we do a best-effort check to identify it as a file type
+            // this is needed to allow EE to bind to file types from metadata, for example.
+            if (container.IsNamespace && GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
+            {
+                _name = originalTypeName;
+                _lazyUncommonProperties = new UncommonProperties()
+                {
+                    lazyFilePathChecksum = ordinal.ToImmutableArray(),
+                    lazyDisplayFileName = displayFileName
+                };
+            }
+
             // check if this is one of the COR library types
             if (emittedNamespaceName != null &&
                 moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes &&
@@ -372,7 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal override SyntaxTree AssociatedSyntaxTree => null;
+        internal override FileIdentifier? AssociatedFileIdentifier =>
+            GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
+                ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
+                : null;
 
         internal abstract int MetadataArity
         {

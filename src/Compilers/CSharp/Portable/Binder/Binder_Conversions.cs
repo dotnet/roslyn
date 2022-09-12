@@ -755,11 +755,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaOrMethod,
                 diagnostics,
                 static (diagnostics, _, _, parameter, _, typeAndLocation) =>
+                {
                     diagnostics.Add(
                         ErrorCode.ERR_ScopedMismatchInParameterOfTarget,
                         typeAndLocation.Location,
                         new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                        typeAndLocation.Type),
+                        typeAndLocation.Type);
+                },
                 (Type: targetType, Location: syntax.Location),
                 allowVariance: true,
                 invokedAsExtensionMethod: invokedAsExtensionMethod);

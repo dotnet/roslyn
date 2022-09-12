@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="oldOptions">The old <see cref="CompilationOptions"/> of the project from prior to the change.</param>
         /// <param name="newOptions">The new <see cref="CompilationOptions"/> of the project that was passed to <see cref="TryApplyChanges(Solution)"/>.</param>
         /// <param name="project">The project contained in the <see cref="Solution"/> passed to <see cref="TryApplyChanges(Solution)"/>.</param>
-        protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+        public virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
             => false;
 
         /// <summary>
