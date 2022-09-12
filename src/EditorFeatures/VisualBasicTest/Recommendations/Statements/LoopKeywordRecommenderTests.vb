@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class LoopKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopNotInMethodBodyTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Loop")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopNotInLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub()
@@ -22,7 +21,6 @@ Dim x = Sub()
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopNotAfterStatementTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x
@@ -30,7 +28,6 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopAfterDoStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
@@ -38,7 +35,6 @@ Do
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopAfterDoUntilStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Do Until True
@@ -46,7 +42,6 @@ Do Until True
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopUntilNotAfterDoUntilStatementTest()
             VerifyRecommendationsMissing(<MethodBody>
 Do Until True
@@ -54,7 +49,6 @@ Do Until True
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LoopNotInDoLoopUntilBlockTest()
             VerifyRecommendationsMissing(<MethodBody>
 Do

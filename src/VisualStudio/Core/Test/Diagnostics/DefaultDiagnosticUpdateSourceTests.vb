@@ -46,8 +46,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         '                Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
+<<<<<<< HEAD
         '                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
         '                Assert.False(miscService.SupportGetDiagnostics)
+=======
+                Dim miscService = DirectCast(workspace.GetService(Of IDiagnosticAnalyzerService), DiagnosticAnalyzerService)
+>>>>>>> upstream/main
 
         '                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 

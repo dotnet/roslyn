@@ -14,11 +14,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class DocumentationCommentStructureTests : AbstractCSharpSyntaxNodeStructureTests<DocumentationCommentTriviaSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new DocumentationCommentStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDocumentationCommentWithoutSummaryTag1()
         {
             const string code = @"
@@ -34,7 +35,7 @@ class Class3
                 Region("span", "/// XML doc comment ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDocumentationCommentWithoutSummaryTag2()
         {
             const string code = @"
@@ -51,7 +52,7 @@ class Class3
                 Region("span", "/** Block comment ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDocumentationCommentWithoutSummaryTag3()
         {
             const string code = @"
@@ -64,7 +65,7 @@ class Class3
                 Region("span", "/// <param name=\"tree\"></param> ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDocumentationComment()
         {
             const string code = @"
@@ -79,7 +80,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDocumentationCommentWithLongBannerText()
         {
             var code = @"
@@ -94,7 +95,7 @@ class Class3
                 Region("span", "/// <summary> " + new string('x', 106) + " ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestMultilineDocumentationComment()
         {
             const string code = @"
@@ -109,7 +110,7 @@ class Class3
                 Region("span", "/** <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestIndentedDocumentationComment()
         {
             const string code = @"
@@ -124,7 +125,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestIndentedMultilineDocumentationComment()
         {
             const string code = @"
@@ -139,7 +140,7 @@ class Class3
                 Region("span", "/** <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -152,7 +153,7 @@ class Class3
                 Region("span", "/// <summary>Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestMultilineDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -165,7 +166,7 @@ class Class3
                 Region("span", "/** <summary>Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestIndentedDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -178,7 +179,7 @@ class Class3
                 Region("span", "/// <summary>Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestIndentedMultilineDocumentationCommentOnASingleLine()
         {
             const string code = @"
@@ -191,7 +192,7 @@ class Class3
                 Region("span", "/** <summary>Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestMultilineSummaryInDocumentationComment1()
         {
             const string code = @"
@@ -207,7 +208,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestMultilineSummaryInDocumentationComment2()
         {
             const string code = @"
@@ -224,8 +225,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        [WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
+        [Fact, WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
         public async Task CrefInSummary()
         {
             const string code = @"
@@ -242,8 +242,7 @@ class C
                 Region("span", "/// <summary> Summary with SeeClass, SeeAlsoClass, null, T, t, and not-supported.", autoCollapse: true));
         }
 
-        [WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
         public async Task TestSummaryWithPunctuation()
         {
             const string code = @"
@@ -262,8 +261,7 @@ class C
                 Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
         }
 
-        [WorkItem(20679, "https://github.com/dotnet/roslyn/issues/20679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, WorkItem(20679, "https://github.com/dotnet/roslyn/issues/20679")]
         public async Task TestSummaryWithAdditionalTags()
         {
             const string code = @"

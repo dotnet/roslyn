@@ -260,22 +260,22 @@ ref struct R { }
             var method = comp.GetMember<MethodSymbol>("A.F1");
             Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F2");
             Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.Unscoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
             Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
             Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
         }
 
         [Fact]

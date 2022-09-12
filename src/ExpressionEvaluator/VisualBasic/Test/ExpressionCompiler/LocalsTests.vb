@@ -1347,7 +1347,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Iterator_StaticMethod_Generic()
             Const source = "
 Imports System.Collections.Generic
@@ -1575,12 +1575,11 @@ End Class
                 End Sub)
         End Sub
 
+        <Fact, WorkItem(12219, "https://github.com/dotnet/roslyn/issues/12219")>
         <WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")>
         <WorkItem(997613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997613")>
         <WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <WorkItem(12219, "https://github.com/dotnet/roslyn/issues/12219")>
-        <Fact>
         Public Sub AsyncAndLambda()
             Const source =
 "Imports System
@@ -1649,8 +1648,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")>
-        <Fact>
+        <Fact, WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")>
         Public Sub AsyncLambda()
             Const source =
 "Imports System
@@ -1701,8 +1699,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")>
-        <Fact>
+        <Fact, WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")>
         Public Sub MissingReference()
             Const source0 =
 "Public Class A
@@ -1772,8 +1769,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
-        <Fact>
+        <Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         Public Sub LocalDateConstant()
             Const source = "
 Class C
@@ -1819,8 +1815,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
-        <Fact>
+        <Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         Public Sub LocalDecimalConstant()
             Const source = "
 Class C
@@ -1986,8 +1981,7 @@ End Module
                 End Sub)
         End Sub
 
-        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
-        <Fact>
+        <Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         Public Sub TypeVariablesTypeParameterNames()
             Const source = "
 Imports System.Collections.Generic
@@ -2466,8 +2460,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
-        <Fact>
+        <Fact, WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         Public Sub CaseSensitivity()
             Const source = "
 Class C
@@ -2512,8 +2505,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
-        <Fact>
+        <Fact, WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
         Public Sub CatchInAsyncStateMachine()
             Const source =
 "Imports System
@@ -2571,8 +2563,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
-        <Fact>
+        <Fact, WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
         Public Sub CatchInIteratorStateMachine()
             Const source =
 "Imports System
@@ -2676,8 +2667,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")>
-        <Fact>
+        <Fact, WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")>
         Public Sub MultipleMeFields()
             Const source =
 "Imports System
@@ -2734,8 +2724,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")>
-        <Fact>
+        <Fact, WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")>
         Public Sub LocalsOnAsyncEndSub()
             Const source = "
 Imports System
@@ -2767,8 +2756,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
-        <Fact>
+        <Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         Public Sub TransparentIdentifiers_FromParameter()
             Const source = "
 Imports System.Linq
@@ -2852,8 +2840,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
-        <Fact>
+        <Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         Public Sub TransparentIdentifiers_FromDisplayClassField()
             Const source = "
 Imports System.Linq
@@ -2959,8 +2946,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
-        <Fact>
+        <Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         Public Sub TransparentIdentifiers_It1()
             Const source = "
 Imports System.Linq
@@ -3040,8 +3026,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
-        <Fact>
+        <Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         Public Sub TransparentIdentifiers_It2()
             Const source = "
 Imports System.Linq
@@ -3122,8 +3107,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
-        <Fact>
+        <Fact, WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         Public Sub TransparentIdentifiers_ItAnonymous()
             Const source = "
 Imports System.Linq
@@ -3171,8 +3155,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(3236, "https://github.com/dotnet/roslyn/pull/3236")>
-        <Fact>
+        <Fact, WorkItem(3236, "https://github.com/dotnet/roslyn/pull/3236")>
         Public Sub AnonymousTypeParameter()
             Const source = "
 Imports System.Linq
@@ -3222,8 +3205,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(955, "https://github.com/aspnet/Home/issues/955")>
-        <Fact>
+        <Fact, WorkItem(955, "https://github.com/aspnet/Home/issues/955")>
         Public Sub ConstantWithErrorType()
             Const source = "
 Module Module1
@@ -3251,8 +3233,7 @@ End Module"
                 End Sub)
         End Sub
 
-        <WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")>
-        <Fact>
+        <Fact, WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")>
         Public Sub OrderOfArguments_ArgumentsOnly()
             Const source = "
 Imports System.Collections.Generic
@@ -3289,8 +3270,7 @@ End Class"
         ''' <summary>
         ''' CompileGetLocals should skip locals with errors.
         ''' </summary>
-        <WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")>
-        <Fact>
+        <Fact, WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")>
         Public Sub SkipPseudoVariablesWithUseSiteErrors()
             Const source =
 "Class C
