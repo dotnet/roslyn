@@ -11,23 +11,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 {
     internal static class TaskListOptionsStorage
     {
-        public static readonly Option2<ImmutableArray<string>> TokenList = new(
+        public static readonly Option2<ImmutableArray<string>> Descriptors = new(
             "TodoCommentOptions",
             "TokenList",
             TaskListOptions.Default.Descriptors,
             new RoamingProfileStorageLocation("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens"));
 
-        public static readonly Option2<bool> ComputeTodoCommentsForClosedFiles = new(
+        public static readonly Option2<bool> ComputeTaskListItemsForClosedFiles = new(
             "TodoCommentOptions",
-            "ComputeTodoCommentsForClosedFiles",
+            "ComputeTaskListItemsForClosedFiles",
             defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTodoCommentsForClosedFiles"));
+            new RoamingProfileStorageLocation($"TextEditor.Specific.ComputeTaskListItemsForClosedFiles"));
 
-        public static TaskListOptions GetTodoCommentOptions(this IGlobalOptionService globalOptions)
+        public static TaskListOptions GetTaskListOptions(this IGlobalOptionService globalOptions)
             => new()
             {
-                Descriptors = globalOptions.GetOption(TokenList),
-                ComputeForClosedFiles = globalOptions.GetOption(ComputeTodoCommentsForClosedFiles)
+                Descriptors = globalOptions.GetOption(Descriptors),
+                ComputeForClosedFiles = globalOptions.GetOption(ComputeTaskListItemsForClosedFiles)
             };
     }
 }

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         private void GlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
             // Notify remote service that TokenList changed and the solution needs to be re-analyzed:
-            if (e.Option == TaskListOptionsStorage.TokenList && _lazyConnection != null)
+            if (e.Option == TaskListOptionsStorage.Descriptors && _lazyConnection != null)
             {
                 // only perform the call if connection has not been disposed:
                 _ = Task.Run(() => _lazyConnection?.TryInvokeAsync((service, cancellationToken) => service.ReanalyzeAsync(cancellationToken), _disposalToken))
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         /// Callback from the OOP service back into us.
         /// </summary>
         public ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetTodoCommentOptions());
+            => ValueTaskFactory.FromResult(_globalOptions.GetTaskListOptions());
 
         private ValueTask ProcessTodoCommentInfosAsync(
             ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> docAndCommentsArray, CancellationToken cancellationToken)

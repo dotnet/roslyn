@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var todoCommentsEnabled = globalOptions.GetTodoCommentOptions().ComputeForClosedFiles;
+                var todoCommentsEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
                 if (!fullSolutionAnalysisEnabled && !todoCommentsEnabled)
                     return;
 
