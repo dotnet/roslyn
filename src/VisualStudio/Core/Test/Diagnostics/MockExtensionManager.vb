@@ -18,9 +18,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private ReadOnly _contentType As String
         Private ReadOnly _locations() As String
 
-        Public Sub New(contentType As String, ParamArray locations() As String)
+        Public Sub New(Optional locations As String() = Nothing,
+                       Optional contentType As String = "Microsoft.VisualStudio.Analyzer")
             _contentType = contentType
-            _locations = locations
+            _locations = If(locations, Array.Empty(Of String))
         End Sub
 
         Public Function GetEnabledExtensionContentLocations(contentTypeName As String) As IEnumerable(Of String)

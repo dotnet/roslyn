@@ -5,9 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -30,7 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private AnalyzerReference? _analyzerReference;
         private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
-        public VisualStudioAnalyzer(string fullPath, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, string language)
+        public VisualStudioAnalyzer(
+            string fullPath,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            ProjectId projectId,
+            string language)
         {
             FullPath = fullPath;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;

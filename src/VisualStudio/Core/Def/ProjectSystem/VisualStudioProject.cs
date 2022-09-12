@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
 
@@ -26,10 +27,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioProject
     {
+        private static readonly char[] s_directorySeparator = { Path.DirectorySeparatorChar };
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly VisualStudioDiagnosticAnalyzerProvider _vsixAnalyzerProvider;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -145,6 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl workspace,
             ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            VisualStudioDiagnosticAnalyzerProvider vsixAnalyzerProvider,
             ProjectId id,
             string displayName,
             string language,
@@ -156,6 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace = workspace;
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _vsixAnalyzerProvider = vsixAnalyzerProvider;
 
             Id = id;
             Language = language;
@@ -627,6 +632,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     ClearAndZeroCapacity(_projectReferencesRemovedInBatch);
 
                     // Analyzer reference adding...
+
                     solutionChanges.UpdateSolutionForProjectAction(
                         Id,
                         newSolution: solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch.Select(a => a.GetReference())));
@@ -879,77 +885,106 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             using (_gate.DisposableWait())
             {
-                if (_analyzerPathsToAnalyzers.ContainsKey(fullPath))
+                foreach (var mappedFullPath in GetMapedAnalyzerPaths(fullPath))
                 {
-                    throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
-                }
-
-                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
-                // it once we apply the batch
-                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == fullPath);
-                if (analyzerPendingRemoval != null)
-                {
-                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                    _analyzerPathsToAnalyzers.Add(fullPath, analyzerPendingRemoval);
-                }
-                else
-                {
-                    // Nope, we actually need to make a new one.
-                    var visualStudioAnalyzer = new VisualStudioAnalyzer(
-                        fullPath,
-                        _hostDiagnosticUpdateSource,
-                        Id,
-                        Language);
-
-                    _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
-
-                    if (_activeBatchScopes > 0)
+                    if (_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
                     {
-                        _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                        throw new ArgumentException($"'{mappedFullPath}' has already been added to this project.", nameof(mappedFullPath));
+                    }
+                    // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
+                    // it once we apply the batch
+                    var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == mappedFullPath);
+                    if (analyzerPendingRemoval != null)
+                    {
+                        _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
+                        _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerPendingRemoval);
                     }
                     else
                     {
-                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                        // Nope, we actually need to make a new one.
+                        var visualStudioAnalyzer = new VisualStudioAnalyzer(
+                            mappedFullPath,
+                            _hostDiagnosticUpdateSource,
+                            Id,
+                            Language);
+
+                        _analyzerPathsToAnalyzers.Add(mappedFullPath, visualStudioAnalyzer);
+
+                        if (_activeBatchScopes > 0)
+                        {
+                            _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                        }
+                        else
+                        {
+                            _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                        }
                     }
                 }
             }
         }
 
-        public void RemoveAnalyzerReference(string fullPath)
+        public void RemoveAnalyzerReference(string fullPathX)
         {
-            if (string.IsNullOrEmpty(fullPath))
+            if (string.IsNullOrEmpty(fullPathX))
             {
-                throw new ArgumentException("message", nameof(fullPath));
+                throw new ArgumentException("message", nameof(fullPathX));
             }
 
             using (_gate.DisposableWait())
             {
-                if (!_analyzerPathsToAnalyzers.TryGetValue(fullPath, out var visualStudioAnalyzer))
+                foreach (var mappedFullPath in GetMapedAnalyzerPaths(fullPathX))
                 {
-                    throw new ArgumentException($"'{fullPath}' is not an analyzer of this project.", nameof(fullPath));
-                }
-
-                _analyzerPathsToAnalyzers.Remove(fullPath);
-
-                if (_activeBatchScopes > 0)
-                {
-                    // This analyzer may be one we've just added in the same batch; in that case, just don't add
-                    // it in the first place.
-                    if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                    if (!_analyzerPathsToAnalyzers.TryGetValue(mappedFullPath, out var visualStudioAnalyzer))
                     {
-                        // Nothing is holding onto this analyzer now, so get rid of it
-                        visualStudioAnalyzer.Dispose();
+                        throw new ArgumentException($"'{mappedFullPath}' is not an analyzer of this project.", nameof(mappedFullPath));
+                    }
+
+                    _analyzerPathsToAnalyzers.Remove(mappedFullPath);
+
+                    if (_activeBatchScopes > 0)
+                    {
+                        // This analyzer may be one we've just added in the same batch; in that case, just don't add
+                        // it in the first place.
+                        if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                        {
+                            // Nothing is holding onto this analyzer now, so get rid of it
+                            visualStudioAnalyzer.Dispose();
+                        }
+                        else
+                        {
+                            _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                        }
                     }
                     else
                     {
-                        _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
+
+                        visualStudioAnalyzer.Dispose();
                     }
                 }
-                else
+            }
+        }
+
+        private IEnumerable<string> GetMapedAnalyzerPaths(string fullPath)
+        {
+            if (fullPath.Split(s_directorySeparator) is [.., "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", var fileName])
+            {
+                // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
+
+                if (fileName == "Microsoft.NET.Sdk.Razor.SourceGenerators.dll")
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
-                    visualStudioAnalyzer.Dispose();
+                    foreach (var (vsixAnalyzer, extensionId) in _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions())
+                    {
+                        if (extensionId == "Microsoft.VisualStudio.RazorExtension")
+                        {
+                            yield return vsixAnalyzer.FullPath;
+                        }
+                    }
                 }
+            }
+            else
+            {
+                yield return fullPath;
             }
         }
 

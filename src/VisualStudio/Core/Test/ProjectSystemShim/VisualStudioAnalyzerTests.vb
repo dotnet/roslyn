@@ -11,8 +11,10 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
