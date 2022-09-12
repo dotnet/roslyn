@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 // todo: goo
 class A {
 }";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -733,7 +733,7 @@ class A
 // todo: goo
 class A {
 }";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: false);
@@ -749,7 +749,7 @@ class A {
 // todo: goo
 class A {
 }";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: true);
@@ -767,7 +767,7 @@ class A {
 // todo: goo
 class A {
 }";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: false);
@@ -787,7 +787,7 @@ class A {
 // todo: goo
 class A {
 }";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: true);
@@ -807,7 +807,7 @@ class A {
 // todo: goo
 class A {
 ";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: true);

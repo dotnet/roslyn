@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -46,12 +45,19 @@ internal readonly struct RequestContext
     private readonly ILspServices _lspServices;
 
     /// <summary>
+    /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
+    /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
+    /// </summary>
+    public readonly Workspace? Workspace;
+
+    /// <summary>
     /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
     /// </summary>
     public readonly Solution? Solution;
 
     /// <summary>
-    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
+    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
+    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
     public readonly Document? Document;
 
@@ -78,6 +84,7 @@ internal readonly struct RequestContext
     private readonly ILspLogger _logger;
 
     public RequestContext(
+        Workspace? workspace,
         Solution? solution,
         ILspLogger logger,
         string method,
@@ -90,6 +97,7 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
     {
+        Workspace = workspace;
         Document = document;
         Solution = solution;
         _clientCapabilities = clientCapabilities;
@@ -144,31 +152,12 @@ internal readonly struct RequestContext
         if (!requiresLSPSolution)
         {
             context = new RequestContext(
-                solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
+                workspace: null, solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
                 queueCancellationToken: cancellationToken);
         }
         else
         {
-            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-            var logger = lspServices.GetRequiredService<ILspLogger>();
-            var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
-
-            // Retrieve the current LSP tracked text as of this request.
-            // This is safe as all creation of request contexts cannot happen concurrently.
-            var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
-
-            // If the handler doesn't need an LSP solution we do two important things:
-            // 1. We don't bother building the LSP solution for perf reasons
-            // 2. We explicitly don't give the handler a solution or document, even if we could
-            //    so they're not accidentally operating on stale solution state.
-            if (!requiresLSPSolution)
-            {
-                return new RequestContext(
-                    workspace: null, solution: null, document: null, logger, clientCapabilities, serverKind,
-                    documentChangeTracker, trackedDocuments, supportedLanguages, lspServices, queueCancellationToken);
-            }
-
             Workspace? workspace = null;
             Solution? solution = null;
             Document? document = null;
@@ -178,27 +167,27 @@ internal readonly struct RequestContext
                 // There are certain cases where we may be asked for a document that does not exist (for example a
                 // document is removed) For example, document pull diagnostics can ask us after removal to clear
                 // diagnostics for a document.
-                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
+                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false);
             }
-
-            if (workspace is null)
-                (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(requestCancellationToken).ConfigureAwait(false);
 
             if (workspace is null)
             {
-                logger.TraceError("Could not find appropriate workspace for operation");
-                return null;
+                (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            var context = new RequestContext(
+            if (workspace is null)
+            {
+                logger.LogError($"Could not find appropriate workspace for operation {workspace} on {method}");
+            }
+
+            context = new RequestContext(
                 workspace,
                 solution,
-                document,
->>>>>>> 65700185c560300d5d49dee4ed00baaed6ba6ded
                 logger,
                 method,
                 clientCapabilities,
                 serverKind,
+                document,
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,

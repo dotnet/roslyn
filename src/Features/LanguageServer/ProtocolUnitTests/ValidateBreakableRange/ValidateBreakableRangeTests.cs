@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|expected:Console.WriteLine(""hello"");|}|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             );|}|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|breakpoint:GetSomeValue();|}|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         GetSomeValue();|}|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
