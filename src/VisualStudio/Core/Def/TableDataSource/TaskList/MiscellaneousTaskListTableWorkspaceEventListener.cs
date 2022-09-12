@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public void StartListening(Workspace workspace, ITaskListProvider service)
             => _ = new MiscellaneousTaskListTable(workspace, _threadingContext, service, _tableManagerProvider);
 
-        private sealed class MiscellaneousTaskListTable : VisualStudioBaseTodoListTable
+        private sealed class MiscellaneousTaskListTable : VisualStudioBaseTaskListTable
         {
             public MiscellaneousTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, ITableManagerProvider provider)
                 : base(workspace, threadingContext, todoListProvider, IdentifierString, provider)

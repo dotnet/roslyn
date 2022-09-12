@@ -24,11 +24,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class VisualStudioBaseTodoListTable : AbstractTable
+    internal class VisualStudioBaseTaskListTable : AbstractTable
     {
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+        protected VisualStudioBaseTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, string identifier, ITableManagerProvider provider)
             : base(workspace, provider, StandardTables.TasksTable)
         {
             _source = new TableDataSource(workspace, threadingContext, todoListProvider, identifier);
