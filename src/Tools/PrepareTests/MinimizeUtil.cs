@@ -58,6 +58,8 @@ internal static class MinimizeUtil
             var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "TestAssemblyFinder"));
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "HelixTestRunner"));
 
             var idToFilePathMap = directories.AsParallel()
                 .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
