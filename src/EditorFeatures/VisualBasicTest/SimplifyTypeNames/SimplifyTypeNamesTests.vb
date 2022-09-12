@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
+    <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
     Partial Public Class SimplifyTypeNamesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
         Private ReadOnly onWithError As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)
         Private ReadOnly offWithSilent As New CodeStyleOption2(Of Boolean)(False, NotificationOption2.Silent)
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestGenericNames() As Task
             Dim source =
         <Code>
@@ -88,7 +89,7 @@ End Class
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestArgument() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -108,7 +109,7 @@ End Module",
 options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestAliasWithMemberAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Goo = System.Int32
@@ -125,8 +126,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
+        <Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
         Public Async Function DoNotChangeToAliasInNameOfIfItChangesNameOfName() As Task
             Await TestInRegularAndScript1Async(
 "Imports System
@@ -151,8 +151,7 @@ namespace SimplifyInsideNameof
 end namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
+        <Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
         Public Async Function DoChangeToAliasInNameOfIfItDoesNotAffectName1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -177,8 +176,7 @@ namespace SimplifyInsideNameof
 end namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
+        <Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
         Public Async Function DoChangeToAliasInNameOfIfItDoesNotAffectName2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -213,7 +211,7 @@ namespace SimplifyInsideNameof
 end namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestWithCursorAtBeginning() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -230,7 +228,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestMinimalSimplifyOnNestedNamespaces() As Task
             Dim source =
 "Imports Outer
@@ -262,8 +260,7 @@ End Module")
             Await TestActionCountAsync(source, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
+        <Fact, WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
         Public Async Function TestMinimalSimplifyOnNestedNamespacesFromMetadataAlias() As Task
             Await TestInRegularAndScriptAsync(
 "Imports A1 = System.IO.File
@@ -276,8 +273,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
+        <Fact, WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
         Public Async Function TestMinimalSimplifyOnNestedNamespacesFromMetadata() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -290,8 +286,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(540569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540569")>
+        <Fact, WorkItem(540569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540569")>
         Public Async Function TestFixAllOccurrences() As Task
             Await TestInRegularAndScriptAsync(
 "Imports NS1
@@ -314,7 +309,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877")>
         <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
@@ -354,7 +349,7 @@ End Namespace",
 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimplifyFromReference() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Threading
@@ -367,7 +362,7 @@ Class Class1
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestGenericClassDefinitionAsClause() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -386,7 +381,7 @@ Class SomeClass(Of x As Base)
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestGenericClassInstantiationOfClause() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -415,7 +410,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestGenericMethodDefinitionAsClause() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -438,7 +433,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestGenericMethodInvocationOfClause() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -467,8 +462,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(6872, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(6872, "DevDiv_Projects/Roslyn")>
         Public Async Function TestAttributeApplication() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -491,8 +485,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(6872, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(6872, "DevDiv_Projects/Roslyn")>
         Public Async Function TestMultipleAttributeApplicationBelow() As Task
 
             'IMPLEMENT NOT ESCAPE ATTRIBUTE DEPENDENT ON CONTEXT
@@ -528,8 +521,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(6872, "DevDiv_Projects/Roslyn")>
+        <Fact, WorkItem(6872, "DevDiv_Projects/Roslyn")>
         Public Async Function TestMultipleAttributeApplicationAbove() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -562,7 +554,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimplifiedLeftmostQualifierIsEscapedWhenMatchesKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Outer
@@ -587,7 +579,7 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestTypeNameIsEscapedWhenMatchingKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Outer
@@ -608,7 +600,7 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimplifyNotSuggestedInImportsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Imports SomeNamespace
@@ -621,7 +613,7 @@ Namespace SomeNamespace
 End Namespace|]")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestNoSimplifyInGenericAsClauseIfConflictsWithTypeParameterName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Imports SomeNamespace
@@ -635,7 +627,7 @@ Namespace SomeNamespace
 End Namespace|]")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimplifyNotOfferedIfSimplifyingWouldCauseAmbiguity() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Imports SomeNamespace
@@ -650,7 +642,7 @@ Namespace SomeNamespace
 End Namespace|]")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimplifyInGenericAsClauseIfNoConflictWithTypeParameterName() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -673,7 +665,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestCaseInsensitivity() As Task
             Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
@@ -694,7 +686,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimplifyGenericTypeWithArguments() As Task
             Dim source =
 "Imports System.Collections.Generic
@@ -712,7 +704,7 @@ End Class")
             Await TestActionCountAsync(source, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestParameterType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -727,8 +719,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(540565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540565")>
+        <Fact, WorkItem(540565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540565")>
         Public Async Function TestLocation1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Goo
@@ -753,7 +744,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877")>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllFixesUnrelatedTypes() As Task
             Await TestInRegularAndScriptAsync(
@@ -803,7 +794,7 @@ Namespace C
 End Namespace")
         End Function
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="1033012")>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestSimplifyFixesAllNestedTypeNames() As Task
             Dim source =
@@ -851,8 +842,7 @@ End Namespace",
             Await TestActionCountAsync(source, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>
         Public Async Function TestSimplifyNestedType() As Task
             Dim source =
 "Class Preserve
@@ -886,8 +876,7 @@ Class M
             Await TestActionCountAsync(source, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>
         Public Async Function TestSimplifyStaticMemberAccess() As Task
             Dim source =
 "Class Preserve
@@ -917,8 +906,7 @@ Class M
             Await TestActionCountAsync(source, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(540398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540398")>
+        <Fact, WorkItem(540398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540398")>
         Public Async Function TestImplementsClause() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -937,7 +925,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimpleArray() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -954,7 +942,7 @@ Namespace N1
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestSimpleMultiDimArray() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -973,7 +961,7 @@ Namespace N1
 End Namespace")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact>
         Public Async Function TestSimplifyTypeInScriptCode() As Task
             Await TestAsync(
 "Imports System
@@ -983,8 +971,7 @@ Console.WriteLine(0)",
         parseOptions:=TestOptions.Script)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(542093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
+        <Fact, WorkItem(542093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
         Public Async Function TestNoSimplificationOfParenthesizedPredefinedTypes() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Module M
@@ -994,7 +981,7 @@ Console.WriteLine(0)",
 End Module|]")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877")>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestConflicts() As Task
             Await TestInRegularAndScriptAsync(
@@ -1133,8 +1120,7 @@ End Namespace
         index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(542138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542138")>
+        <Fact, WorkItem(542138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542138")>
         Public Async Function TestSimplifyModuleWithReservedName() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace X
@@ -1153,8 +1139,7 @@ End Namespace",
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(542348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542348")>
+        <Fact, WorkItem(542348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542348")>
         Public Async Function TestPreserve1() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -1171,8 +1156,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>
         <WorkItem(542348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542348")>
         Public Async Function TestPreserve3() As Task
             Await TestInRegularAndScriptAsync(
@@ -1204,22 +1188,19 @@ Module M
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(545603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545603")>
+        <Fact, WorkItem(545603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545603")>
         Public Async Function TestNullableInImports1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports [|System.Nullable(Of Integer)|]")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(545603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545603")>
+        <Fact, WorkItem(545603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545603")>
         Public Async Function TestNullableInImports2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports [|System.Nullable(Of Integer)|]")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
+        <Fact, WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
         Public Async Function TestColorColor1() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace N
@@ -1250,8 +1231,7 @@ End Namespace",
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
+        <Fact, WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
         Public Async Function TestColorColor2() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace N
@@ -1282,8 +1262,7 @@ End Namespace",
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
+        <Fact, WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
         Public Async Function TestColorColor3() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace N
@@ -1314,8 +1293,7 @@ End Namespace",
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(546829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546829")>
+        <Fact, WorkItem(546829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546829")>
         Public Async Function TestKeyword1() As Task
             Await TestInRegularAndScriptAsync(
 "Module m
@@ -1330,8 +1308,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(546844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546844")>
+        <Fact, WorkItem(546844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546844")>
         Public Async Function TestKeyword2() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -1348,8 +1325,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(546907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546907")>
+        <Fact, WorkItem(546907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546907")>
         Public Async Function TestDoNotSimplifyNullableInMemberAccessExpression() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1358,8 +1334,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestMissingNullableSimplificationInsideCref() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1370,8 +1345,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestMissingNullableSimplificationInsideCref2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "''' <summary>
@@ -1381,8 +1355,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestMissingNullableSimplificationInsideCref3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "''' <summary>
@@ -1392,8 +1365,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestMissingNullableSimplificationInsideCref4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -1404,8 +1376,7 @@ Class A
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
+        <Fact, WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
         <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestNullableSimplificationInsideCref() As Task
@@ -1428,8 +1399,7 @@ Class C(Of T)
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <WorkItem(2189, "https://github.com/dotnet/roslyn/issues/2189")>
         <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
         <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
@@ -1457,8 +1427,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestNullableSimplificationInsideCref3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1479,8 +1448,7 @@ Structure A
 End Structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestNullableSimplificationInsideCref4() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1503,8 +1471,7 @@ Structure A
 End Structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestNullableSimplificationInsideCref5() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1527,8 +1494,7 @@ Structure A
 End Structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         Public Async Function TestNullableSimplificationInsideCref6() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1551,8 +1517,7 @@ Structure A
 End Structure")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
+        <Fact, WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
         Public Async Function TestReservedNameInAttribute1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<[|Global.Assembly|]> ' Simplify 
@@ -1561,8 +1526,7 @@ Class Assembly
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
+        <Fact, WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
         Public Async Function TestReservedNameInAttribute2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<[|Global.Assembly|]> ' Simplify 
@@ -1571,8 +1535,7 @@ Class Assembly
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
+        <Fact, WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
         Public Async Function TestReservedNameInAttribute3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<[|Global.Module|]> ' Simplify 
@@ -1581,8 +1544,7 @@ Class Module
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
+        <Fact, WorkItem(529930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529930")>
         Public Async Function TestReservedNameInAttribute4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<[|Global.Module|]> ' Simplify 
@@ -1591,7 +1553,7 @@ Class Module
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestAliasedType() As Task
             Dim source =
 "Class Program
@@ -1610,8 +1572,7 @@ End Class", parseOptions:=Nothing, index:=0)
             Await TestMissingAsync(source, New TestParameters(GetScriptOptions()))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(674789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674789")>
+        <Fact, WorkItem(674789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674789")>
         Public Async Function TestCheckForAssemblyNameInFullWidthIdentifier() As Task
             Dim source =
         <Code>
@@ -1639,8 +1600,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")>
+        <Fact, WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")>
         Public Async Function TestDontSimplifyNamesWhenThereAreParseErrors() As Task
             Dim source =
         <Code>
@@ -1659,7 +1619,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestShowModuleNameAsUnnecessaryMemberAccess() As Task
             Dim source =
         <Code>
@@ -1703,7 +1663,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact>
         Public Async Function TestShowModuleNameAsUnnecessaryQualifiedName() As Task
             Dim source =
         <Code>
@@ -1752,8 +1712,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(608200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608200")>
+        <Fact, WorkItem(608200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608200")>
         Public Async Function TestBugfix_608200() As Task
             Dim source =
         <Code>
@@ -1792,8 +1751,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
+        <Fact, WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
         Public Async Function TestDontUseAlias() As Task
             Dim source =
         <Code>
@@ -1838,8 +1796,7 @@ End Namespace
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(547246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")>
+        <Fact, WorkItem(547246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")>
         Public Async Function TestCreateCodeIssueWithProperIssueSpan() As Task
             Dim source =
         <Code>
@@ -1873,8 +1830,7 @@ End Module
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")>
+        <Fact, WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")>
         Public Async Function TestDoNotIncludeAliasNameIfLastTargetNameIsTheSame_1() As Task
             Dim source =
         <Code>
@@ -1922,8 +1878,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")>
+        <Fact, WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")>
         Public Async Function TestDoNotIncludeAliasNameIfLastTargetNameIsTheSame_2() As Task
             Dim source =
         <Code>
@@ -1957,8 +1912,7 @@ End Module
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(686306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/686306")>
+        <Fact, WorkItem(686306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/686306")>
         Public Async Function TestDontSimplifyNameSyntaxToTypeSyntaxInVBCref() As Task
             Dim source =
         <Code>
@@ -1971,8 +1925,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(721817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721817")>
+        <Fact, WorkItem(721817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721817")>
         Public Async Function TestDontSimplifyNameSyntaxToPredefinedTypeSyntaxInVBCref() As Task
             Dim source =
         <Code>
@@ -1992,8 +1945,7 @@ Public Class Test
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(721694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721694")>
+        <Fact, WorkItem(721694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721694")>
         Public Async Function TestEnableReducersInsideVBCref() As Task
             Dim source =
         <Code>
@@ -2019,8 +1971,7 @@ Public Class Test_Dev11
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")>
+        <Fact, WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")>
         Public Async Function TestDontSimplifyTypeNameBrokenCode() As Task
             Dim source =
         <Code>
@@ -2039,8 +1990,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(860565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860565")>
+        <Fact, WorkItem(860565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860565")>
         Public Async Function TestSimplifyGenericTypeName_Bug860565() As Task
             Dim source =
         <Code>
@@ -2059,8 +2009,7 @@ End Interface
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")>
+        <Fact, WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")>
         Public Async Function TestDontSimplifyAliases() As Task
             Dim source =
         <Code>
@@ -2076,8 +2025,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInLocalDeclarationDefaultValue_1() As Task
             Dim source =
         <Code>
@@ -2100,8 +2048,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInLocalDeclarationDefaultValue_2() As Task
             Dim source =
         <Code>
@@ -2124,8 +2071,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
         Public Async Function TestIntrinsicTypesInCref1() As Task
             Dim source =
@@ -2146,8 +2092,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
         Public Async Function TestIntrinsicTypesInCref2() As Task
             Dim source =
@@ -2166,8 +2111,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
+        <Fact, WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInCref3() As Task
             Dim source =
@@ -2181,8 +2125,7 @@ End Module
                                                      New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1() As Task
             Dim source =
         <Code>
@@ -2196,8 +2139,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2() As Task
             Dim source =
         <Code>
@@ -2211,8 +2153,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3() As Task
             Dim source =
         <Code>
@@ -2226,8 +2167,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInMemberAccess_Default_1() As Task
             Dim source =
         <Code>
@@ -2252,8 +2192,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInMemberAccess_Default_2() As Task
             Dim source =
         <Code>
@@ -2274,8 +2213,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
+        <Fact, WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
         Public Async Function TestIntrinsicTypesInMemberAccess_Default_3() As Task
             Dim source =
         <Code>
@@ -2295,8 +2233,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(source.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInMemberAccess_NonDefault_1() As Task
             Dim source =
         <Code>
@@ -2309,8 +2246,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
+        <Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
         Public Async Function TestIntrinsicTypesInMemberAccess_NonDefault_2() As Task
             Dim source =
         <Code>
@@ -2324,8 +2260,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
+        <Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
         Public Async Function TestIntrinsicTypesInCref_NonDefault_1() As Task
             Dim source =
         <Code>
@@ -2337,8 +2272,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
+        <Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
         Public Async Function TestIntrinsicTypesInCref_NonDefault_2() As Task
             Dim source =
         <Code>
@@ -2357,8 +2291,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
+        <Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
         Public Async Function TestIntrinsicTypesInCref_NonDefault_3() As Task
             Dim source =
         <Code>
@@ -2370,8 +2303,7 @@ End Module
             Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
+        <Fact, WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
         Public Async Function TestIntrinsicTypesInCref_NonDefault_4() As Task
             Dim source =
         <Code>
@@ -2390,8 +2322,7 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
+        <Fact, WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
         Public Async Function TestSimplifyDiagnosticId() As Task
             Dim source =
         <Code>
@@ -2427,8 +2358,7 @@ End Module
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
+        <Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
         Public Async Function TestSimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1() As Task
             Await TestMissingInRegularAndScriptAsync("Imports System
 Module Program
@@ -2438,8 +2368,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
+        <Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
         Public Async Function TestSimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2() As Task
             Await TestMissingInRegularAndScriptAsync("
 Module Program
@@ -2449,8 +2378,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
+        <Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
         Public Async Function TestSimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3() As Task
             Await TestMissingInRegularAndScriptAsync("Imports System
 Module Program
@@ -2460,8 +2388,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
+        <Fact, WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
         Public Async Function TestSimplifyTypeNameInsideNameOf() As Task
             Await TestInRegularAndScriptAsync("Imports System
 Module Program
@@ -2477,8 +2404,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
+        <Fact, WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         Public Async Function TestMyClassShouldNotBeRemoved() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeType
@@ -2490,8 +2416,7 @@ End Module")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
+        <Fact, WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
         Public Async Function TestMyClassShouldBeRemoved() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeType
@@ -2510,8 +2435,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2529,8 +2453,7 @@ End Module",
                 options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -2548,8 +2471,7 @@ End Module",
                 options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact, WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
         Public Async Function TestMemberOfBuiltInType3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
