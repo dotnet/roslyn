@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var todoCommentsEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
-                if (!fullSolutionAnalysisEnabled && !todoCommentsEnabled)
+                var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
+                if (!fullSolutionAnalysisEnabled && !taskListEnabled)
                     return;
 
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
