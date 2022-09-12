@@ -1064,8 +1064,7 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
-        <Fact>
-        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
+        <Fact, WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         Public Sub TestCommand_NotOnSecondPropertyOnLine()
             Dim code =
                 StringFromLines("Module M",

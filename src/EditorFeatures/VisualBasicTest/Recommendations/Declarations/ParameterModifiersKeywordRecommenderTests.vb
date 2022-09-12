@@ -137,26 +137,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsAreExactly(<ClassDeclaration>Shared Operator &amp;(i As Integer, |</ClassDeclaration>, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         Public Sub OnlyByValForPropertyAccessorTest()
             VerifyRecommendationsAreExactly(<PropertyDeclaration>Set(| value As String)</PropertyDeclaration>, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         Public Sub OnlyByValForAddHandlerAccessorTest()
             VerifyRecommendationsAreExactly(<CustomEventDeclaration>AddHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         Public Sub OnlyByValForRemoveHandlerAccessorTest()
             VerifyRecommendationsAreExactly(<CustomEventDeclaration>RemoveHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         Public Sub OnlyByValForRemoveHandlerWhenAllAccessorsPresentTest()
             Dim code =
 <File>
@@ -174,14 +170,12 @@ End Class
             VerifyRecommendationsAreExactly(code, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         Public Sub OnlyByValForRaiseEventHandlerAccessorTest()
             VerifyRecommendationsAreExactly(<CustomEventDeclaration>RaiseEvent(| sender As Object, e As EventArgs)</CustomEventDeclaration>, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         Public Sub OnlyByValForRaiseEventHandlerWhenAllAccessorsPresentTest()
             Dim code =
 <File>
@@ -199,8 +193,7 @@ End Class
             VerifyRecommendationsAreExactly(code, "ByVal")
         End Sub
 
-        <Fact>
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterLineContinuationTest()
             VerifyRecommendationsContain(
 <ClassDeclaration>Sub Goo(

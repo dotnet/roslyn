@@ -83,20 +83,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
+        <Fact, WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
         Public Sub OfInGenericArrayBoundRankSpecifierTest()
             VerifyRecommendationsContain(<MethodBody>Dim i As List(|</MethodBody>, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
+        <Fact, WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
         Public Sub NoOfInNonGenericArrayBoundRankSpecifierTest()
             VerifyRecommendationsMissing(<MethodBody>Dim i As Integer(|</MethodBody>, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NotInNonGenericDelegateCreationTest()
             Dim code =
 <File>
@@ -112,8 +109,7 @@ End Class
             VerifyRecommendationsMissing(code, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
+        <Fact, WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         Public Sub InGenericDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
@@ -127,8 +123,7 @@ End Class
             VerifyRecommendationsContain(code, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
+        <Fact, WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         Public Sub InPotentiallyGenericDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
@@ -143,8 +138,7 @@ End Class
             VerifyRecommendationsContain(code, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
+        <Fact, WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         Public Sub NotInNonGenericDelegateCreationWithGenericTypeOfSameNameTest()
             Dim code =
 <File>
@@ -162,8 +156,7 @@ End Class
             VerifyRecommendationsMissing(code, "Of")
         End Sub
 
-        <Fact>
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterEolTest()
             VerifyRecommendationsContain(
 <MethodBody>Goo(

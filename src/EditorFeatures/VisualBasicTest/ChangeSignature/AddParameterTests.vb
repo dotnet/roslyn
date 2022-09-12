@@ -777,8 +777,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact>
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestAddParameter_AddToInvocationWithoutParens() As Task
 
             Dim markup = <Text><![CDATA[
@@ -800,8 +799,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact>
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestAddParameter_AddToInvocationWithoutParens_WithOptionalParam() As Task
 
             Dim markup = <Text><![CDATA[
@@ -827,8 +825,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact>
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestAddParameter_NoLastWhitespaceTrivia() As Task
 
             Dim markup = <Text><![CDATA[

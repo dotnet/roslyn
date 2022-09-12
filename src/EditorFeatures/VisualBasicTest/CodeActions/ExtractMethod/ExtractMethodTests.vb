@@ -14,8 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
             Return New ExtractMethodCodeRefactoringProvider()
         End Function
 
-        <Fact>
-        <WorkItem(540686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540686")>
+        <Fact, WorkItem(540686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540686")>
         Public Async Function TestExtractReturnExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Class Module1
@@ -44,8 +43,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(540755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540755")>
+        <Fact, WorkItem(540755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540755")>
         Public Async Function TestExtractMultilineLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -72,8 +70,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(541515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
+        <Fact, WorkItem(541515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
         Public Async Function TestCollectionInitializerInObjectCollectionInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -95,8 +92,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(542251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542251")>
+        <Fact, WorkItem(542251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542251")>
         <WorkItem(543030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543030")>
         Public Async Function TestLambdaSelection() As Task
             Await TestInRegularAndScriptAsync(
@@ -126,8 +122,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(542904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542904")>
+        <Fact, WorkItem(542904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542904")>
         Public Async Function TestFormatBeforeAttribute() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Module Program
@@ -156,8 +151,7 @@ End Module
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact>
-        <WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
+        <Fact, WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
         Public Async Function TestInTernaryConditional() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -178,8 +172,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(545547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545547")>
+        <Fact, WorkItem(545547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545547")>
         Public Async Function TestInRangeArgumentUpperBound() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -198,8 +191,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(545655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545655")>
+        <Fact, WorkItem(545655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545655")>
         Public Async Function TestInWhileUntilCondition() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -270,8 +262,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
+        <Fact, WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
         Public Async Function TestMissingOnImplicitMemberAccess() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -294,8 +285,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
+        <Fact, WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         Public Async Function TestPreserveCommentsBeforeDeclaration_1() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class Program
@@ -338,8 +328,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact>
-        <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
+        <Fact, WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         Public Async Function TestPreserveCommentsBeforeDeclaration_2() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class Program
@@ -386,8 +375,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact>
-        <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
+        <Fact, WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         Public Async Function TestPreserveCommentsBeforeDeclaration_3() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class Program

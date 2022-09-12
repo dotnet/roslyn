@@ -338,8 +338,7 @@ End Class
 
         End Function
 
-        <Fact>
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifierMid() As Task
             Dim input =
 <Workspace>
@@ -368,8 +367,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact>
-        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifierMid() As Task
             Dim input =
 <Workspace>

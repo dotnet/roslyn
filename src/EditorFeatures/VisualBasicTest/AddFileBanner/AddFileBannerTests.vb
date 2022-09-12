@@ -103,8 +103,7 @@ end class
 </Workspace>")
         End Function
 
-        <Fact>
-        <WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
+        <Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
         Public Async Function TestSingleLineDocCommentBanner() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -148,8 +147,7 @@ end class
 </Workspace>")
         End Function
 
-        <Fact>
-        <WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")>
+        <Fact, WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")>
         Public Async Function TestUpdateFileNameInComment() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -196,8 +194,7 @@ end class
 </Workspace>")
         End Function
 
-        <Fact>
-        <WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
+        <Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
         Public Async Function TestUpdateFileNameInComment2() As Task
             Await TestInRegularAndScriptAsync(
 "

@@ -608,8 +608,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
+        <Fact, WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
         Public Async Function TestWrapLowerPrecedenceInLargeBinary() As Task
             Await TestAllWrappingCasesAsync(
 "class C

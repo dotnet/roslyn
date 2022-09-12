@@ -88,8 +88,7 @@ End Class"
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBLiteral() As Task
             Dim markup = "Dim x as Integer = 1$$23"
             Dim text As String = Nothing
@@ -102,8 +101,7 @@ End Class"
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBStringLiteral() As Task
             Dim markup = "Dim x as String = ""w$$ow"";"
             Dim text As String = Nothing

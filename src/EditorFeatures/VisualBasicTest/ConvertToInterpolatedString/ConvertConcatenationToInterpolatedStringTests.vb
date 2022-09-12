@@ -230,8 +230,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
+        <Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         Public Async Function TestWithMultipleStringConcatinations() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -248,8 +247,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
+        <Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         Public Async Function TestWithMultipleStringConcatinations2() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -266,8 +264,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
+        <Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         Public Async Function TestWithMultipleStringConcatinations3() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -284,8 +281,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
+        <Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
         Public Async Function TestWithStringLiteralWithBraces() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -302,8 +298,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
+        <Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
         Public Async Function TestWithStringLiteralWithDoubleBraces() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -320,8 +315,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
+        <Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
         Public Async Function TestWithMultipleStringLiteralsWithBraces() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -338,8 +332,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestWithSelectionOnEntireToBeInterpolatedString() As Task
             Await VerifyVB.VerifyRefactoringAsync(
@@ -357,8 +350,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestMissingWithSelectionOnPartOfToBeInterpolatedString() As Task
             Dim code = "
 Public Class C
@@ -370,8 +362,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestWithSelectionExceedingToBeInterpolatedString() As Task
             Await VerifyVB.VerifyRefactoringAsync(
@@ -389,8 +380,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestWithCaretBeforeNonStringToken() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -407,8 +397,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestWithCaretAfterNonStringToken() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -425,8 +414,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestWithCaretBeforeAmpersandToken() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -443,8 +431,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestWithCaretAfterAmpersandToken() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -461,8 +448,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestWithCaretBeforeLastAmpersandToken() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -479,8 +465,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         Public Async Function TestWithCaretAfterLastAmpersandToken() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -497,8 +482,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
         Public Async Function TestConcatenationWithChar() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -519,8 +503,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
         Public Async Function TestConcatenationWithCharAfterStringLiteral() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -539,8 +522,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
         Public Async Function TestConcatenationWithCharBeforeStringLiteral() As Task
             Await VerifyVB.VerifyRefactoringAsync(
 "
@@ -559,8 +541,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
+        <Fact, WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
         Public Async Function TestConcatenationWithConstMember() As Task
             Dim code = "
 Public Class C
@@ -572,8 +553,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
-        <Fact>
-        <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
+        <Fact, WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
         Public Async Function TestConcatenationWithConstDeclaration() As Task
             Dim code = "
 Public Class C
@@ -587,8 +567,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
-        <Fact>
-        <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
+        <Fact, WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
         Public Async Function TestConcatenationWithInlineString() As Task
             Await VerifyVB.VerifyRefactoringAsync("
 Imports System

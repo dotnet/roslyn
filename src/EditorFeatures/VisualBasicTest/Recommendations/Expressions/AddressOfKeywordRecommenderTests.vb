@@ -123,8 +123,7 @@ Loop Until |</MethodBody>, "AddressOf")
             VerifyRecommendationsContain(<MethodBody>RemoveHandler goo, |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub AddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Module Program

@@ -159,8 +159,7 @@ End Class",
 
         End Sub
 
-        <WpfFact>
-        <WorkItem(536441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
+        <WpfFact, WorkItem(536441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
         Public Sub TestVerifyNestedSingleLineIf()
             VerifyStatementEndConstructApplied(
                 before:="Class C

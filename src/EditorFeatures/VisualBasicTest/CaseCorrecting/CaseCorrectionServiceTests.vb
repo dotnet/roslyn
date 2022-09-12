@@ -648,8 +648,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact>
-        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName1() As Task
             Dim input = <Code>
 Partial Class goo
@@ -678,8 +677,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact>
-        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName2() As Task
             ' Partial methods must be SUBs
             Dim input = <Code>
@@ -711,8 +709,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact>
-        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName1() As Task
             ' Partial method with parameters
             Dim input = <Code>
@@ -742,8 +739,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact>
-        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName2() As Task
             ' Multiple overloaded partial methods
             Dim input = <Code>
@@ -785,8 +781,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact>
-        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
+        <WpfFact, WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName3() As Task
             ' Partial method with different parameter names.
 
@@ -886,8 +881,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact>
-        <WorkItem(17313, "DevDiv_Projects/Roslyn")>
+        <WpfFact, WorkItem(17313, "DevDiv_Projects/Roslyn")>
         Public Async Function TestElseIfKeyword() As Task
             Dim input =
 <Code><![CDATA[

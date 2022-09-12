@@ -98,8 +98,7 @@ end class
                 })
         End Function
 
-        <Fact>
-        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
+        <Fact, WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
         Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>

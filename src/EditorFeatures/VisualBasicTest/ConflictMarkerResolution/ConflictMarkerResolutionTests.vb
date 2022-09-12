@@ -152,8 +152,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact>
-        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
+        <Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
         Public Async Function TestFixAll1() As Task
             Dim source =
 "
@@ -197,8 +196,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact>
-        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
+        <Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
         Public Async Function TestFixAll2() As Task
             Dim source =
 "
@@ -242,8 +240,7 @@ end namespace"
             }.RunAsync()
         End Function
 
-        <Fact>
-        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
+        <Fact, WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
         Public Async Function TestFixAll3() As Task
             Dim source =
 "

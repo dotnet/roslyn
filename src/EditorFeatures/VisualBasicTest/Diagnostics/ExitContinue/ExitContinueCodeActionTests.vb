@@ -670,8 +670,7 @@ End Class
             Await TestAsync(code, expected, index:=1)
         End Function
 
-        <Fact>
-        <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
+        <Fact, WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
         Public Async Function TestDoNotTryToExitFinally() As Task
             Dim code =
     <File>
@@ -706,8 +705,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact>
-        <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
+        <Fact, WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
         Public Async Function TestMissingExitTokenInNonExitableBlock() As Task
             Dim code =
     <File>
@@ -745,8 +743,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact>
-        <WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
+        <Fact, WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
         Public Async Function TestNotInValidCaseElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -764,8 +761,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(547099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547099")>
+        <Fact, WorkItem(547099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547099")>
         Public Async Function TestCollapseDuplicateBlockKinds() As Task
             Await TestActionCountAsync(
 "Imports System
@@ -783,8 +779,7 @@ End Module",
             3)
         End Function
 
-        <Fact>
-        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
+        <Fact, WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         Public Async Function TestReplaceInvalidTokenExit() As Task
             Dim code =
     <File>
@@ -822,8 +817,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <Fact>
-        <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
+        <Fact, WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
         Public Async Function TestReplaceInvalidTokenContinue() As Task
             Dim code =
     <File>
@@ -865,8 +859,7 @@ End Class
             Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.Change_0_to_1, "Function", "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit Function")})
         End Function
 
-        <Fact>
-        <WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
+        <Fact, WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
         Public Async Function TestExpectedActionDescriptions2() As Task
             Dim code =
 <File>

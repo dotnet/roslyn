@@ -267,8 +267,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -283,8 +282,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd2() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -299,8 +297,7 @@ End Class",
 End Class", parameters:=s_vb15Parameters)
         End Function
 
-        <Fact>
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -310,8 +307,7 @@ End Class", parameters:=s_vb15Parameters)
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -321,8 +317,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -332,8 +327,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
+        <Fact, WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
         Public Async Function TestOnTuple() As Task
             Await TestInRegularAndScript1Async(
 "Imports System.Linq
@@ -350,8 +344,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")>
+        <Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")>
         Public Async Function TestCharacterEscape() As Task
             Await TestInRegularAndScript1Async(
 "Class C

@@ -119,8 +119,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
+        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -195,8 +194,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -212,8 +210,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -249,8 +246,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -266,8 +262,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -283,8 +278,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition6() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -573,8 +567,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
+        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnlyOnElseIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -590,8 +583,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
+        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfMultiLineIfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -735,8 +727,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB12() As Task
             Await TestFixOneAsync(
 "
@@ -755,8 +746,7 @@ end class")
 ", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
         End Function
 
-        <Fact>
-        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB14() As Task
             Await TestFixOneAsync(
 "
@@ -775,8 +765,7 @@ end class")
 ", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14))
         End Function
 
-        <Fact>
-        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIsNot() As Task
             Await TestFixOneAsync(
 "

@@ -40,8 +40,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <WpfFact>
-        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        <WpfFact, WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestNoCommitAfterExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -58,8 +57,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <WpfFact>
-        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        <WpfFact, WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestNoCommitAfterExplicitLineContinuationCommentsAfterLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -76,8 +74,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <WpfFact>
-        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        <WpfFact, WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestCommitAfterBlankLineFollowingExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">

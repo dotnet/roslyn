@@ -22,8 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(TypeImportCompletionProvider)
         End Function
 
-        <Fact>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInAttributeNameContext() As Task
 
             Dim file1 = <Text>
@@ -55,8 +54,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
         End Function
 
-        <Fact>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInNonAttributeNameContext() As Task
 
             Dim file1 = <Text>
@@ -86,8 +84,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Foo")
         End Function
 
-        <Fact>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInAttributeNameContext2() As Task
 
             ' attribute suffix isn't capitalized
@@ -111,8 +108,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
         End Function
 
-        <Fact>
-        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        <Fact, WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function CSharpAttributeTypeWithoutSuffixInAttributeNameContext() As Task
 
             ' attribute suffix isn't capitalized
@@ -135,8 +131,7 @@ End Class]]></Text>.Value
             Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
         End Function
 
-        <Fact>
-        <WorkItem(35124, "https://github.com/dotnet/roslyn/issues/35124")>
+        <Fact, WorkItem(35124, "https://github.com/dotnet/roslyn/issues/35124")>
         Public Async Function GenericTypeShouldDisplayProperVBSyntax() As Task
 
             Dim file1 = <Text>

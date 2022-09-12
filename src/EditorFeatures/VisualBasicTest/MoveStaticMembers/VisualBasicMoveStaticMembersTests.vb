@@ -42,8 +42,7 @@ End Namespace
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
-        <Fact>
-        <WorkItem(62283, "https://github.com/dotnet/roslyn/issues/62283")>
+        <Fact, WorkItem(62283, "https://github.com/dotnet/roslyn/issues/62283")>
         Public Async Function TestMoveField_MultipleDeclarators() As Task
             Dim initialMarkup = "
 Class Program

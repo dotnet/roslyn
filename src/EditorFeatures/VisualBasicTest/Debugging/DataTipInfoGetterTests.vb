@@ -170,8 +170,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact>
-        <WorkItem(538152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
+        <Fact, WorkItem(538152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
         Public Async Function TestOnComma() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -182,8 +181,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact>
-        <WorkItem(546280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
+        <Fact, WorkItem(546280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
         Public Async Function TestOnParameter() As Task
             Await TestAsync(<text>
 Module Module1
@@ -198,8 +196,7 @@ End Module
 </text>)
         End Function
 
-        <Fact>
-        <WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
+        <Fact, WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
         Public Async Function TestOnCatchVariable() As Task
             Await TestAsync(<text>
 Module Module1

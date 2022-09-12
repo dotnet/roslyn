@@ -51,8 +51,7 @@ end class
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVisualBasicLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -66,8 +65,7 @@ end class
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVisualBasicStringLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>

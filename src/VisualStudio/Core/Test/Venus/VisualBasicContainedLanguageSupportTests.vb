@@ -615,8 +615,7 @@ End Sub</text>.NormalizedValue
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(850035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850035")>
+        <WpfFact, WorkItem(850035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850035")>
         Public Sub TestEnsureEventHandler_WithHandlesAndNullObjectName()
             Dim code As String = "
 Imports System

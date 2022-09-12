@@ -15,8 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
             Return (Nothing, New VisualBasicMakeMethodAsynchronousCodeFixProvider())
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -36,8 +35,7 @@ End Module",
                 index:=1)
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -141,8 +139,7 @@ Module Program
  End Module")
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -159,8 +156,7 @@ Async Function rtrt() As Task
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncVoidMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -194,8 +190,7 @@ Async Function rtrtAsync() As Threading.Tasks.Task
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -212,8 +207,7 @@ Async Function rtrt() As Task
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction2() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -253,8 +247,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction4() As Task
             Dim initial =
 <File>
@@ -275,8 +268,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
+        <Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction5() As Task
             Dim initial =
 <File>
@@ -364,8 +356,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
+        <Fact, WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =
 <File>
@@ -382,8 +373,7 @@ End Module
             Await TestMissingAsync(initial)
         End Function
 
-        <Fact>
-        <WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
+        <Fact, WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
         Public Async Function TestTaskPlacementOnEntryPoint() As Task
             Dim initial =
 <File>
@@ -410,8 +400,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
+        <Fact, WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
         Public Async Function TestTaskPlacementOnEntryPoint_CaseInsensitive() As Task
             Dim initial =
 <File>
@@ -438,8 +427,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
+        <Fact, WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
         Public Async Function TestWithMissingParameterList() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

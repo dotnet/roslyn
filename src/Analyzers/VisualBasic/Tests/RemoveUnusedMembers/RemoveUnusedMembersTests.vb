@@ -641,8 +641,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")>
+        <Fact, WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")>
         Public Async Function FieldInNameOf() As Task
             Await TestDiagnosticMissingAsync(
 "Class C
@@ -651,8 +650,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
+        <Fact, WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
         Public Async Function MethodInNameOf() As Task
             Await TestDiagnosticMissingAsync(
 "Class C
@@ -662,8 +660,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
+        <Fact, WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
         Public Async Function PropertyInNameOf() As Task
             Await TestDiagnosticMissingAsync(
 "Class C
@@ -955,8 +952,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        <Fact, WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
         Public Async Function MethodWithHandlesClause() As Task
             Await TestDiagnosticMissingAsync(
 "Public Interface I
@@ -971,8 +967,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        <Fact, WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
         Public Async Function FieldReferencedInHandlesClause() As Task
             Await TestDiagnosticMissingAsync(
 "Public Interface I
@@ -987,8 +982,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        <Fact, WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
         Public Async Function FieldReferencedInHandlesClause_02() As Task
             Await TestDiagnosticMissingAsync(
 "Public Interface I
@@ -1004,8 +998,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        <Fact, WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
         Public Async Function EventReferencedInHandlesClause() As Task
             Await TestDiagnosticMissingAsync(
 "Public Class B
@@ -1564,8 +1557,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")>
+        <Fact, WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")>
         Public Async Function UsedPrivateExtensionMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Runtime.CompilerServices
@@ -1582,8 +1574,7 @@ Public Module B
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
+        <Fact, WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
         Public Async Function XmlLiteral_NoDiagnostic() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Public Class C
@@ -1597,8 +1588,7 @@ End Module")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
+        <Fact, WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
         Public Async Function Attribute_Diagnostic() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C

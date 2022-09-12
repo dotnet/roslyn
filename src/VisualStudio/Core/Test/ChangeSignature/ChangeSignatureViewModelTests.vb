@@ -232,8 +232,7 @@ class MyClass
                 type:="int[,]")
         End Function
 
-        <Fact>
-        <WorkItem(8437, "https://github.com/dotnet/roslyn/issues/8437")>
+        <Fact, WorkItem(8437, "https://github.com/dotnet/roslyn/issues/8437")>
         Public Async Function ChangeSignature_ParameterDisplay_RefReturns() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -252,8 +251,7 @@ class MyClass
                 type:="int[,]")
         End Function
 
-        <Fact>
-        <WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
+        <Fact, WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
         Public Async Function ChangeSignature_ParameterDisplay_Nullable() As Tasks.Task
             Dim markup = <Text><![CDATA[
 #nullable enable
@@ -315,8 +313,7 @@ class Test
             Assert.Equal("out", state.ViewModel.AllParameters(3).Modifier)
         End Function
 
-        <Fact>
-        <WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
+        <Fact, WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
         Public Async Function ChangeSignature_ParameterDisplay_DefaultStruct() As Tasks.Task
             Dim markup = <Text><![CDATA[
 struct MyStruct

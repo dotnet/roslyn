@@ -16,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFo
             Return New VisualBasicConvertForEachToForCodeRefactoringProvider()
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function EmptyBlockBody() As Task
             Dim initial = "
 Class Test
@@ -206,8 +205,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function Comment7() As Task
             Dim initial = "
 Class Test
@@ -233,8 +231,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function TestCommentsLiveBetweenForEachAndArrayDeclaration() As Task
             Dim initial = "
 Class Test
@@ -259,8 +256,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, Expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function CommentNotSupportedCommentsAfterLineContinuation() As Task
             Dim initial = "
 Class Test
@@ -287,8 +283,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function LineContinuation() As Task
             Dim initial = "
 Class Test
@@ -314,8 +309,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function CollectionStatement() As Task
             Dim initial = "
 Class Test
@@ -485,8 +479,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestBefore() As Task
             Dim initial = "
@@ -512,8 +505,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestAfter() As Task
             Dim initial = "
@@ -539,8 +531,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Dim initial = "
@@ -566,8 +557,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function Field() As Task
             Dim initial = "
 Class Test
@@ -594,8 +584,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function [Interface]() As Task
             Dim initial = "
 Imports System.Collections.Generic
@@ -753,8 +742,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact>
-        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
+        <Fact, WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         Public Async Function KeepNext() As Task
             Dim initial = "
 Class Test

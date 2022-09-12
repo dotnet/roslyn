@@ -52,8 +52,7 @@ Structure Goo
 |</File>, "Inherits")
         End Sub
 
-        <Fact>
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
+        <Fact, WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub InheritsAfterInheritsInInterfaceTest()
             VerifyRecommendationsContain(<File>
 Public Interface ITest1
@@ -64,8 +63,7 @@ Public Interface ITest2
 </File>, "Inherits")
         End Sub
 
-        <Fact>
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
+        <Fact, WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub InheritsNotAfterInheritsInClassTest()
             VerifyRecommendationsMissing(<File>
 Public Class Goo
@@ -74,8 +72,7 @@ Public Class Goo
 </File>, "Inherits")
         End Sub
 
-        <Fact>
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        <Fact, WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

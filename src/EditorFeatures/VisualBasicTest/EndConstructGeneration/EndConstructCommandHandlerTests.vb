@@ -44,8 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 #End If
 
-        <WpfFact>
-        <WorkItem(544556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
+        <WpfFact, WorkItem(544556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
         Public Sub EndConstruct_AfterCodeCleanup()
             Dim code = <code>Class C
     Sub Main(args As String())
@@ -68,8 +67,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 12})
         End Sub
 
-        <WpfFact>
-        <WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
+        <WpfFact, WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
         Public Sub EndConstruct_AfterCodeCleanup_FormatOnlyTouched()
             Dim code = <code>Class C1
     Sub M1()
@@ -87,8 +85,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {2, 29}, expected, {3, 12})
         End Sub
 
-        <WpfFact>
-        <WorkItem(531347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
+        <WpfFact, WorkItem(531347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
         Public Sub EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics()
             Dim code = <code>Module Program
     Sub Main(args As String())

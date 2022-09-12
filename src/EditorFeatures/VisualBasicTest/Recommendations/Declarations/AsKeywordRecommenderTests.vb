@@ -260,14 +260,12 @@ Catch goo |</MethodBody>, "As")
             VerifyRecommendationsContain(<ClassDeclaration>Event Goo |</ClassDeclaration>, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(543118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543118")>
+        <Fact, WorkItem(543118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543118")>
         Public Sub AsAfterLetIdentifierTest()
             VerifyRecommendationsContain(<MethodBody>From i1 In New Integer() {4, 5} Let i2  |</MethodBody>, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
+        <Fact, WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         Public Sub AsInGenericTypeParameterListTest()
             Dim code =
 <File>
@@ -280,8 +278,7 @@ End Module
             VerifyRecommendationsContain(code, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
+        <Fact, WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         Public Sub NoAsInGenericTypeArgumentListTest()
             Dim code =
 <File>
@@ -295,8 +292,7 @@ End Module
             VerifyRecommendationsMissing(code, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
+        <Fact, WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
         Public Sub AsAfterPropertyNameTest()
             Dim code =
 <File>
@@ -308,8 +304,7 @@ End Class
             VerifyRecommendationsContain(code, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
+        <Fact, WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
         Public Sub NoAsAfterPropertyOpenParenTest()
             Dim code =
 <File>
@@ -321,8 +316,7 @@ End Class
             VerifyRecommendationsMissing(code, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
+        <Fact, WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
         Public Sub AsAfterPropertyCloseParenTest()
             Dim code =
 <File>
@@ -339,20 +333,17 @@ End Class
             VerifyRecommendationsContain(<ClassDeclaration>Function Goo |</ClassDeclaration>, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
+        <Fact, WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         Public Sub NoAsAfterSubNameTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Sub Goo |</ClassDeclaration>, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
+        <Fact, WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         Public Sub NoAsAfterSubNameWithParensTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Sub Goo() |</ClassDeclaration>, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
+        <Fact, WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         Public Sub NoAsAfterSubNameWithBodyTest()
             Dim code =
 <File>
@@ -364,8 +355,7 @@ End Class
             VerifyRecommendationsMissing(code, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
+        <Fact, WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         Public Sub NoAsAfterSubNameWithBodyAndParametersTest()
             Dim code =
 <File>
@@ -377,14 +367,12 @@ End Class
             VerifyRecommendationsMissing(code, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
+        <Fact, WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
         Public Sub AsInUsingBlockTest()
             VerifyRecommendationsContain(<MethodBody>Using Goo |</MethodBody>, "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NoAsAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -393,8 +381,7 @@ Dim Goo
                 "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NoAsAfterColonTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -403,8 +390,7 @@ Dim Goo : |
                 "As")
         End Sub
 
-        <Fact>
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AsAfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>
@@ -422,8 +408,7 @@ Dim Goo _ ' Test
                 "As")
         End Sub
 
-        <Fact>
-        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub AfterPublicAsyncTest()
             VerifyRecommendationsContain(<ClassDeclaration>Public Async |</ClassDeclaration>, "As")
         End Sub

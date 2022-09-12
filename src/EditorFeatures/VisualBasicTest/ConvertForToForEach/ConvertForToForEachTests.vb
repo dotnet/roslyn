@@ -84,8 +84,7 @@ class C
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
+        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestBeforeFor() As Task
             Await TestInRegularAndScript1Async(
 "imports System
@@ -545,8 +544,7 @@ class C
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(32822, "https://github.com/dotnet/roslyn/issues/32822")>
+        <Fact, WorkItem(32822, "https://github.com/dotnet/roslyn/issues/32822")>
         Public Async Function DoNotCrashOnInvalidCode() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

@@ -98,8 +98,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")>
+        <Fact, WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")>
         Public Async Function Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -407,8 +406,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
+        <Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
         Public Async Function RedundantAssignment_WithLeadingAndTrailingComment() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -435,8 +433,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
+        <Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
         Public Async Function MultipleRedundantAssignment_WithLeadingAndTrailingComment() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

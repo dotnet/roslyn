@@ -249,8 +249,7 @@ end namespace</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact>
-        <WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
+        <Fact, WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile4() As Task
             Dim initial =
 <content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -279,8 +278,7 @@ end namespace</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact>
-        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
+        <Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile1() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -303,8 +301,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact>
-        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
+        <Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile2() As Task
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -327,8 +324,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact>
-        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
+        <Fact, WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile3() As Task
             Dim initial =
 <content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -610,8 +606,7 @@ Imports SystemZ
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=False)
         End Function
 
-        <Fact>
-        <WorkItem(538367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538367")>
+        <Fact, WorkItem(538367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538367")>
         Public Async Function TestXml() As Task
             Dim initial =
 <content><![CDATA[Imports System
@@ -819,8 +814,7 @@ Imports ああ
             Await CheckAsync(initial, final)
         End Function
 
-        <Fact>
-        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
         Public Async Function TestGrouping() As Task
             Dim initial =
 <content><![CDATA[' Banner
@@ -859,8 +853,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
 
-        <Fact>
-        <WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
+        <Fact, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/20988")>
         Public Async Function TestGrouping2() As Task
             ' Make sure we don't insert extra newlines if they're already there.
             Dim initial =
@@ -946,8 +939,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True, endOfLine:=endOfLine)
         End Function
 
-        <Fact>
-        <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
+        <Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
         Public Async Function TestGroupingWithFormat() As Task
             Dim initial =
 <content><![CDATA[Imports M
@@ -985,8 +977,7 @@ End Namespace
             Await CheckWithFormatAsync(initial, final, placeSystemNamespaceFirst:=False, separateImportGroups:=True)
         End Function
 
-        <Fact>
-        <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
+        <Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
         Public Async Function TestSortingAndGroupingWithFormat() As Task
             Dim initial =
 <content><![CDATA[Imports M

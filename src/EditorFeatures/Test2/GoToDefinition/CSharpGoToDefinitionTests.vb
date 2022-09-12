@@ -56,8 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestCSharpLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -71,8 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestCSharpStringLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -710,8 +708,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        <WpfFact, WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
         Public Async Function TestCSharpGoToOverriddenDefinition_FromDeconstructionDeclaration() As Task
             Dim workspace =
 <Workspace>
@@ -733,8 +730,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        <WpfFact, WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
         Public Async Function TestCSharpGoToOverriddenDefinition_FromDeconstructionAssignment() As Task
             Dim workspace =
 <Workspace>
@@ -757,8 +753,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
-        <WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        <WpfFact, WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
         Public Async Function TestCSharpGoToOverriddenDefinition_FromDeconstructionForeach() As Task
             Dim workspace =
 <Workspace>

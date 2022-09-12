@@ -224,14 +224,12 @@ End Namespace</File>, "Class")
             VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Class")
         End Sub
 
-        <Fact>
-        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub AfterAsyncTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Class")
         End Sub
 
-        <Fact>
-        <WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterAttribute()
             VerifyRecommendationsContain(<File>&lt;AttributeApplication&gt; |</File>, "Class")
         End Sub

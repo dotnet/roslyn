@@ -1720,8 +1720,7 @@ End Module"
             Await TestMissingInRegularAndScriptAsync(source)
         End Function
 
-        <Fact>
-        <WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
+        <Fact, WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
         Public Async Function TestMissingOnAddressOfInDelegate() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Module1
@@ -1735,8 +1734,7 @@ End Module"
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(545168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545168")>
+        <Fact, WorkItem(545168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545168")>
         Public Async Function TestMissingOnXmlName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module M

@@ -278,8 +278,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
         End Sub
 
-        <WpfFact>
-        <WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
+        <WpfFact, WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
         Public Sub TestDontThrowDueToSingleLineDeletion()
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]

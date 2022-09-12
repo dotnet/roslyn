@@ -50,8 +50,7 @@ End Class
 </File>, "Assembly", "Module")
         End Sub
 
-        <Fact>
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AttributeScopesAfterEolTest()
             VerifyRecommendationsContain(<File>
 Class goo

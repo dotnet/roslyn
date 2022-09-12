@@ -51,8 +51,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
+        <WpfFact, WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
         Public Sub TestCommitAfterTypingAndUpArrowInLambdaFooter()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -76,8 +75,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
+        <WpfFact, WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
         Public Sub TestCommitAfterTypingAndUpArrowInLambdaFooter2()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -105,8 +103,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
+        <WpfFact, WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
         Public Sub TestCommitAfterTypingAndUpArrowIntoBlankLine()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -129,8 +126,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
+        <WpfFact, WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
         Public Sub TestCommitAfterTypingInTrivia()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -151,8 +147,7 @@ $$</Document>
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
+        <WpfFact, WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         <WorkItem(631913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631913")>
         Public Sub TestCommitAfterTypingInTrivia2()
             Using testData = CommitTestData.Create(
@@ -177,8 +172,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
+        <WpfFact, WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Sub TestCommitAfterTypingAttributeOfType()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -198,8 +192,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
+        <WpfFact, WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Sub TestCommitAfterTypingAttributeOfMethod()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -221,8 +214,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
+        <WpfFact, WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Sub TestCommitAfterTypingInMethodNameAndThenMovingToAttribute()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -267,8 +259,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
+        <WpfFact, WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         Public Sub TestCommitAfterLeavingStatementAfterLineContinuation()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -300,8 +291,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
+        <WpfFact, WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
         Public Sub TestCommitAfterDeletingIndentationFixesIndentation()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -583,8 +573,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(539613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539613")>
+        <WpfFact, WorkItem(539613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539613")>
         Public Sub TestRelativeIndentationBug()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -691,8 +680,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(544104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544104")>
+        <WpfFact, WorkItem(544104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544104")>
         Public Sub TestCommitAfterMoveDownAfterIfStatement()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -807,8 +795,7 @@ End Module|]</Document>
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
+        <WpfFact, WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Sub TestMultiLineString1()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -837,8 +824,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
+        <WpfFact, WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Sub TestMultiLineString2()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -867,8 +853,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
+        <WpfFact, WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Sub TestMultiLineString3()
             Using testData = CommitTestData.Create(
                 <Workspace>

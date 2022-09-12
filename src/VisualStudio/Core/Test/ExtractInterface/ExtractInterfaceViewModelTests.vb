@@ -238,8 +238,7 @@ class $$MyClass
             Assert.Equal("this[int?, [string]]", viewModel.MemberContainers.Where(Function(c) c.Symbol.IsKind(SymbolKind.Property)).Single().SymbolName)
         End Function
 
-        <Fact>
-        <WorkItem(37176, "https://github.com/dotnet/roslyn/issues/37176")>
+        <Fact, WorkItem(37176, "https://github.com/dotnet/roslyn/issues/37176")>
         Public Async Function TestExtractInterface_MemberDisplay_NullableReferenceType() As Task
             Dim markup = <Text><![CDATA[
 #nullable enable

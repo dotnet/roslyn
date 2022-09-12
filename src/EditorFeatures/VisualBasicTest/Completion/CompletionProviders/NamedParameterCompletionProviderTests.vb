@@ -63,8 +63,7 @@ End Class
 </Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
-        <Fact>
-        <WorkItem(546190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546190")>
+        <Fact, WorkItem(546190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546190")>
         Public Async Function TestAttributeNamedParameter1() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -287,8 +286,7 @@ End Class
 </Text>.Value, "[Boolean]", displayTextSuffix:=":=")
         End Function
 
-        <Fact>
-        <WorkItem(546589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546589")>
+        <Fact, WorkItem(546589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546589")>
         Public Async Function TestCommitOnEquals() As Task
             Dim text = <Text>
 Module Program
@@ -369,8 +367,7 @@ End Class
 </Text>.Value)
         End Function
 
-        <Fact>
-        <WorkItem(1041260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
+        <Fact, WorkItem(1041260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
         Public Async Function TestConditionalInvocation() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -384,8 +381,7 @@ End Class
 </Text>.Value, "obj", displayTextSuffix:=":=")
         End Function
 
-        <Fact>
-        <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
+        <Fact, WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
         Public Async Function TestExclusivityCheckAfterComma() As Task
             Await VerifyAnyItemExistsAsync(
 <Text>

@@ -265,8 +265,7 @@ class C
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -289,8 +288,7 @@ class C
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -313,8 +311,7 @@ class C
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -337,8 +334,7 @@ class C
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType4() As Task
             Await TestInRegularAndScript1Async(
 "

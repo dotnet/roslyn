@@ -63,8 +63,7 @@ End Module
 ")
         End Function
 
-        <Fact>
-        <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
+        <Fact, WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
         Public Async Function TestAddEmptyArgumentListIfNeeded() As Task
             Dim markup =
 <File>
@@ -337,8 +336,7 @@ End Module
 ")
         End Function
 
-        <Fact>
-        <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
+        <Fact, WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim markup =
 <File>
@@ -356,8 +354,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact>
-        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
+        <Fact, WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim markup =
 <File>
@@ -375,8 +372,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact>
-        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
+        <Fact, WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim markup =
 <File>
@@ -394,8 +390,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact>
-        <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
+        <Fact, WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim markup =
 <File>
@@ -422,8 +417,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact>
-        <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
+        <Fact, WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim markup =
 <File>
@@ -441,8 +435,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact>
-        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
+        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -517,8 +510,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
+        <Fact, WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambdaMethod() As Task
             Await TestMissingAsync(
 "Module Program
@@ -529,8 +521,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact>
-        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
+        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfSingleLineIf() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -566,8 +557,7 @@ End If
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact>
-        <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
+        <Fact, WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
 <File>
@@ -590,8 +580,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact>
-        <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
+        <Fact, WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
         Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =
 <File>
@@ -618,8 +607,7 @@ End Module
 ")
         End Function
 
-        <Fact>
-        <WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
+        <Fact, WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
         Public Async Function TestWithMissingTrueStatementWithinUsing() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program

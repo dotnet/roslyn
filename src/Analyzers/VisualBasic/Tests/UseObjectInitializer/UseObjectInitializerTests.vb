@@ -171,8 +171,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -199,8 +198,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializerNotIfAlreadyInitialized() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -229,8 +227,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
+        <Fact, WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -246,8 +243,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
+        <Fact, WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -344,8 +340,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
+        <Fact, WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -388,8 +383,7 @@ end class
 ")
         End Function
 
-        <Fact>
-        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
+        <Fact, WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -435,8 +429,7 @@ end class
 ")
         End Function
 
-        <Fact>
-        <WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
+        <Fact, WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
         Public Async Function TestSharedMember() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -466,8 +459,7 @@ End Class
 ")
         End Function
 
-        <Fact>
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -492,8 +484,7 @@ End Class
 ")
         End Function
 
-        <Fact>
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -519,8 +510,7 @@ End Class
 ")
         End Function
 
-        <Fact>
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -568,8 +558,7 @@ End Class
 ")
         End Function
 
-        <Fact>
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers4() As Task
             Await TestInRegularAndScriptAsync(
 "

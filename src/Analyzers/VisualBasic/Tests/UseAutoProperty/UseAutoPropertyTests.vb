@@ -49,8 +49,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        <Fact, WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
         Public Async Function TestSingleGetter3() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -66,8 +65,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestNullable1() As Task
             ' ⚠ The expected outcome of this test should not change.
             Await TestMissingInRegularAndScriptAsync(
@@ -84,8 +82,7 @@ Structure MutableInt
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestNullable2() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -107,8 +104,7 @@ Structure MutableInt
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestNullable3() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -124,8 +120,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestNullable4() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -141,8 +136,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestNullable5() As Task
             ' Recursive type check
             Await TestMissingInRegularAndScriptAsync(
@@ -160,8 +154,7 @@ Structure MutableInt
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestMutableValueType1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1
@@ -177,8 +170,7 @@ Structure MutableInt
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestMutableValueType2() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -200,8 +192,7 @@ Structure MutableInt
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestMutableValueType3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1
@@ -217,8 +208,7 @@ Structure MutableInt
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestErrorType1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1
@@ -231,8 +221,7 @@ End Structure")
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestErrorType2() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -248,8 +237,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestErrorType3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1
@@ -262,8 +250,7 @@ end class")
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestErrorType4() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -279,8 +266,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
+        <Fact, WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")>
         Public Async Function TestErrorType5() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
@@ -356,8 +342,7 @@ end class",
 New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9)))
         End Function
 
-        <Fact>
-        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        <Fact, WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
         Public Async Function TestInitializer_AsNew() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -375,8 +360,7 @@ class Class1
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        <Fact, WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
         Public Async Function TestInitializer_AsNewDifferentType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -390,8 +374,7 @@ class Class1
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        <Fact, WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
         Public Async Function TestInitializer_Boolean() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -410,8 +393,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        <Fact, WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
         Public Async Function TestInitializer_BooleanWithComments() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -430,8 +412,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        <Fact, WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
         Public Async Function TestInitializer_Multiline() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class C
@@ -899,8 +880,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
+        <Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         Public Async Function TestWriteInMultiLineSubLambdaInConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -928,8 +908,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
+        <Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         Public Async Function TestWriteInMultiLineFunctionLambdaInConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -959,8 +938,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
+        <Fact, WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
         Public Async Function TestWriteInSingleLineSubLambdaInConstructor() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -1016,8 +994,7 @@ end class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
+        <Fact, WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
         Public Async Function ExplicitInterfaceImplementation() As Task
             Await TestInRegularAndScriptAsync("
 Namespace RoslynSandbox
@@ -1061,8 +1038,7 @@ End Namespace
 ")
         End Function
 
-        <Fact>
-        <WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
+        <Fact, WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
         Public Async Function TestGetterAccessibilityDiffers() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1
@@ -1078,8 +1054,7 @@ End Namespace
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
+        <Fact, WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
         Public Async Function TestSetterAccessibilityDiffers() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1
@@ -1112,8 +1087,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        <Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
         Public Async Function TestUseTabs() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Foo
@@ -1130,8 +1104,7 @@ End Class",
 End Class", options:=[Option](FormattingOptions2.UseTabs, True))
         End Function
 
-        <Fact>
-        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        <Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
         Public Async Function TestUseSpaces() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Foo
@@ -1148,8 +1121,7 @@ End Class",
 End Class", options:=[Option](FormattingOptions2.UseTabs, False))
         End Function
 
-        <Fact>
-        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        <Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
         Public Async Function TestUseTabs_Editorconfig() As Task
             Await TestInRegularAndScriptAsync(
 "<Workspace>
@@ -1186,8 +1158,7 @@ indent_style = tab
 </Workspace>")
         End Function
 
-        <Fact>
-        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        <Fact, WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
         Public Async Function TestUseSpaces_Editorconfig() As Task
             Await TestInRegularAndScriptAsync(
 "<Workspace>
@@ -1224,8 +1195,7 @@ indent_style = space
 </Workspace>")
         End Function
 
-        <Fact>
-        <WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")>
+        <Fact, WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")>
         Public Async Function TestNotOnSerializableType() As Task
             Await TestMissingAsync(
 "
@@ -1240,8 +1210,7 @@ class Class1
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
+        <Fact, WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestArraySizeAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1257,8 +1226,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
+        <Fact, WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestArrayInitializerAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1274,8 +1242,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
+        <Fact, WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestMultiDimArrayWithRankAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -1291,8 +1258,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
+        <Fact, WorkItem(38218, "https://github.com/dotnet/roslyn/issues/38218")>
         Public Async Function TestMultiDimArrayWithInitialzerAsync() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

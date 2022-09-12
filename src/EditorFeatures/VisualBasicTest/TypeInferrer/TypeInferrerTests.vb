@@ -668,8 +668,7 @@ End Class
             Await TestInMethodAsync(text, "System.Boolean", mode)
         End Function
 
-        <Fact>
-        <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
+        <Fact, WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause2() As Task
             Dim text = "Try : Catch ex As Exception When [|goo|].N"
             Await TestInMethodAsync(text, "System.Object", TestMode.Node)
@@ -696,8 +695,7 @@ End Class
 "dim x as (integer, (string, boolean)) = (1, ("""", [|Goo()|]))", "System.Boolean", mode)
         End Function
 
-        <Fact>
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestAwaitExpressionWithChainingMethod() As Task
             Dim text = "Imports System
 Imports System.Linq
@@ -710,8 +708,7 @@ End Module"
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Object)", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestAwaitExpressionWithChainingMethod2() As Task
             Dim text = "Imports System
 Imports System.Threading.Tasks
@@ -724,8 +721,7 @@ End Module"
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", TestMode.Node)
         End Function
 
-        <Fact>
-        <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <Fact, WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
         Public Async Function NoTypeAfterInvocationWithCompletionListTagTypeAsFirstParameter() As Task
             Dim text = "Class C
     Sub Test()
@@ -777,8 +773,7 @@ end class"
             Await TestAsync(text, "System.Boolean", TestMode.Position)
         End Function
 
-        <Fact>
-        <WorkItem(431509, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
+        <Fact, WorkItem(431509, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
         Public Async Function InvocationWithNoArguments() As Task
             Dim text =
 "Module Program
@@ -790,8 +785,7 @@ End Module"
             Await TestAsync(text, "System.Object", TestMode.Position)
         End Function
 
-        <Fact>
-        <WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
+        <Fact, WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
         Public Async Function TestInferringAfterAwaitInAsync() As Task
             Dim text =
 "Imports System.Threading.Tasks

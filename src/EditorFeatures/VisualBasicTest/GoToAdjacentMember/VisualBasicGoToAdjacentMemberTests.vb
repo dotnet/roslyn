@@ -12,14 +12,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GoToAdjacentMember
         Protected Overrides ReadOnly Property LanguageName As String = LanguageNames.VisualBasic
         Protected Overrides ReadOnly Property DefaultParseOptions As ParseOptions = VisualBasicParseOptions.Default
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function EmptyFile() As Task
             Assert.Null(Await GetTargetPositionAsync("$$", next:=True))
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function ClassWithNoMembers() As Task
             Dim code = "Class C
 $$
@@ -27,8 +25,7 @@ End Class"
             Assert.Null(Await GetTargetPositionAsync(code, next:=True))
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function BeforeClassWithMember() As Task
             Dim code = "$$
 Class C
@@ -39,8 +36,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function AfterClassWithMember() As Task
             Dim code = "
 Class C
@@ -53,8 +49,7 @@ $$"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function BetweenClasses() As Task
             Dim code = "
 Class C1
@@ -72,8 +67,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function BetweenClassesPrevious() As Task
             Dim code = "
 Class C1
@@ -91,8 +85,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=False)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function FromFirstMemberToSecond() As Task
             Dim code = "
 Class C
@@ -105,8 +98,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function FromSecondToFirst() As Task
             Dim code = "
 Class C
@@ -119,8 +111,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=False)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function NextWraps() As Task
             Dim code = "
 Class C
@@ -133,8 +124,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function PreviousWraps() As Task
             Dim code = "
 Class C
@@ -147,8 +137,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=False)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function DescendsIntoNestedType() As Task
             Dim code = "
 Class C
@@ -164,8 +153,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtConstructor() As Task
             Dim code = "
 Class C
@@ -178,8 +166,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtOperator() As Task
             Dim code = "
 Class C
@@ -196,8 +183,7 @@ End Class"
             Throw New System.NotImplementedException()
         End Operator
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtField() As Task
             Dim code = "
 Class C
@@ -209,8 +195,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtFieldlikeEvent() As Task
             Dim code = "
 Class C
@@ -222,8 +207,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtAutoProperty() As Task
             Dim code = "
 Class C
@@ -234,8 +218,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtPropertyWithAccessors() As Task
             Dim code = "
 Class C
@@ -254,8 +237,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function SkipsPropertyAccessors() As Task
             Dim code = "
 Class C
@@ -277,8 +259,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function FromInsidePropertyAccessor() As Task
             Dim code = "
 Class C
@@ -300,8 +281,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtEventWithAddRemove() As Task
             Dim code = "
 Class C
@@ -324,8 +304,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function SkipsEventAddRemove() As Task
             Dim code = "
 Class C
@@ -351,8 +330,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function FromInsideMethod() As Task
             Dim code = "
 Class C
@@ -367,8 +345,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function NextFromBetweenMethods() As Task
             Dim code = "
 Class C
@@ -384,8 +361,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function PreviousFromBetweenMethods() As Task
             Dim code = "
 Class C
@@ -401,8 +377,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=False)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function NextFromBetweenMethodsInTrailingTrivia() As Task
             Dim code = "
 Class C
@@ -416,8 +391,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         <WorkItem(10588, "https://github.com/dotnet/roslyn/issues/10588")>
         Public Async Function PreviousFromInsideCurrent() As Task
             Dim code = "
@@ -433,8 +407,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=False)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function PreviousFromBetweenMethodsInTrailingTrivia() As Task
             Dim code = "
 Class C
@@ -448,8 +421,7 @@ End Class"
             Await AssertNavigatedAsync(code, next:=False)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function NextInScript() As Task
             Dim code = "
 $$Sub M1()
@@ -461,8 +433,7 @@ End Sub"
             Await AssertNavigatedAsync(code, next:=True, sourceCodeKind:=SourceCodeKind.Script)
         End Function
 
-        <Fact>
-        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <Fact, WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function PrevInScript() As Task
             Dim code = "
 [||]Sub M1()

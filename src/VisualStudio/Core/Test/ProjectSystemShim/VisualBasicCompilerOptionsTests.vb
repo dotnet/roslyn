@@ -15,8 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
     Public Class VisualBasicCompilerOptions
-        <WpfFact()>
-        <WorkItem(867840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867840")>
+        <WpfFact, WorkItem(867840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867840")>
         Public Sub ConditionalCompilationOptionsIncludesTargetAndVersion()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -33,8 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
+        <WpfFact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToDiagnoseIfProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -158,8 +156,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
+        <WpfFact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToParseIfNotProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -177,8 +174,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")>
+        <WpfFact, WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")>
         <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
         <WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")>
         Public Sub ProjectWarningsOptionSetAndUnset()

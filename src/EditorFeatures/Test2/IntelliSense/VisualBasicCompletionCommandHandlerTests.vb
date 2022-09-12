@@ -2487,8 +2487,7 @@ End Class]]></Document>)
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        <WpfFact, WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
         Public Async Function TestAnonymousTypeDescription() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                            <Document><![CDATA[
@@ -2509,8 +2508,7 @@ $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As '
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        <WpfFact, WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
         Public Async Function TestAnonymousTypeDescription2() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                            <Document><![CDATA[

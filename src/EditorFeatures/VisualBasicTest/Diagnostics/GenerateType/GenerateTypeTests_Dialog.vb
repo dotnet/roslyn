@@ -324,8 +324,7 @@ isNewFile:=False,
 existingFilename:="Test2.vb")
         End Function
 
-        <Fact>
-        <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
+        <Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeInExistingEmptyFile_Usings_Folders() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -363,8 +362,7 @@ isNewFile:=False,
 existingFilename:="Test2.vb")
         End Function
 
-        <Fact>
-        <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
+        <Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -613,8 +611,7 @@ newFileName:="Test2.vb")
 #End Region
 #Region "SameLanguage DifferentProject"
 #Region "SameLanguage DifferentProject ExistingFile"
-        <Fact>
-        <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
+        <Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectEmptyFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -649,8 +646,7 @@ existingFilename:="Test2.vb",
 projectName:="Assembly2")
         End Function
 
-        <Fact>
-        <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
+        <Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectExistingFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -691,8 +687,7 @@ existingFilename:="Test2.vb",
 projectName:="Assembly2")
         End Function
 
-        <Fact>
-        <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
+        <Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1158,8 +1153,7 @@ existingFilename:="Test2.cs",
 projectName:="Assembly2")
         End Function
 
-        <Fact>
-        <WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
+        <Fact, WorkItem(850101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         Public Async Function GenerateTypeIntoDifferentLanguageExistingEmptyFile_Imports_Folder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1324,8 +1318,7 @@ projectName:="Assembly2")
         End Function
 #End Region
 #Region "Bugfix"
-        <Fact>
-        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
+        <Fact, WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <WorkItem(873066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_1() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1347,8 +1340,7 @@ accessibility:=Accessibility.Public,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
-        <Fact>
-        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
+        <Fact, WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_2() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Class CC
@@ -1367,8 +1359,7 @@ isNewFile:=False,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Class))
         End Function
 
-        <Fact>
-        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
+        <Fact, WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_3() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Interface CCC
@@ -1388,8 +1379,7 @@ typeKind:=TypeKind.Interface,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
-        <Fact>
-        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
+        <Fact, WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_4() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Structure CCC
@@ -1410,8 +1400,7 @@ typeKind:=TypeKind.Interface,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
-        <Fact>
-        <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
+        <Fact, WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         <WorkItem(869593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")>
         Public Async Function GenerateTypeWithModuleOption() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1440,8 +1429,7 @@ typeKind:=TypeKind.Module,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
-        <Fact>
-        <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
+        <Fact, WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         Public Async Function GenerateTypeInMemberAccessExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1466,8 +1454,7 @@ typeKind:=TypeKind.Module,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact>
-        <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
+        <Fact, WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         Public Async Function GenerateTypeInMemberAccessExpressionWithNamespace() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Namespace A
@@ -1495,8 +1482,7 @@ typeKind:=TypeKind.Module,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact>
-        <WorkItem(876202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")>
+        <Fact, WorkItem(876202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")>
         <WorkItem(883531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")>
         Public Async Function GenerateType_NoParameterLessConstructor() As Task
             Await TestWithMockedGenerateTypeDialog(
@@ -1522,8 +1508,7 @@ typeKind:=TypeKind.Structure,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Function
 
-        <Fact>
-        <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
+        <Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeWithoutEnumForGenericsInMemberAccessExpression() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1554,8 +1539,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Function
 
-        <Fact>
-        <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
+        <Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeWithoutEnumForGenericsInNameContext() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1586,8 +1570,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
         End Function
 
-        <Fact>
-        <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
+        <Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeInMemberAccessWithNSForModule() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1616,8 +1599,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
-        <Fact>
-        <WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
+        <Fact, WorkItem(861600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeInMemberAccessWithGlobalNSForModule() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2116,8 +2098,7 @@ newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
-        <Fact>
-        <WorkItem(860210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")>
+        <Fact, WorkItem(860210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")>
         Public Async Function GenerateTypeDelegate_NoInfo() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program

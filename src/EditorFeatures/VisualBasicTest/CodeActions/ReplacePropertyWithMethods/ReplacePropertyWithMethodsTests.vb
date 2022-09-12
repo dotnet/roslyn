@@ -471,8 +471,7 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -495,8 +494,7 @@ End Interface",
 End Interface")
         End Function
 
-        <Fact>
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -519,8 +517,7 @@ End Interface",
 End Interface")
         End Function
 
-        <Fact>
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment3() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -550,8 +547,7 @@ End Interface",
 End Interface")
         End Function
 
-        <Fact>
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment4() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -578,8 +574,7 @@ Structure AStruct
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment5() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -633,8 +628,7 @@ Structure AStruct
 End Structure")
         End Function
 
-        <Fact>
-        <WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
+        <Fact, WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
         Public Async Function TestInterfaceReplacement1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
@@ -666,8 +660,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
+        <Fact, WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
         Public Async Function TestReferenceInObjectInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Tweet
