@@ -993,9 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override DeclarationScope DeclaredScope => _packedFlags.Scope;
-
-        internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
+        internal sealed override DeclarationScope EffectiveScope => _packedFlags.Scope;
 
         internal sealed override bool UseUpdatedEscapeRules => _moduleSymbol.UseUpdatedEscapeRules;
 

@@ -10,8 +10,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CallHierarchy)>
     Public Class CallHierarchyTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestScopes()
             Dim input =
 <Workspace>
@@ -78,7 +79,7 @@ public class DSSS
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestVBMethod()
             Dim input =
 <Workspace>
@@ -99,7 +100,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestVBInterface()
             Dim input =
 <Workspace>
@@ -125,7 +126,7 @@ End Interface
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestInterfaceScopes()
             Dim input =
 <Workspace>
@@ -183,7 +184,7 @@ public class D : I
         End Sub
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestCallHierarchyCrossProjectForImplements()
             Dim input =
 <Workspace>
@@ -223,7 +224,7 @@ class CSharpIt : IChangeSignatureOptionsService
         End Sub
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestCallHierarchyCrossProjectForCallsTo()
             Dim input =
 <Workspace>
@@ -262,7 +263,7 @@ class D
         End Sub
 
         <WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestMustInheritMethodInclusionToOverrides()
             Dim input =
 <Workspace>
@@ -290,7 +291,7 @@ End Class
         End Sub
 
         <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestNavigateCrossProject()
             Dim input =
     <Workspace>
@@ -324,7 +325,7 @@ class D : C
         End Sub
 
         <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestUseDocumentIdWhenNavigating()
             Dim input =
     <Workspace>
@@ -364,7 +365,7 @@ namespace N
         End Sub
 
         <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberCS()
             Dim input =
     <Workspace>
@@ -387,7 +388,7 @@ cla$$ss C
         End Sub
 
         <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberCS2()
             Dim input =
     <Workspace>
@@ -411,7 +412,7 @@ class CC
         End Sub
 
         <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberCS3()
             Dim input =
     <Workspace>
@@ -435,7 +436,7 @@ class CC
         End Sub
 
         <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberVB()
             Dim input =
     <Workspace>

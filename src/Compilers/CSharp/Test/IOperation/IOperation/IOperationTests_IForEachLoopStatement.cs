@@ -6944,13 +6944,13 @@ public static class CExt
 ");
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'arr' of 'CExt.GetEnumerator(C, params int[], int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'arr' of 'CExt.GetEnumerator(C, params int[], int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("arr", "CExt.GetEnumerator(C, params int[], int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(6, 27),
-                // (18,54): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (18,54): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public static Enumerator GetEnumerator(this C c, params int[] arr, int i = 0) => null;
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] arr").WithLocation(18, 54)
             };
@@ -7038,7 +7038,7 @@ public static class CExt
 ");
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CExt.GetEnumerator(C, params int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CExt.GetEnumerator(C, params int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("i", "CExt.GetEnumerator(C, params int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -7162,7 +7162,7 @@ public class D
 ", il);
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CExt.GetEnumerator(C, params int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CExt.GetEnumerator(C, params int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("i", "CExt.GetEnumerator(C, params int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -7279,7 +7279,7 @@ public class D
 ", il);
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'i2' of 'CExt.GetEnumerator(C, int, int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'i2' of 'CExt.GetEnumerator(C, int, int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("i2", "CExt.GetEnumerator(C, int, int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'

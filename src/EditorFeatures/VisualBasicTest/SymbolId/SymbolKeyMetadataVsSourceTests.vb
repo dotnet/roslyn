@@ -257,8 +257,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542725")>
-        <Fact>
+        <Fact, WorkItem(542725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542725")>
         Public Sub M2MMultiTargetingMsCorLib02()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib02">
@@ -332,8 +331,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542992")>
-        <Fact>
+        <Fact, WorkItem(542992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542992")>
         Public Sub M2MMultiTargetingMsCorLib03()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib03">

@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
     public partial class UseSystemHashCodeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseSystemHashCodeTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new UseSystemHashCodeDiagnosticAnalyzer(), new UseSystemHashCodeCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestDerivedClassWithFieldWithBase()
         {
             await TestInRegularAndScript1Async(
@@ -68,7 +69,7 @@ class C : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestDerivedClassWithFieldWithNoBase()
         {
             await TestInRegularAndScript1Async(
@@ -108,7 +109,7 @@ class C : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestDerivedClassWithNoFieldWithBase()
         {
             await TestInRegularAndScript1Async(
@@ -148,7 +149,7 @@ class C : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestFieldAndProp()
         {
             await TestInRegularAndScript1Async(
@@ -185,7 +186,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestUnchecked()
         {
             await TestInRegularAndScript1Async(
@@ -225,7 +226,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotOnNonGetHashCode()
         {
             await TestMissingAsync(
@@ -248,7 +249,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotWithoutReturn()
         {
             await TestMissingAsync(
@@ -270,7 +271,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotWithoutLocal()
         {
             await TestMissingAsync(
@@ -292,7 +293,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotWithMultipleLocals()
         {
             await TestMissingAsync(
@@ -315,7 +316,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotWithoutInitializer()
         {
             await TestMissingAsync(
@@ -338,7 +339,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotReturningAccumulator()
         {
             await TestMissingAsync(
@@ -361,7 +362,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestAcumulatorInitializedToField()
         {
             await TestInRegularAndScript1Async(
@@ -397,7 +398,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestAcumulatorInitializedToHashedField()
         {
             await TestInRegularAndScript1Async(
@@ -433,7 +434,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestMissingOnThisGetHashCode()
         {
             await TestMissingAsync(
@@ -458,7 +459,7 @@ class C : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestMissingWithNoSystemHashCode()
         {
             await TestMissingAsync(
@@ -482,7 +483,7 @@ class C : B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestDirectNullCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -519,7 +520,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestDirectNullCheck2()
         {
             await TestInRegularAndScript1Async(
@@ -556,7 +557,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestInt64Pattern()
         {
             await TestInRegularAndScript1Async(
@@ -586,7 +587,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestInt64Pattern2()
         {
             await TestInRegularAndScript1Async(
@@ -616,7 +617,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestTuple()
         {
             await TestInRegularAndScript1Async(
@@ -650,7 +651,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable1()
         {
             await TestInRegularAndScript1Async(
@@ -687,7 +688,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable2()
         {
             await TestInRegularAndScript1Async(
@@ -724,7 +725,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable3()
         {
             await TestInRegularAndScript1Async(
@@ -761,7 +762,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable4()
         {
             await TestInRegularAndScript1Async(
@@ -798,7 +799,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Enable_1()
         {
             await TestInRegularAndScript1Async(
@@ -839,7 +840,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Enable_2()
         {
             await TestInRegularAndScript1Async(
@@ -880,7 +881,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Enable_3()
         {
             await TestInRegularAndScript1Async(
@@ -921,7 +922,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Enable_4()
         {
             await TestInRegularAndScript1Async(
@@ -962,7 +963,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Disable_1()
         {
             await TestInRegularAndScript1Async(
@@ -1003,7 +1004,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Disable_2()
         {
             await TestInRegularAndScript1Async(
@@ -1044,7 +1045,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Disable_3()
         {
             await TestInRegularAndScript1Async(
@@ -1085,7 +1086,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNullable_Disable_4()
         {
             await TestInRegularAndScript1Async(
@@ -1126,7 +1127,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotOnExistingUsageOfSystemHashCode()
         {
             await TestMissingAsync(
@@ -1146,7 +1147,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotOnExistingUsageOfSystemHashCode2()
         {
             await TestMissingAsync(
@@ -1169,8 +1170,7 @@ class C
 }");
         }
 
-        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestManyFields_ImplicitType()
         {
             await TestInRegularAndScript1Async(
@@ -1220,8 +1220,7 @@ class C
 }", new TestParameters(options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this)));
         }
 
-        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestManyFields_ExplicitType()
         {
             await TestInRegularAndScript1Async(
@@ -1271,7 +1270,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotOnSingleReturnedMember()
         {
             await TestMissingAsync(
@@ -1288,7 +1287,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotOnSingleMemberWithInvokedGetHashCode()
         {
             await TestMissingAsync(
@@ -1305,7 +1304,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        [Fact]
         public async Task TestNotOnSimpleBaseReturn()
         {
             await TestMissingAsync(

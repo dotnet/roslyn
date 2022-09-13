@@ -431,7 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Namespace:
                             for (var i = 1; i < partCount; i++)
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, declaration.Declarations[i].NameLocation, this.Name, this.ContainingSymbol);
+                                // note: a declaration with the 'file' modifier will only be grouped with declarations in the same file.
+                                diagnostics.Add((result & DeclarationModifiers.File) != 0
+                                    ? ErrorCode.ERR_FileLocalDuplicateNameInNS
+                                    : ErrorCode.ERR_DuplicateNameInNS, declaration.Declarations[i].NameLocation, this.Name, this.ContainingSymbol);
                                 modifierErrors = true;
                             }
                             break;
