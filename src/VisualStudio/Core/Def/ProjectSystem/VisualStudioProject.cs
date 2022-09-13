@@ -884,7 +884,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             using (_gate.DisposableWait())
             {
-                foreach (var mappedFullPath in GetMapedAnalyzerPaths(fullPath))
+                foreach (var mappedFullPath in GetMappedAnalyzerPaths(fullPath))
                 {
                     if (_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
                     {
@@ -931,7 +931,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             using (_gate.DisposableWait())
             {
-                foreach (var mappedFullPath in GetMapedAnalyzerPaths(fullPath))
+                foreach (var mappedFullPath in GetMappedAnalyzerPaths(fullPath))
                 {
                     if (!_analyzerPathsToAnalyzers.TryGetValue(mappedFullPath, out var visualStudioAnalyzer))
                     {
@@ -964,7 +964,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IEnumerable<string> GetMapedAnalyzerPaths(string fullPath)
+        private IEnumerable<string> GetMappedAnalyzerPaths(string fullPath)
         {
             if (fullPath.Split(s_directorySeparator) is [.., var dir1, var dir2, var dir3, var fileName] &&
                 dir1.Equals("Sdks", StringComparison.OrdinalIgnoreCase) &&
