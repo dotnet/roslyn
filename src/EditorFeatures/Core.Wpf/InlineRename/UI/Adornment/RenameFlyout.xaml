@@ -51,7 +51,7 @@
                     Grid.Column="1" 
                     Click="ToggleExpand" 
                     Background="Transparent"
-                    imageutils:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
+                    imageutils:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Parent.Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
