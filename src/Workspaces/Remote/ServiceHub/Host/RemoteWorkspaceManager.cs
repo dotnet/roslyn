@@ -35,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// The general thinking behind these timings is that we don't want to be too aggressive constantly waking up
         /// and cleaning purging items from the cache.  But we also don't want to wait an excessive amount of time,
         /// allowing it to get too full.
+        /// <para>
+        /// Also note that the asset cache will not remove items associated with the <see
+        /// cref="Workspace.CurrentSolution"/> of the workspace it is created against.  This ensures that the assets
+        /// associated with the solution that most closely corresponds to what the user is working with will stay pinned
+        /// on the remote side and not get purged just because the user stopped interactive for a while.  This ensures
+        /// the next sync (which likely overlaps heavily with the current solution) will not force the same assets to be
+        /// resent.
+        /// </para>
         /// <list type="bullet">
         /// <item>CleanupInterval=20s gives what feels to be a reasonable non-aggressive amount of time to let the cache
         /// do its job, while also making sure several times a minute it is scanned for things that can be
