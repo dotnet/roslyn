@@ -71,60 +71,32 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
-            SourceText? text;
-            ITemporaryTextStorageWithName? storage;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                text = _text;
-                storage = _storage;
-            }
-
-            // if someone already computed 'text', then just return that.
-            if (text != null)
-                return text;
-
-            text = await storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // if we're the first to compute 'text', then update our internal fields.
-                if (_text is null)
+                // if not computed, then compute and swap over to that value.
+                if (_text == null)
                 {
-                    _text = text;
+                    _text = await _storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
                     _storage = null;
                 }
-            }
 
-            return text;
+                return _text;
+            }
         }
 
         public SourceText GetText(CancellationToken cancellationToken)
         {
-            SourceText? text;
-            ITemporaryTextStorageWithName? storage;
             using (_gate.DisposableWait(cancellationToken))
             {
-                text = _text;
-                storage = _storage;
-            }
-
-            // if someone already computed 'text', then just return that.
-            if (text != null)
-                return text;
-
-            text = storage!.ReadText(cancellationToken);
-
-            using (_gate.DisposableWait(cancellationToken))
-            {
-                // if we're the first to compute 'text', then update our internal fields.
-                if (_text is null)
+                // if not computed, then compute and swap over to that value.
+                if (_text == null)
                 {
-                    _text = text;
+                    _text = _storage!.ReadText(cancellationToken);
                     _storage = null;
                 }
-            }
 
-            return text;
+                return _text;
+            }
         }
 
         public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)

@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly TimeSpan _gcAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<Checksum, Entry> _assets =
-            new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
+        private readonly ConcurrentDictionary<Checksum, Entry> _assets = new();
 
         private DateTime _lastGCRun;
         private DateTime _lastActivityTime;
@@ -63,11 +62,13 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public bool TryAddAsset(Checksum checksum, object value)
+        public object GetOrAdd(Checksum checksum, object value)
         {
             UpdateLastActivityTime();
 
-            return _assets.TryAdd(checksum, new Entry(value));
+            var entry = _assets.GetOrAdd(checksum, new Entry(value));
+            Update(entry);
+            return entry.Object;
         }
 
         public bool TryGetAsset<T>(Checksum checksum, [MaybeNullWhen(false)] out T value)
