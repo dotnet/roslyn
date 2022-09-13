@@ -16107,7 +16107,6 @@ ref struct A
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
                 );
         }
-        
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
