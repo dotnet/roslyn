@@ -270,11 +270,12 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Now we have two items match in case-insensitive manner, if we are in a case-insensitive language or
-            // the filter text contains only lowercase letters, we'd first check if either one has the MatchPriority
-            // set to one of the two special values ("Preselect" and "Deprioritize").
+            // the filter text contains only lowercase letters (therefore we want to relax our filtering standard a bit
+            // to account for the sceanrio that users expect completion to fix the casing), we'd first check if either
+            // one has the MatchPriority set to one of the two special values ("Preselect" and "Deprioritize").
             //
-            // If these two items have different MatchPriority, then we'd select the one of "Deprioritize" or
-            // the one of "Preselect". Otherwise we will prefer the one matches case-sensitively.
+            // If so and these two items have different MatchPriority, then we'd select the one of "Preselect",
+            // or the one that's not of "Deprioritize". Otherwise we will prefer the one matches case-sensitively.
             //
             // This is to make sure either
             // 1. common items in VB like "True" and "False" are prioritized for selection when user types "t" and "f"

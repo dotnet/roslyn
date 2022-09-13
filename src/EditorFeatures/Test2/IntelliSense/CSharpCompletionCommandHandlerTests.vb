@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -9357,10 +9357,10 @@ public unsafe class AA
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function PreferHigherMatchPriorityOverCaseSensitiveWithOnlyLowercaseTyped(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function DoNotSelectMatchPriorityDeprioritizeWithBetterCaseSensitiveWithOnlyLowercaseTyped() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 using System;
@@ -9374,8 +9374,7 @@ public class AA
     {
         var y = x.$$
     }
-}</Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+}</Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9385,7 +9384,12 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
+                ' "(short)" item has a MatchPriority of "Deprioritize", so we don't want to select it over regular item "Should"
+                ' even if it matches with filter text better in term of case-sensitivity.
                 Await state.AssertSelectedCompletionItem("Should")
+                Await state.AssertCompletionItemsContain(Function(item)
+                                                             Return item.GetEntireDisplayText() = "(short)"
+                                                         End Function)
             End Using
         End Function
 
@@ -9474,31 +9478,30 @@ public class AA
             End Using
         End Function
 
-        <ExportCompletionProvider(NameOf(UppercaseItemWithLowerPriorityProvider), LanguageNames.CSharp)>
-        <[Shared]>
-        <PartNotDiscoverable>
-        Private Class UppercaseItemWithLowerPriorityProvider
-            Inherits CompletionProvider
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1454143, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1454143")>
+        Public Async Function DoNotSelectItemWithHigherMatchPriorityButWorseCaseSensitivity() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+using System;
+public class AA
+{
+    public void F(object dr)
+    {
+        var DR = (string)dr$$
+    }
+}</Document>)
 
-            Private ReadOnly highPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default + 1)
-            Private ReadOnly lowPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
 
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
+                Await state.AssertSelectedCompletionItem("dr")
+                Await state.AssertCompletionItemsContain("DR", "")
 
-            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="item1", rules:=highPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="item2", rules:=highPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="Item3", rules:=lowPriorityRule))
-                Return Task.CompletedTask
+            End Using
             End Function
-
-            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
-                Return True
-            End Function
-        End Class
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
