@@ -140,7 +140,7 @@ namespace B
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
 
             var additionalDocument = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
-                .AddDocument("test.cs", "")
+                .AddDocument("test.cs", "", filePath: "test.cs")
                 .Project.AddAdditionalDocument("AdditionalDocument.txt", "First line in file", filePath: "AdditionalDocument.txt");
             var document = additionalDocument.Project.Documents.Single();
 

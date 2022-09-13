@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static DiagnosticData Create(Solution solution, Diagnostic diagnostic, Project? project)
-            => Create(diagnostic, project?.Id, project?.Language, location: new DiagnosticDataLocation(project?.FilePath ?? solution.FilePath), additionalLocations: default, additionalProperties: null);
+            => Create(diagnostic, project?.Id, project?.Language, location: new DiagnosticDataLocation(project?.FilePath ?? solution.FilePath ?? ""), additionalLocations: default, additionalProperties: null);
 
         public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
         {
