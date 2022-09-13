@@ -28,7 +28,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
-            Assert.True(storage.TryAddAsset(checksum, data));
+            Assert.Equal(data, storage.GetOrAdd(checksum, data));
 
             Assert.True(storage.TryGetAsset(checksum, out object _));
         }
@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
-            Assert.True(storage.TryAddAsset(checksum, data));
+            Assert.Equal(data, storage.GetOrAdd(checksum, data));
 
             for (var i = 0; i < 10; i++)
             {
