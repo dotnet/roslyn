@@ -33,5 +33,8 @@ public interface IQueueItem<TRequestContext>
     /// </summary>
     string MethodName { get; }
 
+    /// <summary>
+    /// The handler which will run this operation.
+    /// </summary>
     IMethodHandler MethodHandler { get; }
 }

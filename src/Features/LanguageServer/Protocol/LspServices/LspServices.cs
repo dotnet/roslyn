@@ -118,7 +118,6 @@ internal class LspServices : ILspServices
 
     private IEnumerable<T> GetMefServices<T>()
     {
-
         if (typeof(T) == typeof(IMethodHandler))
         {
             // HACK: There is special handling for the IMethodHandler to make sure that its types remain lazy

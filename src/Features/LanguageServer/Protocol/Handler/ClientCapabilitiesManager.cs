@@ -3,44 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-#nullable enable
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+/// <summary>
+/// </summary>
+/// <remarks>This is not actually stateless, but we need to be sure it doesn't re-construct each time it is retrieved 
+/// and the only state will be wiped out on Server startup</remarks>
+internal class ClientCapabilitiesManager : IClientCapabilitiesManager
 {
-    /// <summary>
-    /// </summary>
-    /// <remarks>This is not actually stateless, but we need to be sure it doesn't re-construct each time it is retrieved 
-    /// and the only state will be wiped out on Server startup</remarks>
-    internal class ClientCapabilitiesManager : IClientCapabilitiesManager
+    public ClientCapabilitiesManager()
     {
-        public ClientCapabilitiesManager()
+    }
+
+    private ClientCapabilities? _clientCapabilities;
+
+    public ClientCapabilities GetClientCapabilities()
+    {
+        if (_clientCapabilities is null)
         {
+            throw new InvalidOperationException($"Tried to get required {nameof(ClientCapabilities)} before it was set");
         }
 
-        private ClientCapabilities? _clientCapabilities;
+        return _clientCapabilities;
+    }
 
-        public ClientCapabilities GetClientCapabilities()
-        {
-            if (_clientCapabilities is null)
-            {
-                throw new InvalidOperationException($"Tried to get required {nameof(ClientCapabilities)} before it was set");
-            }
+    public void SetClientCapabilities(ClientCapabilities clientCapabilities)
+    {
+        _clientCapabilities = clientCapabilities;
+    }
 
-            return _clientCapabilities;
-        }
-
-        public void SetClientCapabilities(ClientCapabilities clientCapabilities)
-        {
-            _clientCapabilities = clientCapabilities;
-        }
-
-        public ClientCapabilities? TryGetClientCapabilities()
-        {
-            return _clientCapabilities;
-        }
+    public ClientCapabilities? TryGetClientCapabilities()
+    {
+        return _clientCapabilities;
     }
 }

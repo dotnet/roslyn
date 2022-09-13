@@ -14,37 +14,36 @@ using Nerdbank.Streams;
 using StreamJsonRpc;
 using Xunit;
 
-namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests
+namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
+
+public partial class ExampleTests
 {
-    public partial class ExampleTests
+    [Fact]
+    public async Task InitializeServer_SerializesCorrectly()
     {
-        [Fact]
-        public async Task InitializeServer_SerializesCorrectly()
-        {
-            var logger = GetLogger();
-            var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+        var logger = GetLogger();
+        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
 
-            var result = await server.InitializeServerAsync();
-            Assert.True(result.Capabilities.SemanticTokensOptions!.Range!.Value.First);
-        }
+        var result = await server.InitializeServerAsync();
+        Assert.True(result.Capabilities.SemanticTokensOptions!.Range!.Value.First);
+    }
 
-        [Fact]
-        public async Task ShutdownServer_Succeeds()
-        {
-            var logger = GetLogger();
-            var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+    [Fact]
+    public async Task ShutdownServer_Succeeds()
+    {
+        var logger = GetLogger();
+        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
 
-            _ = await server.InitializeServerAsync();
+        _ = await server.InitializeServerAsync();
 
-            await server.ShutdownServerAsync();
+        await server.ShutdownServerAsync();
 
-            var result = await server.WaitForShutdown();
-            Assert.True(0 == result, "Server failed to shut down properly");
-        }
+        var result = await server.WaitForShutdown();
+        Assert.True(0 == result, "Server failed to shut down properly");
+    }
 
-        private static ILspLogger GetLogger()
-        {
-            return NoOpLspLogger.Instance;
-        }
+    private static ILspLogger GetLogger()
+    {
+        return NoOpLspLogger.Instance;
     }
 }
