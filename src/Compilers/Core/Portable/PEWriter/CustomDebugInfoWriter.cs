@@ -72,6 +72,30 @@ namespace Microsoft.Cci
             bool emitDynamicAndTupleInfo,
             out bool emitExternNamespaces)
         {
+            emitExternNamespaces = false;
+
+            // Caller is only expecting emitExternNamespaces == true if emitStateMachineInfo == true.
+            if (emitStateMachineInfo)
+            {
+                // CONSIDER: this may not be the same "first" method as in Dev10, but
+                // it shouldn't matter since all methods will still forward to a method
+                // containing the appropriate information.
+                if (_methodBodyWithModuleInfo == null)
+                {
+                    // This module level information could go on every method (and does in
+                    // the edit-and-continue case), but - as an optimization - we'll just
+                    // put it on the first method we happen to encounter and then put a
+                    // reference to the first method's token in every other method (so they
+                    // can find the information).
+                    if (context.Module.GetAssemblyReferenceAliases(context).Any())
+                    {
+                        _methodWithModuleInfo = methodHandle;
+                        _methodBodyWithModuleInfo = methodBody;
+                        emitExternNamespaces = true;
+                    }
+                }
+            }
+
             var pooledBuilder = PooledBlobBuilder.GetInstance();
             var encoder = new CustomDebugInfoEncoder(pooledBuilder);
 
@@ -103,27 +127,6 @@ namespace Microsoft.Cci
 
             byte[] result = encoder.ToArray() ?? Array.Empty<byte>();
             pooledBuilder.Free();
-
-            emitExternNamespaces = false;
-
-            // CONSIDER: this may not be the same "first" method as in Dev10, but
-            // it shouldn't matter since all methods will still forward to a method
-            // containing the appropriate information.
-            if (_methodBodyWithModuleInfo == null && result.Length > 0)
-            {
-                // This module level information could go on every method (and does in
-                // the edit-and-continue case), but - as an optimization - we'll just
-                // put it on the first method we happen to encounter and then put a
-                // reference to the first method's token in every other method (so they
-                // can find the information).
-                if (context.Module.GetAssemblyReferenceAliases(context).Any())
-                {
-                    _methodWithModuleInfo = methodHandle;
-                    _methodBodyWithModuleInfo = methodBody;
-                    emitExternNamespaces = true;
-                }
-            }
-
             return result;
         }
 
