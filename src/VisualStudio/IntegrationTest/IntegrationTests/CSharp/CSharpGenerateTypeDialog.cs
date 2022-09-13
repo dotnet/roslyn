@@ -16,6 +16,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     public class CSharpGenerateTypeDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -27,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public void OpenAndCloseDialog()
         {
             SetUpEditor(@"class C
@@ -48,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public void CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");

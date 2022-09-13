@@ -525,8 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 }");
         }
 
-        [Fact]
-        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedVariableDeclarations()
         {
             await TestInRegularAndScriptAsync(
@@ -559,8 +558,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
         {
             await TestInRegularAndScriptAsync(
@@ -603,8 +601,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
         {
             await TestInRegularAndScriptAsync(
@@ -647,8 +644,7 @@ class C
 }");
         }
 
-        [Fact]
-        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
         {
             await TestInRegularAndScriptAsync(

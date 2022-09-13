@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         CSharpJsonDetectionAnalyzer,
         CSharpJsonDetectionCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
     public class JsonStringDetectorTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        [Fact]
         public async Task TestStrict()
         {
             await new VerifyCS.Test
@@ -43,7 +44,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        [Fact]
         public async Task TestNonStrict()
         {
             await new VerifyCS.Test
@@ -69,7 +70,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        [Fact]
         public async Task TestNonStrictRawString()
         {
             await new VerifyCS.Test
@@ -96,7 +97,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        [Fact]
         public async Task TestNotWithExistingComment()
         {
             var code = @"
@@ -114,7 +115,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        [Fact]
         public async Task TestNotOnUnlikelyJson()
         {
             var code = @"

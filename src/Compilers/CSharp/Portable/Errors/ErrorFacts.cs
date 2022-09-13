@@ -2221,6 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
+                case ErrorCode.ERR_FileLocalDuplicateNameInNS:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

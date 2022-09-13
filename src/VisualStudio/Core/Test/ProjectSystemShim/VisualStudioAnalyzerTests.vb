@@ -17,12 +17,13 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class VisualStudioAnalyzerTests
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub GetReferenceCalledMultipleTimes()
             Dim composition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService
             Dim exportProvider = composition.ExportProviderFactory.CreateExportProvider()
@@ -45,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub AnalyzerErrorsAreUpdated()
             Dim composition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService
             Dim exportProvider = composition.ExportProviderFactory.CreateExportProvider()
