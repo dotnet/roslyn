@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (newResultId != null)
                 {
                     progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, newResultId, clientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
+                        context, diagnosticSource, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
