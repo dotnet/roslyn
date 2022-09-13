@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         /// <summary>
         /// Workspace we are associated with.  When we purge items from teh cache, we will avoid any items associated
-        /// with any 
+        /// with the items in its 'CurrentSolution'.
         /// </summary>
         private readonly RemoteWorkspace? _remoteWorkspace;
 
