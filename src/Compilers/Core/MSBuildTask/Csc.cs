@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -381,6 +381,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             // it to the command-line using the syntax:
                             //      /reference:Goo=System.Xml.dll
                             commandLine.AppendSwitchAliased(switchName, trimmedAlias, reference.ItemSpec);
+                        }
+
+                        //test change
+                        if (reference.GetMetadata("TargetFrameworkIdentifier").Equals(".NETFramework", StringComparison.OrdinalIgnoreCase)
+                            && bool.Parse(reference.GetMetadata("ReferenceOutputAssembly")))
+                        {
+                            commandLine.AppendSwitchIfNotNull("/originalitemspec:", reference.GetMetadata("OriginalItemSpec"));
+                            commandLine.AppendSwitchIfNotNull("/copymarker:", reference.GetMetadata("CopyUpToDateMarker"));
                         }
                     }
                 }
