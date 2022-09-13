@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var diagnostic in diagnostics)
                 {
                     var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
+                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(solution, diagnostic, project);
                     result.Add(data);
                 }
             }

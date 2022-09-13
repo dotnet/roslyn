@@ -125,7 +125,7 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn),
+                location: new DiagnosticDataLocation("originalFile1", document.Id, null, startLine, startColumn, endLine, endColumn),
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
@@ -145,7 +145,7 @@ namespace B
             var document = additionalDocument.Project.Documents.Single();
 
             var externalAdditionalLocation = new DiagnosticDataLocation(
-                additionalDocument.Id, sourceSpan: new TextSpan(0, 1), originalFilePath: additionalDocument.Name,
+                originalFilePath: additionalDocument.Name, additionalDocument.Id, sourceSpan: new TextSpan(0, 1),
                 originalStartLine: 0, originalStartColumn: 0, originalEndLine: 0, originalEndColumn: 1);
 
             var diagnosticData = new DiagnosticData(
@@ -159,7 +159,7 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id),
+                location: new DiagnosticDataLocation(document.FilePath, document.Id),
                 additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
                 language: document.Project.Language);
 
@@ -197,7 +197,7 @@ namespace B
 
             await VerifyTextSpanAsync(content, 3, 10, 3, 11, new TextSpan(28, 1));
             var location = new DiagnosticDataLocation(
-                documentId, sourceSpan: new TextSpan(28, 1), originalFilePath: document.FilePath,
+                originalFilePath: document.FilePath, documentId, sourceSpan: new TextSpan(28, 1),
                 originalStartLine: 3, originalStartColumn: 10, originalEndLine: 3, originalEndColumn: 11);
 
             var diagnosticData = new DiagnosticData(

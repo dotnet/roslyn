@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly ProjectId? ProjectId;
 
         [DataMember(Order = 10)]
-        public readonly DiagnosticDataLocation? DataLocation;
+        public readonly DiagnosticDataLocation DataLocation;
 
         [DataMember(Order = 11)]
         public readonly ImmutableArray<DiagnosticDataLocation> AdditionalLocations;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<string> customTags,
             ImmutableDictionary<string, string?> properties,
             ProjectId? projectId,
-            DiagnosticDataLocation? location = null,
+            DiagnosticDataLocation location,
             ImmutableArray<DiagnosticDataLocation> additionalLocations = default,
             string? language = null,
             string? title = null,
@@ -318,13 +318,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
-        private static DiagnosticDataLocation? CreateLocation(TextDocument? document, Location location)
+        private static DiagnosticDataLocation CreateLocation(TextDocument? document, Location location)
         {
-            if (document == null)
-            {
-                return null;
-            }
-
             GetLocationInfo(document, location, out var sourceSpan, out var originalLineInfo, out var mappedLineInfo);
 
             var mappedStartLine = mappedLineInfo.StartLinePosition.Line;
@@ -337,13 +332,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var originalEndLine = originalLineInfo.EndLinePosition.Line;
             var originalEndColumn = originalLineInfo.EndLinePosition.Character;
 
-            return new DiagnosticDataLocation(document.Id, sourceSpan,
-                originalLineInfo.Path, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+            return new DiagnosticDataLocation(
+                originalLineInfo.Path,
+                document?.Id,
+                sourceSpan,
+                originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Diagnostic diagnostic, Project? project)
-            => Create(diagnostic, project?.Id, project?.Language, location: null, additionalLocations: default, additionalProperties: null);
+        public static DiagnosticData Create(Solution solution, Diagnostic diagnostic, Project? project)
+            => Create(diagnostic, project?.Id, project?.Language, location: new DiagnosticDataLocation(project?.FilePath ?? solution.FilePath), additionalLocations: default, additionalProperties: null);
 
         public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
         {
@@ -375,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Diagnostic diagnostic,
             ProjectId? projectId,
             string? language,
-            DiagnosticDataLocation? location,
+            DiagnosticDataLocation location,
             ImmutableArray<DiagnosticDataLocation> additionalLocations,
             ImmutableDictionary<string, string?>? additionalProperties)
         {
@@ -417,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (location.IsInSource)
                 {
-                    builder.AddIfNotNull(CreateLocation(document.Project.GetDocument(location.SourceTree), location));
+                    builder.AddIfNotNull(CreateLocation(document.Project.GetRequiredDocument(location.SourceTree), location));
                 }
                 else if (location.Kind == LocationKind.ExternalFile)
                 {
@@ -457,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-            diagnosticData = Create(diagnostic, project);
+            diagnosticData = Create(project.Solution, diagnostic, project);
             return true;
         }
 
@@ -485,10 +483,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
+        private static void GetLocationInfo(TextDocument? document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
-            var diagnosticSpanMappingService = document.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
-            if (diagnosticSpanMappingService != null)
+            var diagnosticSpanMappingService = document?.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            if (document != null && diagnosticSpanMappingService != null)
             {
                 diagnosticSpanMappingService.GetAdjustedDiagnosticSpan(document.Id, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);
                 return;

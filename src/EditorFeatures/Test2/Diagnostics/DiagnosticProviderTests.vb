@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId:=projId,
-                location:=New DiagnosticDataLocation(docId, Nothing, originalFile, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                location:=New DiagnosticDataLocation(originalFile, docId, Nothing, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
                 additionalLocations:=Nothing,
                 language:=LanguageNames.VisualBasic,
                 title:=Nothing)

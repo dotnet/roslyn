@@ -75,8 +75,8 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             projectId: document.Project.Id,
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
-                document.Id,
                 originalFilePath: i.Span.Path,
+                documentId: document.Id,
                 originalStartLine: i.Span.StartLinePosition.Line,
                 originalStartColumn: i.Span.StartLinePosition.Character,
                 originalEndLine: i.Span.EndLinePosition.Line,
