@@ -13,6 +13,7 @@ jobs:
   pool: ${{ parameters.windowsPool }}
   steps:
   - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
   - template: install-dependencies.yml
 
@@ -29,6 +30,7 @@ jobs:
     vmImage: Ubuntu 20.04
   steps:
   - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
@@ -42,6 +44,7 @@ jobs:
     vmImage: macOS-10.15
   steps:
   - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
@@ -58,6 +61,7 @@ jobs:
   condition: succeededOrFailed()
   steps:
   - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
   - template: install-dependencies.yml
     parameters:
