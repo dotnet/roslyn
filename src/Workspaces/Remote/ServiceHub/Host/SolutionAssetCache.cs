@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -18,6 +17,10 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class SolutionAssetCache
     {
+        /// <summary>
+        /// Workspace we are associated with.  When we purge items from teh cache, we will avoid any items associated
+        /// with any 
+        /// </summary>
         private readonly RemoteWorkspace? _remoteWorkspace;
 
         /// <summary>
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async ValueTask CleanAssetsWorkerAsync(CancellationToken cancellationToken)
         {
-            if (_assets.Count == 0)
+            if (_assets.IsEmpty)
             {
                 // no asset, nothing to do.
                 return;
@@ -164,21 +167,31 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Ensure that if our remote workspace has a current solution, that we don't purge any items associated
                 // with that solution.
-                using var _ = PooledHashSet<Checksum>.GetInstance(out var pinnedChecksums);
-                await AddPinnedChecksumsAsync(pinnedChecksums, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, entry) in _assets)
+                PooledHashSet<Checksum>? pinnedChecksums = null;
+                try
                 {
-                    // If not enough time has passed, keep in the cache.
-                    if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
-                        continue;
+                    foreach (var (checksum, entry) in _assets)
+                    {
+                        // If not enough time has passed, keep in the cache.
+                        if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
+                            continue;
 
-                    // If this is a checksum we want to pin, do not remove it.
-                    if (pinnedChecksums.Contains(checksum))
-                        continue;
+                        // If this is a checksum we want to pin, do not remove it.
+                        if (pinnedChecksums == null)
+                        {
+                            pinnedChecksums = PooledHashSet<Checksum>.GetInstance();
+                            await AddPinnedChecksumsAsync(pinnedChecksums, cancellationToken).ConfigureAwait(false);
+                        }
 
-                    // If it fails, we'll just leave it in the asset pool.
-                    _assets.TryRemove(checksum, out var _);
+                        if (pinnedChecksums.Contains(checksum))
+                            continue;
+
+                        _assets.TryRemove(checksum, out _);
+                    }
+                }
+                finally
+                {
+                    pinnedChecksums?.Free();
                 }
             }
         }
