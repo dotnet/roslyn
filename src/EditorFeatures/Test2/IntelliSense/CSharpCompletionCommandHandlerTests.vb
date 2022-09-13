@@ -1,4 +1,4 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -9359,8 +9359,9 @@ public unsafe class AA
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function DoNotSelectMatchPriorityDeprioritizeWithBetterCaseSensitiveWithOnlyLowercaseTyped() As Task
+        Public Async Function DoNotSelectMatchPriorityDeprioritizeAndBetterCaseSensitiveWithOnlyLowercaseTyped() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 using System;
@@ -9396,18 +9397,27 @@ public class AA
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function PreferBestMatchPriorityAndCaseSensitiveWithOnlyLowercaseTyped(showCompletionInArgumentLists As Boolean) As Task
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        Public Async Function PreferBestMatchPriorityAndCaseSensitiveWithOnlyLowercaseTyped(uppercaseItemIsPreselect As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 public class AA
 {
-    private static void CC)
+    private static void CC()
     {
         $$
     }
 }</Document>,
-                extraExportedTypes:={GetType(MultipleLowercaseItemsWithNoHigherMatchPriorityProvider)}.ToList(),
-                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                extraExportedTypes:={GetType(TestMatchPriorityCompletionProvider)}.ToList())
+
+                Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
+
+                provider.AddItems(New(displayText As String, matchPriority As Integer)() {
+                                  ("item1", MatchPriority.Default - 1),
+                                  ("item2", MatchPriority.Default + 1),
+                                  ("item3", MatchPriority.Default),
+                                  ("Item4", If(uppercaseItemIsPreselect, MatchPriority.Preselect, MatchPriority.Default + 1))})
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9417,55 +9427,39 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                ' We have multiple items have "item" prefix but with different MatchPriority, 
-                ' need to ensure we select the one with best casing AND MatchPriority.
-                Await state.AssertSelectedCompletionItem("item2")
+                If (uppercaseItemIsPreselect) Then
+                    ' if only lowercase letters are types, and we have a preselect item matches case-insensitively, we prefer it
+                    Await state.AssertSelectedCompletionItem("Item4")
+                Else
+                    ' otherwise, if the item matches case-insensitively has higer MatchPriority but not Preselect, we prefer case-sensitive match with highest priority
+                    Await state.AssertSelectedCompletionItem("item2")
+                End If
             End Using
         End Function
-
-        <ExportCompletionProvider(NameOf(MultipleLowercaseItemsWithNoHigherMatchPriorityProvider), LanguageNames.CSharp)>
-        <[Shared]>
-        <PartNotDiscoverable>
-        Private Class MultipleLowercaseItemsWithNoHigherMatchPriorityProvider
-            Inherits CompletionProvider
-
-            Private ReadOnly highPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default + 1)
-            Private ReadOnly lowPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1)
-
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            ' All lowercase items have lower MatchPriority than uppercase item, except one with equal value.
-            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="item1", rules:=lowPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="item2", rules:=highPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="item3", rules:=CompletionItemRules.Default))
-                context.AddItem(CompletionItem.Create(displayText:="Item4", rules:=highPriorityRule))
-                Return Task.CompletedTask
-            End Function
-
-            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
-                Return True
-            End Function
-        End Class
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function PreferBestCaseSensitiveWithUppercaseTyped(showCompletionInArgumentLists As Boolean) As Task
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        Public Async Function PreferBestCaseSensitiveWithUppercaseTyped(uppercaseItemIsDeprioritize As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 public class AA
 {
-    private static void CC)
+    private static void CC()
     {
         $$
     }
 }</Document>,
-                extraExportedTypes:={GetType(UppercaseItemWithLowerPriorityProvider)}.ToList(),
-                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                extraExportedTypes:={GetType(TestMatchPriorityCompletionProvider)}.ToList())
+
+                Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
+
+                provider.AddItems(New(displayText As String, matchPriority As Integer)() {
+                                  ("item1", MatchPriority.Preselect),
+                                  ("item2", MatchPriority.Default + 1),
+                                  ("Item3", If(uppercaseItemIsDeprioritize, MatchPriority.Deprioritize, MatchPriority.Default - 1))})
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9474,13 +9468,47 @@ public class AA
                 state.SendTypeChars("Item")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
-                Await state.AssertSelectedCompletionItem("Item3")   ' ensure we prefer casing over match priority if uppercase is typed
+
+                ' regardless of priority, if any uppercase letter is typed, ensure we prefer casing over match priority (including Preselect items) if uppercase is typed
+                ' even if item with best matched casing has MatchPriority.Deprioritize
+                Await state.AssertSelectedCompletionItem("Item3")
             End Using
         End Function
 
+        <PartNotDiscoverable>
+        <[Shared], ExportCompletionProvider(NameOf(TestMatchPriorityCompletionProvider), LanguageNames.CSharp)>
+        Private Class TestMatchPriorityCompletionProvider
+            Inherits CompletionProvider
+
+            Public Property Items As ImmutableArray(Of CompletionItem)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Sub AddItems(items As (displayText As String, matchPriority As Integer)())
+                Dim builder = ArrayBuilder(Of CompletionItem).GetInstance(items.Length)
+                For Each item In items
+                    builder.Add(CompletionItem.Create(displayText:=item.displayText, rules:=CompletionItemRules.Default.WithMatchPriority(item.matchPriority)))
+                Next
+                Me.Items = builder.ToImmutableAndFree()
+            End Sub
+
+            ' All lowercase items have lower MatchPriority than uppercase item, except one with equal value.
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItems(Items)
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
+                Return True
+            End Function
+        End Class
+
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(1454143, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1454143")>
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
         Public Async Function DoNotSelectItemWithHigherMatchPriorityButWorseCaseSensitivity() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -9501,7 +9529,7 @@ public class AA
                 Await state.AssertCompletionItemsContain("DR", "")
 
             End Using
-            End Function
+        End Function
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
