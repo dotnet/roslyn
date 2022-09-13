@@ -17,8 +17,9 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
     Public Class PullMemberUpViewModelTest
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_VerifySameBaseTypeAppearMultipleTimes() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -53,7 +54,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Assert.True(viewModel.OkButtonEnabled)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_NoVBDestinationAppearInCSharpProject() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -91,7 +92,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Assert.Single(baseTypeTree)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_SelectInterfaceDisableMakeAbstractCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -136,7 +137,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_SelectInterfaceDisableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -179,7 +180,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestPullMemberUp_SelectClassEnableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface

@@ -15917,7 +15917,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
+                // (5,38): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
                 //         public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("i", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(out int)").WithLocation(5, 38));
         }
@@ -15960,7 +15960,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
+                // (4,24): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
                 //     static ref int F1([UnscopedRef] out int i1)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("b", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(bool)").WithLocation(4, 24),
                 // (12,20): error CS8166: Cannot return a parameter by reference 'i2' because it is not a ref parameter
@@ -16105,6 +16105,33 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
+        public void CallUnscopedRefMethodFromScopedOne()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+
+ref struct A
+{
+    void Test()
+    {
+        this.GetSpan();
+    }
+
+    [UnscopedRef]
+    Span<byte> GetSpan() => default;
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         this.GetSpan();
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
+                );
         }
 
         [Theory]
@@ -16634,6 +16661,158 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
 
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
             Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_01()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    var a = ([UnscopedRef] ref RefStruct s) => { };
+    var b = ([UnscopedRef] out RegularStruct s) => { };
+    var c = ([UnscopedRef] out RefStruct s) => { };
+
+    D1 x = ([UnscopedRef] ref RefStruct s) => { };
+    D2 y = ([UnscopedRef] out RegularStruct s) => { };
+    D3 z = ([UnscopedRef] out RefStruct s) => { };
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    void localA([UnscopedRef] ref RefStruct s) { };
+    void localB([UnscopedRef] out RegularStruct s) { };
+    void localC([UnscopedRef] out RefStruct s) { };
+
+    var a = localA;
+    var b = localB;
+    var c = localC;
+
+    D1 x = localA;
+    D2 y = localB;
+    D3 z = localC;
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_03()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C1
+{
+  public void M()
+  {
+    var a = A;
+    var b = B;
+    var c = C;
+
+    D1 x = A;
+    D2 y = B;
+    D3 z = C;
+  }
+
+  void A([UnscopedRef] ref RefStruct s) { }
+  void B([UnscopedRef] out RegularStruct s) { }
+  void C([UnscopedRef] out RefStruct s) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
         }
     }
 }

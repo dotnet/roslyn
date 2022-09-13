@@ -31,8 +31,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(false, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
-        [WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+        [IdeFact, WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
         public async Task CreateLegacyProjectWithFileScopedNamespaces()
         {
             await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);

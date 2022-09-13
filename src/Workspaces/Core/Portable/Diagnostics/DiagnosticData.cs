@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -264,29 +261,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var lines = text.Lines;
             if (lines.Count == 0)
-            {
                 return default;
-            }
 
-            var dataLocationStartLine = (useMapped ? dataLocation?.MappedStartLine : dataLocation?.OriginalStartLine) ?? 0;
-            var dataLocationStartColumn = (useMapped ? dataLocation?.MappedStartColumn : dataLocation?.OriginalStartColumn) ?? 0;
-            var dataLocationEndLine = (useMapped ? dataLocation?.MappedEndLine : dataLocation?.OriginalEndLine) ?? 0;
-            var dataLocationEndColumn = (useMapped ? dataLocation?.MappedEndColumn : dataLocation?.OriginalEndColumn) ?? 0;
+            var startLine = (useMapped ? dataLocation?.MappedStartLine : dataLocation?.OriginalStartLine) ?? 0;
+            var endLine = (useMapped ? dataLocation?.MappedEndLine : dataLocation?.OriginalEndLine) ?? 0;
 
-            if (dataLocationStartLine >= lines.Count)
+            // Make sure the starting columns are never negative.
+            var startColumn = Math.Max((useMapped ? dataLocation?.MappedStartColumn : dataLocation?.OriginalStartColumn) ?? 0, 0);
+            var endColumn = Math.Max((useMapped ? dataLocation?.MappedEndColumn : dataLocation?.OriginalEndColumn) ?? 0, 0);
+
+            if (startLine < 0)
             {
-                var lastLine = lines.GetLinePosition(text.Length);
-                return new LinePositionSpan(lastLine, lastLine);
+                // If the start line is negative (e.g. before the start of the actual document) then move the start to the 0,0 position.
+                startLine = 0;
+                startColumn = 0;
+            }
+            else if (startLine >= lines.Count)
+            {
+                // if the start line is after the end of the document, move the start to the last location in the document.
+                startLine = lines.Count - 1;
+                startColumn = lines[startLine].SpanIncludingLineBreak.Length;
             }
 
-            AdjustBoundaries(dataLocationStartLine, dataLocationStartColumn, dataLocationEndLine, dataLocationEndColumn, lines,
-                out var startLine, out var startColumn, out var endLine, out var endColumn);
+            if (endLine < 0)
+            {
+                // if the end is before the start of the document, then move the end to wherever the start position was determined to be.
+                endLine = startLine;
+                endColumn = startColumn;
+            }
+            else if (endLine >= lines.Count)
+            {
+                // if the end line is after the end of the document, move the end to the last location in the document.
+                endLine = lines.Count - 1;
+                endColumn = lines[endLine].SpanIncludingLineBreak.Length;
+            }
 
-            var startLinePosition = new LinePosition(startLine, startColumn);
-            var endLinePosition = new LinePosition(endLine, endColumn);
-            SwapIfNeeded(ref startLinePosition, ref endLinePosition);
+            // now, ensure that the column of the start/end positions is within the length of its line.
+            startColumn = Math.Min(startColumn, lines[startLine].SpanIncludingLineBreak.Length);
+            endColumn = Math.Min(endColumn, lines[endLine].SpanIncludingLineBreak.Length);
 
-            return new LinePositionSpan(startLinePosition, endLinePosition);
+            var start = new LinePosition(startLine, startColumn);
+            var end = new LinePosition(endLine, endColumn);
+
+            // swap if necessary
+            if (end < start)
+                (start, end) = (end, start);
+
+            return new LinePositionSpan(start, end);
         }
 
         public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
@@ -295,45 +316,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var span = text.Lines.GetTextSpan(linePositionSpan);
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
-        }
-
-        private static void AdjustBoundaries(int dataLocationStartLine, int dataLocationStartColumn, int dataLocationEndLine, int dataLocationEndColumn,
-            TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
-        {
-            startLine = dataLocationStartLine;
-            var originalStartColumn = dataLocationStartColumn;
-
-            startColumn = Math.Max(originalStartColumn, 0);
-            if (startLine < 0)
-            {
-                startLine = 0;
-                startColumn = 0;
-            }
-
-            endLine = dataLocationEndLine;
-            var originalEndColumn = dataLocationEndColumn;
-
-            endColumn = Math.Max(originalEndColumn, 0);
-            if (endLine < 0)
-            {
-                endLine = startLine;
-                endColumn = startColumn;
-            }
-            else if (endLine >= lines.Count)
-            {
-                endLine = lines.Count - 1;
-                endColumn = lines[endLine].EndIncludingLineBreak;
-            }
-        }
-
-        private static void SwapIfNeeded(ref LinePosition startLinePosition, ref LinePosition endLinePosition)
-        {
-            if (endLinePosition < startLinePosition)
-            {
-                var temp = startLinePosition;
-                startLinePosition = endLinePosition;
-                endLinePosition = temp;
-            }
         }
 
         private static DiagnosticDataLocation? CreateLocation(TextDocument? document, Location location)

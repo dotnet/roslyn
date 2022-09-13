@@ -126,8 +126,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
             Dim markup = <Text><![CDATA[

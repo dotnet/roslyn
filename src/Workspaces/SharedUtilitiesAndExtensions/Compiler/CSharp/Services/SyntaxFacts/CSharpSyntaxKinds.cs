@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;
         public int FieldDeclaration => (int)SyntaxKind.FieldDeclaration;
+        public int PropertyDeclaration => (int)SyntaxKind.PropertyDeclaration;
         public int ParameterList => (int)SyntaxKind.ParameterList;
         public int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
         public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;

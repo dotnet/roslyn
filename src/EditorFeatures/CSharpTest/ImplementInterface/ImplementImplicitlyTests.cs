@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
     public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
     {
         private const int SingleMember = 0;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestSingleMember()
         {
             await TestInRegularAndScriptAsync(
@@ -58,7 +59,7 @@ class C : IGoo, IBar
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestSameInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -88,7 +89,7 @@ class C : IGoo, IBar
 }", index: SameInterface);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestAllInterfaces()
         {
             await TestInRegularAndScriptAsync(
@@ -118,7 +119,7 @@ class C : IGoo, IBar
 }", index: AllInterfaces);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -138,7 +139,7 @@ class C : IGoo
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestEvent()
         {
             await TestInRegularAndScriptAsync(
@@ -158,7 +159,7 @@ class C : IGoo
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestNotOnImplicitMember()
         {
             await TestMissingAsync(
@@ -171,7 +172,7 @@ class C : IGoo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestNotOnUnboundExplicitImpl()
         {
             await TestMissingAsync(
@@ -182,7 +183,7 @@ class C : IGoo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact]
         public async Task TestCollision()
         {
             // Currently we don't do anything special here.  But we just test here to make sure we
@@ -208,8 +209,7 @@ class C : IGoo
 }", index: SingleMember);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        [WorkItem(48027, "https://github.com/dotnet/roslyn/issues/48027")]
+        [Fact, WorkItem(48027, "https://github.com/dotnet/roslyn/issues/48027")]
         public async Task TestSingleMemberAndContainingTypeHasNoInterface()
         {
             await TestMissingAsync(
