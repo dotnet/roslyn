@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// dropped.</item>
         /// <item>PurgeAfter=1m effectively states that an item will be dumped from the cache if not used in the last
         /// minute.  This seems reasonable for keeping around all the parts of the current solutions in use, while
-        /// allowing values from teh past, or values removed from the solution to not persist too long.</item>
+        /// allowing values from the past, or values removed from the solution to not persist too long.</item>
         /// <item>GcAfter=1m means that we'll force some GCs to happen after that amount of time of *non-activity*.  In
         /// other words, as long as OOP is being touched for operations, we will avoid doing the GCs.
         /// </item>
