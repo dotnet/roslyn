@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
 
         private const string ExternalProjectName = "ExternalDocuments";
@@ -78,29 +79,26 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspace(
             ExportProvider exportProvider,
+            IGlobalOptionService globalOptions,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
-            IGlobalOptionService globalOptions,
+            IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            GlobalOptions = globalOptions;
-
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
             _threadingContext = threadingContext;
-
+            _globalOptions = globalOptions;
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
 
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
-
-        private IGlobalOptionService GlobalOptions { get; }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
@@ -520,7 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private void StartSolutionCrawler()
         {
-            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
             }
