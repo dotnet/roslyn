@@ -561,9 +561,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     _eventMap.Add(typeRowId);
                 }
 
-                var eventChange = _changes.GetChange(eventDef);
-                eventChange = _changes.FixSymbolChangeForReAddedMembers(eventDef, eventChange, DefinitionExistsInAnyPreviousGeneration);
-
+                var eventChange = _changes.GetChangeForPossibleReAddedMember(eventDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_eventDefs, eventDef, eventChange);
             }
 
@@ -584,17 +582,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var fieldDef in typeDef.GetFields(this.Context))
             {
-                var fieldChange = _changes.GetChange(fieldDef);
-                fieldChange = _changes.FixSymbolChangeForReAddedMembers(fieldDef, fieldChange, DefinitionExistsInAnyPreviousGeneration);
-
+                var fieldChange = _changes.GetChangeForPossibleReAddedMember(fieldDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_fieldDefs, fieldDef, fieldChange);
             }
 
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
-                var methodChange = _changes.GetChange(methodDef);
-                methodChange = _changes.FixSymbolChangeForReAddedMembers(methodDef, methodChange, DefinitionExistsInAnyPreviousGeneration);
-
+                var methodChange = _changes.GetChangeForPossibleReAddedMember(methodDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_methodDefs, methodDef, methodChange);
                 CreateIndicesForMethod(methodDef, methodChange);
             }
@@ -617,9 +611,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     _propertyMap.Add(typeRowId);
                 }
 
-                var propertyChange = _changes.GetChange(propertyDef);
-                propertyChange = _changes.FixSymbolChangeForReAddedMembers(propertyDef, propertyChange, DefinitionExistsInAnyPreviousGeneration);
-
+                var propertyChange = _changes.GetChangeForPossibleReAddedMember(propertyDef, DefinitionExistsInAnyPreviousGeneration);
                 this.AddDefIfNecessary(_propertyDefs, propertyDef, propertyChange);
             }
 

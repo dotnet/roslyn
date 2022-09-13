@@ -384,36 +384,43 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public SymbolChange FixSymbolChangeForReAddedMembers(IDefinition item, SymbolChange change, Func<IDefinition, bool> definitionExistsInAnyPreviousGeneration)
+        public SymbolChange GetChangeForPossibleReAddedMember(IDefinition item, Func<IDefinition, bool> definitionExistsInAnyPreviousGeneration)
         {
-            // If this is a field that is being added, but it's part of a property or event that has been deleted
-            // and is now being re-added, we don't want to add the field twice, so we ignore the change.
-            // Unlike properties and methods, since we can't replace a field with a MissingMethodException
-            // we don't need to update it at all.
-            // This also makes sure to check that the field itself is being re-added, because it could be
-            // a property that is being re-added as an auto-prop, when it wasn't one before, for example.
-            if (item is IFieldDefinition fieldDefinition &&
-                GetContainingDefinitionForBackingField(fieldDefinition) is IDefinition containingDef &&
-                GetChange(containingDef) == SymbolChange.Added &&
-                definitionExistsInAnyPreviousGeneration(item) &&
-                FixSymbolChangeForReAddedMembers(containingDef, SymbolChange.Added, definitionExistsInAnyPreviousGeneration) == SymbolChange.Updated)
-            {
-                return SymbolChange.None;
-            }
+            var change = GetChange(item);
 
-            // Otherwise if the item was added, and not replaced, but we can find an existing row id, then treat it
-            // as an update. This supercedes the other checks for edit types etc. because a method could be
-            // deleted in a generation, and then "added" in a subsequent one, but that is an update
-            // even if the previous generation doesn't know about it.
-            if (change == SymbolChange.Added &&
-                item is ITypeDefinitionMember member &&
-                !IsReplaced(member.ContainingTypeDefinition, checkEnclosingTypes: true) &&
-                definitionExistsInAnyPreviousGeneration(item))
-            {
-                return SymbolChange.Updated;
-            }
+            return fixChangeIfMemberIsReAdded(item, change, definitionExistsInAnyPreviousGeneration);
 
-            return change;
+            SymbolChange fixChangeIfMemberIsReAdded(IDefinition item, SymbolChange change, Func<IDefinition, bool> definitionExistsInAnyPreviousGeneration)
+            {
+                // If this is a field that is being added, but it's part of a property or event that has been deleted
+                // and is now being re-added, we don't want to add the field twice, so we ignore the change.
+                // Unlike properties and methods, since we can't replace a field with a MissingMethodException
+                // we don't need to update it at all.
+                // This also makes sure to check that the field itself is being re-added, because it could be
+                // a property that is being re-added as an auto-prop, when it wasn't one before, for example.
+                if (item is IFieldDefinition fieldDefinition &&
+                    GetContainingDefinitionForBackingField(fieldDefinition) is IDefinition containingDef &&
+                    GetChange(containingDef) == SymbolChange.Added &&
+                    definitionExistsInAnyPreviousGeneration(item) &&
+                    fixChangeIfMemberIsReAdded(containingDef, SymbolChange.Added, definitionExistsInAnyPreviousGeneration) == SymbolChange.Updated)
+                {
+                    return SymbolChange.None;
+                }
+
+                // Otherwise if the item was added, and not replaced, but we can find an existing row id, then treat it
+                // as an update. This supercedes the other checks for edit types etc. because a method could be
+                // deleted in a generation, and then "added" in a subsequent one, but that is an update
+                // even if the previous generation doesn't know about it.
+                if (change == SymbolChange.Added &&
+                    item is ITypeDefinitionMember member &&
+                    !IsReplaced(member.ContainingTypeDefinition, checkEnclosingTypes: true) &&
+                    definitionExistsInAnyPreviousGeneration(item))
+                {
+                    return SymbolChange.Updated;
+                }
+
+                return change;
+            }
         }
 
         protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
