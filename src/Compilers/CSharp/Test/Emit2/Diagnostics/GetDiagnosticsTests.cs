@@ -800,13 +800,19 @@ internal class TestAttribute : Attribute
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "field").WithLocation(5, 6));
             var compilationDiagnostic = compilationDiagnostics.Single();
 
-            // Verify equality for the compiler diagnostic fetched from Compilation and diagnostic reported from 'CSharpCompilerDiagnosticAnalyzer'.
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
             var analyzerDiagnostic = analyzerDiagnostics.Single();
-            Assert.Equal(analyzerDiagnostic, compilationDiagnostic);
+
+            // Verify equality for the compiler diagnostic reported from 'CSharpCompilerDiagnosticAnalyzer' with itself.
             Assert.Equal(analyzerDiagnostic, analyzerDiagnostic);
+
+            // Verify that diagnostic equality check fails when compared with the same compiler diagnostic
+            // fetched from 'compilation.GetDiagnostics()'. Hosts that want to compare compiler diagnostics from
+            // different sources should use custom equality comparer.
+            Assert.NotEqual(analyzerDiagnostic, compilationDiagnostic);
+            Assert.NotEqual(compilationDiagnostic, analyzerDiagnostic);
         }
     }
 }

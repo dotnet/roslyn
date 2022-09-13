@@ -111,10 +111,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(Diagnostic? obj)
                 {
-                    if (obj is CompilerDiagnostic other)
-                        return _original.Equals(other._original);
-
-                    return _original.Equals(obj);
+                    // We only support equality check with another instance of "CompilerDiagnostic".
+                    // Hosts that want to compare compiler diagnostics from different sources,
+                    // such as with diagnostic reported from comilation.GetDiagnostics(), should
+                    // use a custom equality comparer.
+                    return obj is CompilerDiagnostic other &&
+                        _original.Equals(other._original);
                 }
 
                 internal override Diagnostic WithLocation(Location location)
