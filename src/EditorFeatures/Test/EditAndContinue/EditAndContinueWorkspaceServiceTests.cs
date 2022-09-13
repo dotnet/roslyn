@@ -1982,8 +1982,7 @@ class C { int Y => 2; }
             Assert.Equal(1, generatorExecutionCount);
         }
 
-        [Fact]
-        [WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
+        [Fact, WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
         [WorkItem(1371694, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
@@ -2164,8 +2163,7 @@ class C { int Y => 2; }
             }, _telemetryLog);
         }
 
-        [Fact]
-        [WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
+        [Fact, WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
         public async Task Capabilities_NoTypesEmitted()
         {
             var sourceV1 = @"
@@ -3929,8 +3927,7 @@ class C
             EndDebuggingSession(debuggingSession);
         }
 
-        [Fact]
-        [WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
+        [Fact, WorkItem(54347, "https://github.com/dotnet/roslyn/issues/54347")]
         public async Task ActiveStatements_EncSessionFollowedByHotReload()
         {
             var markedSource1 = @"
@@ -4449,7 +4446,7 @@ class C
 
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
-            var source3 = "class C { int M() { System.Console.WriteLine(2); } }";
+            var source3 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
             var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
 
             var dir = Temp.CreateDirectory();
@@ -4497,7 +4494,7 @@ class C
 
             result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
             AssertEx.Equal(
-                new[] { "ENC0009: " + string.Format(FeaturesResources.Updating_the_type_of_0_requires_restarting_the_application, FeaturesResources.method) },
+                new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             Assert.Empty(result.updates);
@@ -4517,7 +4514,7 @@ class C
         {
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
-            var source3 = "class C { int M() { System.Console.WriteLine(2); } }";
+            var source3 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
             var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
 
             var dir = Temp.CreateDirectory();
@@ -4563,7 +4560,7 @@ class C
             // Rude edit
             result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
             AssertEx.Equal(
-                new[] { "ENC0009: " + string.Format(FeaturesResources.Updating_the_type_of_0_requires_restarting_the_application, FeaturesResources.method) },
+                new[] { "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.type_parameter) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             Assert.Empty(result.updates);

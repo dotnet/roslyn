@@ -288,8 +288,7 @@ class C
             });
         }
 
-        [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
-        [Fact]
+        [Fact, WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
         public void LongTupleLocalElement_NoNames()
         {
             var source =

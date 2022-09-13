@@ -14,13 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class IndexerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(UnnamedSymbolCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
@@ -40,8 +40,7 @@ public class Program
 ", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedAfterDotForString()
         {
             await VerifyItemExistsAsync(@"
@@ -55,8 +54,7 @@ public class Program
 ", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedOnStaticAccess()
         {
             await VerifyNoItemsExistAsync(@"
@@ -75,8 +73,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedInNameOfContext()
         {
             await VerifyNoItemsExistAsync(@"
@@ -96,8 +93,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
         {
             await VerifyCustomCommitProviderAsync(@"
@@ -131,8 +127,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerWithTwoParametersSuggestionCommitsOpenAndClosingBraces()
         {
             await VerifyCustomCommitProviderAsync(@"
@@ -166,8 +161,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$",
                     "c[$$]")]
         [InlineData("c. $$",
@@ -225,8 +219,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("/* Leading trivia */c.$$",
                     "/* Leading trivia */c[$$]")]
         [InlineData("c. $$ /* Trailing trivia */",
@@ -266,8 +259,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
         {
             await VerifyItemExistsAsync(@"
@@ -300,8 +292,7 @@ public class Program
 Returns the index i");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerOfBaseTypeIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
@@ -324,8 +315,7 @@ public class Program
 ", "this", displayTextSuffix: "[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerOfBaseTypeIsNotSuggestedIfNotAccessible()
         {
             await VerifyNoItemsExistAsync(@"
@@ -348,8 +338,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsSuggestedOnString()
         {
             await VerifyItemExistsAsync(@"
@@ -364,8 +353,7 @@ public class Program
 ", "this", displayTextSuffix: "[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever()
         {
             var markup = @"
@@ -404,8 +392,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateAdvanced()
         {
             var markup = @"
@@ -456,8 +443,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever_InheritedMember()
         {
             var markup = @"
@@ -500,8 +486,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerNullForgivingOperatorHandling()
         {
             await VerifyCustomCommitProviderAsync(@"

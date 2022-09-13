@@ -177,8 +177,7 @@ file class C
             Assert.Equal(method, resolved);
         }
 
-        [Fact]
-        [WorkItem(1178861, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
+        [Fact, WorkItem(1178861, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
         [WorkItem(1192188, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192188")]
         [WorkItem(1192486, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192486")]
         public async Task ResolveBodySymbolsInMultiProjectReferencesToOriginalProjectAsync()

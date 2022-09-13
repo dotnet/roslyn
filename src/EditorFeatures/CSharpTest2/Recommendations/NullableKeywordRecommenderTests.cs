@@ -93,18 +93,15 @@ $$");
         public async Task TestNotAfterPragmaWarning()
             => await VerifyAbsenceAsync(@"#pragma warning $$");
 
-        [Fact]
-        [WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
         public async Task TestNotAfterPragmaWarningDisable()
             => await VerifyAbsenceAsync(@"#pragma warning disable $$");
 
-        [Fact]
-        [WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
         public async Task TestNotAfterPragmaWarningEnable()
             => await VerifyAbsenceAsync(@"#pragma warning enable $$");
 
-        [Fact]
-        [WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
         public async Task TestNotAfterPragmaWarningRestore()
             => await VerifyAbsenceAsync(@"#pragma warning restore $$");
 

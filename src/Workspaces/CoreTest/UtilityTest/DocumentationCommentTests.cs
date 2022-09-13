@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("Summary 1", comment.SummaryText);
         }
 
-        [WorkItem(522741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
         [Fact(Skip = "Bug 522741")]
+        [WorkItem(522741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
         public void ParseTagWithMultiLineComments()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<summary>

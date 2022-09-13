@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public class ConvertToRegularStringToRawStringString_FixAllTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ConvertRegularStringToRawStringCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInDocument_SingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -104,7 +105,7 @@ select x2"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInDocument_MultiLine()
         {
             await TestInRegularAndScriptAsync(
@@ -208,7 +209,7 @@ select x2"";
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInDocument_MultiLineWithoutLeadingWhitespace()
         {
             await TestInRegularAndScriptAsync(
@@ -298,7 +299,7 @@ bar"";
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInProject()
         {
             await TestInRegularAndScriptAsync(
@@ -377,7 +378,7 @@ class Program3
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInSolution()
         {
             await TestInRegularAndScriptAsync(
@@ -456,7 +457,7 @@ class Program3
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInContainingMember()
         {
             await TestInRegularAndScriptAsync(
@@ -508,7 +509,7 @@ class C2
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInContainingType()
         {
             await TestInRegularAndScriptAsync(
@@ -578,7 +579,7 @@ partial class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInContainingType_AcrossFiles()
         {
             await TestInRegularAndScriptAsync(

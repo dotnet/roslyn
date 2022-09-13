@@ -3,23 +3,21 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class OnErrorKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorResumeNextInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "On Error Resume Next")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorGoToInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "On Error GoTo")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorResumeNextNotInLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() 
@@ -29,7 +27,6 @@ End Sub
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorGoToNotInLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() 
