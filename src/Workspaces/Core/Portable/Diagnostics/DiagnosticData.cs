@@ -136,7 +136,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// In those cases use <see cref="GetTextSpan(DiagnosticDataLocation, SourceText)"/> method instead to calculate span from original line/column.
         /// </summary>
         public TextSpan GetTextSpan()
-            => DataLocation.SourceSpan.Value;
+        {
+            RoslynDebug.AssertNotNull(DataLocation.SourceSpan);
+            return DataLocation.SourceSpan.Value;
+        }
 
         public override bool Equals(object? obj)
             => obj is DiagnosticData data && Equals(data);
