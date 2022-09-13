@@ -70,10 +70,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var checksums = await solution.State.GetStateChecksumsAsync(CancellationToken.None);
 
             // Ensure the lazy has computed its value.
-            var lazy = new Lazy<RemoteWorkspace>(() => workspace);
-            _ = lazy.Value;
             var storage = new SolutionAssetCache(
-                lazy, cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
+                workspace, cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
 
             var data = new object();
 

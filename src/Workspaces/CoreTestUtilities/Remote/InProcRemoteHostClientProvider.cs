@@ -35,19 +35,20 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
         {
-            public WorkspaceManager(Func<Lazy<RemoteWorkspace>, SolutionAssetCache> createAssetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
-                : base(createAssetStorage, new Lazy<RemoteWorkspace>(
-                    () =>
-                    {
-                        var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices();
-
-                        // We want to allow references to source generators to be shared between the "in proc" and "remote" workspaces and
-                        // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
-                        ((IMefHostExportProvider)hostServices).GetExportedValue<TestSerializerService.Factory>().SharedTestGeneratorReferences = sharedTestGeneratorReferences;
-                        return new RemoteWorkspace(hostServices);
-                    }))
+            public WorkspaceManager(Func<RemoteWorkspace, SolutionAssetCache> createAssetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
+                : base(createAssetStorage, CreateRemoteWorkspace(sharedTestGeneratorReferences, additionalRemoteParts))
             {
             }
+        }
+
+        private static RemoteWorkspace CreateRemoteWorkspace(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
+        {
+            var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices();
+
+            // We want to allow references to source generators to be shared between the "in proc" and "remote" workspaces and
+            // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
+            ((IMefHostExportProvider)hostServices).GetExportedValue<TestSerializerService.Factory>().SharedTestGeneratorReferences = sharedTestGeneratorReferences;
+            return new RemoteWorkspace(hostServices);
         }
 
         private readonly SolutionServices _services;
@@ -82,10 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             if (_lazyManager.IsValueCreated)
             {
                 var manager = _lazyManager.Value;
-                if (manager.LazyWorkspace.IsValueCreated)
-                {
-                    manager.LazyWorkspace.Value.Dispose();
-                }
+                manager.GetWorkspace().Dispose();
             }
         }
 

@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteWorkspaceManager
     {
+        internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
+            MefHostServices.DefaultAssemblies
+                .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
+                .Add(typeof(BrokeredServiceBase).Assembly)
+                .Add(typeof(RemoteWorkspacesResources).Assembly);
+
         /// <summary>
         /// Default workspace manager used by the product. Tests may specify a custom <see
         /// cref="RemoteWorkspaceManager"/> in order to override workspace services.
@@ -42,27 +48,22 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </list>
         /// </remarks>
         internal static readonly RemoteWorkspaceManager Default = new(
-            lazyWorkspace => new SolutionAssetCache(lazyWorkspace, cleanupInterval: TimeSpan.FromSeconds(20), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(20), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
 
-        internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
-            MefHostServices.DefaultAssemblies
-                .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
-                .Add(typeof(BrokeredServiceBase).Assembly)
-                .Add(typeof(RemoteWorkspacesResources).Assembly);
-
+        private readonly RemoteWorkspace _workspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
 
-        public RemoteWorkspaceManager(Func<Lazy<RemoteWorkspace>, SolutionAssetCache> createAssetCache)
-            : this(createAssetCache, new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace))
+        public RemoteWorkspaceManager(Func<RemoteWorkspace, SolutionAssetCache> createAssetCache)
+            : this(createAssetCache, CreatePrimaryWorkspace())
         {
         }
 
         public RemoteWorkspaceManager(
-            Func<Lazy<RemoteWorkspace>, SolutionAssetCache> createAssetCache,
-            Lazy<RemoteWorkspace> lazyWorkspace)
+            Func<RemoteWorkspace, SolutionAssetCache> createAssetCache,
+            RemoteWorkspace workspace)
         {
-            LazyWorkspace = lazyWorkspace;
-            SolutionAssetCache = createAssetCache(LazyWorkspace);
+            _workspace = workspace;
+            SolutionAssetCache = createAssetCache(workspace);
         }
 
         private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
@@ -89,10 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
         }
 
-        public Lazy<RemoteWorkspace> LazyWorkspace { get; }
-
-        public RemoteWorkspace GetWorkspace()
-            => LazyWorkspace.Value;
+        public RemoteWorkspace GetWorkspace() => _workspace;
 
         /// <summary>
         /// Not ideal that we exposing the workspace solution, while not ensuring it stays alive for other calls using

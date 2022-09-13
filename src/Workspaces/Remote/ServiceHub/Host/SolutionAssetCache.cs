@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class SolutionAssetCache
     {
-        private readonly Lazy<RemoteWorkspace>? _remoteWorkspace;
+        private readonly RemoteWorkspace? _remoteWorkspace;
 
         /// <summary>
         /// Time interval we check storage for cleanup
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <param name="cleanupInterval">time interval to clean up</param>
         /// <param name="purgeAfter">time unused data can sit in the cache</param>
         /// <param name="gcAfter">time we wait before it call GC since last activity</param>
-        public SolutionAssetCache(Lazy<RemoteWorkspace>? remoteWorkspace, TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
+        public SolutionAssetCache(RemoteWorkspace? remoteWorkspace, TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
         {
             _remoteWorkspace = remoteWorkspace;
             _cleanupIntervalTimeSpan = cleanupInterval;
@@ -185,11 +185,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async ValueTask AddPinnedChecksumsAsync(HashSet<Checksum> pinnedChecksums, CancellationToken cancellationToken)
         {
-            if (_remoteWorkspace is not { IsValueCreated: true })
+            if (_remoteWorkspace is null)
                 return;
 
-            var remoteWorkspace = _remoteWorkspace.Value;
-            var checksums = await remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var checksums = await _remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             Recurse(checksums);
 
