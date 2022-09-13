@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </list>
         /// </remarks>
         internal static readonly RemoteWorkspaceManager Default = new(
-            new SolutionAssetCache(cleanupInterval: TimeSpan.FromSeconds(20), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+            lazyWorkspace => new SolutionAssetCache(lazyWorkspace, cleanupInterval: TimeSpan.FromSeconds(20), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
 
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
@@ -50,13 +50,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 .Add(typeof(BrokeredServiceBase).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
-        private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
 
-        public RemoteWorkspaceManager(SolutionAssetCache assetCache)
+        public RemoteWorkspaceManager(Func<Lazy<RemoteWorkspace>, SolutionAssetCache> createAssetCache)
+            : this(createAssetCache, new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace))
         {
-            _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
-            SolutionAssetCache = assetCache;
+        }
+
+        public RemoteWorkspaceManager(
+            Func<Lazy<RemoteWorkspace>, SolutionAssetCache> createAssetCache,
+            Lazy<RemoteWorkspace> lazyWorkspace)
+        {
+            LazyWorkspace = lazyWorkspace;
+            SolutionAssetCache = createAssetCache(LazyWorkspace);
         }
 
         private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
@@ -83,8 +89,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
         }
 
-        public virtual RemoteWorkspace GetWorkspace()
-            => _lazyPrimaryWorkspace.Value;
+        public Lazy<RemoteWorkspace> LazyWorkspace { get; }
+
+        public RemoteWorkspace GetWorkspace()
+            => LazyWorkspace.Value;
 
         /// <summary>
         /// Not ideal that we exposing the workspace solution, while not ensuring it stays alive for other calls using

@@ -4,16 +4,22 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class SolutionAssetCache
     {
+        private readonly Lazy<RemoteWorkspace>? _remoteWorkspace;
+
         /// <summary>
         /// Time interval we check storage for cleanup
         /// </summary>
@@ -50,8 +56,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <param name="cleanupInterval">time interval to clean up</param>
         /// <param name="purgeAfter">time unused data can sit in the cache</param>
         /// <param name="gcAfter">time we wait before it call GC since last activity</param>
-        public SolutionAssetCache(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
+        public SolutionAssetCache(Lazy<RemoteWorkspace>? remoteWorkspace, TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
         {
+            _remoteWorkspace = remoteWorkspace;
             _cleanupIntervalTimeSpan = cleanupInterval;
             _purgeAfterTimeSpan = purgeAfter;
             _gcAfterTimeSpan = gcAfter;
@@ -103,13 +110,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task CleanAssetsAsync()
         {
-            while (true)
+            // Todo: associate this with a real CancellationToken that can shutdown this work.
+            var cancellationToken = CancellationToken.None;
+            while (!cancellationToken.IsCancellationRequested)
             {
-                CleanAssets();
+                await CleanAssetsWorkerAsync(cancellationToken).ConfigureAwait(false);
 
                 ForceGC();
 
-                await Task.Delay(_cleanupIntervalTimeSpan).ConfigureAwait(false);
+                await Task.Delay(_cleanupIntervalTimeSpan, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -142,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _lastGCRun = current;
         }
 
-        private void CleanAssets()
+        private async ValueTask CleanAssetsWorkerAsync(CancellationToken cancellationToken)
         {
             if (_assets.Count == 0)
             {
@@ -151,11 +160,21 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var current = DateTime.UtcNow;
-            using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, cancellationToken))
             {
+                // Ensure that if our remote workspace has a current solution, that we don't purge any items associated
+                // with that solution.
+                using var _ = PooledHashSet<Checksum>.GetInstance(out var pinnedChecksums);
+                await AddPinnedChecksumsAsync(pinnedChecksums, cancellationToken).ConfigureAwait(false);
+
                 foreach (var (checksum, entry) in _assets)
                 {
+                    // If not enough time has passed, keep in the cache.
                     if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
+                        continue;
+
+                    // If this is a checksum we want to pin, do not remove it.
+                    if (pinnedChecksums.Contains(checksum))
                         continue;
 
                     // If it fails, we'll just leave it in the asset pool.
@@ -164,17 +183,41 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        private async ValueTask AddPinnedChecksumsAsync(HashSet<Checksum> pinnedChecksums, CancellationToken cancellationToken)
+        {
+            if (_remoteWorkspace is not { IsValueCreated: true })
+                return;
+
+            var remoteWorkspace = _remoteWorkspace.Value;
+            var checksums = await remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+            Recurse(checksums);
+
+            return;
+
+            void Recurse(ChecksumWithChildren checksums)
+            {
+                pinnedChecksums.Add(checksums.Checksum);
+                foreach (var child in checksums.Children)
+                {
+                    if (child is ChecksumWithChildren childChecksums)
+                        Recurse(childChecksums);
+                    else if (child is Checksum childChecksum)
+                        pinnedChecksums.Add(childChecksum);
+                }
+            }
+        }
+
         private sealed class Entry
         {
             // mutable field
-            public DateTime LastAccessed;
+            public DateTime LastAccessed = DateTime.UtcNow;
 
             // this can't change for same checksum
             public readonly object Object;
 
             public Entry(object @object)
             {
-                LastAccessed = DateTime.UtcNow;
                 Object = @object;
             }
         }

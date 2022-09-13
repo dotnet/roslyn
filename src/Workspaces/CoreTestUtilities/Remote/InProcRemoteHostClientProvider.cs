@@ -5,18 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -38,10 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
         {
-            public WorkspaceManager(SolutionAssetCache assetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
-                : base(assetStorage)
-            {
-                LazyWorkspace = new Lazy<RemoteWorkspace>(
+            public WorkspaceManager(Func<Lazy<RemoteWorkspace>, SolutionAssetCache> createAssetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
+                : base(createAssetStorage, new Lazy<RemoteWorkspace>(
                     () =>
                     {
                         var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices();
@@ -50,20 +45,15 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                         // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
                         ((IMefHostExportProvider)hostServices).GetExportedValue<TestSerializerService.Factory>().SharedTestGeneratorReferences = sharedTestGeneratorReferences;
                         return new RemoteWorkspace(hostServices);
-                    });
+                    }))
+            {
             }
-
-            public Lazy<RemoteWorkspace> LazyWorkspace { get; }
-
-            public override RemoteWorkspace GetWorkspace()
-                => LazyWorkspace.Value;
         }
 
         private readonly SolutionServices _services;
         private readonly Lazy<WorkspaceManager> _lazyManager;
         private readonly Lazy<RemoteHostClient> _lazyClient;
 
-        public SolutionAssetCache? RemoteAssetStorage { get; set; }
         public Type[]? AdditionalRemoteParts { get; set; }
         public TraceListener? TraceListener { get; set; }
 
@@ -75,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             _lazyManager = new Lazy<WorkspaceManager>(
                 () => new WorkspaceManager(
-                    RemoteAssetStorage ?? new SolutionAssetCache(),
+                    _ => new SolutionAssetCache(),
                     testSerializerServiceFactory.SharedTestGeneratorReferences,
                     AdditionalRemoteParts));
             _lazyClient = new Lazy<RemoteHostClient>(
