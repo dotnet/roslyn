@@ -39,13 +39,13 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     protected abstract bool IncludeStandardDiagnostics { get; }
 
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         var taskListItems = IncludeTaskListItems ? await this.GetTaskListDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         return taskListItems.AddRange(diagnostics);
     }
 
@@ -82,16 +82,16 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
                 document.Id,
-                originalFilePath: comment.OriginalFilePath,
-                mappedFilePath: comment.MappedFilePath,
-                originalStartLine: comment.OriginalLine,
-                originalStartColumn: comment.OriginalColumn,
-                originalEndLine: comment.OriginalLine,
-                originalEndColumn: comment.OriginalColumn,
-                mappedStartLine: comment.MappedLine,
-                mappedStartColumn: comment.MappedColumn,
-                mappedEndLine: comment.MappedLine,
-                mappedEndColumn: comment.MappedColumn)));
+                originalFilePath: comment.Span.Path,
+                originalStartLine: comment.Span.StartLinePosition.Line,
+                originalStartColumn: comment.Span.StartLinePosition.Character,
+                originalEndLine: comment.Span.EndLinePosition.Line,
+                originalEndColumn: comment.Span.EndLinePosition.Character,
+                mappedFilePath: comment.MappedSpan.GetMappedFilePathIfExist(),
+                mappedStartLine: comment.MappedSpan.StartLinePosition.Line,
+                mappedStartColumn: comment.MappedSpan.StartLinePosition.Character,
+                mappedEndLine: comment.MappedSpan.EndLinePosition.Line,
+                mappedEndColumn: comment.MappedSpan.EndLinePosition.Character)));
     }
 
     private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)

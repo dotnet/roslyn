@@ -134,10 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 => TaskListTableItem.GroupingComparer.Instance;
 
             public override IEnumerable<TaskListTableItem> Order(IEnumerable<TaskListTableItem> groupedItems)
-            {
-                return groupedItems.OrderBy(d => d.Data.OriginalLine)
-                                   .ThenBy(d => d.Data.OriginalColumn);
-            }
+                => groupedItems.OrderBy(d => d.Data.Span.StartLinePosition);
 
             private void OnTodoListUpdated(object sender, TaskListUpdatedArgs e)
             {
@@ -217,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = DiagnosticDataLocation.GetFilePath(data.OriginalFilePath, data.MappedFilePath);
+                            content = data.MappedSpan.HasMappedPath ? data.MappedSpan.Path : data.Span.Path;
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;
@@ -253,10 +250,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                         item.Data.DocumentId,
-                        item.Data.OriginalLine,
-                        item.Data.OriginalColumn,
-                        item.Data.MappedLine,
-                        item.Data.MappedColumn);
+                        item.Data.Span.StartLinePosition.Line,
+                        item.Data.Span.StartLinePosition.Character,
+                        item.Data.MappedSpan.StartLinePosition.Line,
+                        item.Data.MappedSpan.StartLinePosition.Character);
                 }
 
                 public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
