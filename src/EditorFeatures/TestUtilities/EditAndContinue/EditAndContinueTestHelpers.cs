@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             var duplicateNonPartial = allEdits
-                .Where(e => e.PartialType == null)
+                .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
                 .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
@@ -311,7 +311,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     else
                     {
                         Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                        Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+
+                        // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
+                        // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
+                        // represented in the symbol key, so the check below would fail, so we skip it.
+                        if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
+                        {
+                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                        }
                     }
 
                     var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
