@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var current = DateTime.UtcNow;
             using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, CancellationToken.None))
             {
-                foreach (var (checksum, entry) in _assets.ToArray())
+                foreach (var (checksum, entry) in _assets)
                 {
                     if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
                         continue;
