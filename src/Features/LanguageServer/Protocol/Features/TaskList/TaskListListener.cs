@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
+namespace Microsoft.CodeAnalysis.TaskList
 {
     internal sealed class TaskListListener : ITaskListListener, IDisposable
     {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 
             _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
                 TimeSpan.FromSeconds(1),
-                ProcessTodoCommentInfosAsync,
+                ProcessTaskListItemsAsync,
                 _asyncListener,
                 _disposalToken);
         }
@@ -130,11 +130,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
         {
             try
             {
-                _workQueue.AddWork((documentId, infos));
+                _workQueue.AddWork((documentId, items));
                 return ValueTaskFactory.CompletedTask;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         public ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetTaskListOptions());
 
-        private ValueTask ProcessTodoCommentInfosAsync(
+        private ValueTask ProcessTaskListItemsAsync(
             ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             using var _1 = ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)>.GetInstance(out var filteredArray);
             AddFilteredItems(docAndCommentsArray, filteredArray);
 
-            foreach (var (documentId, newComments) in filteredArray)
+            foreach (var (documentId, newItems) in filteredArray)
             {
                 var oldComments = _documentToTaskListItems.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
@@ -166,18 +166,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
-                if (newComments.IsEmpty)
+                if (newItems.IsEmpty)
                 {
                     _documentToTaskListItems.TryRemove(documentId, out _);
                 }
                 else
                 {
-                    _documentToTaskListItems[documentId] = newComments;
+                    _documentToTaskListItems[documentId] = newItems;
                 }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
-                _onTaskListItemsUpdated(documentId, oldComments, newComments);
+                _onTaskListItemsUpdated(documentId, oldComments, newItems);
             }
 
             return ValueTaskFactory.CompletedTask;
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             }
         }
 
-        public ImmutableArray<TaskListItem> GetTodoItems(DocumentId documentId)
+        public ImmutableArray<TaskListItem> GetTaskListItems(DocumentId documentId)
         {
             return _documentToTaskListItems.TryGetValue(documentId, out var values)
                 ? values

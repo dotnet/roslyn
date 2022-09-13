@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.TaskList
 
         ValueTask ComputeTaskListItemsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
         ValueTask ReanalyzeAsync(CancellationToken cancellationToken);
+
+        ValueTask<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken);
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteTaskListService)), Shared]
