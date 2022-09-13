@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             while (!canUse(baseName))
             {
-                baseName = baseName + index;
+                baseName += index;
                 index++;
             }
 
