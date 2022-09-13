@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 return;
             }
 
+
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var position = context.Position;
