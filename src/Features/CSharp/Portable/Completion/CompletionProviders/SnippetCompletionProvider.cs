@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -30,6 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class SnippetCompletionProvider : LSPCompletionProvider
     {
+        private static readonly HashSet<string> s_builtInSnippets = new()
+        {
+            "#if", "#region", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception",
+            "for", "foreach", "forr", "if", "indexer", "interface", "invoke", "iterindex", "iterator", "lock", "mbox",
+            "namespace", "prop", "propa", "propdp", "propfull", "propg", "sim", "struct", "svm", "switch", "testc", "testm",
+            "try", "tryf", "unchecked", "unsafe", "using", "while", "~"
+        };
+
         internal override bool IsSnippetProvider => true;
 
         [ImportingConstructor]
@@ -117,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         SyntaxKind.WarningKeyword))
                 {
                     return GetSnippetCompletionItems(
-                        document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
+                        completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
                 }
             }
             else
@@ -133,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
                 {
                     return GetSnippetCompletionItems(
-                        document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
+                        completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
                 }
             }
 
@@ -141,13 +150,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
-            SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
+            CompletionContext context, SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
         {
             var service = services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
                 return ImmutableArray<CompletionItem>.Empty;
 
             var snippets = service.GetSnippetsIfAvailable();
+            if (context.CompletionOptions.ShouldShowNewSnippetExperience())
+            {
+                snippets = snippets.Where(snippet => !s_builtInSnippets.Contains(snippet.Shortcut));
+            }
+
             if (isPreProcessorContext)
             {
                 snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
