@@ -91,24 +91,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public async Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
         {
-            // Determine the checksum for this project cone.  Note: this should be fast in practice because this is
-            // the same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
-            var projectChecksum = await project.Solution.State.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
-
-            lock (_gate)
+            if (_semanticTokenRefreshQueue is not null)
             {
-                // If this checksum is the same as the last computed result, no need to continue, we would not produce a
-                // different compilation.
-                if (ChecksumIsUnchanged_NoLock(project, projectChecksum))
-                    return;
+                // Determine the checksum for this project cone.  Note: this should be fast in practice because this is
+                // the same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
+                var projectChecksum = await project.Solution.State.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
 
-                if (!_projectIdToEventSource.TryGetValue(project.Id, out var eventSource))
+                lock (_gate)
                 {
-                    eventSource = new CompilationAvailableEventSource(_asyncListener);
-                    _projectIdToEventSource.Add(project.Id, eventSource);
-                }
+                    // If this checksum is the same as the last computed result, no need to continue, we would not produce a
+                    // different compilation.
+                    if (ChecksumIsUnchanged_NoLock(project, projectChecksum))
+                        return;
 
-                eventSource.EnsureCompilationAvailability(project, () => OnCompilationAvailable(project, projectChecksum));
+                    if (!_projectIdToEventSource.TryGetValue(project.Id, out var eventSource))
+                    {
+                        eventSource = new CompilationAvailableEventSource(_asyncListener);
+                        _projectIdToEventSource.Add(project.Id, eventSource);
+                    }
+
+                    eventSource.EnsureCompilationAvailability(project, () => OnCompilationAvailable(project, projectChecksum));
+                }
             }
         }
 
