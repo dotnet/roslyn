@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionsHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
+    internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
 
         public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {

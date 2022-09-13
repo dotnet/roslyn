@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Cocoa.Lsp;
 
 /// <summary>
 /// Wraps the external access <see cref="IVSMacLspLoggerFactory"/> and exports it
-/// as an <see cref="ILspLoggerFactory"/> for inclusion in the vsmac composition.
+/// as an <see cref="ILspServiceLoggerFactory"/> for inclusion in the vsmac composition.
 /// </summary>
-[Export(typeof(ILspLoggerFactory)), Shared]
-internal class VSMacLspLoggerFactoryWrapper : ILspLoggerFactory
+[Export(typeof(ILspServiceLoggerFactory)), Shared]
+internal class VSMacLspLoggerFactoryWrapper : ILspServiceLoggerFactory
 {
     private readonly IVSMacLspLoggerFactory _loggerFactory;
 
@@ -29,14 +29,14 @@ internal class VSMacLspLoggerFactoryWrapper : ILspLoggerFactory
         _loggerFactory = loggerFactory;
     }
 
-    public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+    public async Task<ILspServiceLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
     {
         var vsMacLogger = await _loggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
         return new VSMacLspLoggerWrapper(vsMacLogger);
     }
 }
 
-internal class VSMacLspLoggerWrapper : ILspLogger
+internal class VSMacLspLoggerWrapper : ILspServiceLogger
 {
     private readonly IVSMacLspLogger _logger;
 
@@ -45,15 +45,33 @@ internal class VSMacLspLoggerWrapper : ILspLogger
         _logger = logger;
     }
 
-    public void TraceError(string message) => _logger.TraceError(message);
+    public void LogError(string message, params object[] @params)
+    {
+        _logger.TraceError(message);
+    }
 
-    public void TraceException(Exception exception) => _logger.TraceException(exception);
+    public void LogException(Exception exception, string? message = null, params object[] @params)
+    {
+        _logger.TraceException(exception);
+    }
 
-    public void TraceInformation(string message) => _logger.TraceInformation(message);
+    public void LogInformation(string message, params object[] @params)
+    {
+        _logger.TraceInformation(message);
+    }
 
-    public void TraceStart(string message) => _logger.TraceStart(message);
+    public void LogStartContext(string message, params object[] @params)
+    {
+        _logger.TraceStart(message);
+    }
 
-    public void TraceStop(string message) => _logger.TraceStop(message);
+    public void LogEndContext(string message, params object[] @params)
+    {
+        _logger.TraceStop(message);
+    }
 
-    public void TraceWarning(string message) => _logger.TraceWarning(message);
+    public void LogWarning(string message, params object[] @params)
+    {
+        _logger.TraceWarning(message);
+    }
 }

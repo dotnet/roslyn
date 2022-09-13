@@ -62,6 +62,7 @@
     <ICSharpCodeDecompilerVersion>7.1.0.6543</ICSharpCodeDecompilerVersion>
     <InputSimulatorPlusVersion>1.0.7</InputSimulatorPlusVersion>
     <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
+    <MicrosoftExtensionsDependencyInjectionVersion>6.0.0</MicrosoftExtensionsDependencyInjectionVersion>
     <!--
       SourceBuild will requires that all dependencies also be source buildable. We are referencing a
       version of MSBuild that is not SourceBuild compatible, which makes our build incompatible. Since we only

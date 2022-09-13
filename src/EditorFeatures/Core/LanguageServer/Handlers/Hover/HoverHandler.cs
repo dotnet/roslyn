@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
-    internal sealed class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
+    internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, Hover?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
         public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var document = context.GetRequiredDocument();
+            var clientCapabilities = context.GetRequiredClientCapabilities();
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var quickInfoService = document.Project.Services.GetRequiredService<QuickInfoService>();
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetHoverAsync(info, text, document.Project.Language, document, classificationOptions, context.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+            return await GetHoverAsync(info, text, document.Project.Language, document, classificationOptions, clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<Hover?> GetHoverAsync(

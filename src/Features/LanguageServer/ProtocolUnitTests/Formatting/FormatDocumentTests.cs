@@ -35,7 +35,7 @@ void M()
         int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
@@ -63,7 +63,7 @@ void M()
 		int i = 1;
 	}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
@@ -91,7 +91,7 @@ void M()
     int i = 1;
   }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 

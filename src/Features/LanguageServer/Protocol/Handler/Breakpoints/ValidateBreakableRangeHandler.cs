@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal sealed class ValidateBreakableRangeHandler : IRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
+    internal sealed class ValidateBreakableRangeHandler : ILspServiceDocumentRequestHandler<VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,13 +29,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
             => request.TextDocument;
 
         public async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var document = context.GetRequiredDocument();
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var span = ProtocolConversions.RangeToTextSpan(request.Range, text);

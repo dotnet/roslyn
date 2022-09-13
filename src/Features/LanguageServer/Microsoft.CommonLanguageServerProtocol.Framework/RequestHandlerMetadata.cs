@@ -4,9 +4,6 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
-{
-    internal interface ILanguageServerTarget : IAsyncDisposable
-    {
-    }
-}
+namespace Microsoft.CommonLanguageServerProtocol.Framework;
+
+public record RequestHandlerMetadata(string MethodName, Type? RequestType, Type? ResponseType);

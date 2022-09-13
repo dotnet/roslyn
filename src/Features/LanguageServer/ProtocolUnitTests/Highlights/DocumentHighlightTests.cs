@@ -32,7 +32,7 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = new LSP.DocumentHighlight[]
             {
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, testLspServer.GetLocations("text").Single()),
@@ -57,7 +57,7 @@ class A
         {|caret:|}{|text:await|} Task.Delay(100);
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var expectedLocations = testLspServer.GetLocations("text");
 
@@ -81,7 +81,7 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);

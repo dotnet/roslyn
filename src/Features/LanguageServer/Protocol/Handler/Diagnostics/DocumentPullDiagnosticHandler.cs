@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal partial class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
+    internal partial class DocumentPullDiagnosticHandler : AbstractDocumentPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         public DocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService analyzerService,
@@ -80,19 +80,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //
             // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
             // handler treats those as separate worlds that they are responsible for.
-            if (context.Document == null)
+            var document = context.Document;
+            if (document is null)
             {
                 context.TraceInformation("Ignoring diagnostics request because no document was provided");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            if (!context.IsTracking(context.Document.GetURI()))
+            if (!context.IsTracking(document.GetURI()))
             {
-                context.TraceWarning($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
+                context.TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.Document));
+            return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(document));
         }
     }
 }

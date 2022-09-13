@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
         private async Task<(DocumentOutlineTestMocks mocks, DocumentSymbolDataModel model, ImmutableArray<DocumentSymbolUIItem> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
         {
-            using var mocks = await CreateMocksAsync(testCode);
+            await using var mocks = await CreateMocksAsync(testCode);
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(mocks.TextBuffer, mocks.LanguageServiceBroker, mocks.FilePath, CancellationToken.None);
             AssertEx.NotNull(response.Value);
 
