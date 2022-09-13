@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// resent.
         /// </para>
         /// <list type="bullet">
-        /// <item>CleanupInterval=20s gives what feels to be a reasonable non-aggressive amount of time to let the cache
+        /// <item>CleanupInterval=30s gives what feels to be a reasonable non-aggressive amount of time to let the cache
         /// do its job, while also making sure several times a minute it is scanned for things that can be
         /// dropped.</item>
         /// <item>PurgeAfter=1m effectively states that an item will be dumped from the cache if not used in the last
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </list>
         /// </remarks>
         internal static readonly RemoteWorkspaceManager Default = new(
-            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(20), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
 
         private readonly RemoteWorkspace _workspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
