@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
-        private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
+        private readonly TimeSpan _expirationTime;
 
         public ProjectCacheService(Workspace? workspace)
         {
@@ -38,11 +40,12 @@ namespace Microsoft.CodeAnalysis.Host
             _configurationService = workspace?.Services.GetService<IWorkspaceConfigurationService>();
         }
 
-        public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
+        public ProjectCacheService(Workspace? workspace, TimeSpan expirationTime)
             : this(workspace)
         {
             _implicitCache = new SimpleMRUCache();
-            _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
+            _expirationTime = expirationTime;
+            Task.Run(ClearExpiredItemsLoopAsync);
         }
 
         /// <summary>
@@ -78,6 +81,15 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
+        private async Task ClearExpiredItemsLoopAsync()
+        {
+            while (true)
+            {
+                this.ClearExpiredImplicitCache(DateTime.UtcNow - _expirationTime);
+                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            }
+        }
+
         public IDisposable EnableCaching(ProjectId key)
         {
             lock (_gate)
@@ -106,9 +118,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                     else if (_implicitCache != null && !PartOfP2PReferences(key))
                     {
-                        RoslynDebug.Assert(_implicitCacheMonitor != null);
                         _implicitCache.Touch(instance);
-                        _implicitCacheMonitor.Touch();
                     }
                 }
             }

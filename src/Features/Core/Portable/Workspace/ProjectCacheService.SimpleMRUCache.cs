@@ -87,53 +87,5 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
         }
-
-        private class ImplicitCacheMonitor : IdleProcessor
-        {
-            private readonly ProjectCacheService _owner;
-            private readonly SemaphoreSlim _gate;
-
-            public ImplicitCacheMonitor(ProjectCacheService owner, TimeSpan backOffTimeSpan)
-                : base(AsynchronousOperationListenerProvider.NullListener,
-                       backOffTimeSpan,
-                       CancellationToken.None)
-            {
-                _owner = owner;
-                _gate = new SemaphoreSlim(0);
-
-                Start();
-            }
-
-            protected override void OnPaused()
-            {
-            }
-
-            protected override Task ExecuteAsync()
-            {
-                _owner.ClearExpiredImplicitCache(DateTime.UtcNow - BackOffTimeSpan);
-
-                return Task.CompletedTask;
-            }
-
-            public void Touch()
-            {
-                UpdateLastAccessTime();
-
-                if (_gate.CurrentCount == 0)
-                {
-                    _gate.Release();
-                }
-            }
-
-            protected override Task WaitAsync(CancellationToken cancellationToken)
-            {
-                if (_owner.IsImplicitCacheEmpty)
-                {
-                    return _gate.WaitAsync(cancellationToken);
-                }
-
-                return Task.CompletedTask;
-            }
-        }
     }
 }
