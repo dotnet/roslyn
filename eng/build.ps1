@@ -472,6 +472,9 @@ function TestUsingRunTests() {
     }
 
     $testRunnerExecutableArgs += $dotnetTestAdditionalArgs
+
+    # Tell vstestconsole to parallelize assemblies when running tests.
+    $testRunnerExecutableArgs += " -- RunConfiguration.MaxCpuCount=0"
   }
 
   try {
