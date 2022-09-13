@@ -20,18 +20,23 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal sealed class SerializableSourceText
     {
+        /// <summary>
+        /// Gate for controlling access to <see cref="_storage"/> and <see cref="_text"/>.
+        /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
         /// The storage location for <see cref="SourceText"/>.
         /// </summary>
         /// <remarks>
-        /// Exactly one of <see cref="_storage"/> or <see cref="_text"/> will be non-<see langword="null"/>.
+        /// Exactly one of <see cref="_storage"/> or <see cref="_text"/> will be non-<see langword="null"/>. This value
+        /// will be set to <see langword="null"/> once <see cref="_text"/> has been computed and cached.
         /// </remarks>
         private ITemporaryTextStorageWithName? _storage;
 
         /// <summary>
-        /// The <see cref="SourceText"/> in the current process.
+        /// The <see cref="SourceText"/> in the current process.  May be initially null, but will become non-null once
+        /// computed and cached.
         /// </summary>
         /// <remarks>
         /// <inheritdoc cref="Storage"/>
