@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
-                var todoCommentsEnabled = globalOptions.GetTodoCommentOptions().ComputeForClosedFiles;
-                if (!fullSolutionAnalysisEnabled && !todoCommentsEnabled)
+                var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
+                if (!fullSolutionAnalysisEnabled && !taskListEnabled)
                     return;
 
                 var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (document.IsRazorDocument())
                         continue;
 
-                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTodoComments: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
+                    result.Add(new WorkspaceDocumentDiagnosticSource(document, includeTaskListItems: true, includeStandardDiagnostics: fullSolutionAnalysisEnabled));
                 }
 
                 // Finally if fsa is on, we also want to check for diagnostics associated with the project itself.

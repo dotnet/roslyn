@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Position = position;
         }
 
-        private TodoCommentData CreateSerializableData(
+        private TaskListItem CreateSerializableData(
             Document document, SourceText text, SyntaxTree? tree)
         {
             // make sure given position is within valid text range.
@@ -45,18 +46,14 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 priority: Descriptor.Priority,
                 message: Message,
                 documentId: document.Id,
-                originalLine: originalLineInfo.StartLinePosition.Line,
-                originalColumn: originalLineInfo.StartLinePosition.Character,
-                originalFilePath: document.FilePath,
-                mappedLine: mappedLineInfo.StartLinePosition.Line,
-                mappedColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist());
+                span: originalLineInfo,
+                mappedSpan: mappedLineInfo);
         }
 
         public static async Task ConvertAsync(
             Document document,
             ImmutableArray<TodoComment> todoComments,
-            ArrayBuilder<TodoCommentData> converted,
+            ArrayBuilder<TaskListItem> converted,
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

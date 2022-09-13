@@ -15,11 +15,13 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -100,7 +102,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public async Task TestTodoComments()
+        public async Task TestTaskList()
         {
             var source = @"
 
@@ -108,7 +110,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 // TODO: Test";
 
             using var workspace = CreateWorkspace();
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("HACK:1"));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), ImmutableArray.Create("HACK:1"));
             workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -127,13 +129,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
-            using var listener = new TodoCommentsListener(
+            using var listener = new TaskListListener(
                 workspace.GlobalOptions,
                 workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
-                onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
+                onTaskListItemsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
 
             await listener.StartAsync();
@@ -142,35 +144,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
             Assert.Equal(1, items.Length);
 
-            Assert.Equal(new TodoCommentData(
+            var pos = new LinePosition(2, 3);
+            Assert.Equal(new TaskListItem(
                 documentId: documentId,
                 priority: 1,
                 message: "HACK: Test",
-                mappedFilePath: null,
-                originalFilePath: "test1.cs",
-                originalLine: 2,
-                mappedLine: 2,
-                originalColumn: 3,
-                mappedColumn: 3), items[0]);
+                span: new("test1.cs", pos, pos),
+                mappedSpan: new("test1.cs", pos, pos)), items[0]);
 
-            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("TODO:1"));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), ImmutableArray.Create("TODO:1"));
 
             (documentId, items) = await resultSource.Task.WithTimeout(TimeSpan.FromMinutes(1));
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
             Assert.Equal(1, items.Length);
 
-            Assert.Equal(new TodoCommentData(
+            pos = new LinePosition(3, 3);
+            Assert.Equal(new TaskListItem(
                 documentId: documentId,
                 priority: 1,
                 message: "TODO: Test",
-                mappedFilePath: null,
-                originalFilePath: "test1.cs",
-                originalLine: 3,
-                mappedLine: 3,
-                originalColumn: 3,
-                mappedColumn: 3), items[0]);
+                span: new("test1.cs", pos, pos),
+                mappedSpan: new("test1.cs", pos, pos)), items[0]);
 
             cancellationTokenSource.Cancel();
         }

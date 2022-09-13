@@ -168,7 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, diagnosticSource, newResultId, clientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
+                        context, diagnosticSource, newResultId, clientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -258,11 +259,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             IDiagnosticSource diagnosticSource,
             string resultId,
             ClientCapabilities clientCapabilities,
-            DiagnosticMode diagnosticMode,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-            var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
             context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetUri()}");
 
             foreach (var diagnostic in diagnostics)
