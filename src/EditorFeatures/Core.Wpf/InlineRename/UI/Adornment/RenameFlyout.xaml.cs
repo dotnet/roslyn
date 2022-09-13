@@ -6,6 +6,10 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly IWpfTextView _textView;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IWpfThemeService? themeService)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -40,6 +44,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             InitializeComponent();
             PositionAdornment();
+
+            if (themeService is not null)
+            {
+                Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
+                ToggleExpandButton.Foreground = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ButtonTextColorKey));
+                SubmitTextBlock.Foreground = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ScreenTipTextColorKey));
+                Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+                ImageThemingUtilities.SetImageBackgroundColor(ToggleExpandButton, themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
         }
 
 #pragma warning disable CA1822 // Mark members as static - used in xaml
