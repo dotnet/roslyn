@@ -28,13 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         internal sealed class WorkspaceEventListener : IEventListener<object>
         {
             private readonly IAsynchronousOperationListener _listener;
-            private readonly Factory _providerFactory;
+            private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _providerFactory;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public WorkspaceEventListener(
                 IAsynchronousOperationListenerProvider listenerProvider,
-                Factory providerFactory)
+                IVisualStudioDiagnosticAnalyzerProviderFactory providerFactory)
             {
                 _listener = listenerProvider.GetListener(nameof(Workspace));
                 _providerFactory = providerFactory;

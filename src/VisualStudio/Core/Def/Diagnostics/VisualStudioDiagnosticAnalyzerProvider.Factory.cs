@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
     internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
-        [Export(typeof(Factory)), Shared]
+        [Export(typeof(IVisualStudioDiagnosticAnalyzerProviderFactory)), Shared]
         internal sealed class Factory
         {
             private readonly IThreadingContext _threadingContext;

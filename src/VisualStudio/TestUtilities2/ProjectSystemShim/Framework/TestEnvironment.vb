@@ -19,12 +19,14 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -57,6 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(MockVisualStudioWorkspace),
                 GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
                 GetType(VisualStudioProjectFactory),
+                GetType(MockVisualStudioDiagnosticAnalyzerProviderFactory),
                 GetType(MockServiceProvider),
                 GetType(SolutionEventsBatchScopeCreator),
                 GetType(ProjectCodeModelFactory),

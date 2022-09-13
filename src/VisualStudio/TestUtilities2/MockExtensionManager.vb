@@ -2,19 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
 Imports System.Xml
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Moq
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MockExtensionManager
-
         Private ReadOnly _contentType As String
         Private ReadOnly _locations() As String
 

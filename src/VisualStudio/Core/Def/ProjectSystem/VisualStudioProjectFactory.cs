@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly VisualStudioDiagnosticAnalyzerProvider.Factory _vsixAnalyzerProviderFactory;
+        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
             [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            VisualStudioDiagnosticAnalyzerProvider.Factory vsixAnalyzerProviderFactory,
+            IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
             SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
