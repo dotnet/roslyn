@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -186,9 +186,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
-            var preselectionDiff = ComparePreselection(item1, item2);
+            var preselectionDiff = CompareSpecialMatchPriorityValue(item1, item2);
             if (preselectionDiff != 0)
             {
+                onlyDifferInCaseSensitivity = false;
                 return preselectionDiff;
             }
 
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // More details can be found in comments of https://github.com/dotnet/roslyn/issues/4892
             if (!_isCaseSensitive)
             {
-                var preselectionDiff = ComparePreselection(item1, item2);
+                var preselectionDiff = CompareSpecialMatchPriorityValue(item1, item2);
                 if (preselectionDiff != 0)
                 {
                     return preselectionDiff;
@@ -313,10 +314,28 @@ namespace Microsoft.CodeAnalysis.Completion
             return diff;
         }
 
-        // If they both seemed just as good, but they differ on preselection, then
-        // item1 is better if it is preselected, otherwise it is worse.
+        private static int CompareSpecialMatchPriorityValues(CompletionItem item1, CompletionItem item2)
+        {
+            if (item1.Rules.MatchPriority == item2.Rules.MatchPriority)
+                return 0;
+
+            var deprioritizationCompare = CompareDeprioritization(item1, item2);
+            return deprioritizationCompare == 0
+                ? ComparePreselection(item1, item2)
+                : deprioritizationCompare;
+        }
+
+        /// <summary>
+        ///  If 2 items differ on preselection, then item1 is better if it is preselected, otherwise it is worse.
+        /// </summary>
         private static int ComparePreselection(CompletionItem item1, CompletionItem item2)
             => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
+
+        /// <summary>
+        /// If 2 items differ on depriorization, then item1 is worse if it is depriozritized, otherwise it is better.
+        /// </summary>
+        private static int CompareDeprioritization(CompletionItem item1, CompletionItem item2)
+            => (item1.Rules.MatchPriority == MatchPriority.Deprioritize).CompareTo(item2.Rules.MatchPriority == MatchPriority.Deprioritize);
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
         {
