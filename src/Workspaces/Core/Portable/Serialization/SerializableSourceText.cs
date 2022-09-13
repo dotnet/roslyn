@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,13 +20,15 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal sealed class SerializableSourceText
     {
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
         /// <summary>
         /// The storage location for <see cref="SourceText"/>.
         /// </summary>
         /// <remarks>
-        /// Exactly one of <see cref="Storage"/> or <see cref="Text"/> will be non-<see langword="null"/>.
+        /// Exactly one of <see cref="_storage"/> or <see cref="_text"/> will be non-<see langword="null"/>.
         /// </remarks>
-        public ITemporaryTextStorageWithName? Storage { get; }
+        private ITemporaryTextStorageWithName? _storage;
 
         /// <summary>
         /// The <see cref="SourceText"/> in the current process.
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         /// <remarks>
         /// <inheritdoc cref="Storage"/>
         /// </remarks>
-        public SourceText? Text { get; }
+        private SourceText? _text;
 
         public SerializableSourceText(ITemporaryTextStorageWithName storage)
             : this(storage, text: null)
@@ -49,21 +52,79 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             Debug.Assert(storage is null != text is null);
 
-            Storage = storage;
-            Text = text;
+            _storage = storage;
+            _text = text;
         }
 
-        public ImmutableArray<byte> GetChecksum()
+        public ImmutableArray<byte> GetChecksum(CancellationToken cancellationToken)
         {
-            return Text?.GetChecksum() ?? Storage!.GetChecksum();
+            SourceText? text;
+            ITemporaryTextStorageWithName? storage;
+            using (_gate.DisposableWait(cancellationToken))
+            {
+                text = _text;
+                storage = _storage;
+            }
+
+            return text?.GetChecksum() ?? storage!.GetChecksum();
         }
 
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
-            if (Text is not null)
-                return Text;
+            SourceText? text;
+            ITemporaryTextStorageWithName? storage;
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                text = _text;
+                storage = _storage;
+            }
 
-            return await Storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
+            // if someone already computed 'text', then just return that.
+            if (text != null)
+                return text;
+
+            text = await storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
+
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // if we're the first to compute 'text', then update our internal fields.
+                if (_text is null)
+                {
+                    _text = text;
+                    _storage = null;
+                }
+            }
+
+            return text;
+        }
+
+        public SourceText GetText(CancellationToken cancellationToken)
+        {
+            SourceText? text;
+            ITemporaryTextStorageWithName? storage;
+            using (_gate.DisposableWait(cancellationToken))
+            {
+                text = _text;
+                storage = _storage;
+            }
+
+            // if someone already computed 'text', then just return that.
+            if (text != null)
+                return text;
+
+            text = storage!.ReadText(cancellationToken);
+
+            using (_gate.DisposableWait(cancellationToken))
+            {
+                // if we're the first to compute 'text', then update our internal fields.
+                if (_text is null)
+                {
+                    _text = text;
+                    _storage = null;
+                }
+            }
+
+            return text;
         }
 
         public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
@@ -79,6 +140,40 @@ namespace Microsoft.CodeAnalysis.Serialization
                     static (text, _) => new SerializableSourceText(text),
                     state,
                     cancellationToken);
+            }
+        }
+
+        public void Serialize(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        {
+            SourceText? text;
+            ITemporaryTextStorageWithName? storage;
+            using (_gate.DisposableWait(cancellationToken))
+            {
+                text = _text;
+                storage = _storage;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            if (storage is not null)
+            {
+                context.AddResource(storage);
+
+                writer.WriteInt32((int)storage.ChecksumAlgorithm);
+                writer.WriteEncoding(storage.Encoding);
+
+                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
+                writer.WriteString(storage.Name);
+                writer.WriteInt64(storage.Offset);
+                writer.WriteInt64(storage.Size);
+            }
+            else
+            {
+                RoslynDebug.AssertNotNull(text);
+
+                writer.WriteInt32((int)text.ChecksumAlgorithm);
+                writer.WriteEncoding(text.Encoding);
+                writer.WriteInt32((int)SerializationKinds.Bits);
+                text.WriteTo(writer, cancellationToken);
             }
         }
     }
