@@ -13059,9 +13059,9 @@ public static class C
 //     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "+").WithArguments("C.operator +(C)"),
 
-// (4,30): error CS0721: 'C': static types cannot be used as parameters
+// (4,32): error CS0721: 'C': static types cannot be used as parameters
 //     public static C operator +(C c)  // CS0715
-Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "+").WithArguments("C"),
+Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
 
 // (4,19): error CS0722: 'C': static types cannot be used as return types
 //     public static C operator +(C c)  // CS0715
@@ -13380,9 +13380,9 @@ static class S
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
+                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 16, IsWarning = true },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 23 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 25 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -13551,7 +13551,7 @@ interface I
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8897: 'C': static types cannot be used as parameters
                 //     void M1(C c); // 1
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(5, 13),
                 // (6,7): warning CS8898: 'C': static types cannot be used as return types
                 //     C M2(); // 2
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
@@ -13563,7 +13563,7 @@ interface I
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
                 // (8,7): warning CS8897: 'C': static types cannot be used as parameters
                 //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "this").WithArguments("C").WithLocation(8, 7),
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(8, 12),
                 // (8,19): warning CS8898: 'C': static types cannot be used as return types
                 //     C this[C c] { get; set; } // 5, 6, 7
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
@@ -14578,8 +14578,8 @@ class Goo1
             compilation.VerifyDiagnostics(
                 // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
-                // (4,17): error CS0721: 'C': static types cannot be used as parameters
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M2").WithArguments("C"),
+                // (4,25): error CS0721: 'C': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C"),
                 // (5,25): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
         }

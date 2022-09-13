@@ -1538,13 +1538,13 @@ class C<T> { }
 static class C2 { }
 ref struct RefLike{}
 
-unsafe record struct C( // 1
+unsafe record struct C(
     int* P1, // 2
     int*[] P2, // 3
     C<int*[]> P3,
     delegate*<int, int> P4, // 4
     void P5, // 5
-    C2 P6, // 6, 7
+    C2 P6, // 1, 6, 7
     System.ArgIterator P7, // 8
     System.TypedReference P8, // 9
     RefLike P9); // 10
@@ -1552,9 +1552,9 @@ unsafe record struct C( // 1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (6,22): error CS0721: 'C2': static types cannot be used as parameters
-                // unsafe record struct C( // 1
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 22),
+                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 1, 6, 7
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
                 // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     int* P1, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
@@ -1568,10 +1568,10 @@ unsafe record struct C( // 1
                 //     void P5, // 5
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
                 // (12,8): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 6, 7
+                //     C2 P6, // 1, 6, 7
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
                 // (12,8): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 6, 7
+                //     C2 P6, // 1, 6, 7
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     System.ArgIterator P7, // 8
