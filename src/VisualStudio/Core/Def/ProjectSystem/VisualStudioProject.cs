@@ -922,16 +922,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public void RemoveAnalyzerReference(string fullPathX)
+        public void RemoveAnalyzerReference(string fullPath)
         {
-            if (string.IsNullOrEmpty(fullPathX))
+            if (string.IsNullOrEmpty(fullPath))
             {
-                throw new ArgumentException("message", nameof(fullPathX));
+                throw new ArgumentException("message", nameof(fullPath));
             }
 
             using (_gate.DisposableWait())
             {
-                foreach (var mappedFullPath in GetMapedAnalyzerPaths(fullPathX))
+                foreach (var mappedFullPath in GetMapedAnalyzerPaths(fullPath))
                 {
                     if (!_analyzerPathsToAnalyzers.TryGetValue(mappedFullPath, out var visualStudioAnalyzer))
                     {
@@ -966,7 +966,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private IEnumerable<string> GetMapedAnalyzerPaths(string fullPath)
         {
-            if (fullPath.Split(s_directorySeparator) is [.., "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", var fileName])
+            if (fullPath.Split(s_directorySeparator) is [.., var dir1, var dir2, var dir3, var fileName] &&
+                dir1.Equals("Sdks", StringComparison.OrdinalIgnoreCase) &&
+                dir2.Equals("Microsoft.NET.Sdk.Razor", StringComparison.OrdinalIgnoreCase) &&
+                dir3.Equals("source-generators", StringComparison.OrdinalIgnoreCase))
             {
                 // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
 
