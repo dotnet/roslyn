@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IWpfTextView _textView;
         private readonly IGlobalOptionService _globalOptionService;
-        private readonly IWpfThemeService? _themeingService;
+        private readonly IWpfThemeService? _themeService;
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IInlineRenameColorUpdater? dashboardColorUpdater,
             IWpfTextView textView,
             IGlobalOptionService globalOptionService,
-            IWpfThemeService? themeingService)
+            IWpfThemeService? themeService)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
             _globalOptionService = globalOptionService;
-            _themeingService = themeingService;
+            _themeService = themeService;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     return;
                 }
 
-                _themeingService?.ApplyThemeToElement(adornment);
+                _themeService?.ApplyThemeToElement(adornment);
 
                 _adornmentLayer.AddAdornment(
                     AdornmentPositioningBehavior.ViewportRelative,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var adornment = new RenameFlyout(
                     (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService)),
                     _textView,
-                    _themeingService);
+                    _themeService);
 
                 return adornment;
             }
