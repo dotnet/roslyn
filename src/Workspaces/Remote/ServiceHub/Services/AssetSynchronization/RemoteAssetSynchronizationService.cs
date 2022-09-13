@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
+                    var newText = text.WithChanges(textChanges);
                     var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
 
                     // save new text in the cache so that when asked, the data is most likely already there
