@@ -37,21 +37,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
-        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetStatementNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
-            if (snippetStatementNode is null)
-            {
-                return root;
-            }
-
-            var reformatSnippetNode = snippetStatementNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
-            return root.ReplaceNode(snippetStatementNode, reformatSnippetNode);
-        }
-
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
             return syntaxFacts.IsForStatement;
