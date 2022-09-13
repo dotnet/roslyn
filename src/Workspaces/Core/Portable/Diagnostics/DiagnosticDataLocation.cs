@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
 
-            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), PathUtilities.GetFileName(mapped));
+            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), mapped);
             try
             {
                 return Path.GetFullPath(combined);
