@@ -111,7 +111,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
 
             // it should not reach here
-            Assert.True(false, "asset not cleaned up");
+            AssertEx.Fail("asset not cleaned up");
         }
     }
 }
