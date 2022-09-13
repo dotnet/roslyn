@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the workspace
     /// to automatically load this.  Instead, VS waits until it is ready
