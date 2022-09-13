@@ -39,6 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
+
+            if (!context.Options.GetOptions(document.Project.Services).EnableConvertToRecord)
+            {
+                return;
+            }
+
             // get the class declaration. The span should be on the base type in the base list
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var baseTypeSyntax = root.FindNode(span) as BaseTypeSyntax;
