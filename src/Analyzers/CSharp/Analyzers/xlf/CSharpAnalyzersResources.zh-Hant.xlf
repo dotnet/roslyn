@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="new">Use block body for lambda expressions</target>
+        <target state="translated">使用 Lambda 運算式的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
-        <target state="new">Use expression body for lambda expressions</target>
+        <target state="translated">使用 Lambda 運算式的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
