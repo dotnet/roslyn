@@ -973,7 +973,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
 
-                if (fileName == "Microsoft.NET.Sdk.Razor.SourceGenerators.dll")
+                if (fileName.Equals("Microsoft.NET.Sdk.Razor.SourceGenerators.dll", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var (vsixAnalyzer, extensionId) in _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions())
                     {
