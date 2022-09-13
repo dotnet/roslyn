@@ -56,14 +56,7 @@ End Namespace";
                 AssertEx.NotNull(member, $"Member {memberPath} was not found");
                 Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
                 Assert.True(member.IsRequired());
-                if (module is SourceModuleSymbol)
-                {
-                    Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
-                }
-                else
-                {
-                    AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
-                }
+                Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
 
                 requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
             }
@@ -4953,6 +4946,67 @@ public class Derived : Base
             //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25)
         );
+    }
 
+    [Theory, CombinatorialData]
+    public void FirstAccessOfIsRequiredDoesNotMatter(bool accessAttributesFirst)
+    {
+        // Accessing attributes will populate IsRequired if it's not already populated, so we want to test both codepaths explicitly.
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Field1;
+                public required int Property1 { get; set; }
+            }
+
+            public class D
+            {
+                public int Field2;
+                public int Property2 { get; set; }
+            }
+            """);
+
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var c = module.ContainingAssembly.GetTypeByMetadataName("C");
+            AssertEx.NotNull(c);
+            FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
+            PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
+            var d = module.ContainingAssembly.GetTypeByMetadataName("D");
+            AssertEx.NotNull(d);
+            FieldSymbol field2 = d.GetMember<FieldSymbol>("Field2");
+            PropertySymbol property2 = d.GetMember<PropertySymbol>("Property2");
+
+            if (accessAttributesFirst)
+            {
+                assertAttributesEmpty();
+                assertIsRequired();
+            }
+            else
+            {
+                assertIsRequired();
+                assertAttributesEmpty();
+            }
+
+            void assertIsRequired()
+            {
+                Assert.True(c.HasDeclaredRequiredMembers);
+                Assert.True(field1.IsRequired);
+                Assert.True(property1.IsRequired);
+                Assert.False(d.HasDeclaredRequiredMembers);
+                Assert.False(field2.IsRequired);
+                Assert.False(property2.IsRequired);
+            }
+
+            void assertAttributesEmpty()
+            {
+                Assert.Empty(c.GetAttributes());
+                Assert.Empty(field1.GetAttributes());
+                Assert.Empty(property1.GetAttributes());
+                Assert.Empty(d.GetAttributes());
+                Assert.Empty(field2.GetAttributes());
+                Assert.Empty(property2.GetAttributes());
+            }
+        });
     }
 }

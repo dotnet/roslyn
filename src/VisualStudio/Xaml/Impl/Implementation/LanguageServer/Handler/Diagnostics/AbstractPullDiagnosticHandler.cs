@@ -106,9 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 // and the handler here just return the result get from XamlPullDiagnosticService.
                 var diagnosticReport = await _xamlDiagnosticService.GetDiagnosticReportAsync(document, previousResultId, cancellationToken).ConfigureAwait(false);
                 progress.Report(CreateReport(
-                            documentId,
-                            ConvertToVSDiagnostics(diagnosticReport.Diagnostics, document, text),
-                            diagnosticReport.ResultId));
+                    documentId,
+                    ConvertToVSDiagnostics(diagnosticReport.Diagnostics, document, text),
+                    diagnosticReport.ResultId));
             }
 
             return progress.GetValues();

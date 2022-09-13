@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
@@ -614,7 +615,7 @@ class D : B
                 End Using
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView())
 
                     Await WaitForRename(workspace)
@@ -659,5 +660,47 @@ class D : B
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                     renameOverloads:=True)
         End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameFlyoutRemembersCollapsedState(host As RenameTestHost)
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+                                class Program
+                                {
+                                    public void $$goo()
+                                    {
+                                    }
+                                }
+                            </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = CreateWorkspaceWithWaiter(test, host)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameUIOptions.CollapseUI), False)
+
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Assert.NotNull(document)
+
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+                Dim sessionInfo = renameService.StartInlineSession(
+                    document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
+
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Assert.False(vm.IsCollapsed)
+                Assert.True(vm.IsExpanded)
+                vm.IsCollapsed = True
+
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Assert.True(vm.IsCollapsed)
+                Assert.False(vm.IsExpanded)
+
+            End Using
+        End Sub
     End Class
 End Namespace

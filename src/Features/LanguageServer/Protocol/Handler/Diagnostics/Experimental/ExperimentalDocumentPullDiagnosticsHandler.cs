@@ -22,7 +22,7 @@ using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, Unchanged
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka the sumtype of changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
-using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>, DocumentDiagnosticPartialResult>;
+using DocumentDiagnosticPartialReport = SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport, DocumentDiagnosticPartialResult>;
 
 [Method(ExperimentalMethods.TextDocumentDiagnostic)]
 internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
@@ -57,7 +57,12 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         var progressValues = progress.GetValues();
         if (progressValues != null && progressValues.Length > 0)
         {
-            return progressValues.Single().First;
+            if (progressValues.Single().TryGetFirst(out var value))
+            {
+                return value;
+            }
+
+            return progressValues.Single().Second;
         }
 
         return null;
@@ -65,7 +70,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
+        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(context));
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

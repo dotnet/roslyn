@@ -52,7 +52,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly WellKnownLspServerKinds ServerKind;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
+        /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
+        /// </summary>
+        public readonly Workspace? Workspace;
+
+        /// <summary>
+        /// The document that the request is for, if applicable. This comes from the <see
+        /// cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see
+        /// cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
         /// </summary>
         public readonly Document? Document;
 
@@ -73,6 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             WellKnownLspServerKinds serverKind,
+            Workspace? workspace,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
@@ -80,6 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LspServices lspServices,
             CancellationToken queueCancellationToken)
         {
+            Workspace = workspace;
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
@@ -118,23 +128,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 return new RequestContext(
-                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
+                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, workspace: null, document: null,
                     documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
                     queueCancellationToken: queueCancellationToken);
             }
 
-            Solution? workspaceSolution;
+            Workspace? workspace = null;
             Document? document = null;
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
                 // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
                 // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
-                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
+                (workspace, document) = await lspWorkspaceManager.GetLspWorkspaceAndDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
 
-            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
-
+            var workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
             if (workspaceSolution == null)
             {
                 logger.TraceError("Could not find appropriate solution for operation");
@@ -146,6 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 logger,
                 clientCapabilities,
                 serverKind,
+                workspace,
                 document,
                 documentChangeTracker,
                 trackedDocuments,
