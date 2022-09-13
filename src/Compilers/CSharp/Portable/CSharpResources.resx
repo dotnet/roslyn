@@ -7227,6 +7227,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
   </data>
   <data name="ERR_ScopedNotBeforeType" xml:space="preserve">
-    <value>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?</value>
+    <value>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</value>
   </data>
 </root>

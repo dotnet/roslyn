@@ -2791,7 +2791,7 @@ scoped scoped var b;
 }
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (5,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?
+                // (5,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.
                 //         scoped extern ref int b;
                 Diagnostic(ErrorCode.ERR_ScopedNotBeforeType, "scoped").WithLocation(5, 9),
                 // (5,16): error CS0106: The modifier 'extern' is not valid for this item

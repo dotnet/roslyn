@@ -9098,7 +9098,7 @@ class Program
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword?
+                // (7,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.
                 //         scoped extern ref int b = ref x;
                 Diagnostic(ErrorCode.ERR_ScopedNotBeforeType, "scoped").WithLocation(7, 9),
                 // (7,16): error CS0106: The modifier 'extern' is not valid for this item
