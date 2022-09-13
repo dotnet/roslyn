@@ -6,9 +6,9 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.TaskList;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -35,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         internal class VisualStudioTaskListTable : VisualStudioBaseTaskListTable
         {
             // internal for testing
-            internal VisualStudioTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, ITableManagerProvider provider)
-                : base(workspace, threadingContext, todoListProvider, IdentifierString, provider)
+            internal VisualStudioTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider taskProvider, ITableManagerProvider provider)
+                : base(workspace, threadingContext, taskProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
             }

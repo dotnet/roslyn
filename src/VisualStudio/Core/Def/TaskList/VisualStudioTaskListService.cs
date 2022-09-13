@@ -11,12 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.TaskList;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -104,20 +103,20 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
+        [Obsolete]
         async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
             Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
+            var converted = await TodoComment.ConvertAsync(document, todoComments, cancellationToken).ConfigureAwait(false);
 
             await _listener.ReportTaskListItemsAsync(
-                document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
+                document.Id, converted, cancellationToken).ConfigureAwait(false);
         }
 
+        async Task IVsTypeScriptTodoCommentService.ReportTaskListItemsAsync(Document document, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
+            => await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
+
         public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            => _listener.GetTodoItems(documentId);
+            => _listener.GetTaskListItems(documentId);
     }
 }

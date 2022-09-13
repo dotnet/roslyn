@@ -70,10 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public static readonly GroupingComparer Instance = new();
 
             public bool Equals(TaskListItem left, TaskListItem right)
-            {
                 // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
-                return left.Span == right.Span;
-            }
+                => left.Span == right.Span;
 
             public int GetHashCode(TaskListItem data)
                 => data.Span.GetHashCode();
