@@ -2,6 +2,7 @@
 
 #pragma warning disable CA1305
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -11,8 +12,19 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 {
-    public class AnnotatePublicApiAnalyzerTests
+    public abstract class AnnotatePublicApiAnalyzerTestsBase
     {
+        protected abstract bool IsInternalTest { get; }
+        protected abstract string EnabledModifier { get; }
+        protected abstract string ShippedFileName { get; }
+        protected abstract string UnshippedFileName { get; }
+        protected abstract string UnshippedFileNamePrefix { get; }
+        protected abstract string AnnotateApiId { get; }
+        protected abstract string ShouldAnnotateApiFilesId { get; }
+        protected abstract string ObliviousApiId { get; }
+
+        protected abstract IEnumerable<string> DisabledDiagnostics { get; }
+
         #region Utilities
         private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
@@ -27,15 +39,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
             if (shippedApiText != null)
             {
-                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+                test.TestState.AdditionalFiles.Add((ShippedFileName, shippedApiText));
             }
 
             if (unshippedApiText != null)
             {
-                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText));
+                test.TestState.AdditionalFiles.Add((UnshippedFileName, unshippedApiText));
             }
 
             test.ExpectedDiagnostics.AddRange(expected);
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
             await test.RunAsync();
         }
 
@@ -49,11 +62,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
 
             test.TestState.Sources.Add(source);
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, oldShippedApiText));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
+            test.TestState.AdditionalFiles.Add((ShippedFileName, oldShippedApiText));
+            test.TestState.AdditionalFiles.Add((UnshippedFileName, oldUnshippedApiText));
 
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, newShippedApiText));
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, newUnshippedApiText));
+            test.FixedState.AdditionalFiles.Add((ShippedFileName, newShippedApiText));
+            test.FixedState.AdditionalFiles.Add((UnshippedFileName, newUnshippedApiText));
 
             await test.RunAsync();
         }
@@ -64,12 +77,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task NoObliviousWhenUnannotatedClassConstraintAsync()
         {
-            var source = @"
-#nullable enable
-public class C<T> where T : class
-{
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C<T> where T : class
+                {
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"#nullable enable
@@ -83,12 +96,12 @@ C<T>
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task NoObliviousWhenAnnotatedClassConstraintAsync()
         {
-            var source = @"
-#nullable enable
-public class C<T> where T : class?
-{
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C<T> where T : class?
+                {
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"#nullable enable
@@ -102,12 +115,12 @@ C<T>
         [Fact]
         public async Task NoObliviousWhenAnnotatedClassConstraintMultipleFiles()
         {
-            var source = @"
-#nullable enable
-public class C<T> where T : class?
-{
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C<T> where T : class?
+                {
+                }
+                """;
 
             var shippedText = @"#nullable enable";
             var unshippedText1 = @"#nullable enable
@@ -124,9 +137,9 @@ C<T>
                     Sources = { source },
                     AdditionalFiles =
                     {
-                        (DeclarePublicApiAnalyzer.ShippedFileName, shippedText),
-                        (DeclarePublicApiAnalyzer.UnshippedFileName, unshippedText1),
-                        (DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2),
+                        (ShippedFileName, shippedText),
+                        (UnshippedFileName, unshippedText1),
+                        (UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2),
                     },
                 },
             };
@@ -137,14 +150,14 @@ C<T>
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task ObliviousWhenObliviousClassConstraintAsync()
         {
-            var source = @"
-#nullable enable
-public class {|RS0041:C|}<T> // oblivious
-#nullable disable
-    where T : class
-{
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class {|{{ObliviousApiId}}:C|}<T> // oblivious
+                #nullable disable
+                    where T : class
+                {
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"#nullable enable
@@ -158,13 +171,13 @@ C<T>.C() -> void
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
         {
-            var source = @"
-#nullable enable
-public class D { }
-public class C<T> where T : D
-{
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class D { }
+                {{EnabledModifier}} class C<T> where T : D
+                {
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"#nullable enable
@@ -180,13 +193,13 @@ D.D() -> void
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
         {
-            var source = @"
-#nullable enable
-public class D { }
-public class C<T> where T : D?
-{
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class D { }
+                {{EnabledModifier}} class C<T> where T : D?
+                {
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"#nullable enable
@@ -202,16 +215,16 @@ D.D() -> void
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
         {
-            var source = @"
-#nullable enable
-public class D { }
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class D { }
 
-public class {|RS0041:C|}<T> // oblivious
-#nullable disable
-    where T : D
-{
-}
-";
+                {{EnabledModifier}} class {|{{ObliviousApiId}}:C|}<T> // oblivious
+                #nullable disable
+                    where T : D
+                {
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"#nullable enable
@@ -227,13 +240,13 @@ D.D() -> void
         [Fact]
         public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? {|RS0037:Field|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? {|{{ShouldAnnotateApiFilesId}}:Field|};
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"C
@@ -246,13 +259,13 @@ C.Field -> string";
         [Fact]
         public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string {|RS0037:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string {|{{ShouldAnnotateApiFilesId}}:Field2|};
+                }
+                """;
 
             var shippedText = @"";
             var unshippedText = @"C
@@ -265,14 +278,14 @@ C.Field2 -> string";
         [Fact]
         public async Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? {|RS0037:Field|};
-    public string {|RS0037:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? {|{{ShouldAnnotateApiFilesId}}:Field|};
+                    {{EnabledModifier}} string {|{{ShouldAnnotateApiFilesId}}:Field2|};
+                }
+                """;
 
             var shippedText = @"C
 C.C() -> void
@@ -286,15 +299,15 @@ C.Field2 -> string";
         [Fact]
         public async Task AnnotatedMemberInAnnotatedShippedAPIAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? OldField;
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? OldField;
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
+                }
+                """;
 
             var shippedText = @"#nullable enable
 C
@@ -318,15 +331,15 @@ C.Field2 -> string!";
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaUnshippedAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? OldField;
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? OldField;
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
+                }
+                """;
 
             var unshippedText = @"#nullable enable
 C
@@ -350,15 +363,15 @@ C.Field2 -> string!";
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaMultipleUnshippedAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? OldField;
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? OldField;
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
+                }
+                """;
 
             var unshippedText = @"#nullable enable
 C
@@ -380,13 +393,13 @@ C.Field2 -> string!";
 
             test.TestState.Sources.Add(source);
 
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, string.Empty));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText));
+            test.TestState.AdditionalFiles.Add((ShippedFileName, shippedText));
+            test.TestState.AdditionalFiles.Add((UnshippedFileName, string.Empty));
+            test.TestState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText));
 
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, string.Empty));
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, fixedUnshippedText));
+            test.FixedState.AdditionalFiles.Add((ShippedFileName, shippedText));
+            test.FixedState.AdditionalFiles.Add((UnshippedFileName, string.Empty));
+            test.FixedState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, fixedUnshippedText));
 
             await test.RunAsync();
         }
@@ -394,15 +407,15 @@ C.Field2 -> string!";
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaShippedAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? OldField;
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? OldField;
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
+                }
+                """;
 
             var shippedText = @"#nullable enable";
             var unshippedText = @"C
@@ -423,15 +436,15 @@ C.Field2 -> string!";
         [Fact]
         public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaBothAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? OldField;
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? OldField;
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
+                }
+                """;
 
             var shippedText = @"#nullable enable";
             var unshippedText = @"#nullable enable
@@ -454,13 +467,13 @@ C.Field2 -> string!";
         [Fact]
         public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutObliviousAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? {|RS0036:ChangedField|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:ChangedField|};
+                }
+                """;
             var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
@@ -474,12 +487,12 @@ C.ChangedField -> string?";
         [Fact]
         public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarkerAsync()
         {
-            var source = @"
-public class C
-{
-    public string {|RS0036:{|RS0041:Field|}|}; // oblivious
-}
-";
+            var source = $$"""
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:{|{{ObliviousApiId}}:Field|}|}; // oblivious
+                }
+                """;
             var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
@@ -493,12 +506,12 @@ C.C() -> void
         [Fact]
         public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFileAsync()
         {
-            var source = @"
-public class C
-{
-    public string {|RS0036:{|RS0041:Field|}|}; // oblivious
-}
-";
+            var source = $$"""
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:{|{{ObliviousApiId}}:Field|}|}; // oblivious
+                }
+                """;
             var shippedText = $@"#nullable enable
 C
 C.C() -> void
@@ -514,13 +527,13 @@ C.C() -> void
         [Fact]
         public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullableAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? {|RS0036:Field|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
+                }
+                """;
             var shippedText = $@"#nullable enable
 C
 C.C() -> void
@@ -536,13 +549,13 @@ C.Field -> string?";
         [Fact]
         public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullableAsync()
         {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string {|RS0036:Field|};
-}
-";
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifier}} class C
+                {
+                    {{EnabledModifier}} string {|{{AnnotateApiId}}:Field|};
+                }
+                """;
             var shippedText = $@"#nullable enable
 C
 C.C() -> void

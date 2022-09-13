@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     public sealed class NullableEnablePublicApiFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(DiagnosticIds.ShouldAnnotateApiFilesRuleId);
+            ImmutableArray.Create(DiagnosticIds.ShouldAnnotatePublicApiFilesRuleId, DiagnosticIds.ShouldAnnotateInternalApiFilesRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();
@@ -32,14 +32,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
-                TextDocument? document = project.GetShippedDocument();
+                var isPublic = diagnostic.Id == DiagnosticIds.ShouldAnnotatePublicApiFilesRuleId;
+                TextDocument? document = project.GetShippedDocument(isPublic);
 
                 if (document != null)
                 {
                     context.RegisterCodeFix(
                             new DeclarePublicApiFix.AdditionalDocumentChangeAction(
-                                $"Add '#nullable enable' to public API",
+                                $"Add '#nullable enable' to {(isPublic ? "public" : "internal")} API",
                                 document.Id,
+                                isPublic,
                                 c => GetFixAsync(document, c)),
                             diagnostic);
                 }
@@ -48,12 +50,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> GetFixAsync(TextDocument publicSurfaceAreaDocument, CancellationToken cancellationToken)
+        private static async Task<Solution> GetFixAsync(TextDocument surfaceAreaDocument, CancellationToken cancellationToken)
         {
-            SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            SourceText sourceText = await surfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddNullableEnable(sourceText);
 
-            return publicSurfaceAreaDocument.Project.Solution.WithAdditionalDocumentText(publicSurfaceAreaDocument.Id, newSourceText);
+            return surfaceAreaDocument.Project.Solution.WithAdditionalDocumentText(surfaceAreaDocument.Id, newSourceText);
         }
 
         private static SourceText AddNullableEnable(SourceText sourceText)
@@ -79,29 +81,32 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
+                var updatedSurfaceAreaText = new List<(DocumentId, SourceText)>();
 
                 using var uniqueShippedDocuments = PooledHashSet<string>.GetInstance();
                 foreach (var project in _projectsToFix)
                 {
-                    TextDocument? shippedDocument = project.GetShippedDocument();
-                    if (shippedDocument == null ||
-                        shippedDocument.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
+                    foreach (var isPublic in new[] { true, false })
                     {
-                        // Skip past duplicate shipped documents.
-                        // Multi-tfm projects can likely share the same api files, and we want to avoid duplicate code fix application.
-                        continue;
-                    }
+                        TextDocument? shippedDocument = project.GetShippedDocument(isPublic);
+                        if (shippedDocument == null ||
+                            shippedDocument.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
+                        {
+                            // Skip past duplicate shipped documents.
+                            // Multi-tfm projects can likely share the same api files, and we want to avoid duplicate code fix application.
+                            continue;
+                        }
 
-                    var shippedSourceText = await shippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    SourceText newShippedSourceText = AddNullableEnable(shippedSourceText);
-                    updatedPublicSurfaceAreaText.Add(new KeyValuePair<DocumentId, SourceText>(shippedDocument!.Id, newShippedSourceText));
+                        var shippedSourceText = await shippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        SourceText newShippedSourceText = AddNullableEnable(shippedSourceText);
+                        updatedSurfaceAreaText.Add((shippedDocument!.Id, newShippedSourceText));
+                    }
                 }
 
                 Solution newSolution = _solution;
-                foreach (KeyValuePair<DocumentId, SourceText> pair in updatedPublicSurfaceAreaText)
+                foreach (var (document, text) in updatedSurfaceAreaText)
                 {
-                    newSolution = newSolution.WithAdditionalDocumentText(pair.Key, pair.Value);
+                    newSolution = newSolution.WithAdditionalDocumentText(document, text);
                 }
 
                 return newSolution;
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     case FixAllScope.Project:
                         {
                             projectsToFix.Add(fixAllContext.Project);
-                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.EnableNullableInProjectToThePublicApiTitle, fixAllContext.Project.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.EnableNullableInProjectToTheApiTitle, fixAllContext.Project.Name);
                             break;
                         }
 
@@ -135,7 +140,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 }
                             }
 
-                            title = PublicApiAnalyzerResources.EnableNullableInTheSolutionToThePublicApiTitle;
+                            title = PublicApiAnalyzerResources.EnableNullableInTheSolutionToTheApiTitle;
                             break;
                         }
 

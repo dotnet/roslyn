@@ -20,27 +20,28 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private const string ApiDocEquivalenceKeyPrefix = "__ApiDoc__";
 
-        internal static string CreateEquivalenceKey(this DocumentId? doc)
+        internal static string CreateEquivalenceKey(this DocumentId? doc, bool isPublic)
         {
             if (doc is null)
             {
-                return $"{ApiDocEquivalenceKeyPrefix};;";
+                return $"{ApiDocEquivalenceKeyPrefix};;;{isPublic}";
             }
             else
             {
-                return $"{ApiDocEquivalenceKeyPrefix};{doc.ProjectId.Id};{doc.Id}";
+                return $"{ApiDocEquivalenceKeyPrefix};{doc.ProjectId.Id};{doc.Id};{isPublic}";
 
             }
         }
 
-        internal static DocumentId? CreateDocIdFromEquivalenceKey(this FixAllContext fixAllContext)
+        internal static DocumentId? CreateDocIdFromEquivalenceKey(this FixAllContext fixAllContext, out bool isPublic)
         {
             var split = fixAllContext.CodeActionEquivalenceKey.Split(SemicolonSplit, StringSplitOptions.RemoveEmptyEntries);
 
-            if (split.Length == 3 &&
-                string.Equals(split[0], ApiDocEquivalenceKeyPrefix, StringComparison.Ordinal) &&
-                Guid.TryParse(split[1], out var projectGuid) && projectGuid != Guid.Empty &&
-                Guid.TryParse(split[2], out var docGuid) && docGuid != Guid.Empty)
+            isPublic = bool.Parse(split[^1]);
+
+            if (split is [ApiDocEquivalenceKeyPrefix, var projectGuidString, var docGuidString, _]
+                && Guid.TryParse(projectGuidString, out var projectGuid) && projectGuid != Guid.Empty &&
+                Guid.TryParse(docGuidString, out var docGuid) && docGuid != Guid.Empty)
             {
                 var projectId = ProjectId.CreateFromSerialized(projectGuid);
                 return DocumentId.CreateFromSerialized(projectId, docGuid);
@@ -54,8 +55,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(name, StringComparison.Ordinal));
         }
 
-        internal static TextDocument? GetShippedDocument(this Project project)
-            => project.GetPublicApiDocument(DeclarePublicApiAnalyzer.ShippedFileName);
+        internal static TextDocument? GetShippedDocument(this Project project, bool isPublic)
+            => project.GetPublicApiDocument(isPublic ? DeclarePublicApiAnalyzer.PublicShippedFileName : DeclarePublicApiAnalyzer.InternalShippedFileName);
 
         /// <summary>
         /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.
