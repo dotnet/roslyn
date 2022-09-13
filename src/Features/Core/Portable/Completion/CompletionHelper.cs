@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -163,19 +163,15 @@ namespace Microsoft.CodeAnalysis.Completion
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
             => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
-        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, out bool onlyDifferInCaseSensitivity)
+        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, bool filterTextIsLowerCaseOnly)
         {
-            onlyDifferInCaseSensitivity = false;
-
             if (match1 != null && match2 != null)
             {
-                var result = CompareMatches(match1.Value, match2.Value, item1, item2, out onlyDifferInCaseSensitivity);
+                var result = CompareItems(match1.Value, match2.Value, item1, item2, _isCaseSensitive, filterTextIsLowerCaseOnly);
                 if (result != 0)
                 {
                     return result;
                 }
-
-                Debug.Assert(!onlyDifferInCaseSensitivity);
             }
             else if (match1 != null)
             {
@@ -186,11 +182,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
-            var preselectionDiff = CompareSpecialMatchPriorityValue(item1, item2);
-            if (preselectionDiff != 0)
+            var matchPriorityDiff = CompareSpecialMatchPriorityValues(item1, item2);
+            if (matchPriorityDiff != 0)
             {
-                onlyDifferInCaseSensitivity = false;
-                return preselectionDiff;
+                return matchPriorityDiff;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -211,15 +206,14 @@ namespace Microsoft.CodeAnalysis.Completion
         private static bool IsKeywordItem(CompletionItem item)
             => item.Tags.Contains(WellKnownTags.Keyword);
 
-        private int CompareMatches(
+        private static int CompareItems(
             PatternMatch match1,
             PatternMatch match2,
             CompletionItem item1,
             CompletionItem item2,
-            out bool onlyDifferInCaseSensitivity)
+            bool isCaseSensitive,
+            bool filterTextIsLowerCaseOnly)
         {
-            onlyDifferInCaseSensitivity = false;
-
             // *Almost* always prefer non-expanded item regardless of the pattern matching result.
             // Except when all non-expanded items are worse than prefix matching and there's
             // a complete match from expanded ones. 
@@ -269,24 +263,30 @@ namespace Microsoft.CodeAnalysis.Completion
             // The reason we ignore case is that it's very common for people to type expecting
             // completion to fix up their casing.  i.e. 'false' will be written with the 
             // expectation that it will get fixed by the completion list to 'False'.  
-            var diff = match1.CompareTo(match2, ignoreCase: true);
-            if (diff != 0)
+            var caseInsensitiveComparison = match1.CompareTo(match2, ignoreCase: true);
+            if (caseInsensitiveComparison != 0)
             {
-                return diff;
+                return caseInsensitiveComparison;
             }
 
-            // If two items match in case-insensitive manner, and we are in a case-insensitive language,
-            // then the preselected one is considered better, otherwise we will prefer the one matches
-            // case-sensitively. This is to make sure common items in VB like `True` and `False` are prioritized
-            // for selection when user types `t` and `f`.
-            // More details can be found in comments of https://github.com/dotnet/roslyn/issues/4892
-            if (!_isCaseSensitive)
+            // Now we have two items match in case-insensitive manner, if we are in a case-insensitive language or
+            // the filter text contains only lowercase letters, we'd first check if either one has the MatchPriority
+            // set to one of the two special values ("Preselect" and "Deprioritize").
+            //
+            // If these two items have different MatchPriority, then we'd select the one of "Deprioritize" or
+            // the one of "Preselect". Otherwise we will prefer the one matches case-sensitively.
+            //
+            // This is to make sure either
+            // 1. common items in VB like "True" and "False" are prioritized for selection when user types "t" and "f"
+            // (see https://github.com/dotnet/roslyn/issues/4892), or
+            // 2. uncommon items like conversion "(short)" are not selected over `Should` when user types `sho`
+            // (see https://github.com/dotnet/roslyn/issues/55546)
+
+            if (!isCaseSensitive || filterTextIsLowerCaseOnly)
             {
-                var preselectionDiff = CompareSpecialMatchPriorityValue(item1, item2);
-                if (preselectionDiff != 0)
-                {
-                    return preselectionDiff;
-                }
+                var specialMatchPriorityValuesDiff = CompareSpecialMatchPriorityValues(item1, item2);
+                if (specialMatchPriorityValuesDiff != 0)
+                    return specialMatchPriorityValuesDiff;
             }
 
             // At this point we have two items which we're matching in a rather similar fashion.
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // language, then we prefer the former.
             if (item1.GetEntireDisplayText().Length != item2.GetEntireDisplayText().Length)
             {
-                var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 if (item2.GetEntireDisplayText().StartsWith(item1.GetEntireDisplayText(), comparison))
                 {
                     return -1;
@@ -308,10 +308,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now compare the matches again in a case sensitive manner.  If everything was
             // equal up to this point, we prefer the item that better matches based on case.
-            diff = match1.CompareTo(match2, ignoreCase: false);
-            onlyDifferInCaseSensitivity = diff != 0;
-
-            return diff;
+            return match1.CompareTo(match2, ignoreCase: false);
         }
 
         private static int CompareSpecialMatchPriorityValues(CompletionItem item1, CompletionItem item2)
