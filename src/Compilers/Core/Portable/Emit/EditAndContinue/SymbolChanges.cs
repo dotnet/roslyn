@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return change;
         }
-        
+
         protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
 
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
