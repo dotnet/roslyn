@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
@@ -98,7 +98,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public async Task TestTodoComments()
+        public async Task TestTaskList()
         {
             var source = @"
 
@@ -106,7 +106,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 // TODO: Test";
 
             using var workspace = CreateWorkspace();
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("HACK:1"));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), ImmutableArray.Create("HACK:1"));
             workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -125,13 +125,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
-            using var listener = new TodoCommentsListener(
+            using var listener = new TaskListListener(
                 workspace.GlobalOptions,
                 workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
-                onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
+                onTaskListItemsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
 
             await listener.StartAsync();
@@ -142,16 +142,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var pos = new LinePosition(2, 3);
             var posSpan = new FileLinePositionSpan("test1.cs", pos, pos);
-            Assert.Equal(new TodoCommentData(
+            Assert.Equal(new TaskListItem(
                 priority: 1,
                 message: "HACK: Test",
                 documentId,
                 posSpan,
                 posSpan), items[0]);
 
-            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("TODO:1"));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), ImmutableArray.Create("TODO:1"));
 
             (documentId, items) = await resultSource.Task.WithTimeout(TimeSpan.FromMinutes(1));
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
@@ -159,7 +159,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var linePos = new LinePosition(3, 3);
             var span = new FileLinePositionSpan("test1.cs", linePos, linePos);
-            Assert.Equal(new TodoCommentData(
+            Assert.Equal(new TaskListItem(
                 priority: 1,
                 message: "TODO: Test",
                 documentId,
@@ -309,8 +309,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
         }
 
-        [Fact]
-        [WorkItem(52578, "https://github.com/dotnet/roslyn/issues/52578")]
+        [Fact, WorkItem(52578, "https://github.com/dotnet/roslyn/issues/52578")]
         public async Task TestIncrementalUpdateHandlesReferenceReversal()
         {
             using var workspace = CreateWorkspace();

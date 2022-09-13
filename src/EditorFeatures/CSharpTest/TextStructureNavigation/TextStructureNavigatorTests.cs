@@ -17,6 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
     public class TextStructureNavigatorTests : AbstractTextStructureNavigatorTests
     {
         protected override string ContentType => ContentTypeNames.CSharpContentType;
@@ -24,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         protected override TestWorkspace CreateWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [Fact]
         public void Empty()
         {
             AssertExtent("$${|Insignificant:|}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void Whitespace()
         {
             AssertExtent(
@@ -43,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 "{|Insignificant:   $$|}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void EndOfFile()
         {
             AssertExtent(
                 "using System{|Significant:;|}$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [Fact]
         public void NewLine()
         {
             AssertExtent(
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 "class Class1 {\r\n$${|Insignificant:\r\n|}}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void SingleLineComment()
         {
             AssertExtent(
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 "// {|Significant:($$)|} test");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void MultiLineComment()
         {
             AssertExtent(
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"/* () test {|Significant:*/|}$$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void Keyword()
         {
             AssertExtent(
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"public {|Significant:clas$$s|} Class1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void Identifier()
         {
             AssertExtent(
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"public class {|Significant:SomeClas$$s|} : IDisposable");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void EscapedIdentifier()
         {
             AssertExtent(
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"public enum {|Significant:@interfac$$e|} : int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void Number()
         {
             AssertExtent(
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"class Test { private double num   = -{|Significant:1.234678e1$$0|}; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void String()
         {
             AssertExtent(
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"class Test { private string s1 = "" () test  ""{|Significant:$$;|} }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void Utf8String()
         {
             AssertExtent(
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"class Test { private string s1 = "" () test  ""u8{|Significant:$$;|} }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void InterpolatedString1()
         {
             AssertExtent(
@@ -305,8 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 @"class Test { string x = ""hello""; string s = $"" { x } hello{|Significant:$$""|}; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        [WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
+        [WpfFact, WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringContent()
         {
             AssertExtent(
@@ -352,8 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     """""";");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        [WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
+        [WpfFact, WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringDelimeter1()
         {
             AssertExtent(
@@ -378,8 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     """""";");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        [WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
+        [WpfFact, WorkItem(59581, "https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringDelimeter2()
         {
             AssertExtent(
@@ -404,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     {|Significant:""""$$""|};");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void TestUtf8RawStringDelimeter()
         {
             AssertExtent(
@@ -477,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             Assert.Equal(expectedSpan, actualSpan.Span);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void GetSpanOfEnclosingTest()
         {
             // First operation returns span of 'Class1'
@@ -493,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 @"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 0, 16, 0, 16);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void GetSpanOfFirstChildTest()
         {
             // Go from 'class Class1 { }' to 'class'
@@ -509,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 }", (n, s) => n.GetSpanOfFirstChild(s), 0, 5, 0, 5);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void GetSpanOfNextSiblingTest()
         {
             // Go from 'class' to 'Class1'
@@ -519,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 }", (n, s) => n.GetSpanOfNextSibling(s), 0, 5, 6, 6);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact]
         public void GetSpanOfPreviousSiblingTest()
         {
             // Go from '{' to 'Class1'

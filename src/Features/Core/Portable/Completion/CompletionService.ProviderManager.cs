@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     {
                         providers = GetImportedAndBuiltInProvidersWorker(roles);
                         _rolesToProviders.Add(roles, providers);
+
+                        foreach (var provider in providers)
+                            _nameToProvider[provider.Name] = provider;
                     }
 
                     return providers;
@@ -101,19 +104,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (item.ProviderName == null)
                     return null;
 
-                CompletionProvider? provider = null;
-                using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
-
                 lock (_gate)
                 {
-                    if (!_nameToProvider.TryGetValue(item.ProviderName, out provider))
-                    {
-                        provider = GetImportedAndBuiltInProviders(roles: ImmutableHashSet<string>.Empty).FirstOrDefault(isNameMatchingProviderPredicate);
-                        _nameToProvider.Add(item.ProviderName, provider);
-                    }
+                    if (_nameToProvider.TryGetValue(item.ProviderName, out var provider))
+                        return provider;
                 }
 
-                return provider ?? GetProjectCompletionProviders(project).FirstOrDefault(isNameMatchingProviderPredicate);
+                using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
+                return GetProjectCompletionProviders(project).FirstOrDefault(isNameMatchingProviderPredicate);
             }
 
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(

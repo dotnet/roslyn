@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class MultilineLambdaStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of MultiLineLambdaExpressionSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New MultilineLambdaStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestInClassScope() As Task
             Const code = "
 Class C
@@ -27,7 +28,7 @@ End Class
                 Region("span", "Sub() ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestInMethodScope() As Task
             Const code = "
 Class C
@@ -42,7 +43,7 @@ End Class
                 Region("span", "Sub() ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestFunction() As Task
             Const code = "
 Class C
@@ -55,7 +56,7 @@ End Class
                 Region("span", "Function(x As Integer, y As List(Of String)) As Func(Of Integer, Func(Of String, Integer)) ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestInArgumentContext() As Task
             Const code = "
 Class C
@@ -71,7 +72,7 @@ End Class
                 Region("span", "Function(x As Integer, y As List(Of String)) As List(Of List(Of String)) ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestLambdaWithReturnType() As Task
             Const code = "
 Class C

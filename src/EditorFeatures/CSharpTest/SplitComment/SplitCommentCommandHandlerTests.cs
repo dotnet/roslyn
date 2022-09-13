@@ -11,13 +11,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.SplitComment)]
     public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
     {
         protected override TestWorkspace CreateWorkspace(string markup)
             => TestWorkspace.CreateCSharp(markup);
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestWithSelection()
         {
             TestHandled(
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestWithAllWhitespaceSelection()
         {
             TestHandled(
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestMissingInSlashes()
         {
             TestNotHandled(
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestMissingAtEndOfFile()
         {
             TestNotHandled(
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestMissingBeforeSlashes()
         {
             TestNotHandled(
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestMissingWithMultiSelection()
         {
             TestNotHandled(
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitStartOfComment()
         {
             TestHandled(
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitStartOfQuadComment()
         {
             TestHandled(
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitMiddleOfQuadComment()
         {
             TestNotHandled(
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards1()
         {
             TestNotHandled(
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards2()
         {
             TestNotHandled(
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards3()
         {
             TestNotHandled(
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards4()
         {
             TestNotHandled(
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitStartOfCommentWithLeadingSpace1()
         {
             TestHandled(
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitStartOfCommentWithLeadingSpace2()
         {
             TestHandled(
@@ -274,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfTheory]
         [InlineData("X[||]Test Comment")]
         [InlineData("X [||]Test Comment")]
         [InlineData("X[||] Test Comment")]
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfTheory]
         [InlineData("X[||]Test Comment")]
         [InlineData("X [||]Test Comment")]
         [InlineData("X[||] Test Comment")]
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitMiddleOfComment()
         {
             TestHandled(
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitEndOfComment()
         {
             TestNotHandled(
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitCommentEndOfLine1()
         {
             TestHandled(
@@ -383,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestSplitCommentEndOfLine2()
         {
             TestHandled(
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestUseTabs()
         {
             TestHandled(
@@ -424,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 }", useTabs: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestDoesNotHandleDocComments()
         {
             TestNotHandled(

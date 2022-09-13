@@ -16307,7 +16307,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
+                // (5,38): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
                 //         public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("i", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(out int)").WithLocation(5, 38));
         }
@@ -16350,7 +16350,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
+                // (4,24): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
                 //     static ref int F1([UnscopedRef] out int i1)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("b", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(bool)").WithLocation(4, 24),
                 // (12,20): error CS8166: Cannot return a parameter by reference 'i2' because it is not a ref parameter
@@ -16495,6 +16495,33 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
+        public void CallUnscopedRefMethodFromScopedOne()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+
+ref struct A
+{
+    void Test()
+    {
+        this.GetSpan();
+    }
+
+    [UnscopedRef]
+    Span<byte> GetSpan() => default;
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         this.GetSpan();
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
+                );
         }
 
         [Theory]
@@ -16757,16 +16784,16 @@ public abstract class A<T>
                 languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,29): warning CS9072: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
+                    // (3,29): warning CS9073: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
                     //     public override ref int F1(out int i1) => throw null; // 1
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 29),
-                    // (5,29): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
+                    // (5,29): warning CS9073: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
                     //     public override ref int F3(ref R<int> r3) => throw null; // 2
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 29),
-                    // (6,29): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
+                    // (6,29): warning CS9073: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
                     //     public override ref int F4(in R<int> r4) => throw null; // 3
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 29),
-                    // (7,29): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
+                    // (7,29): warning CS9073: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
                     //     public override ref int F5(out R<int> r5) => throw null; // 4
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 29));
             }
@@ -16822,28 +16849,28 @@ class B2 : I<object>
                 languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,29): warning CS9072: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
+                    // (3,29): warning CS9073: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
                     //     public ref readonly int F1(out int i1) => throw null; // 1
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 29),
-                    // (5,29): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
+                    // (5,29): warning CS9073: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
                     //     public ref readonly int F3(ref R<int> r3) => throw null; // 2
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 29),
-                    // (6,29): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
+                    // (6,29): warning CS9073: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
                     //     public ref readonly int F4(in R<int> r4) => throw null; // 3
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 29),
-                    // (7,29): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
+                    // (7,29): warning CS9073: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
                     //     public ref readonly int F5(out R<int> r5) => throw null; // 4
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 29),
-                    // (11,35): warning CS9072: The 'scoped' modifier of parameter 'o1' doesn't match overridden or implemented member.
+                    // (11,35): warning CS9073: The 'scoped' modifier of parameter 'o1' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F1(out object o1) => throw null; // 5
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("o1").WithLocation(11, 35),
-                    // (13,35): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
+                    // (13,35): warning CS9073: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F3(ref R<object> r3) => throw null; // 6
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(13, 35),
-                    // (14,35): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
+                    // (14,35): warning CS9073: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F4(in R<object> r4) => throw null; // 7
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(14, 35),
-                    // (15,35): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
+                    // (15,35): warning CS9073: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F5(out R<object> r5) => throw null; // 8
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(15, 35));
             }
@@ -16963,16 +16990,16 @@ public delegate ref T D5<T>(out R<T> r5);
                 languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (10,22): warning CS9071: The 'scoped' modifier of parameter 'i1' doesn't match target 'D1<int>'.
+                    // (10,22): warning CS9072: The 'scoped' modifier of parameter 'i1' doesn't match target 'D1<int>'.
                     //         D1<int> d1 = F1; // 1
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F1").WithArguments("i1", "D1<int>").WithLocation(10, 22),
-                    // (12,22): warning CS9071: The 'scoped' modifier of parameter 'r3' doesn't match target 'D3<int>'.
+                    // (12,22): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match target 'D3<int>'.
                     //         D3<int> d3 = F3; // 2
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r3", "D3<int>").WithLocation(12, 22),
-                    // (13,22): warning CS9071: The 'scoped' modifier of parameter 'r4' doesn't match target 'D4<int>'.
+                    // (13,22): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match target 'D4<int>'.
                     //         D4<int> d4 = F4; // 3
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F4").WithArguments("r4", "D4<int>").WithLocation(13, 22),
-                    // (14,22): warning CS9071: The 'scoped' modifier of parameter 'r5' doesn't match target 'D5<int>'.
+                    // (14,22): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match target 'D5<int>'.
                     //         D5<int> d5 = F5; // 4
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F5").WithArguments("r5", "D5<int>").WithLocation(14, 22));
             }
@@ -17021,13 +17048,13 @@ class Program
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,38): warning CS9072: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                // (3,38): warning CS9073: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public override ref readonly int F1(out int i) => throw null; // 1
                 Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(3, 38),
-                // (4,26): warning CS9072: The 'scoped' modifier of parameter 's' doesn't match overridden or implemented member.
+                // (4,26): warning CS9073: The 'scoped' modifier of parameter 's' doesn't match overridden or implemented member.
                 //     ref string I<string>.F2(out string s) => throw null; // 2
                 Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("s").WithLocation(4, 26),
-                // (11,25): warning CS9071: The 'scoped' modifier of parameter 'o' doesn't match target 'D3<object>'.
+                // (11,25): warning CS9072: The 'scoped' modifier of parameter 'o' doesn't match target 'D3<object>'.
                 //         D3<object> d3 = F3; // 3
                 Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F3").WithArguments("o", "D3<object>").WithLocation(11, 25));
 
@@ -17102,13 +17129,13 @@ class Program
             if (languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,38): warning CS9072: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                    // (3,38): warning CS9073: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                     //     public override ref readonly int F1(R<int> r) => throw null; // 1
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(3, 38),
-                    // (4,26): warning CS9072: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                    // (4,26): warning CS9073: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                     //     ref string I<string>.F2(R<string> r) => throw null; // 2
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(4, 26),
-                    // (11,25): warning CS9071: The 'scoped' modifier of parameter 'r' doesn't match target 'D3<object>'.
+                    // (11,25): warning CS9072: The 'scoped' modifier of parameter 'r' doesn't match target 'D3<object>'.
                     //         D3<object> d3 = F3; // 3
                     Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r", "D3<object>").WithLocation(11, 25));
             }
@@ -17334,6 +17361,158 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
 
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
             Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_01()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    var a = ([UnscopedRef] ref RefStruct s) => { };
+    var b = ([UnscopedRef] out RegularStruct s) => { };
+    var c = ([UnscopedRef] out RefStruct s) => { };
+
+    D1 x = ([UnscopedRef] ref RefStruct s) => { };
+    D2 y = ([UnscopedRef] out RegularStruct s) => { };
+    D3 z = ([UnscopedRef] out RefStruct s) => { };
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    void localA([UnscopedRef] ref RefStruct s) { };
+    void localB([UnscopedRef] out RegularStruct s) { };
+    void localC([UnscopedRef] out RefStruct s) { };
+
+    var a = localA;
+    var b = localB;
+    var c = localC;
+
+    D1 x = localA;
+    D2 y = localB;
+    D3 z = localC;
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_03()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C1
+{
+  public void M()
+  {
+    var a = A;
+    var b = B;
+    var c = C;
+
+    D1 x = A;
+    D2 y = B;
+    D3 z = C;
+  }
+
+  void A([UnscopedRef] ref RefStruct s) { }
+  void B([UnscopedRef] out RegularStruct s) { }
+  void C([UnscopedRef] out RefStruct s) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
         }
     }
 }

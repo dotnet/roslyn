@@ -2119,8 +2119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileTypeNonUniquePath = 9068,
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
-        WRN_ScopedMismatchInParameterOfTarget = 9071,
-        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9072,
+        ERR_FileLocalDuplicateNameInNS = 9071,
+        WRN_ScopedMismatchInParameterOfTarget = 9072,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9073,
 
         #endregion
 
