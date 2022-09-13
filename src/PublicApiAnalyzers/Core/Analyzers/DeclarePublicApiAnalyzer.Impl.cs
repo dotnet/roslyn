@@ -771,13 +771,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 #pragma warning restore IDE0047 // Remove unnecessary parentheses
 
-                for (var current = symbol.ContainingType; current != null; current = current.ContainingType)
+                for (var current = symbol; current != null; current = current.ContainingType)
                 {
                     switch (current.DeclaredAccessibility)
                     {
                         case Accessibility.Protected:
                         case Accessibility.ProtectedOrInternal when _isPublic:
-                            if (!CanTypeBeExtended(current))
+                            // Can't have top-level protected or protected internal members
+                            if (!CanTypeBeExtended(current.ContainingType))
                             {
                                 return false;
                             }
