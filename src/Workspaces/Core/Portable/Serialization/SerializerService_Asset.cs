@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
+        private SourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -55,32 +55,24 @@ namespace Microsoft.CodeAnalysis.Serialization
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)
             {
-                var storage2 = (ITemporaryStorageService2)_storageService;
+                var storageService2 = (ITemporaryStorageService2)_storageService;
 
                 var name = reader.ReadString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
-                if (storage is ITemporaryTextStorageWithName storageWithName)
-                {
-                    return new SerializableSourceText(storageWithName);
-                }
-                else
-                {
-                    return new SerializableSourceText(storage.ReadText(cancellationToken));
-                }
+                var storage = storageService2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
+                return storage.ReadText(cancellationToken);
             }
-
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
+            else
+            {
+                Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
+                return SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken);
+            }
         }
 
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
-            return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
-        }
+            => DeserializeSerializableSourceText(reader, cancellationToken);
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {

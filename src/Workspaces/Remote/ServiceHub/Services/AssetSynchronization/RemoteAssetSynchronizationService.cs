@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(baseTextChecksum, out var serializableSourceText))
+                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
                     {
-                        return await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        return sourceText;
                     }
 
                     // do slower one
