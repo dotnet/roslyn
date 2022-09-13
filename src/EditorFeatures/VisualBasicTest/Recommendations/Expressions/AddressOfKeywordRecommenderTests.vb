@@ -4,126 +4,126 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class AddressOfKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfNotInStatementTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterReturnTest()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterArgument1Test()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterArgument2Test()
             VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterBinaryExpressionTest()
             VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterNotTest()
             VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterTypeOfTest()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterDoWhileTest()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterDoUntilTest()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterLoopWhileTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterLoopUntilTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterIfTest()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterElseIfTest()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterElseSpaceIfTest()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterErrorTest()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterThrowTest()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterInitializerTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterArrayInitializerSquiggleTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfAfterArrayInitializerCommaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AddressOfInAddHandlerTest()
             VerifyRecommendationsContain(<MethodBody>AddHandler goo, |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddressOfInRemoveHandlerTest()
             VerifyRecommendationsContain(<MethodBody>RemoveHandler goo, |</MethodBody>, "AddressOf")
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub AddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Module Program
@@ -141,9 +141,7 @@ End Module
             VerifyRecommendationsContain(code, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         Public Sub AddressOfNotAfterAddressOfTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
@@ -156,9 +154,7 @@ End Function
             VerifyRecommendationsMissing(code, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         Public Sub AddressOfNotAfterAddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
@@ -169,9 +165,7 @@ Delegate Sub Goo()
             VerifyRecommendationsMissing(code, "AddressOf")
         End Sub
 
-        <Fact>
-        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         Public Sub AddressOfNestedInsideAddressOfExpressionTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C

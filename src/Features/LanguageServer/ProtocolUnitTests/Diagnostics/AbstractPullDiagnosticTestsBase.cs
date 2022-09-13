@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 using Microsoft.CodeAnalysis.Options;
@@ -52,17 +53,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             TestLspServer testLspServer,
             bool useVSDiagnostics,
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
-            bool useProgress = false)
+            bool useProgress = false,
+            bool includeTaskListItems = false)
         {
+            var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
             await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
             {
                 BufferedProgress<VSInternalWorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
-                VSInternalMethods.WorkspacePullDiagnosticName,
-                CreateWorkspaceDiagnosticParams(previousResults, progress),
-                CancellationToken.None).ConfigureAwait(false);
+                    VSInternalMethods.WorkspacePullDiagnosticName,
+                    CreateWorkspaceDiagnosticParams(previousResults, progress),
+                    CancellationToken.None).ConfigureAwait(false);
 
                 if (useProgress)
                 {

@@ -9,16 +9,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class ThrowKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtRoot_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
@@ -34,7 +35,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
@@ -42,28 +43,28 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestBeforeStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -71,7 +72,7 @@ $$");
 return true;"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -79,7 +80,7 @@ return true;"));
 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -88,7 +89,7 @@ $$"));
 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterIf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -96,7 +97,7 @@ $$"));
     $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterDo()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -104,7 +105,7 @@ $$"));
     $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterWhile()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -112,7 +113,7 @@ $$"));
     $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterFor()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -120,7 +121,7 @@ $$"));
     $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterForeach()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -128,14 +129,14 @@ $$"));
     $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterThrow()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"throw $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInClass()
         {
             await VerifyAbsenceAsync(@"class C
@@ -144,7 +145,7 @@ $$"));
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInNestedIf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -153,8 +154,7 @@ $$"));
       $$"));
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestAfterArrow()
         {
             await VerifyKeywordAsync(
@@ -164,8 +164,7 @@ $$"));
 ");
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestAfterQuestionQuestion()
         {
             await VerifyKeywordAsync(
@@ -177,8 +176,7 @@ $$"));
 ");
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestInConditional1()
         {
             await VerifyKeywordAsync(
@@ -190,8 +188,7 @@ $$"));
 ");
         }
 
-        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestInConditional2()
         {
             await VerifyKeywordAsync(

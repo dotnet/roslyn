@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: false,
                 allowThis: false,
                 addRefReadOnlyModifier: addRefReadOnlyModifier,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {

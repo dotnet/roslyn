@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
     public class UseCoalesceExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseCoalesceExpressionTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseCoalesceExpressionDiagnosticAnalyzer(), new UseCoalesceExpressionCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnLeft_Equals()
         {
             await TestInRegularAndScript1Async(
@@ -51,7 +52,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnLeft_NotEquals()
         {
             await TestInRegularAndScript1Async(
@@ -75,7 +76,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnRight_Equals()
         {
             await TestInRegularAndScript1Async(
@@ -99,7 +100,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnRight_NotEquals()
         {
             await TestInRegularAndScript1Async(
@@ -123,7 +124,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestComplexExpression()
         {
             await TestInRegularAndScript1Async(
@@ -147,7 +148,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestParens1()
         {
             await TestInRegularAndScript1Async(
@@ -171,7 +172,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestParens2()
         {
             await TestInRegularAndScript1Async(
@@ -195,7 +196,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestParens3()
         {
             await TestInRegularAndScript1Async(
@@ -219,7 +220,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestParens4()
         {
             await TestInRegularAndScript1Async(
@@ -243,7 +244,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -269,7 +270,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -293,7 +294,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestInRegularAndScript1Async(
@@ -317,8 +318,7 @@ class C
 }");
         }
 
-        [WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact, WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -346,8 +346,7 @@ class Program
 }");
         }
 
-        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
         public async Task TestInExpressionOfT()
         {
             await TestInRegularAndScript1Async(
@@ -373,7 +372,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestUnconstrainedTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -387,7 +386,7 @@ class C<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestStructConstrainedTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -401,7 +400,7 @@ class C<T> where T : struct
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestClassConstrainedTypeParameter()
         {
             await TestInRegularAndScript1Async(
@@ -423,7 +422,7 @@ class C<T> where T : class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestNotOnNullable()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -437,7 +436,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnArray()
         {
             await TestInRegularAndScript1Async(
@@ -459,7 +458,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnInterface()
         {
             await TestInRegularAndScript1Async(
@@ -481,7 +480,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [Fact]
         public async Task TestOnDynamic()
         {
             await TestInRegularAndScript1Async(
@@ -503,8 +502,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestSemicolonPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -528,8 +526,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestParenthesisPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -553,8 +550,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        [Fact, WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
         public async Task TestAnotherConditionalPlacement()
         {
             await TestInRegularAndScript1Async(
@@ -582,8 +578,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-        [WorkItem(53190, "https://github.com/dotnet/roslyn/issues/53190")]
+        [Fact, WorkItem(53190, "https://github.com/dotnet/roslyn/issues/53190")]
         public async Task TestNotWithTargetTyping()
         {
             await TestMissingAsync(
