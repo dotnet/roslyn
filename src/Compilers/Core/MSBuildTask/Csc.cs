@@ -382,6 +382,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             //      /reference:Goo=System.Xml.dll
                             commandLine.AppendSwitchAliased(switchName, trimmedAlias, reference.ItemSpec);
                         }
+
+                        //test change
+                        bool isReferenceAssembly = Utilities.TryConvertItemMetadataToBool(reference,
+                                                                        "ReferenceOutputAssembly");
+
+                        if (reference.GetMetadata("TargetFrameworkIdentifier").Equals(".NETFramework", StringComparison.OrdinalIgnoreCase)
+                            && isReferenceAssembly)
+                        {
+                            commandLine.AppendSwitchIfNotNull("/originalitemspec:", reference.GetMetadata("OriginalItemSpec"));
+                            commandLine.AppendSwitchIfNotNull("/copymarker:", reference.GetMetadata("CopyUpToDateMarker"));
+                        }
                     }
                 }
             }
