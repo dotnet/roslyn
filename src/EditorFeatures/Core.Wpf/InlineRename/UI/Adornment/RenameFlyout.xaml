@@ -7,6 +7,8 @@
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:imageutils="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:utils="clr-namespace:Microsoft.CodeAnalysis.Utilities"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="200"
@@ -21,6 +23,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <utils:BrushToColorConverter x:Key="BrushToColorConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -43,7 +46,12 @@
                     HorizontalAlignment="Stretch" />
 
                 <!-- Expand/Collapse button and glyph -->
-                <Button x:Name="ToggleExpandButton" Grid.Column="1" Click="ToggleExpand" Background="Transparent">
+                <Button 
+                    x:Name="ToggleExpandButton" 
+                    Grid.Column="1" 
+                    Click="ToggleExpand" 
+                    Background="Transparent"
+                    imageutils:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">

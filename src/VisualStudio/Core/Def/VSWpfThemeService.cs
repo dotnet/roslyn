@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public void ApplyThemeToElement(FrameworkElement frameworkElement)
         {
             frameworkElement.Resources.MergedDictionaries.Add(_themeDictionary);
-            ImageThemingUtilities.SetImageBackgroundColor(frameworkElement, GetThemeColor(EnvironmentColors.EnvironmentBackgroundColorKey));
         }
 
         public Color GetThemeColor(ThemeResourceKey themeResourceKey)

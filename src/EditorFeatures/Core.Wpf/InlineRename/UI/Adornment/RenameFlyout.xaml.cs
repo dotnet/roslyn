@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (themeService is not null)
             {
                 Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
-                ToggleExpandButton.Foreground = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ButtonTextColorKey));
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
-                ImageThemingUtilities.SetImageBackgroundColor(ToggleExpandButton, themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
             }
         }
 
