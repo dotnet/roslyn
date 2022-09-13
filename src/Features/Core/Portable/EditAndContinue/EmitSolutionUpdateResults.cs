@@ -149,16 +149,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var fileSpan = data.DataLocation?.GetFileLinePositionSpan();
+                var fileSpan = data.DataLocation.GetFileLinePositionSpan();
 
                 builder.Add(new ManagedHotReloadDiagnostic(
                     data.Id,
                     data.Message ?? FeaturesResources.Unknown_error_occurred,
-                    (updateStatus == ModuleUpdateStatus.RestartRequired) ?
-                        ManagedHotReloadDiagnosticSeverity.RestartRequired :
-                        ManagedHotReloadDiagnosticSeverity.Error,
-                    fileSpan?.Path ?? "",
-                    fileSpan?.Span.ToSourceSpan() ?? default));
+                    updateStatus == ModuleUpdateStatus.RestartRequired
+                        ? ManagedHotReloadDiagnosticSeverity.RestartRequired
+                        : ManagedHotReloadDiagnosticSeverity.Error,
+                    fileSpan.Path ?? "",
+                    fileSpan.Span.ToSourceSpan()));
 
                 // only report first error
                 break;

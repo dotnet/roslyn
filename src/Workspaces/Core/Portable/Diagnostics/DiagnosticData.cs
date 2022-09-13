@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 WarningLevel, CustomTags, Properties, ProjectId, location, additionalLocations,
                 Language, Title, Description, HelpLink, IsSuppressed);
 
-        public DocumentId? DocumentId => DataLocation?.DocumentId;
-        public bool HasTextSpan => (DataLocation?.SourceSpan).HasValue;
+        public DocumentId? DocumentId => DataLocation.DocumentId;
+        public bool HasTextSpan => DataLocation.SourceSpan.HasValue;
 
         /// <summary>
         /// Get <see cref="TextSpan"/> if it exists, throws otherwise.
@@ -136,10 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// In those cases use <see cref="GetTextSpan(DiagnosticDataLocation, SourceText)"/> method instead to calculate span from original line/column.
         /// </summary>
         public TextSpan GetTextSpan()
-        {
-            Contract.ThrowIfFalse(DataLocation != null && DataLocation.SourceSpan.HasValue);
-            return DataLocation.SourceSpan.Value;
-        }
+            => DataLocation.SourceSpan.Value;
 
         public override bool Equals(object? obj)
             => obj is DiagnosticData data && Equals(data);
@@ -157,8 +154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return
-               DataLocation?.OriginalStartLine == other.DataLocation?.OriginalStartLine &&
-               DataLocation?.OriginalStartColumn == other.DataLocation?.OriginalStartColumn &&
+               DataLocation.OriginalStartLine == other.DataLocation.OriginalStartLine &&
+               DataLocation.OriginalStartColumn == other.DataLocation.OriginalStartColumn &&
                Id == other.Id &&
                Category == other.Category &&
                Severity == other.Severity &&
@@ -177,8 +174,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                Hash.Combine(IsSuppressed,
                Hash.Combine(ProjectId,
                Hash.Combine(DocumentId,
-               Hash.Combine(DataLocation?.OriginalStartLine ?? 0,
-               Hash.Combine(DataLocation?.OriginalStartColumn ?? 0, (int)Severity)))))))));
+               Hash.Combine(DataLocation.OriginalStartLine,
+               Hash.Combine(DataLocation.OriginalStartColumn, (int)Severity)))))))));
 
         public override string ToString()
         {
@@ -187,17 +184,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Severity,
                 Message,
                 ProjectId,
-                DataLocation?.MappedFilePath ?? "",
-                DataLocation?.MappedStartLine,
-                DataLocation?.MappedStartColumn,
-                DataLocation?.OriginalFilePath ?? "",
-                DataLocation?.OriginalStartLine,
-                DataLocation?.OriginalStartColumn);
+                DataLocation.MappedFilePath ?? "",
+                DataLocation.MappedStartLine,
+                DataLocation.MappedStartColumn,
+                DataLocation.OriginalFilePath,
+                DataLocation.OriginalStartLine,
+                DataLocation.OriginalStartColumn);
         }
 
-        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation? diagnosticLocation, SourceText text)
+        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation diagnosticLocation, SourceText text)
         {
-            if (diagnosticLocation?.SourceSpan != null)
+            if (diagnosticLocation.SourceSpan != null)
             {
                 return EnsureInBounds(diagnosticLocation.SourceSpan.Value, text);
             }
@@ -257,18 +254,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation? dataLocation, SourceText text, bool useMapped)
+        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation dataLocation, SourceText text, bool useMapped)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
                 return default;
 
-            var startLine = (useMapped ? dataLocation?.MappedStartLine : dataLocation?.OriginalStartLine) ?? 0;
-            var endLine = (useMapped ? dataLocation?.MappedEndLine : dataLocation?.OriginalEndLine) ?? 0;
+            var startLine = (useMapped ? dataLocation.MappedStartLine : dataLocation.OriginalStartLine);
+            var endLine = (useMapped ? dataLocation.MappedEndLine : dataLocation.OriginalEndLine);
 
             // Make sure the starting columns are never negative.
-            var startColumn = Math.Max((useMapped ? dataLocation?.MappedStartColumn : dataLocation?.OriginalStartColumn) ?? 0, 0);
-            var endColumn = Math.Max((useMapped ? dataLocation?.MappedEndColumn : dataLocation?.OriginalEndColumn) ?? 0, 0);
+            var startColumn = Math.Max((useMapped ? dataLocation.MappedStartColumn : dataLocation.OriginalStartColumn), 0);
+            var endColumn = Math.Max((useMapped ? dataLocation.MappedEndColumn : dataLocation.OriginalEndColumn), 0);
 
             if (startLine < 0)
             {
@@ -310,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new LinePositionSpan(start, end);
         }
 
-        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
+        public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
             var linePositionSpan = GetLinePositionSpan(dataLocation, text, useMapped: false);
 

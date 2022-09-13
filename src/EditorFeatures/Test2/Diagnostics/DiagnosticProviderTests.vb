@@ -379,8 +379,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       Equals(x.DataLocation?.OriginalStartLine, y.DataLocation?.OriginalStartLine) AndAlso
-                       Equals(x.DataLocation?.OriginalStartColumn, y.DataLocation?.OriginalStartColumn)
+                       Equals(x.DataLocation.OriginalStartLine, y.DataLocation.OriginalStartLine) AndAlso
+                       Equals(x.DataLocation.OriginalStartColumn, y.DataLocation.OriginalStartColumn)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -388,8 +388,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(If(obj.DataLocation?.OriginalStartLine, 0),
-                       Hash.Combine(If(obj.DataLocation?.OriginalStartColumn, 0), obj.Severity))))))
+                       Hash.Combine(obj.DataLocation.OriginalStartLine,
+                       Hash.Combine(obj.DataLocation.OriginalStartColumn, obj.Severity))))))
             End Function
         End Class
     End Class

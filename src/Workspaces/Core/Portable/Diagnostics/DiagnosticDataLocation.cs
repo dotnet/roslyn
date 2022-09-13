@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal string? GetFilePath()
             => GetFilePath(OriginalFilePath, MappedFilePath);
 
-        private static string? GetFilePath(string? original, string? mapped)
+        private static string? GetFilePath(string original, string? mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
