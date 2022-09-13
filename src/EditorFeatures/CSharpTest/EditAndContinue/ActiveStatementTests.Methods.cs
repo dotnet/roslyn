@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Methods
 
-        [WorkItem(740443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740443")]
-        [Fact]
+        [Fact, WorkItem(740443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740443")]
         public void Method_Delete_Leaf1()
         {
             var src1 = @"
@@ -270,8 +269,7 @@ class C
         }
 
         // Async
-        [WorkItem(749458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749458")]
-        [Fact]
+        [Fact, WorkItem(749458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749458")]
         public void Update_Leaf_AsyncMethod()
         {
             var src1 = @"
@@ -310,8 +308,7 @@ class Test
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
-        [Fact]
+        [Fact, WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         public void Update_Inner_AsyncMethod()
         {
             var src1 = @"
@@ -351,8 +348,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "string result = f.WaitAsync(6).Result;"));
         }
 
-        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
-        [Fact]
+        [Fact, WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         public void Update_Initializer_MultipleVariables1()
         {
             var src1 = @"
@@ -398,8 +394,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "int a = G()"));
         }
 
-        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
-        [Fact]
+        [Fact, WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         public void Update_Initializer_MultipleVariables2()
         {
             var src1 = @"
@@ -810,8 +805,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set"));
         }
 
-        [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
-        [Fact]
+        [Fact, WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
         public void Update_Inner_Indexers1()
         {
             var src1 = @"
@@ -915,8 +909,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get"));
         }
 
-        [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
-        [Fact]
+        [Fact, WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
         public void Update_Inner_Indexers2()
         {
             var src1 = @"
@@ -1218,8 +1211,7 @@ class SampleCollection<T>
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
-        [Fact]
+        [Fact, WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
         public void Update_Leaf_OverloadedOperator()
         {
             var src1 = @"
@@ -1256,8 +1248,7 @@ class Test
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
-        [Fact]
+        [Fact, WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
         public void Update_Inner_OverloadedOperator()
         {
             var src1 = @"

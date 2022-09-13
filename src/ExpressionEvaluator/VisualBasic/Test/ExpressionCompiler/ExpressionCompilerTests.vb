@@ -35,8 +35,7 @@ End Class
         ''' <summary>
         ''' Each assembly should have a unique MVID and assembly name.
         ''' </summary>
-        <WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")>
-        <Fact>
+        <Fact, WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")>
         Public Sub UniqueModuleVersionId()
             Dim comp = CreateCompilationWithMscorlib40({s_simpleSource}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
@@ -108,8 +107,7 @@ End Class
         ''' <summary>
         ''' Diagnostics should be formatted with the CurrentUICulture.
         ''' </summary>
-        <WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")>
-        <Fact>
+        <Fact, WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")>
         Public Sub FormatterCultureInfo()
             Dim previousCulture = Thread.CurrentThread.CurrentCulture
             Dim previousUICulture = Thread.CurrentThread.CurrentUICulture
@@ -1194,8 +1192,7 @@ End Class
         ''' The custom modifiers are not copied to the corresponding local
         ''' in the generated method since there is no need.
         ''' </remarks>
-        <WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")>
-        <Fact>
+        <Fact, WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")>
         Public Sub LocalType_CustomModifiers()
             Const ilSource = "
 .class public C
@@ -1238,8 +1235,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
-        <Fact>
+        <Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
         Public Sub LocalType_ByRefOrPinned()
             Const ilSource = "
 .class private auto ansi beforefieldinit C
@@ -1356,8 +1352,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")>
-        <Fact>
+        <Fact, WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")>
         Public Sub AssignLocal()
             Const source =
 "Class C
@@ -1795,8 +1790,7 @@ End Class
             Assert.Equal(DkmEvaluationResultStorageType.None, resultProperties.StorageType)
         End Sub
 
-        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
-        <Fact>
+        <Fact, WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
         Public Sub EvaluateXmlMemberAccess()
             Dim source =
 "Class C
@@ -1832,8 +1826,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
-        <Fact>
+        <Fact, WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
         Public Sub InternalXmlHelper_RootNamespace()
             Dim source =
 "Class C
@@ -1869,8 +1862,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
-        <Fact>
+        <Fact, WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
         Public Sub InternalXmlHelper_AddedModules()
             Dim sourceTemplate =
 "Class C{0}
@@ -1996,8 +1988,7 @@ End Namespace
             Assert.Equal("error BC30109: 'C' is a class type and cannot be used as an expression.", errorMessage)
         End Sub
 
-        <WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")>
-        <Fact>
+        <Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")>
         Public Sub RewriteCatchLocal()
             Const source =
 "Imports System
@@ -2067,8 +2058,7 @@ End Function, Func(Of E(Of T)))()")
 }")
         End Sub
 
-        <WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")>
-        <Fact>
+        <Fact, WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")>
         Public Sub RewriteSequenceTemps()
             Const source =
 "Class C
@@ -2382,8 +2372,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1096605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096605")>
-        <Fact>
+        <Fact, WorkItem(1096605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096605")>
         Public Sub EvaluateAsync()
             Const source =
 "Imports System
@@ -2429,7 +2418,7 @@ End Class"
         ''' Unnamed temporaries at the end of the local
         ''' signature should be preserved.
         ''' </summary>
-        <Fact()>
+        <Fact>
         Public Sub TrailingUnnamedTemporaries()
             Const source =
 "Class C
@@ -2465,8 +2454,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")>
-        <Fact>
+        <Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")>
         Public Sub ConditionalAttribute()
             Const source =
 "Imports System.Diagnostics
@@ -2495,8 +2483,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")>
-        <Fact>
+        <Fact, WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")>
         Public Sub ConditionalAttribute_CollectionInitializer()
             Const source =
 "Imports System.Collections
@@ -2537,8 +2524,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")>
-        <Fact>
+        <Fact, WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")>
         Public Sub Repro994485()
             Const source = "
 Imports System
@@ -2662,8 +2648,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")>
-        <Fact>
+        <Fact, WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")>
         Public Sub MyBaseExpression()
             Const source = "
 Class Base
@@ -2959,8 +2944,7 @@ End Module
             Assert.Equal("error BC32001: 'MyBase' is not valid within a Module.", errorMessage)
         End Sub
 
-        <WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")>
-        <Fact>
+        <Fact, WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")>
         Public Sub IntegerOverflow()
             Const source = "
 Class C
@@ -2992,8 +2976,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
-        <Fact>
+        <Fact, WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
         Public Sub AssignmentConversion()
             Const source = "
 Class C
@@ -3013,8 +2996,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")>
-        <Fact>
+        <Fact, WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")>
         Public Sub EvaluateStatement()
             Dim source = "
 Class C
@@ -3035,8 +3017,7 @@ End Class
             Assert.Equal("error BC30201: Expression expected.", errorMessage)
         End Sub
 
-        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
-        <Fact>
+        <Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         Public Sub DateTimeFieldConstant()
             Dim source = "
 Class C
@@ -3068,8 +3049,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
-        <Fact>
+        <Fact, WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         Public Sub DecimalFieldConstant()
             Dim source = "
 Class C
@@ -3105,8 +3085,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")>
-        <Fact>
+        <Fact, WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")>
         Public Sub StaticLambdaInDisplayClass()
             ' Note:  I don't think the VB compiler ever generated code like this, but
             '        it doesn't hurt to make sure we do the right thing if it did...
@@ -3164,8 +3143,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
-        <Fact>
+        <Fact, WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         Public Sub ExtensionMethodInContainingType()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3204,8 +3182,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
-        <Fact>
+        <Fact, WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         Public Sub ExtensionMethodInContainingNamespace()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3246,8 +3223,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
-        <Fact>
+        <Fact, WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         Public Sub ExtensionMethodInImportedNamespace()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3291,8 +3267,7 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
-        <Fact>
+        <Fact, WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         Public Sub InaccessibleExtensionMethod() ' EE will be able to access this extension method anyway...
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3331,9 +3306,8 @@ End Module
 ")
         End Sub
 
+        <Fact, WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
         <WorkItem(1042918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042918")>
-        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
-        <Fact>
         Public Sub ConditionalAccessExpressionType()
             Dim source =
 "Class C
@@ -3444,8 +3418,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
-        <Fact>
+        <Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         Public Sub IteratorParameters()
             Const source = "
 Class C
@@ -3478,8 +3451,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
-        <Fact>
+        <Fact, WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         Public Sub IteratorGenericLocal()
             Const source = "
 Class C(Of T)
@@ -3584,8 +3556,7 @@ End Structure
 ")
         End Sub
 
-        <WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")>
-        <Fact>
+        <Fact, WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")>
         Public Sub RangeVariableError()
             Const source =
 "Class C
@@ -3604,8 +3575,7 @@ End Class"
             Assert.Equal("error BC36593: Expression of type 'String' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.", errorMessage)
         End Sub
 
-        <WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")>
-        <Fact>
+        <Fact, WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")>
         Public Sub Bug1079762()
             Const source = "
 Class C
@@ -3641,8 +3611,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
-        <Fact>
+        <Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         Public Sub NonStateMachineTypeParameter()
             Const source = "
 Imports System.Collections.Generic
@@ -3674,8 +3643,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
-        <Fact>
+        <Fact, WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         Public Sub StateMachineTypeParameter()
             Const source = "
 Imports System.Collections.Generic
@@ -3711,8 +3679,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")>
-        <Fact>
+        <Fact, WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")>
         Public Sub ModuleWithBadImageFormat()
             Dim source = "
 Class C
@@ -3745,8 +3712,7 @@ End Class"
             End Using
         End Sub
 
-        <WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")>
-        <Fact>
+        <Fact, WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")>
         Public Sub MissingType()
             Const libSource = "
 Public Class Missing
@@ -3807,8 +3773,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
-        <Fact>
+        <Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
         Public Sub ObsoleteAttribute()
             Const source = "
 Imports System
@@ -3833,8 +3798,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
-        <Fact>
+        <Fact, WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
         Public Sub DeprecatedAttribute()
             Const source = "
 Imports System
@@ -3885,8 +3849,7 @@ End Namespace
                 End Sub)
         End Sub
 
-        <WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")>
-        <Fact>
+        <Fact, WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")>
         Public Sub BadPdb_MissingMethod()
             Const source = "
 Public Class C
@@ -3916,8 +3879,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")>
-        <Fact>
+        <Fact, WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")>
         Public Sub SymUnmanagedReaderNotImplemented()
             Const source = "
 Public Class C
@@ -3945,8 +3907,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1450, "https://github.com/dotnet/roslyn/issues/1450")>
-        <Fact>
+        <Fact, WorkItem(1450, "https://github.com/dotnet/roslyn/issues/1450")>
         Public Sub WithExpression()
             Const source =
 "Structure S
@@ -4002,8 +3963,7 @@ End Sub)",
                 End Sub)
         End Sub
 
-        <WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")>
-        <Fact>
+        <Fact, WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")>
         Public Sub MethodTypeParameterInLambda()
             Const source = "
 Class C(Of T)
@@ -4058,8 +4018,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
-        <Fact>
+        <Fact, WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
 Imports System.Threading.Tasks
@@ -4125,8 +4084,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1068138, "DevDiv")>
-        <Fact>
+        <Fact, WorkItem(1068138, "DevDiv")>
         Public Sub GetSymAttributeByVersion()
             Const source1 = "
 Public Class C
@@ -4279,8 +4237,7 @@ End Class"
         ''' <summary>
         ''' Ignore accessibility in async rewriter.
         ''' </summary>
-        <WorkItem(1813, "https://github.com/dotnet/roslyn/issues/1813")>
-        <Fact>
+        <Fact, WorkItem(1813, "https://github.com/dotnet/roslyn/issues/1813")>
         Public Sub AsyncRewriterIgnoreAccessibility()
             Const source =
 "Imports System
@@ -4319,8 +4276,7 @@ End Module"
                 End Sub)
         End Sub
 
-        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
-        <Fact>
+        <Fact, WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         Public Sub LocalInLambda()
             Dim source = "
 Imports System
@@ -4360,8 +4316,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
-        <Fact>
+        <Fact, WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         Public Sub CapturedLocalInLambda()
             Dim source = "
 Imports System
@@ -4402,8 +4357,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
-        <Fact>
+        <Fact, WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         Public Sub CapturedParameterAndLocalInLambda()
             Dim source = "
 Imports System
@@ -4470,8 +4424,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
-        <Fact>
+        <Fact, WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         Public Sub CapturedParameterAndLocalInNestedLambda()
             Dim source = "
 Imports System
@@ -4572,8 +4525,7 @@ End Class"
         ''' DkmClrInstructionAddress.ILOffset is set to UInteger.MaxValue
         ''' if the instruction does not map to an IL offset.
         ''' </summary>
-        <WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")>
-        <Fact>
+        <Fact, WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")>
         Public Sub NoILOffset()
             Const source =
 "Class C
@@ -4651,8 +4603,7 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(3939, "https://github.com/dotnet/roslyn/issues/3939")>
-        <Fact>
+        <Fact, WorkItem(3939, "https://github.com/dotnet/roslyn/issues/3939")>
         Public Sub NameofInstanceInSharedContext()
             Const source = "
 Class C
@@ -4683,8 +4634,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(3939, "https://github.com/dotnet/roslyn/issues/3939")>
-        <Fact>
+        <Fact, WorkItem(3939, "https://github.com/dotnet/roslyn/issues/3939")>
         Public Sub NameofInstanceInSharedContext_ExplicitMe()
             Const source = "
 Class C

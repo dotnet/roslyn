@@ -2522,6 +2522,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, location ?? syntax.GetLocation());
         }
 
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
+
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, location ?? syntax.GetLocation());
+
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
         {
             return CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);

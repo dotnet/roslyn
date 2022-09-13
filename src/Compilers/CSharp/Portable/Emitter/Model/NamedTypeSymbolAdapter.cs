@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return AdaptedNamedTypeSymbol.AssociatedFileIdentifier();
+                return AdaptedNamedTypeSymbol.GetFileLocalTypeMetadataNamePrefix();
             }
         }
 #nullable disable

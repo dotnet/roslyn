@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearReference
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpMoveDeclarationNearReferenceCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove1()
         {
             await TestInRegularAndScriptAsync(
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove1_TopLevelStatement()
         {
             await TestAsync(
@@ -66,7 +67,7 @@ int [||]x;
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove2()
         {
             await TestInRegularAndScriptAsync(
@@ -90,7 +91,7 @@ int [||]x;
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove2_TopLevelStatement()
         {
             await TestAsync(
@@ -109,7 +110,7 @@ Console.WriteLine(x);
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove3()
         {
             await TestInRegularAndScriptAsync(
@@ -143,7 +144,7 @@ Console.WriteLine(x);
     }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove3_TopLevelStatement()
         {
             await TestAsync(
@@ -174,7 +175,7 @@ Console.WriteLine(x);
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove4()
         {
             await TestInRegularAndScriptAsync(
@@ -200,7 +201,7 @@ Console.WriteLine(x);
     }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMove4_TopLevelStatement()
         {
             await TestAsync(
@@ -223,7 +224,7 @@ Console.WriteLine();
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestAssign1()
         {
             await TestInRegularAndScriptAsync(
@@ -250,7 +251,7 @@ Console.WriteLine();
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestAssign2()
         {
             await TestInRegularAndScriptAsync(
@@ -277,7 +278,7 @@ Console.WriteLine();
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestAssign3()
         {
             await TestInRegularAndScriptAsync(
@@ -305,7 +306,7 @@ Console.WriteLine();
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissing1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -319,7 +320,7 @@ Console.WriteLine();
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissing1_TopLevelStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -329,8 +330,7 @@ Console.WriteLine(x);
 ");
         }
 
-        [WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
         public async Task TestMissingWhenReferencedInDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -346,7 +346,7 @@ Console.WriteLine(x);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissingWhenInDeclarationGroup()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -361,7 +361,7 @@ Console.WriteLine(x);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissingWhenInDeclarationGroup_TopLevelStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -372,8 +372,7 @@ Console.WriteLine(i);
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        [WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
+        [Fact, WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
         public async Task Regression8190()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -388,7 +387,7 @@ Console.WriteLine(i);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestFormatting()
         {
             await TestInRegularAndScriptAsync(
@@ -410,7 +409,7 @@ Console.WriteLine(i);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestFormatting_TopLevelStatement()
         {
             await TestAsync(
@@ -427,7 +426,7 @@ int i = 5; Console.Write(i);
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissingInHiddenBlock1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -445,7 +444,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissingInHiddenBlock2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -464,7 +463,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMissingInHiddenBlock2_TopLevelStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -479,7 +478,7 @@ Bar(x);
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestAvailableInNonHiddenBlock1()
         {
             await TestInRegularAndScriptAsync(
@@ -509,7 +508,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestAvailableInNonHiddenBlock2()
         {
             await TestInRegularAndScriptAsync(
@@ -543,7 +542,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestAvailableInNonHiddenBlock2_TopLevelStatement()
         {
             await TestAsync(
@@ -572,8 +571,7 @@ Bar(x);
                 Options.Regular);
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes1()
         {
             await TestInRegularAndScriptAsync(
@@ -608,8 +606,7 @@ class Program
 }");
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes1_TopLevelStatement()
         {
             await TestAsync(
@@ -636,8 +633,7 @@ new[] { 1 }.AsParallel().ForAll((i) =>
                 Options.Regular);
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes2()
         {
             await TestInRegularAndScriptAsync(
@@ -673,8 +669,7 @@ class Program
 }");
         }
 
-        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         public async Task TestWarnOnChangingScopes2_TopLevelStatement()
         {
             await TestAsync(
@@ -702,8 +697,7 @@ foreach (var v in new[] { 1 })
                 Options.Regular);
         }
 
-        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
         public async Task TestWarnOnChangingScopes3()
         {
             await TestInRegularAndScriptAsync(
@@ -739,8 +733,7 @@ class Program
 }");
         }
 
-        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
         public async Task TestWarnOnChangingScopes3_TopLevelStatement()
         {
             await TestAsync(
@@ -768,8 +761,7 @@ void LocalFunction()
                 Options.Regular);
         }
 
-        [WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
         public async Task InsertCastIfNecessary1()
         {
             await TestInRegularAndScriptAsync(
@@ -814,8 +806,7 @@ static class C
 }");
         }
 
-        [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
         public async Task InsertCastIfNecessary2()
         {
             await TestInRegularAndScriptAsync(
@@ -856,8 +847,7 @@ class X
 }");
         }
 
-        [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
         public async Task MissingIfNotInDeclarationSpan()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -883,7 +873,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task Tuple()
         {
             await TestInRegularAndScriptAsync(
@@ -909,7 +899,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TupleWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -935,7 +925,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments01()
         {
             await TestInRegularAndScriptAsync(
@@ -963,7 +953,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments02()
         {
             await TestInRegularAndScriptAsync(
@@ -995,7 +985,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments03()
         {
             await TestInRegularAndScriptAsync(
@@ -1025,7 +1015,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments04()
         {
             await TestInRegularAndScriptAsync(
@@ -1059,7 +1049,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments05()
         {
             await TestInRegularAndScriptAsync(
@@ -1096,7 +1086,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments06()
         {
             await TestInRegularAndScriptAsync(
@@ -1137,7 +1127,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments07()
         {
             await TestInRegularAndScriptAsync(
@@ -1176,7 +1166,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestComments08()
         {
             await TestInRegularAndScriptAsync(
@@ -1219,7 +1209,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments01()
         {
             await TestInRegularAndScriptAsync(
@@ -1248,7 +1238,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments02()
         {
             await TestInRegularAndScriptAsync(
@@ -1281,7 +1271,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments03()
         {
             await TestInRegularAndScriptAsync(
@@ -1312,7 +1302,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments04()
         {
             await TestInRegularAndScriptAsync(
@@ -1347,7 +1337,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments05()
         {
             await TestInRegularAndScriptAsync(
@@ -1384,7 +1374,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments06()
         {
             await TestInRegularAndScriptAsync(
@@ -1425,7 +1415,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments07()
         {
             await TestInRegularAndScriptAsync(
@@ -1464,7 +1454,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments07_TopLevelStatement()
         {
             await TestAsync(
@@ -1496,7 +1486,7 @@ Console.Write(i);
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments08()
         {
             await TestInRegularAndScriptAsync(
@@ -1539,7 +1529,7 @@ Console.Write(i);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMergeComments08_TopLevelStatement()
         {
             await TestAsync(
@@ -1575,8 +1565,7 @@ Console.WriteLine();
                 Options.Regular);
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1605,8 +1594,7 @@ class Program
 }");
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1638,8 +1626,7 @@ class Program
 }");
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1670,8 +1657,7 @@ class Program
 }");
         }
 
-        [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
         public async Task TestMissingOnCrossFunction4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1704,7 +1690,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMoveInsideSwitchSection()
         {
             await TestInRegularAndScriptAsync(
@@ -1738,7 +1724,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMoveIntoSwitchSection()
         {
             await TestInRegularAndScriptAsync(
@@ -1769,7 +1755,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestMoveIntoSwitchSection_TopLevelStatement()
         {
             await TestAsync(
@@ -1793,7 +1779,7 @@ switch (true)
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1833,7 +1819,7 @@ switch (true)
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestUsedInMultipleSwitchSections_TopLevelStatement_MoveToSwitchStatement()
         {
             await TestAsync(
@@ -1868,7 +1854,7 @@ switch (true)
                 Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestUsedInMultipleSwitchSections_CannotMove()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1890,7 +1876,7 @@ switch (true)
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact]
         public async Task TestUsedInMultipleSwitchSections_TopLevelStatement_CannotMove()
         {
             await TestMissingInRegularAndScriptAsync(

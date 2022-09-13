@@ -29,6 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
             Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New ConfigureCodeStyleOptionCodeFixProvider())
         End Function
 
+        <Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
         Public Class TrueConfigurationTests
             Inherits BooleanCodeStyleOptionConfigurationTests
 
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
                 End Get
             End Property
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_Empty_True() As Task
                 Dim input = "
 <Workspace>
@@ -99,7 +100,7 @@ dotnet_style_object_initializer = true
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466")>
             Public Async Function ConfigureEditorconfig_RuleExists_True() As Task
                 Dim input = "
 <Workspace>
@@ -160,7 +161,7 @@ dotnet_style_object_initializer = true:suggestion    ; Comment2
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_InvalidHeader_True() As Task
                 Dim input = "
 <Workspace>
@@ -226,7 +227,7 @@ dotnet_style_object_initializer = true
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466")>
             Public Async Function ConfigureEditorconfig_MaintainCurrentSeverity_True() As Task
                 Dim input = "
 <Workspace>
@@ -287,7 +288,7 @@ dotnet_style_object_initializer = true:warning
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_InvalidRule_True() As Task
                 Dim input = "
 <Workspace>
@@ -352,6 +353,7 @@ dotnet_style_object_initializer = true
             End Function
         End Class
 
+        <Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
         Public Class FalseConfigurationTests
             Inherits BooleanCodeStyleOptionConfigurationTests
 
@@ -361,7 +363,7 @@ dotnet_style_object_initializer = true
                 End Get
             End Property
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_Empty_False() As Task
                 Dim input = "
 <Workspace>
@@ -422,7 +424,7 @@ dotnet_style_object_initializer = false
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact>
             Public Async Function ConfigureEditorconfig_RuleExists_False() As Task
                 Dim input = "
 <Workspace>
@@ -483,7 +485,7 @@ dotnet_style_object_initializer = false:silent
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact>
             Public Async Function ConfigureEditorconfig_RuleExists_False_WithoutSeveritySuffix() As Task
                 Dim input = "
 <Workspace>
@@ -544,7 +546,7 @@ dotnet_style_object_initializer = false
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_InvalidHeader_False() As Task
                 Dim input = "
 <Workspace>
@@ -610,7 +612,7 @@ dotnet_style_object_initializer = false
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact>
             Public Async Function ConfigureEditorconfig_MaintainCurrentSeverity_False() As Task
                 Dim input = "
 <Workspace>
@@ -671,7 +673,7 @@ dotnet_style_object_initializer = false:warning
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <ConditionalFact(GetType(IsEnglishLocal))>
             Public Async Function ConfigureEditorconfig_InvalidRule_False() As Task
                 Dim input = "
 <Workspace>
