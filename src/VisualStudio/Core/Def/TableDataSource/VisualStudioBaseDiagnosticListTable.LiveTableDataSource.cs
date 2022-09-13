@@ -59,7 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public LiveTableDataSource(
                 Workspace workspace,
-                IGlobalOptionService globalOptions,
                 IThreadingContext threadingContext,
                 IDiagnosticService diagnosticService,
                 string identifier,
@@ -67,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 : base(workspace, threadingContext)
             {
                 _workspace = workspace;
-                GlobalOptions = globalOptions;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
@@ -78,7 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
-            public IGlobalOptionService GlobalOptions { get; }
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
@@ -193,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static arg => GetDiagnosticUpdatedMessage(arg.globalOptions, arg.e), (globalOptions: GlobalOptions, e), CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
@@ -221,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
-                return new TableEntriesSource(this, item.Workspace, GlobalOptions, item.ProjectId, item.DocumentId, item.Id);
+                return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 
             private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
@@ -283,17 +280,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
-                private readonly IGlobalOptionService _globalOptions;
                 private readonly ProjectId? _projectId;
                 private readonly DocumentId? _documentId;
                 private readonly object _id;
                 private readonly string _buildTool;
 
-                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, IGlobalOptionService globalOptions, ProjectId? projectId, DocumentId? documentId, object id)
+                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object id)
                 {
                     _source = source;
                     _workspace = workspace;
-                    _globalOptions = globalOptions;
                     _projectId = projectId;
                     _documentId = documentId;
                     _id = id;
@@ -590,7 +585,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private static string GetDiagnosticUpdatedMessage(IGlobalOptionService globalOptions, DiagnosticsUpdatedArgs e)
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
