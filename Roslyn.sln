@@ -513,7 +513,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelixTestRunner", "src\Tools\HelixTestRunner\HelixTestRunner.csproj", "{E99CC5A2-660D-4C5E-BDBA-B6CA168012C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAssemblyFinder", "src\Tools\TestAssemblyFinder\TestAssemblyFinder.csproj", "{BB6C0307-49BC-4E71-9ADD-A35448531C0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAssemblyFinder", "src\Tools\TestAssemblyFinder\TestAssemblyFinder.csproj", "{BB6C0307-49BC-4E71-9ADD-A35448531C0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
