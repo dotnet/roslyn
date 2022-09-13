@@ -1853,7 +1853,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
                                     {
                                         diagnostics.Add(
-                                            ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
+                                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                                ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
                                             GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                             new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                                     },

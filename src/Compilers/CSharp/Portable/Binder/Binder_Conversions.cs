@@ -757,10 +757,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateMethod,
                     lambdaOrMethod,
                     diagnostics,
-                    static (diagnostics, _, _, parameter, _, typeAndLocation) =>
+                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndLocation) =>
                     {
                         diagnostics.Add(
-                            ErrorCode.ERR_ScopedMismatchInParameterOfTarget,
+                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
+                                ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
+                                ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
                             typeAndLocation.Location,
                             new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                             typeAndLocation.Type);

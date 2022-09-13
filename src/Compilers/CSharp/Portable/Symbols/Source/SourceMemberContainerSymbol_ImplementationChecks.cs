@@ -1167,10 +1167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overriddenMethod,
                         overridingMethod,
                         diagnostics,
-                        static (diagnostics, _, _, overridingParameter, _, location) =>
+                        static (diagnostics, overriddenMethod, overridingMethod, overridingParameter, _, location) =>
                             {
                                 diagnostics.Add(
-                                    ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                    ReportInvalidScopedOverrideAsError(overriddenMethod, overridingMethod) ?
+                                        ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                        ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
                                     location,
                                     new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
                             },
@@ -1413,6 +1415,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns true if a scoped mismatch should be reported as an error rather than a warning.
+        /// </summary>
+        internal static bool ReportInvalidScopedOverrideAsError(MethodSymbol baseMethod, MethodSymbol overrideMethod)
+        {
+            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // The diagnostic is reported as an error if the mismatched signatures are both using C#11 ref safety rules; otherwise, the diagnostic is a warning.
+            return baseMethod.UseUpdatedEscapeRules && overrideMethod.UseUpdatedEscapeRules;
         }
 
         /// <summary>

@@ -1069,7 +1069,7 @@ class Program
                 // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
-                // (3,18): error CS9061: Target runtime doesn't support ref fields.
+                // (3,18): error CS9064: Target runtime doesn't support ref fields.
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(3, 18),
                 // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
@@ -1086,7 +1086,7 @@ class Program
 
             comp = CreateEmptyCompilation(source, references: new[] { refA });
             comp.VerifyDiagnostics(
-                // (3,18): error CS9061: Target runtime doesn't support ref fields.
+                // (3,18): error CS9064: Target runtime doesn't support ref fields.
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(3, 18));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
@@ -13019,22 +13019,22 @@ _ = r3 with { field = ref x }; // 3
 
             comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // var r1 = new R() { field = ref x }; // 1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 20),
-                // (3,20): error CS9061: Target runtime doesn't support ref fields.
+                // (3,20): error CS9064: Target runtime doesn't support ref fields.
                 // var r1 = new R() { field = ref x }; // 1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "field").WithLocation(3, 20),
                 // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // var r2 = new R() { field = x }; // 2
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(4, 20),
-                // (4,20): error CS9061: Target runtime doesn't support ref fields.
+                // (4,20): error CS9064: Target runtime doesn't support ref fields.
                 // var r2 = new R() { field = x }; // 2
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "field").WithLocation(4, 20),
                 // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // _ = r3 with { field = ref x }; // 3
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(7, 15),
-                // (7,15): error CS9061: Target runtime doesn't support ref fields.
+                // (7,15): error CS9064: Target runtime doesn't support ref fields.
                 // _ = r3 with { field = ref x }; // 3
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "field").WithLocation(7, 15)
                 );
@@ -16757,18 +16757,18 @@ public abstract class A<T>
                 languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,29): error CS8987: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
+                    // (3,29): warning CS9072: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
                     //     public override ref int F1(out int i1) => throw null; // 1
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 29),
-                    // (5,29): error CS8987: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 29),
+                    // (5,29): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
                     //     public override ref int F3(ref R<int> r3) => throw null; // 2
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 29),
-                    // (6,29): error CS8987: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 29),
+                    // (6,29): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
                     //     public override ref int F4(in R<int> r4) => throw null; // 3
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 29),
-                    // (7,29): error CS8987: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 29),
+                    // (7,29): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
                     //     public override ref int F5(out R<int> r5) => throw null; // 4
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 29));
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 29));
             }
             else
             {
@@ -16822,30 +16822,30 @@ class B2 : I<object>
                 languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,29): error CS8987: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
+                    // (3,29): warning CS9072: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
                     //     public ref readonly int F1(out int i1) => throw null; // 1
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 29),
-                    // (5,29): error CS8987: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 29),
+                    // (5,29): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
                     //     public ref readonly int F3(ref R<int> r3) => throw null; // 2
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 29),
-                    // (6,29): error CS8987: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 29),
+                    // (6,29): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
                     //     public ref readonly int F4(in R<int> r4) => throw null; // 3
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 29),
-                    // (7,29): error CS8987: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 29),
+                    // (7,29): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
                     //     public ref readonly int F5(out R<int> r5) => throw null; // 4
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 29),
-                    // (11,35): error CS8987: The 'scoped' modifier of parameter 'o1' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 29),
+                    // (11,35): warning CS9072: The 'scoped' modifier of parameter 'o1' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F1(out object o1) => throw null; // 5
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("o1").WithLocation(11, 35),
-                    // (13,35): error CS8987: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("o1").WithLocation(11, 35),
+                    // (13,35): warning CS9072: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F3(ref R<object> r3) => throw null; // 6
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(13, 35),
-                    // (14,35): error CS8987: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(13, 35),
+                    // (14,35): warning CS9072: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F4(in R<object> r4) => throw null; // 7
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(14, 35),
-                    // (15,35): error CS8987: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(14, 35),
+                    // (15,35): warning CS9072: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
                     //     ref readonly object I<object>.F5(out R<object> r5) => throw null; // 8
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(15, 35));
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(15, 35));
             }
             else
             {
@@ -16963,22 +16963,167 @@ public delegate ref T D5<T>(out R<T> r5);
                 languageVersionB == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (10,22): error CS8986: The 'scoped' modifier of parameter 'i1' doesn't match target 'D1<int>'.
+                    // (10,22): warning CS9071: The 'scoped' modifier of parameter 'i1' doesn't match target 'D1<int>'.
                     //         D1<int> d1 = F1; // 1
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F1").WithArguments("i1", "D1<int>").WithLocation(10, 22),
-                    // (12,22): error CS8986: The 'scoped' modifier of parameter 'r3' doesn't match target 'D3<int>'.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F1").WithArguments("i1", "D1<int>").WithLocation(10, 22),
+                    // (12,22): warning CS9071: The 'scoped' modifier of parameter 'r3' doesn't match target 'D3<int>'.
                     //         D3<int> d3 = F3; // 2
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r3", "D3<int>").WithLocation(12, 22),
-                    // (13,22): error CS8986: The 'scoped' modifier of parameter 'r4' doesn't match target 'D4<int>'.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r3", "D3<int>").WithLocation(12, 22),
+                    // (13,22): warning CS9071: The 'scoped' modifier of parameter 'r4' doesn't match target 'D4<int>'.
                     //         D4<int> d4 = F4; // 3
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F4").WithArguments("r4", "D4<int>").WithLocation(13, 22),
-                    // (14,22): error CS8986: The 'scoped' modifier of parameter 'r5' doesn't match target 'D5<int>'.
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F4").WithArguments("r4", "D4<int>").WithLocation(13, 22),
+                    // (14,22): warning CS9071: The 'scoped' modifier of parameter 'r5' doesn't match target 'D5<int>'.
                     //         D5<int> d5 = F5; // 4
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F5").WithArguments("r5", "D5<int>").WithLocation(14, 22));
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F5").WithArguments("r5", "D5<int>").WithLocation(14, 22));
             }
             else
             {
                 comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [WorkItem(63761, "https://github.com/dotnet/roslyn/issues/63761")]
+        [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_11(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+}
+public abstract class A<T>
+{
+    public abstract ref readonly T F1(out T t);
+}
+public interface I<T>
+{
+    ref T F2(out T t);
+}
+public delegate ref T D3<T>(out T t);
+";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB1 =
+@"class B : A<int>, I<string>
+{
+    public override ref readonly int F1(out int i) => throw null; // 1
+    ref string I<string>.F2(out string s) => throw null; // 2
+}
+class Program
+{
+    static ref object F3(out object o) => throw null;
+    static void Main()
+    {
+        D3<object> d3 = F3; // 3
+    }
+}";
+            comp = CreateCompilation(sourceB1, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (3,38): warning CS9072: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                //     public override ref readonly int F1(out int i) => throw null; // 1
+                Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(3, 38),
+                // (4,26): warning CS9072: The 'scoped' modifier of parameter 's' doesn't match overridden or implemented member.
+                //     ref string I<string>.F2(out string s) => throw null; // 2
+                Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("s").WithLocation(4, 26),
+                // (11,25): warning CS9071: The 'scoped' modifier of parameter 'o' doesn't match target 'D3<object>'.
+                //         D3<object> d3 = F3; // 3
+                Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F3").WithArguments("o", "D3<object>").WithLocation(11, 25));
+
+            var sourceB2 =
+@"using System.Diagnostics.CodeAnalysis;
+class B : A<int>, I<string>
+{
+    public override ref readonly int F1([UnscopedRef] out int i) => throw null; // 1
+    ref string I<string>.F2([UnscopedRef] out string s) => throw null; // 2
+}
+class Program
+{
+    static ref object F3([UnscopedRef] out object o) => throw null;
+    static void Main()
+    {
+        D3<object> d3 = F3; // 3
+    }
+}";
+            comp = CreateCompilation(new[] { sourceB2, UnscopedRefAttributeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular);
+            comp.VerifyEmitDiagnostics(
+                // (4,38): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                //     public override ref readonly int F1([UnscopedRef] out int i) => throw null; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(4, 38),
+                // (5,26): error CS8987: The 'scoped' modifier of parameter 's' doesn't match overridden or implemented member.
+                //     ref string I<string>.F2([UnscopedRef] out string s) => throw null; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("s").WithLocation(5, 26),
+                // (12,25): error CS8986: The 'scoped' modifier of parameter 'o' doesn't match target 'D3<object>'.
+                //         D3<object> d3 = F3; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("o", "D3<object>").WithLocation(12, 25));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_12(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+}
+public abstract class A<T>
+{
+    public abstract ref readonly T F1(scoped R<T> r);
+}
+public interface I<T>
+{
+    ref T F2(scoped R<T> r);
+}
+public delegate ref T D3<T>(scoped R<T> r);
+";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A<int>, I<string>
+{
+    public override ref readonly int F1(R<int> r) => throw null; // 1
+    ref string I<string>.F2(R<string> r) => throw null; // 2
+}
+class Program
+{
+    static ref object F3(R<object> r) => throw null;
+    static void Main()
+    {
+        D3<object> d3 = F3; // 3
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+
+            if (languageVersionB == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,38): warning CS9072: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                    //     public override ref readonly int F1(R<int> r) => throw null; // 1
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(3, 38),
+                    // (4,26): warning CS9072: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                    //     ref string I<string>.F2(R<string> r) => throw null; // 2
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(4, 26),
+                    // (11,25): warning CS9071: The 'scoped' modifier of parameter 'r' doesn't match target 'D3<object>'.
+                    //         D3<object> d3 = F3; // 3
+                    Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r", "D3<object>").WithLocation(11, 25));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,38): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                    //     public override ref readonly int F1(R<int> r) => throw null; // 1
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(3, 38),
+                    // (4,26): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                    //     ref string I<string>.F2(R<string> r) => throw null; // 2
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(4, 26),
+                    // (11,25): error CS8986: The 'scoped' modifier of parameter 'r' doesn't match target 'D3<object>'.
+                    //         D3<object> d3 = F3; // 3
+                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "F3").WithArguments("r", "D3<object>").WithLocation(11, 25));
             }
         }
 
