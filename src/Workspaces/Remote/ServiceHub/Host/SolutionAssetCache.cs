@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         /// <summary>
         /// Workspace we are associated with.  When we purge items from teh cache, we will avoid any items associated
-        /// with any 
+        /// with the items in its 'CurrentSolution'.
         /// </summary>
         private readonly RemoteWorkspace? _remoteWorkspace;
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly TimeSpan _gcAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<Checksum, Entry> _assets = new();
+        private readonly ConcurrentDictionary<Checksum, Entry> _assets = new(concurrencyLevel: 4, capacity: 10);
 
         private DateTime _lastGCRun;
         private DateTime _lastActivityTime;
