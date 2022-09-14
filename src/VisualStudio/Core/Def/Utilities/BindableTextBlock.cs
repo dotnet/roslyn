@@ -4,9 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Xml.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities
@@ -34,10 +37,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 return;
             }
 
+            var automationTextBuilder = new StringBuilder();
+
             foreach (var inline in newList)
             {
+                if (inline is Run run && !string.IsNullOrEmpty(run.Text))
+                {
+                    automationTextBuilder.Append(run.Text);
+                }
+
                 textBlock.Inlines.Add(inline);
             }
+
+            AutomationProperties.SetName(textBlock, automationTextBuilder.ToString());
         }
     }
 }
