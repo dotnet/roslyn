@@ -16865,11 +16865,25 @@ public class C1
                     static RefByteContainer M32([UnscopedRef] ref ByteContainer bc)
                         // ok. ref-safe-to-escape of 'bc' is 'ReturnOnly'.
                         => bc.GetByteRef();
+
+                    static RefByteContainer M41(ref ByteContainer bc)
+                        // error: `bc.ByteRef` may contain a reference to `bc`, whose ref-safe-to-escape is CurrentMethod.
+                        => bc.ByteRef;
+
+                    static RefByteContainer M42(ref ByteContainer bc)
+                        // error: `bc.GetByteRef()` may contain a reference to `bc`, whose ref-safe-to-escape is CurrentMethod.
+                        => bc.GetByteRef();
                 }
                 """;
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (64,12): error CS8166: Cannot return a parameter by reference 'bc' because it is not a ref parameter
+                //         => bc.ByteRef;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "bc").WithArguments("bc").WithLocation(64, 12),
+                // (68,12): error CS8166: Cannot return a parameter by reference 'bc' because it is not a ref parameter
+                //         => bc.GetByteRef();
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "bc").WithArguments("bc").WithLocation(68, 12));
         }
     }
 }
