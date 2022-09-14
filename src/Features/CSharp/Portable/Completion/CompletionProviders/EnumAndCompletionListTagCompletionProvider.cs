@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Don't show up within member access
                 // This previously worked because the type inferrer didn't work
                 // in member access expressions.
-                // The regular SymbolCompletionProvider will handle completion after .
+                // The regular RecommendationServiceBasedCompletionProvider will handle completion after .
                 if (token.IsKind(SyntaxKind.DotToken))
                     return;
 

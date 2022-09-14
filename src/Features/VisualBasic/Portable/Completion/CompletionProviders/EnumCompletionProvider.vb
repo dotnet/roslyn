@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
-            ' Don't run after dot because SymbolCompletionProvider will provide
+            ' Don't run after dot because RecommendationServiceBasedCompletionProvider will provide
             ' members in situations like Dim x = DayOfWeek.$$
             If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()

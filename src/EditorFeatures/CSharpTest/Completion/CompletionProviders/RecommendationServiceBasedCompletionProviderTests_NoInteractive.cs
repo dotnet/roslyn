@@ -23,10 +23,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
     [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
+    public class RecommendationServiceBasedCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
-            => typeof(SymbolCompletionProvider);
+            => typeof(RecommendationServiceBasedCompletionProvider);
 
         private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,

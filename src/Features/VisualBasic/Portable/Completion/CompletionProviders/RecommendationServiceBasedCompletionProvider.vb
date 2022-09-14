@@ -15,10 +15,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(SymbolCompletionProvider), LanguageNames.VisualBasic)>
+    <ExportCompletionProvider(NameOf(RecommendationServiceBasedCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(AwaitCompletionProvider))>
     <[Shared]>
-    Friend NotInheritable Class SymbolCompletionProvider
+    Friend NotInheritable Class RecommendationServiceBasedCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider(Of VisualBasicSyntaxContext)
 
         Private Shared ReadOnly s_cachedRules As New Dictionary(Of (importDirective As Boolean, preselect As Boolean, tuple As Boolean), CompletionItemRules)

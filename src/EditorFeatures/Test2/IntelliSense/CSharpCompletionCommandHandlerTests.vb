@@ -1033,7 +1033,7 @@ class c { $$
             End Using
         End Function
 
-        ' NOTE(cyrusn): This should just be a unit test for SymbolCompletionProvider.  However, I'm
+        ' NOTE(cyrusn): This should just be a unit test for RecommendationServiceBasedCompletionProvider.  However, I'm
         ' just porting the integration tests to here for now.
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>

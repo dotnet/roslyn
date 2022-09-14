@@ -10,13 +10,13 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Class SymbolCompletionProviderTests
+    Public Class RecommendationServiceBasedCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
         Private Const s_unicodeEllipsis = ChrW(&H2026)
 
         Friend Overrides Function GetCompletionProviderType() As Type
-            Return GetType(SymbolCompletionProvider)
+            Return GetType(RecommendationServiceBasedCompletionProvider)
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"

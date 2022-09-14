@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     /// dotted off of.
     /// </summary>
     [ExportCompletionProvider(nameof(UnnamedSymbolCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
+    [ExtensionOrder(After = nameof(RecommendationServiceBasedCompletionProvider))]
     internal partial class UnnamedSymbolCompletionProvider : LSPCompletionProvider
     {
         /// <summary>

@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(PreprocessorCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(SymbolCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(RecommendationServiceBasedCompletionProvider))>
     <[Shared]>
     Friend Class PreprocessorCompletionProvider
         Inherits AbstractPreprocessorCompletionProvider

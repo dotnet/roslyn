@@ -23,14 +23,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
+    [ExportCompletionProvider(nameof(RecommendationServiceBasedCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
     [Shared]
-    internal sealed class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
+    internal sealed class RecommendationServiceBasedCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
-        static SymbolCompletionProvider()
+        static RecommendationServiceBasedCompletionProvider()
         {
             for (var importDirective = 0; importDirective < 2; importDirective++)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SymbolCompletionProvider()
+        public RecommendationServiceBasedCompletionProvider()
         {
         }
 
