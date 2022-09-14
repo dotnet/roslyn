@@ -84,18 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (symbol.Name, "", symbol.Name);
             }
 
+            // typeSymbol may be a symbol that is nullable if the place we are assigning to is null, for example
+            //
+            //     object? o = new |
+            //
+            // We strip the top-level nullability so we don't end up suggesting "new object?" here. Nested nullability would still
+            // be generated.
             if (symbol is ITypeSymbol typeSymbol)
             {
-                // typeSymbol may be a symbol that is nullable if the place we are assigning to is null, for example
-                //
-                //     object? o = new |
-                //
-                // We strip the top-level nullability so we don't end up suggesting "new object?" here. Nested nullability would still
-                // be generated.
-                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated), context);
+                symbol = typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
             }
 
-            return base.GetDisplayAndSuffixAndInsertionText(symbol, context);
+            var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
+            return (displayString, "", displayString);
         }
 
         private static readonly CompletionItemRules s_arrayRules =

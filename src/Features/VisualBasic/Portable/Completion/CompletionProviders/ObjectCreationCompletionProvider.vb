@@ -65,5 +65,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of SymbolAndSelectionInfo)) As CompletionItemRules
             Return s_rules
         End Function
+
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+            Dim displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
+            Return (displayString, "", displayString)
+        End Function
     End Class
 End Namespace

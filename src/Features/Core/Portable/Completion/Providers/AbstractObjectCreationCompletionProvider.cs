@@ -101,11 +101,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // the user may want an implicitly-typed array creation
             return Task.FromResult(ImmutableArray.Create(new SymbolAndSelectionInfo(Symbol: type, Preselect: !isArray)));
         }
-
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context)
-        {
-            var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
-            return (displayString, "", displayString);
-        }
     }
 }
