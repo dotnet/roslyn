@@ -15022,6 +15022,25 @@ public class A<T>
         var r = new R<int>(ref i);
         return ref F3A(ref r); // 1
     }
+
+    ref int F1C(ref int i)
+    {
+        var r = new R<int>(ref i);
+        ref var y = ref F1A(ref r);
+        return ref y;
+    }
+    ref int F2C(ref int i)
+    {
+        var r = new R<int>(ref i);
+        ref var y = ref F2A(ref r);
+        return ref y;
+    }
+    ref int F3C(ref int i)
+    {
+        var r = new R<int>(ref i);
+        ref var y = ref F3A(ref r);
+        return ref y; // 2
+    }
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -15030,7 +15049,10 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
                 // (16,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
                 //         return ref F3A(ref r); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28),
+                // (35,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(35, 20));
         }
 
         [Fact, WorkItem(63057, "https://github.com/dotnet/roslyn/issues/63057")]
