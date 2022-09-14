@@ -474,7 +474,8 @@ function TestUsingRunTests() {
     $testRunnerExecutableArgs += $dotnetTestAdditionalArgs
 
     # Tell vstestconsole to parallelize assemblies when running tests.
-    $testRunnerExecutableArgs += " -- RunConfiguration.MaxCpuCount=0"
+    $procCount = [System.Environment]::ProcessorCount * 1.5
+    $testRunnerExecutableArgs += " -- RunConfiguration.MaxCpuCount=$procCount"
   }
 
   try {
