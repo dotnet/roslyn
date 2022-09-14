@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly ProjectId? ProjectId;
 
         [DataMember(Order = 10)]
-        public readonly DiagnosticDataLocation? DataLocation;
+        public readonly DiagnosticDataLocation DataLocation;
 
         [DataMember(Order = 11)]
         public readonly ImmutableArray<DiagnosticDataLocation> AdditionalLocations;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<string> customTags,
             ImmutableDictionary<string, string?> properties,
             ProjectId? projectId,
-            DiagnosticDataLocation? location = null,
+            DiagnosticDataLocation location,
             ImmutableArray<DiagnosticDataLocation> additionalLocations = default,
             string? language = null,
             string? title = null,
@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 WarningLevel, CustomTags, Properties, ProjectId, location, additionalLocations,
                 Language, Title, Description, HelpLink, IsSuppressed);
 
-        public DocumentId? DocumentId => DataLocation?.DocumentId;
-        public bool HasTextSpan => (DataLocation?.SourceSpan).HasValue;
+        public DocumentId? DocumentId => DataLocation.DocumentId;
+        public bool HasTextSpan => DataLocation.SourceSpan.HasValue;
 
         /// <summary>
         /// Get <see cref="TextSpan"/> if it exists, throws otherwise.
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public TextSpan GetTextSpan()
         {
-            Contract.ThrowIfFalse(DataLocation != null && DataLocation.SourceSpan.HasValue);
+            Contract.ThrowIfFalse(DataLocation.SourceSpan.HasValue);
             return DataLocation.SourceSpan.Value;
         }
 
@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return
-               DataLocation?.OriginalStartLine == other.DataLocation?.OriginalStartLine &&
-               DataLocation?.OriginalStartColumn == other.DataLocation?.OriginalStartColumn &&
+               DataLocation.OriginalStartLine == other.DataLocation.OriginalStartLine &&
+               DataLocation.OriginalStartColumn == other.DataLocation.OriginalStartColumn &&
                Id == other.Id &&
                Category == other.Category &&
                Severity == other.Severity &&
@@ -177,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                Hash.Combine(IsSuppressed,
                Hash.Combine(ProjectId,
                Hash.Combine(DocumentId,
-               Hash.Combine(DataLocation?.OriginalStartLine ?? 0,
-               Hash.Combine(DataLocation?.OriginalStartColumn ?? 0, (int)Severity)))))))));
+               Hash.Combine(DataLocation.OriginalStartLine,
+               Hash.Combine(DataLocation.OriginalStartColumn, (int)Severity)))))))));
 
         public override string ToString()
         {
@@ -187,17 +187,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Severity,
                 Message,
                 ProjectId,
-                DataLocation?.MappedFilePath ?? "",
-                DataLocation?.MappedStartLine,
-                DataLocation?.MappedStartColumn,
-                DataLocation?.OriginalFilePath ?? "",
-                DataLocation?.OriginalStartLine,
-                DataLocation?.OriginalStartColumn);
+                DataLocation.MappedFilePath ?? "",
+                DataLocation.MappedStartLine,
+                DataLocation.MappedStartColumn,
+                DataLocation.OriginalFilePath,
+                DataLocation.OriginalStartLine,
+                DataLocation.OriginalStartColumn);
         }
 
-        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation? diagnosticLocation, SourceText text)
+        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation diagnosticLocation, SourceText text)
         {
-            if (diagnosticLocation?.SourceSpan != null)
+            if (diagnosticLocation.SourceSpan != null)
             {
                 return EnsureInBounds(diagnosticLocation.SourceSpan.Value, text);
             }
@@ -257,18 +257,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation? dataLocation, SourceText text, bool useMapped)
+        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation dataLocation, SourceText text, bool useMapped)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
                 return default;
 
-            var startLine = (useMapped ? dataLocation?.MappedStartLine : dataLocation?.OriginalStartLine) ?? 0;
-            var endLine = (useMapped ? dataLocation?.MappedEndLine : dataLocation?.OriginalEndLine) ?? 0;
+            var startLine = (useMapped ? dataLocation.MappedStartLine : dataLocation.OriginalStartLine);
+            var endLine = (useMapped ? dataLocation.MappedEndLine : dataLocation.OriginalEndLine);
 
             // Make sure the starting columns are never negative.
-            var startColumn = Math.Max((useMapped ? dataLocation?.MappedStartColumn : dataLocation?.OriginalStartColumn) ?? 0, 0);
-            var endColumn = Math.Max((useMapped ? dataLocation?.MappedEndColumn : dataLocation?.OriginalEndColumn) ?? 0, 0);
+            var startColumn = Math.Max((useMapped ? dataLocation.MappedStartColumn : dataLocation.OriginalStartColumn), 0);
+            var endColumn = Math.Max((useMapped ? dataLocation.MappedEndColumn : dataLocation.OriginalEndColumn), 0);
 
             if (startLine < 0)
             {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new LinePositionSpan(start, end);
         }
 
-        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
+        public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
             var linePositionSpan = GetLinePositionSpan(dataLocation, text, useMapped: false);
 
@@ -318,13 +318,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
-        private static DiagnosticDataLocation? CreateLocation(TextDocument? document, Location location)
+        private static DiagnosticDataLocation CreateLocation(TextDocument? document, Location location)
         {
-            if (document == null)
-            {
-                return null;
-            }
-
             GetLocationInfo(document, location, out var sourceSpan, out var originalLineInfo, out var mappedLineInfo);
 
             var mappedStartLine = mappedLineInfo.StartLinePosition.Line;
@@ -337,13 +332,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var originalEndLine = originalLineInfo.EndLinePosition.Line;
             var originalEndColumn = originalLineInfo.EndLinePosition.Character;
 
-            return new DiagnosticDataLocation(document.Id, sourceSpan,
-                originalLineInfo.Path, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+            return new DiagnosticDataLocation(
+                originalLineInfo.Path,
+                document?.Id,
+                sourceSpan,
+                originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Diagnostic diagnostic, Project? project)
-            => Create(diagnostic, project?.Id, project?.Language, location: null, additionalLocations: default, additionalProperties: null);
+        public static DiagnosticData Create(Solution solution, Diagnostic diagnostic, Project? project)
+            => Create(diagnostic, project?.Id, project?.Language, location: new DiagnosticDataLocation(project?.FilePath ?? solution.FilePath ?? ""), additionalLocations: default, additionalProperties: null);
 
         public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
         {
@@ -375,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Diagnostic diagnostic,
             ProjectId? projectId,
             string? language,
-            DiagnosticDataLocation? location,
+            DiagnosticDataLocation location,
             ImmutableArray<DiagnosticDataLocation> additionalLocations,
             ImmutableDictionary<string, string?>? additionalProperties)
         {
@@ -417,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (location.IsInSource)
                 {
-                    builder.AddIfNotNull(CreateLocation(document.Project.GetDocument(location.SourceTree), location));
+                    builder.AddIfNotNull(CreateLocation(document.Project.GetRequiredDocument(location.SourceTree), location));
                 }
                 else if (location.Kind == LocationKind.ExternalFile)
                 {
@@ -457,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-            diagnosticData = Create(diagnostic, project);
+            diagnosticData = Create(project.Solution, diagnostic, project);
             return true;
         }
 
@@ -485,10 +483,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
+        private static void GetLocationInfo(TextDocument? document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
-            var diagnosticSpanMappingService = document.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
-            if (diagnosticSpanMappingService != null)
+            var diagnosticSpanMappingService = document?.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            if (document != null && diagnosticSpanMappingService != null)
             {
                 diagnosticSpanMappingService.GetAdjustedDiagnosticSpan(document.Id, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);
                 return;

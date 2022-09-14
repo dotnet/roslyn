@@ -333,18 +333,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
                 };
-                if (diagnosticData.DataLocation != null)
-                {
-                    diagnostic.Range = GetRange(diagnosticData.DataLocation);
-                }
+
+                diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
                 // Defines an identifier used by the client for merging diagnostics across projects.
                 // We want diagnostics to be merged from separate projects if they have the same code, filepath, range, and message.
-                var filePath = diagnosticData.DataLocation?.GetFilePath();
-                if (filePath != null)
-                {
-                    diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
-                }
+                var filePath = diagnosticData.DataLocation.GetFilePath();
+                diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
