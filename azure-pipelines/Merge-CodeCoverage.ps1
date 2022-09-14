@@ -16,13 +16,13 @@ Param(
     [string[]]$Path,
     [ValidateSet('Badges', 'Clover', 'Cobertura', 'CsvSummary', 'Html', 'Html_Dark', 'Html_Light', 'HtmlChart', 'HtmlInline', 'HtmlInline_AzurePipelines', 'HtmlInline_AzurePipelines_Dark', 'HtmlInline_AzurePipelines_Light', 'HtmlSummary', 'JsonSummary', 'Latex', 'LatexSummary', 'lcov', 'MarkdownSummary', 'MHtml', 'PngChart', 'SonarQube', 'TeamCitySummary', 'TextSummary', 'Xml', 'XmlSummary')]
     [string]$Format='Cobertura',
-    [string]$OutputDir=("$PSScriptRoot/../coveragereport")
+    [string]$OutputFile=("$PSScriptRoot/../coveragereport/merged.cobertura.xml")
 )
 
 $RepoRoot = [string](Resolve-Path $PSScriptRoot/..)
 
-if (!(Test-Path $RepoRoot/obj/reportgenerator*)) {
-    dotnet tool install --tool-path $RepoRoot/obj dotnet-reportgenerator-globaltool --version 5.1.9 --configfile $PSScriptRoot/justnugetorg.nuget.config
+if (!(Test-Path $RepoRoot/obj/dotnet-coverage*)) {
+    dotnet tool install --tool-path $RepoRoot/obj dotnet-coverage --version 17.4.3 --configfile $PSScriptRoot/justnugetorg.nuget.config
 }
 
 Write-Verbose "Searching $Path for *.cobertura.xml files"
@@ -39,8 +39,13 @@ if ($reports) {
         $xml.Save($_)
     }
 
-    $Inputs = [string]::join(';', ($reports |% { Resolve-Path -relative $_.FullName }))
-    & "$RepoRoot/obj/reportgenerator" -reports:"$Inputs" -targetdir:$OutputDir -reporttypes:$Format
+    $Inputs = $reports |% { Resolve-Path -relative $_.FullName }
+
+    if (Split-Path $OutputFile) {
+        New-Item -Type Directory -Path (Split-Path $OutputFile) | Out-Null
+    }
+
+    & "$RepoRoot/obj/dotnet-coverage" merge $Inputs -o $OutputFile -f cobertura
 } else {
     Write-Error "No reports found to merge."
 }

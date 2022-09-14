@@ -3,7 +3,7 @@ parameters:
 
 steps:
 
-- task: NuGetAuthenticate@0
+- task: NuGetAuthenticate@1
   displayName: 🔏 Authenticate NuGet feeds
   inputs:
     forceReinstallCredentialProvider: true
