@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private class CompilerDiagnostic : Diagnostic
+            private sealed class CompilerDiagnostic : Diagnostic
             {
                 private readonly Diagnostic _original;
                 private readonly ImmutableDictionary<string, string?> _properties;
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // We only support equality check with another instance of "CompilerDiagnostic".
                     // Hosts that want to compare compiler diagnostics from different sources,
-                    // such as with diagnostic reported from comilation.GetDiagnostics(), should
+                    // such as with diagnostic reported from compilation.GetDiagnostics(), should
                     // use a custom equality comparer.
                     return obj is CompilerDiagnostic other &&
                         _original.Equals(other._original);

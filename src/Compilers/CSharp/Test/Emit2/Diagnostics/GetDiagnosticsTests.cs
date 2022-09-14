@@ -808,11 +808,42 @@ internal class TestAttribute : Attribute
             // Verify equality for the compiler diagnostic reported from 'CSharpCompilerDiagnosticAnalyzer' with itself.
             Assert.Equal(analyzerDiagnostic, analyzerDiagnostic);
 
+            // Verify the diagnostic from both sources is the same
+            Assert.Equal(analyzerDiagnostic.ToString(), compilationDiagnostic.ToString());
+
             // Verify that diagnostic equality check fails when compared with the same compiler diagnostic
             // fetched from 'compilation.GetDiagnostics()'. Hosts that want to compare compiler diagnostics from
             // different sources should use custom equality comparer.
             Assert.NotEqual(analyzerDiagnostic, compilationDiagnostic);
             Assert.NotEqual(compilationDiagnostic, analyzerDiagnostic);
+
+            // Verify that CS0657 can be suppressed with a DiagnosticSuppressor
+            var suppressor = new DiagnosticSuppressorForCS0657();
+            analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), suppressor);
+            var options = new CompilationWithAnalyzersOptions(AnalyzerOptions.Empty, onAnalyzerException: null,
+                concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: true);
+            compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
+            analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+            analyzerDiagnostic = analyzerDiagnostics.Single();
+            Assert.True(analyzerDiagnostic.IsSuppressed);
+            var suppression = analyzerDiagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
+            Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Id);
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private sealed class DiagnosticSuppressorForCS0657 : DiagnosticSuppressor
+        {
+            internal const string SuppressionId = "SPR0001";
+            private readonly SuppressionDescriptor _descriptor = new(SuppressionId, "CS0657", "Justification");
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(_descriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    context.ReportSuppression(Suppression.Create(_descriptor, diagnostic));
+                }
+            }
         }
     }
 }
