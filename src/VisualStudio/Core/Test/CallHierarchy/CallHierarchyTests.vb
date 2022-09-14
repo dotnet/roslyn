@@ -217,7 +217,7 @@ class CSharpIt : IChangeSignatureOptionsService
                 testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
-                                     Assert.Equal("Assembly2", c.Project.Name)
+                                     Assert.Equal("Assembly2", c.ProjectName)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
             End Using
@@ -256,7 +256,7 @@ class D
                                  String.Format(EditorFeaturesResources.Calls_To_0, "M"),
                                  Sub(c)
                                      ' The child items should be in the second project
-                                     Assert.Equal("Assembly2", c.Project.Name)
+                                     Assert.Equal("Assembly2", c.ProjectName)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
             End Using

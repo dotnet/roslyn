@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders,
                     () => symbol.GetGlyph().GetImageSource(GlyphService),
                     callsites,
-                    project.Solution.Workspace);
+                    project);
 
                 return item;
             }

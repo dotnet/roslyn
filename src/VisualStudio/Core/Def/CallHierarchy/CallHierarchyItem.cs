@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             IEnumerable<AbstractCallFinder> finders,
             Func<ImageSource> glyphCreator,
             ImmutableArray<Location> callsites,
-            Workspace workspace)
+            Project project)
         {
+            _workspace = project.Solution.Workspace;
             _provider = provider;
             _navigableLocation = navigableLocation;
             _finders = finders;
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _containingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
             _glyphCreator = glyphCreator;
             _name = symbol.ToDisplayString(MemberNameFormat);
-            _callsites = callsites.SelectAsArray(loc => new CallHierarchyDetail(provider, loc, workspace));
+            _callsites = callsites.SelectAsArray(loc => new CallHierarchyDetail(provider, loc, _workspace));
             _sortText = symbol.ToDisplayString();
-            _workspace = workspace;
+            ProjectName = project.Name;
         }
 
         public static readonly SymbolDisplayFormat MemberNameFormat =
@@ -79,6 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
            new(
                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
+        public string ProjectName { get; }
 
         public string ContainingNamespaceName => _containingNamespaceName;
 
