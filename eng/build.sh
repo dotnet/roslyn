@@ -336,7 +336,7 @@ if [[ "$test_core_clr" == true ]]; then
     fi
 
     # Tell vstestconsole to parallelize assemblies when running tests.
-    parallelismArgs = "-- RunConfiguration.MaxCpuCount=0"
+    parallelismArgs="-- RunConfiguration.MaxCpuCount=0"
 
     dotnet test $assemblyArgs $logArgs $parallelismArgs
   fi
