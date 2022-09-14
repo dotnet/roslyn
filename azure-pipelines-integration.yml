@@ -66,10 +66,6 @@ parameters:
   type: number
   default: 150
 
-variables:
-  - name: queueName
-    value: windows.vs2022preview.amd64.open
-
 stages:
 - stage: Debug_Integration
   dependsOn: []
