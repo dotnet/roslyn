@@ -289,9 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 endLine = startLine;
                 endColumn = startColumn;
             }
-
-            // if the start line is after the end of the document, move the end to the last location in the document.
-            if (endLine >= lines.Count)
+            else if (endLine >= lines.Count)
             {
                 // if the end line is after the end of the document, move the end to the last location in the document.
                 endLine = lines.Count - 1;
