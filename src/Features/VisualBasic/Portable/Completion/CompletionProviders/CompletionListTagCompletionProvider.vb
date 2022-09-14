@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0).Symbol, displayText, context),
+                filterText:=GetFilterTextDefault(symbols(0).Symbol, displayText, context),
                 symbols:=symbols.SelectAsArray(Function(t) t.Symbol),
                 rules:=CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect),
                 contextPosition:=context.Position,

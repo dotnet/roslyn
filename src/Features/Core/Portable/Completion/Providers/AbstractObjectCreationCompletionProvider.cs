@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: GetCompletionItemRules(symbols).WithMatchPriority(MatchPriority.Preselect),
                 contextPosition: context.Position,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0].Symbol, displayText, context),
+                filterText: GetFilterTextDefault(symbols[0].Symbol, displayText, context),
                 supportedPlatforms: supportedPlatformData);
         }
 

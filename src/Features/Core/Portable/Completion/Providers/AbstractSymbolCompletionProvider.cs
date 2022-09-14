@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                var supportedPlatformData = ComputeSupportedPlatformData(completionContext, symbolLists, invalidProjectMap, totalProjects);
+                var supportedPlatformData = ComputeSupportedPlatformData(completionContext, symbolList, invalidProjectMap, totalProjects);
                 var item = CreateItem(
                     completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolList, arbitraryFirstContext, supportedPlatformData);
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return supportedPlatformData;
         }
 
-        protected CompletionItem CreateItemDefault(
+        protected static CompletionItem CreateItemDefault(
             string displayText,
             string displayTextSuffix,
             string insertionText,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0].Symbol, displayText, context),
+                filterText: GetFilterTextDefault(symbols[0].Symbol, displayText, context),
                 contextPosition: context.Position,
                 symbols: symbols.SelectAsArray(t => t.Symbol),
                 supportedPlatforms: supportedPlatformData,
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     .WithSelectionBehavior(context.IsRightSideOfNumericType ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
         }
 
-        protected virtual string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context)
+        protected static string GetFilterTextDefault(ISymbol symbol, string displayText, TSyntaxContext context)
         {
             return (displayText == symbol.Name) ||
                 (displayText.Length > 0 && displayText[0] == '@') ||

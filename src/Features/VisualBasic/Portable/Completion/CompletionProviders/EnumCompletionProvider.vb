@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0).Symbol, displayText, context),
+                filterText:=GetFilterTextDefault(symbols(0).Symbol, displayText, context),
                 symbols:=symbols.SelectAsArray(Function(t) t.Symbol),
                 contextPosition:=context.Position,
                 sortText:=insertionText,

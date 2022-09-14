@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
 
+        protected virtual string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context)
+            => GetFilterTextDefault(symbol, displayText, context);
+
         protected sealed override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
