@@ -3144,7 +3144,7 @@ class Program
     {
         R r1 = default;
         F2(ref r1);
-        F3(ref r1); // 1
+        F3(ref r1);
     }
     static void F2(ref R r2)
     {
@@ -3172,8 +3172,8 @@ class Program
     {
         R x1 = default;
         R y1 = default;
-        F2(ref x1, ref y1); // 1
-        F2(ref y1, ref x1); // 2
+        F2(ref x1, ref y1);
+        F2(ref y1, ref x1);
     }
     static void F2(ref R x2, [UnscopedRef] ref R y2)
     {
@@ -3499,7 +3499,7 @@ class Program
     {
         var x2 = new R();
         var y2 = new R();
-        y2.F2(ref x2); // 1
+        y2.F2(ref x2);
         return x2;
     }
 }";
