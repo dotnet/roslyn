@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
             _implicitCache = createImplicitCache ? new SimpleMRUCache() : null;
 
             // Also clear the cache when the solution is cleared or removed.
-            if (workspace != null)
+            if (createImplicitCache && workspace != null)
             {
                 workspace.WorkspaceChanged += (s, e) =>
                 {
