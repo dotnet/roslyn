@@ -117,20 +117,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal FileLinePositionSpan GetFileLinePositionSpan()
         {
             var filePath = GetFilePath();
-            if (filePath == null)
-            {
-                return default;
-            }
 
             return IsMapped ?
                 new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn)) :
                 new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
         }
 
-        internal string? GetFilePath()
+        internal string GetFilePath()
             => GetFilePath(OriginalFilePath, MappedFilePath);
 
-        private static string? GetFilePath(string original, string? mapped)
+        private static string GetFilePath(string original, string? mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
