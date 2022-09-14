@@ -10799,6 +10799,74 @@ class C { }
             }
         }
 
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType()
+        {
+            var source = @"
+using System;
+
+class Container<T>
+{
+    [Attr<T>]
+    class C1
+    {
+    }
+    
+    [AttrContainer<T>.Attr]
+    class C2
+    {
+    }
+    
+    [AttrContainer<T>.B.Attr]
+    class C3
+    {
+    }
+}
+
+class Attr<T> : Attribute { }
+
+class AttrContainer<T>
+{  
+    public class Attr : Attribute
+    {
+        public T Value { get; set; }
+    }
+    
+    public class B
+    {
+        public class Attr : Attribute
+        {
+        }
+    }
+}
+
+[A<(int A, int B)>.B]
+class C
+{
+}
+
+class A<T>
+{  
+    public class B : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [Attr<T>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T>").WithArguments("T").WithLocation(6, 6),
+                // (11,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [AttrContainer<T>.Attr]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>").WithArguments("T").WithLocation(11, 6),
+                // (16,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [AttrContainer<T>.B.Attr]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>").WithArguments("T").WithLocation(16, 6),
+                // (39,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(39, 2));
+        }
         #endregion
     }
 }

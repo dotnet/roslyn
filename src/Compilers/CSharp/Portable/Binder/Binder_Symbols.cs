@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
                 if (unconstructedType.IsGenericType
-                    && options.IsAttributeTypeLookup())
+                    && (options.IsAttributeTypeLookup() || ContainsAttributeType(node)))
                 {
                     foreach (var typeArgument in boundTypeArguments)
                     {
@@ -1190,6 +1190,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
+
+            // Determines whether node represents containing type of an attribute.
+            // For example, returns true for "A<T>" node in "[A<T>.B]".
+            static bool ContainsAttributeType(NameSyntax node)
+            {
+                var parent = node.Parent;
+                if (parent is null)
+                {
+                    return false;
+                }
+
+                if (parent.Kind() == SyntaxKind.QualifiedName)
+                {
+                    var qn = (QualifiedNameSyntax)parent;
+                    return SyntaxFacts.IsAttributeName(qn.Right) || ContainsAttributeType(qn);
+                }
+
+                return false;
+            }
         }
 
         private NamedTypeSymbol LookupGenericTypeName(
