@@ -2122,7 +2122,6 @@ public class PublicClass
     internal event System.Action InternalEvent;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
                 parseOptions: TestOptions.Regular7_2.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll.WithDeterministic(true));
@@ -2130,6 +2129,7 @@ public class PublicClass
             // verify metadata (types, members, attributes) of the regular assembly
             CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
