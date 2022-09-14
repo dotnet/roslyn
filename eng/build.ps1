@@ -474,8 +474,7 @@ function TestUsingRunTests() {
     $testRunnerExecutableArgs += $dotnetTestAdditionalArgs
 
     # Tell vstestconsole to parallelize assemblies when running tests.
-    $procCount = [System.Environment]::ProcessorCount * 1.5
-    $testRunnerExecutableArgs += " --diag:$LogDir\diaglogs.txt -- RunConfiguration.MaxCpuCount=$procCount"
+    $testRunnerExecutableArgs += " --diag:$LogDir\diaglogs.txt -- RunConfiguration.MaxCpuCount=0"
   }
 
   try {
@@ -573,7 +572,7 @@ function GetCommonDotnetTestArgs()
   # Determine a common set of parameters that we'll pass to dotnet test based on the input options.
   $dotnetTestAdditionalArgs = " --arch $testArch"
 
-  $blameTimeoutArg = "15minutes"
+  $blameTimeoutArg = "55minutes"
   if ($testVsi)
   {
     $blameTimeoutArg = "25minutes"
