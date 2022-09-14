@@ -2224,6 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
+                case ErrorCode.ERR_ScopedNotBeforeType:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return false;

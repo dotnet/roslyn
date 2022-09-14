@@ -775,5 +775,75 @@ class C
             var diagnosticsByAnalyzerMap = result.SemanticDiagnostics[syntaxTree];
             Assert.Empty(diagnosticsByAnalyzerMap);
         }
+
+        [Fact]
+        [WorkItem(63923, "https://github.com/dotnet/roslyn/issues/63923")]
+        public async Task TestEqualityForCompilerAnalyzerDiagnosticWithPropertyBag()
+        {
+            var source = @"using System;
+
+public class SomeClass
+{
+    [property: Test]
+    public string Name;
+}
+
+internal class TestAttribute : Attribute
+{
+}
+";
+            var compilation = CreateCompilation(source);
+            var compilationDiagnostics = compilation.GetDiagnostics();
+            compilationDiagnostics.Verify(
+                // (5,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
+                //     [property: Test]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "field").WithLocation(5, 6));
+            var compilationDiagnostic = compilationDiagnostics.Single();
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+            var analyzerDiagnostic = analyzerDiagnostics.Single();
+
+            // Verify equality for the compiler diagnostic reported from 'CSharpCompilerDiagnosticAnalyzer' with itself.
+            Assert.Equal(analyzerDiagnostic, analyzerDiagnostic);
+
+            // Verify the diagnostic from both sources is the same
+            Assert.Equal(analyzerDiagnostic.ToString(), compilationDiagnostic.ToString());
+
+            // Verify that diagnostic equality check fails when compared with the same compiler diagnostic
+            // fetched from 'compilation.GetDiagnostics()'. Hosts that want to compare compiler diagnostics from
+            // different sources should use custom equality comparer.
+            Assert.NotEqual(analyzerDiagnostic, compilationDiagnostic);
+            Assert.NotEqual(compilationDiagnostic, analyzerDiagnostic);
+
+            // Verify that CS0657 can be suppressed with a DiagnosticSuppressor
+            var suppressor = new DiagnosticSuppressorForCS0657();
+            analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), suppressor);
+            var options = new CompilationWithAnalyzersOptions(AnalyzerOptions.Empty, onAnalyzerException: null,
+                concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: true);
+            compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
+            analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+            analyzerDiagnostic = analyzerDiagnostics.Single();
+            Assert.True(analyzerDiagnostic.IsSuppressed);
+            var suppression = analyzerDiagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
+            Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Id);
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private sealed class DiagnosticSuppressorForCS0657 : DiagnosticSuppressor
+        {
+            internal const string SuppressionId = "SPR0001";
+            private readonly SuppressionDescriptor _descriptor = new(SuppressionId, "CS0657", "Justification");
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(_descriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    context.ReportSuppression(Suppression.Create(_descriptor, diagnostic));
+                }
+            }
+        }
     }
 }

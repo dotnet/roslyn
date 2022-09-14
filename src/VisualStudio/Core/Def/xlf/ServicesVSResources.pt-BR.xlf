@@ -1239,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
         <source>Rename asynchronously (experimental)</source>
-        <target state="needs-review-translation">Renomear experimental de forma assíncrona</target>
+        <target state="new">Rename asynchronously (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
