@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        return Checksum.Create(((SerializableSourceText)value).GetChecksum(cancellationToken));
+                        return Checksum.Create(((SerializableSourceText)value).GetChecksum());
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(((SourceText)value).GetChecksum());

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private SourceText? TryGetText()
             => _text ?? _computedText.GetTarget();
 
-        public ImmutableArray<byte> GetChecksum(CancellationToken cancellationToken)
+        public ImmutableArray<byte> GetChecksum()
         {
             return TryGetText()?.GetChecksum() ?? _storage!.GetChecksum();
         }
