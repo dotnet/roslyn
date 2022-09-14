@@ -2120,6 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
+        ERR_ScopedNotBeforeType = 9072,
 
         #endregion
 
