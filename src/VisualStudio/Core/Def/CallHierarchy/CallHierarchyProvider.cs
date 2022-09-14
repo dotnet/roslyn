@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -65,11 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 ICallHierarchyMemberItem item = new CallHierarchyItem(
                     this,
                     symbol,
-                    project.Id,
                     finders,
                     () => symbol.GetGlyph().GetImageSource(GlyphService),
                     callsites,
-                    project.Solution.Workspace);
+                    project.Solution);
 
                 return item;
             }
@@ -145,17 +145,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return null;
         }
 
-        public async Task NavigateToAsync(SymbolKey id, Project project, CancellationToken cancellationToken)
+        public async Task NavigateToAsync(Workspace workspace, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
-            var workspace = project.Solution.Workspace;
-            var options = NavigationOptions.Default with { PreferProvisionalTab = true };
-            var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
-
-            var location = await symbolNavigationService.GetNavigableLocationAsync(
-                resolution.Symbol, project, cancellationToken).ConfigureAwait(false);
-            await location.TryNavigateToAsync(this.ThreadingContext, options, cancellationToken).ConfigureAwait(false);
+            var location = await definitionItem.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+            if (location != null)
+                await location.NavigateToAsync(NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

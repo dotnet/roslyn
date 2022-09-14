@@ -8,14 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
@@ -24,27 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     {
         private readonly string _containingNamespaceName;
         private readonly string _containingTypeName;
-        private readonly SymbolKey _symbolId;
+        private readonly DefinitionItem _definitionItem;
         private readonly IEnumerable<CallHierarchyDetail> _callsites;
         private readonly IEnumerable<AbstractCallFinder> _finders;
         private readonly Func<ImageSource> _glyphCreator;
         private readonly string _name;
         private readonly CallHierarchyProvider _provider;
-        private readonly ProjectId _projectId;
         private readonly string _sortText;
 
         public CallHierarchyItem(
             CallHierarchyProvider provider,
             ISymbol symbol,
-            ProjectId projectId,
             IEnumerable<AbstractCallFinder> finders,
             Func<ImageSource> glyphCreator,
             ImmutableArray<Location> callsites,
-            Workspace workspace)
+            Solution solution)
         {
+            var workspace = solution.Workspace;
+
             _provider = provider;
-            _symbolId = symbol.GetSymbolKey();
-            _projectId = projectId;
+            _definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
             _finders = finders;
             _containingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
             _containingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
@@ -82,14 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private readonly Workspace _workspace;
-
-        internal Project Project
-        {
-            get
-            {
-                return _workspace.CurrentSolution.GetProject(_projectId);
-            }
-        }
 
         public string ContainingNamespaceName => _containingNamespaceName;
 
@@ -151,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         {
             using var context = _provider.ThreadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
-            await _provider.NavigateToAsync(
-                _symbolId, _workspace.CurrentSolution.GetProject(_projectId), context.UserCancellationToken).ConfigureAwait(false);
+            await _provider.NavigateToAsync(_definitionItem, context.UserCancellationToken).ConfigureAwait(false);
         }
 
         public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
