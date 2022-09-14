@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">'{0}' modül başlatıcısı metodu statik olmalıdır, hiç parametresi olmamalıdır ve 'void' döndürmelidir</target>
+        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">

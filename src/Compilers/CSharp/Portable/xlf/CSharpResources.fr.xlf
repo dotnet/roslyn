@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">La méthode d'initialiseur de module '{0}' doit être statique, ne doit avoir aucun paramètre et doit retourner 'void'</target>
+        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -2385,7 +2385,7 @@
 -instrument:TestCoverage      Produire un assembly instrumenté pour collecter
                               les informations de couverture
 -sourcelink:&lt;fichier&gt;         Informations du lien source à incorporer dans le fichier PDB.
-
+ 
                        - ERREURS ET AVERTISSEMENTS -
 -warnaserror[+|-]             Signaler tous les avertissements comme des erreurs
 -warnaserror[+|-]:&lt;avertiss.&gt; Signaler des avertissements spécifiques comme des erreurs

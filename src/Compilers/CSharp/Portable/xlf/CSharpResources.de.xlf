@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">Die Modulinitialisierermethode "{0}" muss statisch sein, darf keine Parameter enthalten und muss "void" zurückgeben.</target>
+        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -2388,7 +2388,7 @@
 
                        – FEHLER UND WARNUNGEN –
 -warnaserror[+|-]             Meldet alle Warnungen als Fehler.
--warnaserror[+|-]:&lt;Warnungsliste&gt; Meldet bestimmte Warnungen als Fehler
+-warnaserror[+|-]:&lt;Warnungsliste&gt; Meldet bestimmte Warnungen als Fehler 
                               (Verwendung von "nullable" für alle Warnungen zur NULL-Zulässigkeit).
 -warn:&lt;n&gt;                     Legt die Warnstufe fest (0 oder höher) (Kurzform: -w).
 -nowarn:&lt;Warnungsliste&gt;           Deaktiviert bestimmte Warnmeldungen

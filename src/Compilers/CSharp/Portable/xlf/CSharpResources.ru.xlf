@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">Метод инициализатора модуля "{0}" должен быть статическим, не должен иметь параметров и должен возвращать "void".</target>
+        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -2385,7 +2385,7 @@
 -instrument:TestCoverage      Создать сборку, инструментированную для сбора
                               сведений об объеме протестированного кода
 -sourcelink:&lt;file&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
-
+ 
                        — Ошибки и предупреждения -
 -warnaserror[+|-]             Регистрировать все предупреждения как ошибки
 -warnaserror[+|-]:&lt;warn list&gt; Регистрировать указанные предупреждения как ошибки
