@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [Shared]
     internal partial class VisualStudioProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly TimeSpan ImplicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectCacheHostServiceFactory()
