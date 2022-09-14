@@ -246,6 +246,7 @@ namespace Analyzer.Utilities
         public const string SystemIOStream = "System.IO.Stream";
         public const string SystemIOStringReader = "System.IO.StringReader";
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
+        public const string SystemIParsable1 = "System.IParsable`1";
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemLinqExpressionsExpression1 = "System.Linq.Expressions.Expression`1";
@@ -266,6 +267,7 @@ namespace Analyzer.Utilities
         public const string SystemNotSupportedException = "System.NotSupportedException";
         public const string SystemNullable1 = "System.Nullable`1";
         public const string SystemNumber = "System.Number";
+        public const string SystemNumericsINumber1 = "System.Numerics.INumber`1";
         public const string SystemObject = "System.Object";
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
         public const string SystemOperatingSystem = "System.OperatingSystem";
