@@ -2212,7 +2212,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadParameterModifiersOrder:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
-                case ErrorCode.ERR_MisplacedScoped:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
