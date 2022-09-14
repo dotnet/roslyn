@@ -108,8 +108,7 @@ public void Method()
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact]
-        [WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
+        [Fact, WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
             var src = @"using System;
@@ -161,8 +160,7 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
-        [Fact]
-        [WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
+        [Fact, WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
             var src = @"
@@ -290,7 +288,7 @@ namespace N1.N2
 }
 ";
             // this should result in two entirely separate file symbols.
-            // note that the IDE can only distinguish file type symbols with the same name when they have distinct file paths.
+            // note that the IDE can only distinguish file-local type symbols with the same name when they have distinct file paths.
             // We are OK with this as we will require file types with identical names to have distinct file paths later in the preview.
             // See https://github.com/dotnet/roslyn/issues/61999
             var originalComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
@@ -306,7 +304,7 @@ namespace N1.N2
         [Fact]
         public void FileType4()
         {
-            // we should be able to distinguish a file type and non-file type when they have the same source name.
+            // we should be able to distinguish a file-local type and non-file-local type when they have the same source name.
             var src1 = SyntaxFactory.ParseSyntaxTree(@"using System;
 
 namespace N1.N2
@@ -478,8 +476,7 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
-        [Fact]
+        [Fact, WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void C2CIndexerSymbolChanged01()
         {
             var src1 = @"using System;

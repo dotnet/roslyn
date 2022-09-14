@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     {
                         FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
+                        IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
                         _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
                     };
                 }
@@ -53,7 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // pick up on keywords before the declaration, such as "public static int".
                 // We could potentially use it for every case if that behavior changes
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                return await CSharpSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+                var members = await CSharpSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+                // if we get a node that would not have an obtainable symbol (such as the ones below)
+                // we return an empty list instead of filtering so we don't get other potentially
+                // malformed syntax nodes.
+                // Consider pub[||] static int Foo;
+                // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
+                return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : members;
             }
         }
     }

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Sub
 
             Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-                Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
+                Return New VisualBasicCompletionService(languageServices.LanguageServices.SolutionServices)
             End Function
         End Class
 
@@ -36,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
             defaultEnterKeyRule:=EnterKeyRule.Always)
 
-        Private Sub New(workspace As Workspace)
-            MyBase.New(workspace)
+        Private Sub New(services As SolutionServices)
+            MyBase.New(services)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         End Function
 
         Private Function GetChangeText(item As CompletionItem) As String
-            Dim provider = TryCast(GetProvider(item), CommonCompletionProvider)
+            Dim provider = TryCast(GetProvider(item, project:=Nothing), CommonCompletionProvider)
             If provider IsNot Nothing Then
                 ' TODO: Document Is Not available in this code path.. what about providers that need to reconstruct information before producing text?
                 Dim result = provider.GetTextChangeAsync(Nothing, item, Nothing, CancellationToken.None).Result

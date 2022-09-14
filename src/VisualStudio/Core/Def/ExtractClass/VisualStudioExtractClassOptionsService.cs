@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -51,14 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
 
         public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
         {
-            var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
 
             var membersInType = selectedType.GetMembers().
                WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(member, _glyphService)
+                    new MemberSymbolViewModel(member, _glyphService)
                     {
                         // The member(s) user selected will be checked at the beginning.
                         IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var viewModel = new ExtractClassViewModel(
                 _uiThreadOperationExecutor,
                 notificationService,
+                selectedType,
                 memberViewModels,
                 memberToDependentsMap,
                 defaultTypeName,

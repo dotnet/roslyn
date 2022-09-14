@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 project = originatingProject ?? project;
             }
 
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
+            var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);

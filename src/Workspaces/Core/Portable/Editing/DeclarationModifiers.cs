@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Editing
 namespace Microsoft.CodeAnalysis.Editing
 #endif
 {
-    public struct DeclarationModifiers : IEquatable<DeclarationModifiers>
+    public readonly struct DeclarationModifiers : IEquatable<DeclarationModifiers>
     {
         private readonly Modifiers _modifiers;
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true,
                     isRequired: symbol.IsRequired(),
-                    isFile: (symbol as INamedTypeSymbol)?.IsFile == true);
+                    isFile: (symbol as INamedTypeSymbol)?.IsFileLocal == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.

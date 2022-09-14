@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -26,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var service = strippedDocument.GetRequiredLanguageService<ISnippetService>();
             var snippetIdentifier = SnippetCompletionItem.GetSnippetIdentifier(item);
             var snippetProvider = service.GetSnippetProvider(snippetIdentifier);
+
+            // Logging for telemetry.
+            Logger.Log(FunctionId.Completion_SemanticSnippets, $"Name: {snippetIdentifier}");
 
             // This retrieves the generated Snippet
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
@@ -84,11 +88,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             foreach (var snippetData in snippets)
             {
                 var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.DisplayName,
+                    displayText: snippetData.SnippetIdentifier,
                     displayTextSuffix: "",
                     position: position,
                     snippetIdentifier: snippetData.SnippetIdentifier,
-                    glyph: Glyph.Snippet);
+                    glyph: Glyph.Snippet,
+                    inlineDescription: snippetData.Description,
+                    additionalFilterTexts: snippetData.AdditionalFilterTexts);
                 context.AddItem(completionItem);
             }
         }

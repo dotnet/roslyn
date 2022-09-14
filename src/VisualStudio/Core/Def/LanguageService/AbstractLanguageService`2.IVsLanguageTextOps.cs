@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var text = documentSyntax.Text;
             var root = documentSyntax.Root;
-            var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.LanguageServices, explicitFormat: true);
+            var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: true);
 
             var ts = selections.Single();
             var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
             // cleanup work to do later in Venus.
             var ruleFactory = Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            var rules = ruleFactory.CreateRule(documentSyntax, start).Concat(Formatter.GetDefaultFormattingRules(document.Project.LanguageServices));
+            var rules = ruleFactory.CreateRule(documentSyntax, start).Concat(Formatter.GetDefaultFormattingRules(document.Project.Services));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
@@ -80,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
-            // create new formatted document
-            var formattedDocument = document.WithText(text.WithChanges(formattedChanges));
-            Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+            textBuffer.ApplyChanges(formattedChanges);
 
             return VSConstants.S_OK;
         }

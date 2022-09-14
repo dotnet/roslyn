@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Roslyn.Test.Utilities;
@@ -47,7 +45,7 @@ public class FormatterTests
     [Fact]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport()
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
         using var workspace = new AdhocWorkspace(hostServices);
 
         var project = workspace.AddProject("Dummy", NoCompilationConstants.LanguageName);
@@ -65,7 +63,7 @@ public class FormatterTests
     [CombinatorialData]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
 
         using var workspace = new AdhocWorkspace(hostServices);
 

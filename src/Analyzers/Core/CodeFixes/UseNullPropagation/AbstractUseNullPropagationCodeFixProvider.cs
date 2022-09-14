@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
+        TMemberAccessExpressionSyntax,
         TElementBindingExpressionSyntax,
         TIfStatementSyntax,
         TExpressionStatementSyntax,
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TElementBindingExpressionSyntax : TExpressionSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                         TSyntaxKind, TExpressionSyntax, TStatementSyntax,
                         TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
-                        TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax,
+                        TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
                         TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(
                             syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)currentWhenPartToCheck, cancellationToken);
                     if (match == null)

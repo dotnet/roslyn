@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MatchFolderAndNamesp
 {
     public class CSharpMatchFolderAndNamespaceTests
     {
-        private static readonly string Directory = Path.Combine("Test", "Directory");
+        private static readonly string Directory = "/0/";
 
         // DefaultNamespace gets exposed as RootNamespace in the build properties
         private const string DefaultNamespace = "Test.Root.Namespace";
@@ -83,7 +83,7 @@ build_property.RootNamespace = {DefaultNamespace}
             var code =
 @"
 namespace A.B
-{    
+{
     class Class1
     {
     }
@@ -123,7 +123,7 @@ class Class1
             var code =
 @"
 namespace A.B
-{    
+{
     class Class1
     {
     }
@@ -143,7 +143,7 @@ namespace A.B
             var code =
 @"
 namespace A.B
-{    
+{
     class Class1
     {
     }
@@ -162,7 +162,7 @@ namespace A.B
             var code =
 @$"
 namespace {DefaultNamespace}.a.b
-{{    
+{{
     class Class1
     {{
     }}
@@ -336,8 +336,8 @@ class Class1
         [Fact]
         public async Task NestedNamespaces_NoDiagnostic()
         {
-            // The code fix doesn't currently support nested namespaces for sync, so 
-            // diagnostic does not report. 
+            // The code fix doesn't currently support nested namespaces for sync, so
+            // diagnostic does not report.
 
             var folder = CreateFolderPath("B", "C");
             var code =
@@ -364,8 +364,8 @@ class Class1
         [Fact]
         public async Task PartialTypeWithMultipleDeclarations_NoDiagnostic()
         {
-            // The code fix doesn't currently support nested namespaces for sync, so 
-            // diagnostic does not report. 
+            // The code fix doesn't currently support nested namespaces for sync, so
+            // diagnostic does not report.
 
             var folder = CreateFolderPath("B", "C");
             var code1 =
@@ -436,7 +436,7 @@ namespace [|{@namespace}|]
 
     class Class2 : {@namespace}.Class1
     {{
-        {@namespace}.D1 d;  
+        {@namespace}.D1 d;
 
         void {@namespace}.Class1.M1(){{}}
     }}
@@ -831,19 +831,13 @@ namespace {fixedNamespace3}
     }}
 }}";
 
-            var sources = new[]
-            {
-                (Path.Combine(folder1, "Class1.cs"), code1),
-                (Path.Combine(folder2, "Class2.cs"), code2),
-                (Path.Combine(folder3, "Class3.cs"), code3),
-            };
-
-            var fixedSources = new[]
-            {
-                (Path.Combine(folder1, "Class1.cs"), fixed1),
-                (Path.Combine(folder2, "Class2.cs"), fixed2),
-                (Path.Combine(folder3, "Class3.cs"), fixed3),
-            };
+            var project2Directory = "/Project2/";
+            var project2folder = Path.Combine(project2Directory, "A", "B", "C");
+            var project2EditorConfig = @$"
+is_global=true
+build_property.ProjectDir = {project2Directory}
+build_property.RootNamespace = {DefaultNamespace}
+";
 
             var project2Source =
 @$"using {declaredNamespace};
@@ -857,7 +851,7 @@ namespace [|Project2.Test|]
 }}";
 
             var project2FixedSource =
-$@"namespace Test.Root.Namespace.A.B.C
+$@"namespace {fixedNamespace1}
 {{
     class P
     {{
@@ -872,45 +866,56 @@ $@"namespace Test.Root.Namespace.A.B.C
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState =
                 {
-                    AdditionalProjects = {
-                        ["Project2"] = {
-                            Sources = { },
-                            AnalyzerConfigFiles = { ("/.editorconfig", EditorConfig) }
+                    Sources =
+                    {
+                        (Path.Combine(folder1, "Class1.cs"), code1),
+                        (Path.Combine(folder2, "Class2.cs"), code2),
+                        (Path.Combine(folder3, "Class3.cs"), code3),
+                    },
+                    AdditionalProjects =
+                    {
+                        ["Project2"] =
+                        {
+                            AdditionalProjectReferences = { "TestProject" },
+                            Sources = { (Path.Combine(project2folder, "P.cs"), project2Source) },
+                            AnalyzerConfigFiles = { (Path.Combine(project2Directory, ".editorconfig"), project2EditorConfig) },
                         },
-                    }
+                    },
                 },
                 FixedState =
                 {
+                    Sources =
+                    {
+                        (Path.Combine(folder1, "Class1.cs"), fixed1),
+                        (Path.Combine(folder2, "Class2.cs"), fixed2),
+                        (Path.Combine(folder3, "Class3.cs"), fixed3),
+                    },
                     AdditionalProjects =
                     {
-                        ["Project2"] = {
-                            Sources = { },
-                            AnalyzerConfigFiles = { ("/.editorconfig", EditorConfig) }
+                        ["Project2"] =
+                        {
+                            AdditionalProjectReferences = { "TestProject" },
+                            Sources = { (Path.Combine(project2folder, "P.cs"), project2FixedSource) },
+                            AnalyzerConfigFiles = { (Path.Combine(project2Directory, ".editorconfig"), project2EditorConfig) },
                         }
                     }
                 }
             };
 
-            foreach (var (fileName, content) in sources)
-                testState.TestState.Sources.Add((fileName, content));
-
-            fixedSources ??= Array.Empty<(string, string)>();
-            foreach (var (fileName, content) in fixedSources)
-                testState.FixedState.Sources.Add((fileName, content));
-
-            var project2 = testState.TestState.AdditionalProjects["Project2"];
-            project2.AdditionalProjectReferences.Add(testState.TestState.Name);
-            project2.Sources.Add((Path.Combine(folder1, "P.cs"), project2Source));
-
-            var fixedProject2 = testState.FixedState.AdditionalProjects["Project2"];
-            fixedProject2.AdditionalProjectReferences.Add(testState.TestState.Name);
-            fixedProject2.Sources.Add((Path.Combine(folder1, "P.cs"), project2FixedSource));
+            testState.SolutionTransforms.Add((solution, projectId) =>
+            {
+                foreach (var id in solution.ProjectIds)
+                {
+                    var project = solution.GetRequiredProject(id);
+                    solution = project.WithDefaultNamespace(DefaultNamespace).Solution;
+                }
+                return solution;
+            });
 
             await testState.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(58372, "https://github.com/dotnet/roslyn/issues/58372")]
+        [Fact, WorkItem(58372, "https://github.com/dotnet/roslyn/issues/58372")]
         public async Task InvalidProjectName_ChangeNamespace()
         {
             var defaultNamespace = "Invalid-Namespace";
@@ -924,7 +929,7 @@ build_property.RootNamespace = {defaultNamespace}
             var code =
 @"
 namespace [|A.B|]
-{    
+{
     class Class1
     {
     }

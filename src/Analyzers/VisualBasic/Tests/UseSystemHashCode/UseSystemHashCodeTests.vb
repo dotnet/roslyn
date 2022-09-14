@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.UseSystemHashCode
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseSystemHashCode
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
     Partial Public Class UseSystemHashCodeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseSystemHashCode
             Return (New UseSystemHashCodeDiagnosticAnalyzer(), New UseSystemHashCodeCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestDerivedClassWithFieldWithBase() As Task
             Await TestInRegularAndScriptAsync(
 " namespace System
@@ -61,7 +62,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestDerivedClassWithFieldWithNoBase() As Task
             Await TestInRegularAndScriptAsync(
 " namespace System
@@ -106,7 +107,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestDerivedClassWithNoFieldWithBase() As Task
             Await TestInRegularAndScriptAsync(
 " namespace System
@@ -151,7 +152,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestFieldAndProp() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Collections.Generic
@@ -189,7 +190,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestNotOnNonGetHashCode() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic
@@ -212,7 +213,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestNotWithoutReturn() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic
@@ -234,7 +235,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestNotWithoutLocal() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic
@@ -256,7 +257,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestNotWithMultipleLocals() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic
@@ -279,7 +280,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestNotWithoutInitializer() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic
@@ -302,7 +303,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestNotReturningAccumulator() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic
@@ -325,7 +326,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestAcumulatorInitializedToField() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Collections.Generic
@@ -362,7 +363,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestAcumulatorInitializedToHashedField() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Collections.Generic
@@ -399,7 +400,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestMissingOnThisGetHashCode() As Task
             Await TestMissingAsync(
 " namespace System
@@ -426,7 +427,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestMissingWithNoSystemHashCode() As Task
             Await TestMissingAsync(
 "
@@ -449,7 +450,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestDirectNullCheck1() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Collections.Generic
@@ -487,7 +488,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestDirectNullCheck2() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Collections.Generic
@@ -525,7 +526,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestInt64Pattern() As Task
             Await TestInRegularAndScriptAsync(
 " namespace System
@@ -556,7 +557,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestInt64Pattern2() As Task
             Await TestInRegularAndScriptAsync(
 "namespace System
@@ -587,7 +588,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestTuple() As Task
             Await TestInRegularAndScriptAsync(
 "imports System.Collections.Generic
@@ -626,7 +627,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        <Fact>
         Public Async Function TestAssignmentToImplicitMethodVariable() As Task
             Await TestMissingAsync(
 "imports System.Collections.Generic

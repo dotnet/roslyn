@@ -19,20 +19,9 @@ internal sealed record class IdeAnalyzerOptions
     private static readonly CodeStyleOption2<bool> s_defaultPreferSystemHashCode =
         new(value: true, notification: NotificationOption2.Suggestion);
 
-    public static readonly IdeAnalyzerOptions CodeStyleDefault = new()
-    {
-        CrashOnAnalyzerException = false,
-        FadeOutUnusedImports = false,
-        FadeOutUnreachableCode = false
-    };
-
     public static readonly IdeAnalyzerOptions CommonDefault = new();
 
     [DataMember] public bool CrashOnAnalyzerException { get; init; } = false;
-    [DataMember] public bool FadeOutUnusedImports { get; init; } = true;
-    [DataMember] public bool FadeOutUnreachableCode { get; init; } = true;
-    [DataMember] public bool FadeOutComplexObjectInitialization { get; init; } = false;
-    [DataMember] public bool FadeOutComplexCollectionInitialization { get; init; } = false;
     [DataMember] public bool ReportInvalidPlaceholdersInStringDotFormatCalls { get; init; } = true;
     [DataMember] public bool ReportInvalidRegexPatterns { get; init; } = true;
     [DataMember] public bool ReportInvalidJsonPatterns { get; init; } = true;
@@ -53,7 +42,7 @@ internal sealed record class IdeAnalyzerOptions
     public CodeGenerationOptions? GenerationOptions => CleanCodeGenerationOptions?.GenerationOptions;
 
 #if !CODE_STYLE
-    public static IdeAnalyzerOptions GetDefault(HostLanguageServices languageServices)
+    public static IdeAnalyzerOptions GetDefault(LanguageServices languageServices)
         => new()
         {
             CleanCodeGenerationOptions = CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices),

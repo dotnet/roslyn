@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ProjectInfo _projectInfo;
         private readonly HostLanguageServices _languageServices;
-        private readonly SolutionServices _solutionServices;
+        private readonly HostWorkspaceServices _solutionServices;
 
         /// <summary>
         /// The documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             TextDocumentStates<DocumentState> documentStates,
             TextDocumentStates<AdditionalDocumentState> additionalDocumentStates,
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
+        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, HostWorkspaceServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (documentState.IsRazorDocument())
                 {
-                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.WorkspaceServices);
+                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.LanguageServices.SolutionServices);
                 }
 
                 var filePath = GetEffectiveFilePath(documentState);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions;
 
-            public RazorDesignTimeAnalyzerConfigOptions(HostWorkspaceServices services)
+            public RazorDesignTimeAnalyzerConfigOptions(SolutionServices services)
             {
                 // not available OOP:
                 _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using Humanizer;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            HostWorkspaceServices services,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
             var languageServices = services.GetLanguageServices(token.Language);

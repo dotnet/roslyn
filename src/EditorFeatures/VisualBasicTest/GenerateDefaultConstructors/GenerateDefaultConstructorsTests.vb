@@ -369,8 +369,8 @@ End Class",
 index:=2)
         End Function
 
-        <WorkItem(540712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540712")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem(540712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540712")>
         Public Async Function TestEndOfToken() As Task
             Await TestRefactoringAsync(
 "Imports System
@@ -395,7 +395,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFormattingInGenerateDefaultConstructor() As Task
             Await TestRefactoringAsync(
 <Text>Imports System
@@ -425,8 +425,8 @@ Class Program
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestDefaultConstructorGeneration() As Task
             Await TestRefactoringAsync(
 <Text>Class C
@@ -612,8 +612,8 @@ Public Class {|BC30203:|}{|BC30037:;|}{|BC30037:;|}Derived
 End Class")
         End Function
 
-        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         Public Async Function TestGenerateInDerivedType1() As Task
             Await TestCodeFixAsync(
 "
@@ -643,8 +643,8 @@ Public Class Derived
 End Class")
         End Function
 
-        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         Public Async Function TestGenerateInDerivedType2() As Task
             Await TestCodeFixAsync(
 "
@@ -674,8 +674,8 @@ Public Class Derived
 End Class")
         End Function
 
-        <WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")>
         Public Async Function TestNotOnEnum() As Task
             Await TestRefactoringMissingAsync(
 "
@@ -684,8 +684,8 @@ Public Enum [||]E
 End Enum")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromFriendConstructor() As Task
             Await TestCodeFixAsync(
 <Text>Class {|BC30387:C|}
@@ -710,8 +710,8 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromFriendConstructor2() As Task
             Await TestCodeFixAsync(
 <Text>MustInherit Class {|BC30387:C|}
@@ -736,8 +736,8 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedConstructor() As Task
             Await TestCodeFixAsync(
 <Text>Class {|BC30387:C|}
@@ -762,8 +762,8 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedConstructor2() As Task
             Await TestCodeFixAsync(
 <Text>MustInherit Class {|BC30387:C|}
@@ -788,8 +788,8 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedFriendConstructor() As Task
             Await TestCodeFixAsync(
 <Text>Class {|BC30387:C|}
@@ -814,8 +814,8 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromProtectedFriendConstructor2() As Task
             Await TestCodeFixAsync(
 <Text>MustInherit Class {|BC30387:C|}
@@ -840,8 +840,8 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorFromPublicConstructor() As Task
             Await TestCodeFixAsync(
 <Text>Class {|BC30387:C|}
@@ -866,9 +866,9 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestGenerateConstructorInAbstractClassFromPublicConstructor() As Task
             Await TestCodeFixAsync(
 <Text>MustInherit Class {|BC30387:C|}

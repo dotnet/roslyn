@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.Iterator
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
     Public Class ConvertToIteratorTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
             Return (Nothing, New VisualBasicConvertToIteratorCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorFunction() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -36,7 +37,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSub() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Module1
@@ -46,7 +47,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorFunctionLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -71,7 +72,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSubLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -86,7 +87,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSingleLineFunctionLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -99,7 +100,7 @@ Module Module1
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
+        <Fact>
         Public Async Function TestConvertToIteratorSingleLineSubLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -113,6 +114,7 @@ End Module")
         End Function
     End Class
 
+    <Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
     Public Class ChangeToYieldTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -120,7 +122,7 @@ End Module")
             Return (Nothing, New VisualBasicChangeToYieldCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderFunction() As Task
             Await TestInRegularAndScriptAsync(
 "Module Module1
@@ -135,7 +137,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSub() As Task
             Await TestInRegularAndScriptAsync(
 "Module Module1
@@ -150,7 +152,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderFunctionLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Module Module1
@@ -169,7 +171,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSubLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Module Module1
@@ -188,7 +190,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineFunctionLambda() As Task
             Await TestMissingInRegularAndScriptAsync("Module Module1
     Sub M()
@@ -197,7 +199,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
+        <Fact>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineSubLambda() As Task
             Await TestInRegularAndScriptAsync(
 "Module Module1

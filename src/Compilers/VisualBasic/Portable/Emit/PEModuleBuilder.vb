@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblyAttributes(isRefAssembly As Boolean) As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me.CompilationState,
+            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me,
                                                                                            isRefAssembly,
                                                                                            emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
+            Return SourceModule.GetCustomAttributesToEmit(Me)
         End Function
 
         Public NotOverridable Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)

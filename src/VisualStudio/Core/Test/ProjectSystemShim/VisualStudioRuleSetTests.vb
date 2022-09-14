@@ -15,6 +15,7 @@ Imports IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class VisualStudioRuleSetTests
         Implements IDisposable
 
@@ -29,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(_tempPath, recursive:=True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SingleFile() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -63,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function TwoFiles() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
@@ -107,7 +108,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function IncludeUpdated() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
@@ -158,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SameFileRequestedAfterChange() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -207,7 +208,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SameFileRequestedMultipleTimes() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -245,7 +246,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function FileWithError() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">

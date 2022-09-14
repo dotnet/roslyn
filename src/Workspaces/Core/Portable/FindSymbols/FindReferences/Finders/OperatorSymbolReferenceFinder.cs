@@ -4,9 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol.MethodKind == MethodKind.UserDefinedOperator;
+            => symbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
 
         protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
@@ -50,11 +51,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var opReferences = await FindReferencesInDocumentAsync(
-                symbol, state,
-                static (state, token, op, _) => IsPotentialReference(state.SyntaxFacts, op, token),
-                symbol.GetPredefinedOperator(),
-                cancellationToken).ConfigureAwait(false);
+            var op = symbol.GetPredefinedOperator();
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .WhereAsArray(
+                    static (token, tuple) => IsPotentialReference(tuple.state.SyntaxFacts, tuple.op, token),
+                    (state, op));
+
+            var opReferences = await FindReferencesInTokensAsync(
+                symbol, state, tokens, cancellationToken).ConfigureAwait(false);
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);
 

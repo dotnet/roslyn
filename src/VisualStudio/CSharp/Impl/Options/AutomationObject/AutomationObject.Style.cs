@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -214,18 +213,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferReadonly, value); }
         }
 
-        public int Style_PreferObjectInitializer_FadeOutCode
-        {
-            get { return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization); }
-            set { SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization, value); }
-        }
-
-        public int Style_PreferCollectionInitializer_FadeOutCode
-        {
-            get { return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization); }
-            set { SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization, value); }
-        }
-
         public string Style_PreferSimplifiedBooleanExpressions
         {
             get { return GetXmlOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions); }
@@ -344,6 +331,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferredModifierOrder); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferredModifierOrder, value); }
+        }
+
+        public string Style_PreferReadOnlyStruct
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferReadOnlyStruct); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, value); }
         }
 
         public string Style_PreferStaticLocalFunction

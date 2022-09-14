@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// <summary>
     /// Capture Id is an opaque identifier to represent an intermediate result from an <see cref="IFlowCaptureOperation"/>.
     /// </summary>
-    public struct CaptureId : IEquatable<CaptureId>
+    public readonly struct CaptureId : IEquatable<CaptureId>
     {
         internal CaptureId(int value)
         {

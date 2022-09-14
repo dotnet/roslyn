@@ -4,6 +4,7 @@
 
 using System.IO;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -87,16 +88,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool IsMapped => MappedFilePath != null;
 
-        internal DiagnosticDataLocation WithCalculatedSpan(TextSpan newSourceSpan)
+        internal DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
         {
-            Contract.ThrowIfTrue(SourceSpan.HasValue);
+            var mappedLineInfo = tree.GetMappedLineSpan(newSourceSpan);
+            var originalLineInfo = tree.GetLineSpan(newSourceSpan);
 
-            return new DiagnosticDataLocation(DocumentId,
-                newSourceSpan, OriginalFilePath,
-                OriginalStartLine, OriginalStartColumn,
-                OriginalEndLine, OriginalEndColumn,
-                MappedFilePath, MappedStartLine, MappedStartColumn,
-                MappedEndLine, MappedEndColumn);
+            return new DiagnosticDataLocation(
+                DocumentId,
+                newSourceSpan,
+                originalFilePath: originalLineInfo.Path,
+                originalStartLine: originalLineInfo.StartLinePosition.Line,
+                originalStartColumn: originalLineInfo.StartLinePosition.Character,
+                originalEndLine: originalLineInfo.EndLinePosition.Line,
+                originalEndColumn: originalLineInfo.EndLinePosition.Character,
+                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
+                mappedStartLine: mappedLineInfo.StartLinePosition.Line,
+                mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
+                mappedEndLine: mappedLineInfo.EndLinePosition.Line,
+                mappedEndColumn: mappedLineInfo.EndLinePosition.Character);
         }
 
         internal FileLinePositionSpan GetFileLinePositionSpan()
@@ -115,12 +124,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal string? GetFilePath()
             => GetFilePath(OriginalFilePath, MappedFilePath);
 
-        internal static string? GetFilePath(string? original, string? mapped)
+        private static string? GetFilePath(string? original, string? mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
-            {
                 return original;
-            }
 
             var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), mapped);
             try

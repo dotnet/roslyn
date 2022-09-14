@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class QuickInfoUtilities
     {
-        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(HostWorkspaceServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
             => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, cancellationToken);
 
         public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             SemanticModel semanticModel,
             TextSpan span,
             ImmutableArray<ISymbol> symbols,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
-            var descriptionService = services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISymbolDisplayService>();
+            var descriptionService = services.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
             var groups = await descriptionService.ToDescriptionGroupsAsync(semanticModel, span.Start, symbols, options, cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<QuickInfoSection>.GetInstance(out var sections);

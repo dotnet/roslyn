@@ -23,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
+    [Trait(Traits.Feature, Traits.Features.SourceGenerators)]
     public class CSharpSourceGenerators : AbstractEditorTest
     {
         private readonly ITestOutputHelper _testOutputHelper;
@@ -43,7 +44,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeFact]
         public async Task GoToDefinitionOpensGeneratedFile()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -61,7 +62,7 @@ internal static class Program
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeTheory, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeTheory]
         [CombinatorialData]
         public async Task FindReferencesForFileWithDefinitionInSourceGeneratedFile(bool invokeFromSourceGeneratedFile)
         {
@@ -120,7 +121,7 @@ internal static class Program
                 });
         }
 
-        [IdeTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeTheory, CombinatorialData]
         public async Task FindReferencesAndNavigateToReferenceInGeneratedFile(bool isPreview)
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -144,7 +145,7 @@ internal static class Program
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60477")]
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);

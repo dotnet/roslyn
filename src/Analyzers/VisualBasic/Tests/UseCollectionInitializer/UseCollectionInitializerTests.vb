@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCollectionInitializer
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
     Public Class UseCollectionInitializerTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
                     New VisualBasicUseCollectionInitializerCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestOnVariableDeclarator() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -37,7 +38,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestDoNotRemoveNonEmptyArgumentList() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -59,7 +60,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestOnVariableDeclarator2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -81,7 +82,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestOnAssignmentExpression() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -105,7 +106,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestMissingOnNamedArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -118,7 +119,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestMissingOnZeroArgs() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -131,7 +132,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestMissingOnNoArgs() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -144,7 +145,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestMissingOnOmittedArg() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -157,7 +158,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestComplexInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -185,7 +186,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestMultipleArgs() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -207,8 +208,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
-        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -233,7 +233,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestFixAllInDocument() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -270,7 +270,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -294,8 +294,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact, WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
         Public Async Function TestTrivia2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -323,8 +322,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        <Fact, WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
         Public Async Function TestMissingWithExplicitImplementedAddMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

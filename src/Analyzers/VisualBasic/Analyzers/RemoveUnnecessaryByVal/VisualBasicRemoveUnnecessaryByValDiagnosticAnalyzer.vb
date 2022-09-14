@@ -9,15 +9,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer
-        Inherits AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        Inherits AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
 
         Public Sub New()
             MyBase.New(
                 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
                 enforceOnBuild:=EnforceOnBuildValues.RemoveUnnecessaryByVal,
                 [option]:=Nothing,
-                title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Remove_ByVal), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)),
-                isUnnecessary:=True)
+                fadingOption:=Nothing,
+                title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Remove_ByVal), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)

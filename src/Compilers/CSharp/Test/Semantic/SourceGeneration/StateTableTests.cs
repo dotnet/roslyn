@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.True(didRemoveEntries);
         }
 
-        private IEnumerable<int> YieldItems(OneOrMany<int> items)
+        private static IEnumerable<int> YieldItems(OneOrMany<int> items)
         {
             foreach (var value in items)
                 yield return value;
@@ -1021,7 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     SyntaxStore.Empty,
                     disabledOutputs: IncrementalGeneratorOutputKind.None,
                     runtime: TimeSpan.Zero,
-                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
+                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps,
+                    parseOptionsChanged: false);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }

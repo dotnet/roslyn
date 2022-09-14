@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IGlobalOptionService _globalOptions;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,13 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            IMetadataAsSourceFileService metadataAsSourceFileService)
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            VisualStudioWorkspace workspace)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _globalOptions = globalOptions;
             _editorAdaptersFactory = editorAdaptersFactory;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _workspace = workspace;
         }
 
         public async Task<INavigableLocation?> GetNavigableLocationAsync(
@@ -91,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Should we prefer navigating to the Object Browser over metadata-as-source?
             if (_globalOptions.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
             {
-                var libraryService = project.LanguageServices.GetService<ILibraryService>();
+                var libraryService = project.Services.GetService<ILibraryService>();
                 if (libraryService == null)
                 {
                     return null;
@@ -121,9 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
             Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.LanguageServices);
+            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.Services);
 
-            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
 
             return new NavigableLocation(async (options, cancellationToken) =>
             {

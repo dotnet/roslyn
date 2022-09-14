@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
-            var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, pullMemberUpOptions.Destination, location: null, cancellationToken).ConfigureAwait(false);
             var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
-            var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
 
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, location: null, cancellationToken).ConfigureAwait(false);

@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             ' Now, find the cast nodes again in the expanded document
             Dim currentCastNodes = root.GetCurrentNodes(originalCastNodes)
 
-            Dim innerEditor = New SyntaxEditor(root, document.Project.Solution.Workspace.Services)
+            Dim innerEditor = New SyntaxEditor(root, document.Project.Solution.Services)
             Await innerEditor.ApplyExpressionLevelSemanticEditsAsync(
                 document, currentCastNodes.ToImmutableArray(),
                 Function(semanticModel, castExpression) IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
                         {containingStatement, nextStatement})
                 End Function).Distinct()
 
-            Dim editor = New SyntaxEditor(root, document.Project.Solution.Workspace.Services)
+            Dim editor = New SyntaxEditor(root, document.Project.Solution.Services)
 
             For Each containingStatement In containingAndNextStatements
                 Dim expandedStatement = Await Simplifier.ExpandAsync(containingStatement, document, cancellationToken:=cancellationToken).ConfigureAwait(False)

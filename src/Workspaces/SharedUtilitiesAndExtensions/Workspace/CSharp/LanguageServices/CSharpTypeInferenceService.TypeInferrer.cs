@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -1108,20 +1108,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (onRightSide)
                 {
                     var leftTypes = GetTypes(coalesceExpression.Left);
-                    return leftTypes
-                        .Select(x => x.InferredType.IsNullable()
-                            ? new TypeInferenceInfo(((INamedTypeSymbol)x.InferredType).TypeArguments[0]) // nullableExpr ?? Goo()
-                            : x); // normalExpr ?? Goo() 
+                    return leftTypes.Select(x => x.InferredType.IsNullable(out var underlying)
+                        ? new TypeInferenceInfo(underlying) // nullableExpr ?? Goo()
+                        : x); // normalExpr ?? Goo() 
                 }
 
                 var rightTypes = GetTypes(coalesceExpression.Right);
                 if (!rightTypes.Any())
-                {
                     return CreateResult(SpecialType.System_Object, NullableAnnotation.Annotated);
-                }
 
-                return rightTypes
-                    .Select(x => new TypeInferenceInfo(MakeNullable(x.InferredType, this.Compilation))); // Goo() ?? ""
+                // Goo() ?? ""
+                return rightTypes.Select(x => new TypeInferenceInfo(MakeNullable(x.InferredType, this.Compilation)));
 
                 static ITypeSymbol MakeNullable(ITypeSymbol symbol, Compilation compilation)
                 {
@@ -1130,6 +1127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We could be smart and infer this as an ErrorType?, but in the #nullable disable case we don't know if this is intended to be
                         // a struct (where the question mark is legal) or a class (where it isn't). We'll thus avoid sticking question marks in this case.
                         // https://github.com/dotnet/roslyn/issues/37852 tracks fixing this is a much fancier way.
+                        return symbol;
+                    }
+                    else if (symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        // We already have something nullable.  Don't wrap in another nullable layer.
                         return symbol;
                     }
                     else if (symbol.IsValueType)

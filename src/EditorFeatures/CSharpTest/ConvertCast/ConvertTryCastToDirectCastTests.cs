@@ -57,7 +57,9 @@ class Program
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
+                FixedCode = InitialMarkup,
                 CompilerDiagnostics = CompilerDiagnostics.None, // CS0077 is present, but we present the refactoring anyway (this may overlap with a diagnostic fixer)
+                OffersEmptyRefactoring = false,
                 CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
@@ -97,7 +99,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { asExpression };
+        var x = {asExpression};
     }}
 }}
 ";
@@ -108,7 +110,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { cast };
+        var x = {cast};
     }}
 }}
 ";
@@ -132,7 +134,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { asExpression };
+        var x = {asExpression};
     }}
 }}
 ";
@@ -141,7 +143,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { cast };
+        var x = {cast};
     }}
 }}
 ";
@@ -171,7 +173,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { asExpression };
+        var x = {asExpression};
     }}
 }}
 ";
@@ -180,7 +182,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { cast };
+        var x = {cast};
     }}
 }}
 ";

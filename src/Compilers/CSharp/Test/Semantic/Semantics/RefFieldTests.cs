@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -29,6 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         private static string IncludeExpectedOutput(string expectedOutput) => IsNet70OrGreater() ? expectedOutput : null;
+
+        private static IEnumerable<MetadataReference> CopyWithoutSharingCachedSymbols(IEnumerable<MetadataReference> references)
+        {
+            foreach (var reference in references)
+            {
+                yield return ((AssemblyMetadata)((MetadataImageReference)reference).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference();
+            }
+        }
 
         [CombinatorialData]
         [Theory]
@@ -90,16 +99,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         M2(ref s5.F1);
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public ref T F1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
-                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public ref readonly T F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(4, 12));
+            var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
-            comp = CreateCompilation(sourceA);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsByRefFields = true;
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref T F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref readonly T F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12));
+
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields });
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -128,28 +142,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (8,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s1 = new S<T> { F1 = t };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(8, 25),
-                // (14,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(8, 25),
+                // (14,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s2 = new S<T> { F1 = t };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(14, 25),
-                // (19,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(14, 25),
+                // (19,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(s.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(19, 12),
-                // (20,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F1").WithArguments("ref fields", "11.0").WithLocation(19, 12),
+                // (20,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(s.F2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F2").WithArguments("ref fields").WithLocation(20, 12),
-                // (21,16): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F2").WithArguments("ref fields", "11.0").WithLocation(20, 12),
+                // (21,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M2(ref s.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(21, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F1").WithArguments("ref fields", "11.0").WithLocation(21, 16));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
@@ -166,15 +180,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public ref T F;
     public S(ref T t) { F = ref t; }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsByRefFields property for it.
+            var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
+
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsByRefFields = true;
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
-            comp = CreateCompilation(sourceA);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields });
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
@@ -196,21 +217,22 @@ class Program
     }
 }";
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s.F = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(8, 9),
-                // (9,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(8, 9),
+                // (9,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(9, 27),
-                // (12,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(9, 27),
+                // (12,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(12, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(12, 27));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -233,15 +255,22 @@ class Program
         F = ref t;
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsByRefFields property for it.
+            var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
+
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsByRefFields = true;
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateCompilation(sourceA);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields });
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
@@ -268,21 +297,22 @@ class Program
     }
 }";
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s.F.G = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(13, 9),
-                // (14,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(13, 9),
+                // (14,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F.G);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(14, 27),
-                // (17,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(14, 27),
+                // (17,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F.G);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(17, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(17, 27));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -418,7 +448,7 @@ ref struct B
     public fixed ref int F1[3];
     public fixed ref readonly int F2[3];
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (3,26): error CS9049: A fixed field must not be a ref field.
                 //     public fixed ref int F1[3];
@@ -456,7 +486,7 @@ class Program
         Console.WriteLine(s.F[1]);
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'S.F' is not supported by the language
                 //         Console.WriteLine(s.F[1]);
@@ -486,7 +516,7 @@ class Program
         Console.WriteLine(r.F2);
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'R.F1' is not supported by the language
                 //         Console.WriteLine(r.F1);
@@ -510,7 +540,7 @@ ref struct R
     volatile ref int _v1;
     volatile ref readonly int _v2;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,20): error CS0106: The modifier 'static' is not valid for this item
                 //     static ref int _s1;
@@ -538,6 +568,200 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v2").WithArguments("volatile").WithLocation(9, 31));
         }
 
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        // Test skipped because we don't allow faking runtime feature flags when using specific TargetFramework
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463"), WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_UnsafeNullRef()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+
+    public R()
+    {
+        field = ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int System.Runtime.CompilerServices.Unsafe.NullRef<int>()""
+  IL_0006:  stfld      ""ref int R.field""
+  IL_000b:  ldstr      ""explicit ctor""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_RefReadonly()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref readonly int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref readonly int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_ReadonlyRef()
+        {
+            var source = """
+using System;
+
+var r = new R();
+
+ref struct R
+{
+    public readonly ref int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
+                //     public readonly ref int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(7, 29)
+                );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_WithOtherFieldInitializer()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+    public int otherField = 42;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+ {
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  stfld      ""int R.otherField""
+  IL_0010:  ldstr      ""explicit ctor""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}");
+        }
+
         /// <summary>
         /// Unexpected modreq().
         /// </summary>
@@ -562,7 +786,7 @@ class Program
         Console.WriteLine(a.F);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA });
+            var comp = CreateCompilation(sourceB, new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'A.F' is not supported by the language
                 //         Console.WriteLine(a.F);
@@ -594,7 +818,7 @@ class Program
         Console.WriteLine(a.F);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA });
+            var comp = CreateCompilation(sourceB, new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'A.F' is not supported by the language
                 //         Console.WriteLine(a.F);
@@ -634,7 +858,7 @@ class Program
         Console.WriteLine(b.F);
     }
 }";
-            var comp = CreateCompilation(sourceC, new[] { refB });
+            var comp = CreateCompilation(sourceC, new[] { refB }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         Console.WriteLine(b.F);
@@ -664,7 +888,8 @@ class Program
     static object F2() => new R<object>().F2;
     static int F3() => new R<object>().F3;
 }";
-            var verifier = CompileAndVerify(sourceB, new[] { refA }, verify: Verification.Skipped);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(compB, verify: Verification.Skipped);
             // MemberRefMetadataDecoder.FindFieldBySignature() is used to find fields when realIL: true.
             verifier.VerifyIL("B.F1", realIL: true, expectedIL:
 @"{
@@ -714,6 +939,37 @@ class Program
                 "ref System.SByte R<System.Object>.F3"
             };
             AssertEx.Equal(expectedReferences, fieldReferences.ToTestDisplayStrings());
+        }
+
+        [WorkItem(62596, "https://github.com/dotnet/roslyn/issues/62596")]
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void NonRefStructContainer(string type)
+        {
+            var source =
+$@"#pragma warning disable 169
+{type} R
+{{
+    ref int F;
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(4, 5),
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
         }
 
         /// <summary>
@@ -770,9 +1026,15 @@ class Program
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
-    public class Attribute
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
     {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
     }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var sourceB =
 @"namespace System.Runtime.CompilerServices
@@ -804,28 +1066,29 @@ class Program
 
             comp = CreateEmptyCompilation(source, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
+                // (3,18): error CS9061: Target runtime doesn't support ref fields.
+                //     public ref T F;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(3, 18),
                 // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB }, parseOptions: TestOptions.Regular10);
-            // https://github.com/dotnet/roslyn/issues/62131: Enable updated escape rules if
-            // System.Runtime.CompilerServices.RuntimeFeature.ByRefFields exists.
             comp.VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
-                // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
-                //         return ref r.F;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
 
             comp = CreateEmptyCompilation(source, references: new[] { refA });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,18): error CS9061: Target runtime doesn't support ref fields.
+                //     public ref T F;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(3, 18));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB });
@@ -841,6 +1104,7 @@ class Program
         {
             var source =
 @"#pragma warning disable 169
+using System.Diagnostics.CodeAnalysis;
 ref struct R1<T>
 {
 }
@@ -850,17 +1114,17 @@ ref struct R2<T>
 }
 class Program
 {
-    static void F(ref R1<int> r1)
+    static void F([UnscopedRef] ref R1<int> r1)
     {
         var r2 = new R2<int>();
         r2.F = ref r1;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (7,12): error CS9050: A ref field cannot refer to a ref struct.
+                // (8,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> F;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(7, 12));
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(8, 12));
         }
 
         /// <summary>
@@ -891,7 +1155,7 @@ class Program
         r2.F = ref r1;
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (6,12): error CS0570: 'R2.F' is not supported by the language
                 //         r2.F = ref r1;
@@ -917,39 +1181,24 @@ class Program
         return ref r2.F;
     }
 }";
-
-            var expectedLegacyDiagnostics = new DiagnosticDescription[]
-            {
-                // (3,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 5),
-                // (5,23): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //     ref T F0() => ref this.F;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.F").WithLocation(5, 23),
-                // (8,20): error CS8167: Cannot return by reference a member of parameter 'r1' because it is not a ref or out parameter
-                //         return ref r1.F;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(8, 20),
-                // (13,20): error CS8169: Cannot return a member of local 'r2' by reference because it is not a ref local
-                //         return ref r2.F;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal2, "r2").WithArguments("r2").WithLocation(13, 20)
-            };
-
-            var expectedUpdatedDiagnostics = new DiagnosticDescription[]
-            {
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5),
                 // (13,20): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref r2.F;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2.F").WithArguments("r2").WithLocation(13, 20),
-            };
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2.F").WithArguments("r2").WithLocation(13, 20));
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
-
-            comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (13,20): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref r2.F;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r2.F").WithArguments("r2").WithLocation(13, 20));
         }
 
         [Fact]
-        public void RefFields_RefReassignment()
+        public void RefFields_RefReassignment_01()
         {
             var source =
 @"ref struct R<T>
@@ -973,26 +1222,211 @@ class Program
         return r2;
     }
 }";
-
-            var expectedLegacyDiagnostics = new DiagnosticDescription[]
-            {
-                // (3,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 5),
-            };
-
-            var expectedUpdatedDiagnostics = new DiagnosticDescription[]
-            {
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5),
                 // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r2.F = ref t;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
-            };
+                );
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
+                //         r2.F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
+                );
+        }
 
-            comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
+        [Fact]
+        [WorkItem(63434, "https://github.com/dotnet/roslyn/issues/63434")]
+        public void RefFields_RefReassignment_02()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        var r = new R() { Field = ref i };
+        Console.WriteLine(r.Field);
+        i = 43;
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+@"42
+43")).VerifyDiagnostics().
+                VerifyIL("Program.Main",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (int V_0, //i
+                R V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""R""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  stfld      ""ref int R.Field""
+  IL_0014:  ldloc.1
+  IL_0015:  dup
+  IL_0016:  ldfld      ""ref int R.Field""
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ldc.i4.s   43
+  IL_0023:  stloc.0
+  IL_0024:  ldfld      ""ref int R.Field""
+  IL_0029:  ldind.i4
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefFields_RefReassignment_03()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        var r = new R();
+        r.Field = ref i;
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8374: Cannot ref-assign 'i' to 'Field' because 'i' has a narrower escape scope than 'Field'.
+                //         r.Field = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.Field = ref i").WithArguments("Field", "i").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(63434, "https://github.com/dotnet/roslyn/issues/63434")]
+        public void RefFields_RefReassignment_04()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        Test(ref i);
+    }
+
+    static void Test(ref int i)
+    {
+        var r = new R() { Field = ref i };
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().
+                VerifyIL("Program.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (R V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""R""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldarg.0
+  IL_000b:  stfld      ""ref int R.Field""
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""ref int R.Field""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefFields_RefReassignment_05()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int i = 42;
+        Test(ref i);
+    }
+
+    static void Test(ref int i)
+    {
+        var r = new R();
+        r.Field = ref i;
+        Console.WriteLine(r.Field);
+    }
+}
+
+ref struct R
+{
+    public ref int Field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().
+                VerifyIL("Program.Test",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (R V_0) //r
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""R""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldarg.0
+  IL_000b:  stfld      ""ref int R.Field""
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""ref int R.Field""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
         }
 
         [Fact]
@@ -1036,13 +1470,13 @@ class Program
 {
     static ref C F1(ref C c) => ref c;
     static ref S F2(ref S s) => ref s;
-    static ref R F3(ref R r) => ref r;
+    static ref R F3(ref R r) => ref r; // 1
     static ref readonly C F4(in C c) => ref c;
     static ref readonly S F5(in S s) => ref s;
-    static ref readonly R F6(in R r) => ref r;
-    static ref C F7(out C c) { c = default; return ref c; } // 1
-    static ref S F8(out S s) { s = default; return ref s; } // 2
-    static ref R F9(out R r) { r = default; return ref r; } // 3
+    static ref readonly R F6(in R r) => ref r; // 2
+    static ref C F7(out C c) { c = default; return ref c; } // 3
+    static ref S F8(out S s) { s = default; return ref s; } // 4
+    static ref R F9(out R r) { r = default; return ref r; } // 5
 }";
 
             var expectedLegacyDiagnostics = new DiagnosticDescription[]
@@ -1051,14 +1485,20 @@ class Program
 
             var expectedUpdatedDiagnostics = new DiagnosticDescription[]
             {
+                // (8,37): error CS8166: Cannot return a parameter by reference 'r' because it is not a ref parameter
+                //     static ref R F3(ref R r) => ref r; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r").WithArguments("r").WithLocation(8, 37),
+                // (11,45): error CS8166: Cannot return a parameter by reference 'r' because it is not a ref parameter
+                //     static ref readonly R F6(in R r) => ref r; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r").WithArguments("r").WithLocation(11, 45),
                 // (12,56): error CS8166: Cannot return a parameter by reference 'c' because it is not a ref parameter
-                //     static ref C F7(out C c) { c = default; return ref c; } // 1
+                //     static ref C F7(out C c) { c = default; return ref c; } // 3
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "c").WithArguments("c").WithLocation(12, 56),
                 // (13,56): error CS8166: Cannot return a parameter by reference 's' because it is not a ref parameter
-                //     static ref S F8(out S s) { s = default; return ref s; } // 2
+                //     static ref S F8(out S s) { s = default; return ref s; } // 4
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(13, 56),
                 // (14,56): error CS8166: Cannot return a parameter by reference 'r' because it is not a ref parameter
-                //     static ref R F9(out R r) { r = default; return ref r; } // 3
+                //     static ref R F9(out R r) { r = default; return ref r; } // 5
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "r").WithArguments("r").WithLocation(14, 56)
             };
 
@@ -2182,88 +2622,45 @@ class Program
         public void MethodInvocation_Scoped_Lvalue()
         {
             var source =
-@"class Program
+@"
+using System.Diagnostics.CodeAnalysis;
+class Program
 {
-    static ref T F0<T>(ref R<T> x, ref R<T> y) => throw null;
-    static ref T F1<T>(ref R<T> x, ref scoped R<T> y) => throw null;
-    static ref T F2<T>(ref R<T> x, scoped ref R<T> y) => throw null;
-    static ref T F3<T>(ref scoped R<T> x, ref scoped R<T> y) => throw null;
-    static ref T F4<T>(ref scoped R<T> x, scoped ref R<T> y) => throw null;
-    static ref T F5<T>(scoped ref R<T> x, scoped ref R<T> y) => throw null;
+    static ref T F0<T>([UnscopedRef] ref R<T> x, [UnscopedRef] ref R<T> y) => throw null;
+    static ref T F2<T>([UnscopedRef] ref R<T> x, ref R<T> y) => throw null;
+    static ref T F5<T>(ref R<T> x, ref R<T> y) => throw null;
 
-    static ref T F00<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
-    static ref T F01<T>(ref R<T> x) { R<T> y = default; return ref F1(ref x, ref y); }
-    static ref T F02<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); }
-    static ref T F03<T>(ref R<T> x) { R<T> y = default; return ref F3(ref x, ref y); }
-    static ref T F04<T>(ref R<T> x) { R<T> y = default; return ref F4(ref x, ref y); }
-    static ref T F05<T>(ref R<T> x) { R<T> y = default; return ref F5(ref x, ref y); }
+    static ref T F00<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
+    static ref T F02<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); }
+    static ref T F05<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F5(ref x, ref y); }
 
-    static ref T F10<T>(ref scoped R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
-    static ref T F11<T>(ref scoped R<T> x) { R<T> y = default; return ref F1(ref x, ref y); } // 3
-    static ref T F12<T>(ref scoped R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 4
-    static ref T F13<T>(ref scoped R<T> x) { R<T> y = default; return ref F3(ref x, ref y); }
-    static ref T F14<T>(ref scoped R<T> x) { R<T> y = default; return ref F4(ref x, ref y); }
-    static ref T F15<T>(ref scoped R<T> x) { R<T> y = default; return ref F5(ref x, ref y); } // 5
-
-    static ref T F20<T>(scoped ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 6
-    static ref T F21<T>(scoped ref R<T> x) { R<T> y = default; return ref F1(ref x, ref y); } // 7
-    static ref T F22<T>(scoped ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 8
-    static ref T F23<T>(scoped ref R<T> x) { R<T> y = default; return ref F3(ref x, ref y); }
-    static ref T F24<T>(scoped ref R<T> x) { R<T> y = default; return ref F4(ref x, ref y); }
-    static ref T F25<T>(scoped ref R<T> x) { R<T> y = default; return ref F5(ref x, ref y); }
+    static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
+    static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
+    static ref T F25<T>(ref R<T> x) { R<T> y = default; return ref F5(ref x, ref y); }
 }
 ref struct R<T> { }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (10,68): error CS8347: Cannot use a result of 'Program.F0<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //     static ref T F00<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "y").WithLocation(10, 68),
-                // (10,82): error CS8168: Cannot return local 'y' by reference because it is not a ref local
-                //     static ref T F00<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(10, 82),
-                // (17,75): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F10<T>(ref scoped R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(17, 75),
-                // (17,82): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref T F10<T>(ref scoped R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R<T>").WithLocation(17, 82),
-                // (18,75): error CS8347: Cannot use a result of 'Program.F1<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F11<T>(ref scoped R<T> x) { R<T> y = default; return ref F1(ref x, ref y); } // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(ref x, ref y)").WithArguments("Program.F1<T>(ref R<T>, ref R<T>)", "x").WithLocation(18, 75),
-                // (18,82): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
-                //     static ref T F11<T>(ref scoped R<T> x) { R<T> y = default; return ref F1(ref x, ref y); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(18, 82),
-                // (19,75): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F12<T>(ref scoped R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(19, 75),
-                // (19,82): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref T F12<T>(ref scoped R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R<T>").WithLocation(19, 82),
-                // (22,75): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F15<T>(ref scoped R<T> x) { R<T> y = default; return ref F5(ref x, ref y); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "x").WithLocation(22, 75),
-                // (22,82): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref T F15<T>(ref scoped R<T> x) { R<T> y = default; return ref F5(ref x, ref y); } // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R<T>").WithLocation(22, 82),
-                // (24,75): error CS8347: Cannot use a result of 'Program.F0<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F20<T>(scoped ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 6
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(24, 75),
-                // (24,82): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
-                //     static ref T F20<T>(scoped ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(24, 82),
-                // (25,75): error CS8347: Cannot use a result of 'Program.F1<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F21<T>(scoped ref R<T> x) { R<T> y = default; return ref F1(ref x, ref y); } // 7
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(ref x, ref y)").WithArguments("Program.F1<T>(ref R<T>, ref R<T>)", "x").WithLocation(25, 75),
-                // (25,82): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
-                //     static ref T F21<T>(scoped ref R<T> x) { R<T> y = default; return ref F1(ref x, ref y); } // 7
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(25, 82),
-                // (26,75): error CS8347: Cannot use a result of 'Program.F2<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //     static ref T F22<T>(scoped ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 8
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(26, 75),
-                // (26,82): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
-                //     static ref T F22<T>(scoped ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 8
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(26, 82));
+                // (9,82): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     static ref T F00<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "y").WithLocation(9, 82),
+                // (9,96): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //     static ref T F00<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(9, 96),
+                // (13,68): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(13, 68),
+                // (13,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(13, 75),
+                // (14,68): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(14, 68),
+                // (14,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(14, 75)
+            );
         }
 
         [Fact]
@@ -2311,93 +2708,75 @@ class Program
         }
 
         [Fact]
+        public void MethodInvocation_Params()
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref int i) { }
+}
+class Program
+{
+    static R M1(R input, params object[] array)
+    {
+        return input;
+    }
+    static R M2()
+    {
+        int i = 42;
+        var r = new R(ref i);
+        return M1(r);
+    }
+    static R M3()
+    {
+        int i = 42;
+        var r = new R(ref i);
+        return M1(r, 0, 1, 2);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,16): error CS8347: Cannot use a result of 'Program.M1(R, params object[])' in this context because it may expose variables referenced by parameter 'input' outside of their declaration scope
+                //         return M1(r);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(r)").WithArguments("Program.M1(R, params object[])", "input").WithLocation(15, 16),
+                // (15,19): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return M1(r);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(15, 19),
+                // (21,16): error CS8347: Cannot use a result of 'Program.M1(R, params object[])' in this context because it may expose variables referenced by parameter 'input' outside of their declaration scope
+                //         return M1(r, 0, 1, 2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(r, 0, 1, 2)").WithArguments("Program.M1(R, params object[])", "input").WithLocation(21, 16),
+                // (21,19): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return M1(r, 0, 1, 2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(21, 19));
+        }
+
+        [Fact]
         public void MethodArgumentsMustMatch_01()
         {
             var source =
 @"ref struct R
 {
     public void F0(ref R r) => throw null;
-    public void F1(ref scoped R r) => throw null;
     public void F2(scoped ref R r) => throw null;
 }
 class Program
 {
     static void F00(ref R x, ref R y) { x.F0(ref y); }
-    static void F01(ref R x, ref R y) { x.F1(ref y); }
     static void F02(ref R x, ref R y) { x.F2(ref y); }
 
-    static void F10(ref R x, ref scoped R y) { x.F0(ref y); } // 1
-    static void F11(ref R x, ref scoped R y) { x.F1(ref y); }
-    static void F12(ref R x, ref scoped R y) { x.F2(ref y); } // 2
-
     static void F20(ref R x, scoped ref R y) { x.F0(ref y); }
-    static void F21(ref R x, scoped ref R y) { x.F1(ref y); }
     static void F22(ref R x, scoped ref R y) { x.F2(ref y); }
 
-    static void F30(ref scoped R x, ref R y) { x.F0(ref y); } // 3
-    static void F31(ref scoped R x, ref R y) { x.F1(ref y); }
-    static void F32(ref scoped R x, ref R y) { x.F2(ref y); } // 4
-
-    static void F40(ref scoped R x, ref scoped R y) { x.F0(ref y); }
-    static void F41(ref scoped R x, ref scoped R y) { x.F1(ref y); }
-    static void F42(ref scoped R x, ref scoped R y) { x.F2(ref y); }
-
-    static void F50(ref scoped R x, scoped ref R y) { x.F0(ref y); } // 5
-    static void F51(ref scoped R x, scoped ref R y) { x.F1(ref y); }
-    static void F52(ref scoped R x, scoped ref R y) { x.F2(ref y); } // 6
-
     static void F60(scoped ref R x, ref R y) { x.F0(ref y); }
-    static void F61(scoped ref R x, ref R y) { x.F1(ref y); }
     static void F62(scoped ref R x, ref R y) { x.F2(ref y); }
 
-    static void F70(scoped ref R x, ref scoped R y) { x.F0(ref y); } // 7
-    static void F71(scoped ref R x, ref scoped R y) { x.F1(ref y); }
-    static void F72(scoped ref R x, ref scoped R y) { x.F2(ref y); } // 8
-
     static void F80(scoped ref R x, scoped ref R y) { x.F0(ref y); }
-    static void F81(scoped ref R x, scoped ref R y) { x.F1(ref y); }
     static void F82(scoped ref R x, scoped ref R y) { x.F2(ref y); }
 }";
             var comp = CreateCompilation(source);
             // Should we also report ErrorCode.ERR_CallArgMixing for 3, 4, 5, 6? See the call to
             // CheckValEscape() for the receiver at the end of CheckInvocationArgMixing().
-            comp.VerifyEmitDiagnostics(
-                // (13,48): error CS8350: This combination of arguments to 'R.F0(ref R)' is disallowed because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //     static void F10(ref R x, ref scoped R y) { x.F0(ref y); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "x.F0(ref y)").WithArguments("R.F0(ref R)", "r").WithLocation(13, 48),
-                // (13,57): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F10(ref R x, ref scoped R y) { x.F0(ref y); } // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(13, 57),
-                // (15,48): error CS8350: This combination of arguments to 'R.F2(ref R)' is disallowed because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //     static void F12(ref R x, ref scoped R y) { x.F2(ref y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "x.F2(ref y)").WithArguments("R.F2(ref R)", "r").WithLocation(15, 48),
-                // (15,57): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F12(ref R x, ref scoped R y) { x.F2(ref y); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(15, 57),
-                // (21,48): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F30(ref scoped R x, ref R y) { x.F0(ref y); } // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(21, 48),
-                // (23,48): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F32(ref scoped R x, ref R y) { x.F2(ref y); } // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(23, 48),
-                // (29,55): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F50(ref scoped R x, scoped ref R y) { x.F0(ref y); } // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(29, 55),
-                // (31,55): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F52(ref scoped R x, scoped ref R y) { x.F2(ref y); } // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(31, 55),
-                // (37,55): error CS8350: This combination of arguments to 'R.F0(ref R)' is disallowed because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //     static void F70(scoped ref R x, ref scoped R y) { x.F0(ref y); } // 7
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "x.F0(ref y)").WithArguments("R.F0(ref R)", "r").WithLocation(37, 55),
-                // (37,64): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F70(scoped ref R x, ref scoped R y) { x.F0(ref y); } // 7
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(37, 64),
-                // (39,55): error CS8350: This combination of arguments to 'R.F2(ref R)' is disallowed because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //     static void F72(scoped ref R x, ref scoped R y) { x.F2(ref y); } // 8
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "x.F2(ref y)").WithArguments("R.F2(ref R)", "r").WithLocation(39, 55),
-                // (39,64): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F72(scoped ref R x, ref scoped R y) { x.F2(ref y); } // 8
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(39, 64));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2410,92 +2789,23 @@ class Program
 class Program
 {
     static void F0(ref R a, ref R b) => throw null;
-    static void F1(ref R a, ref scoped R b) => throw null;
     static void F2(ref R a, scoped ref R b) => throw null;
-    static void F3(ref scoped R a, ref scoped R b) => throw null;
-    static void F4(ref scoped R a, scoped ref R b) => throw null;
     static void F5(scoped ref R a, scoped ref R b) => throw null;
 
     static void F00(ref R x, ref R y) { F0(ref x, ref y); }
-    static void F01(ref R x, ref R y) { F1(ref x, ref y); }
     static void F02(ref R x, ref R y) { F2(ref x, ref y); }
-    static void F03(ref R x, ref R y) { F3(ref x, ref y); }
-    static void F04(ref R x, ref R y) { F4(ref x, ref y); }
     static void F05(ref R x, ref R y) { F5(ref x, ref y); }
 
-    static void F10(ref R x, ref scoped R y) { F0(ref x, ref y); } // 1
-    static void F11(ref R x, ref scoped R y) { F1(ref x, ref y); }
-    static void F12(ref R x, ref scoped R y) { F2(ref x, ref y); } // 2
-    static void F13(ref R x, ref scoped R y) { F3(ref x, ref y); }
-    static void F14(ref R x, ref scoped R y) { F4(ref x, ref y); }
-    static void F15(ref R x, ref scoped R y) { F5(ref x, ref y); } // 3
-
     static void F20(ref R x, scoped ref R y) { F0(ref x, ref y); }
-    static void F21(ref R x, scoped ref R y) { F1(ref x, ref y); }
     static void F22(ref R x, scoped ref R y) { F2(ref x, ref y); }
-    static void F23(ref R x, scoped ref R y) { F3(ref x, ref y); }
-    static void F24(ref R x, scoped ref R y) { F4(ref x, ref y); }
     static void F25(ref R x, scoped ref R y) { F5(ref x, ref y); }
 
-    static void F30(ref scoped R x, ref scoped R y) { F0(ref x, ref y); }
-    static void F31(ref scoped R x, ref scoped R y) { F1(ref x, ref y); }
-    static void F32(ref scoped R x, ref scoped R y) { F2(ref x, ref y); }
-    static void F33(ref scoped R x, ref scoped R y) { F3(ref x, ref y); }
-    static void F34(ref scoped R x, ref scoped R y) { F4(ref x, ref y); }
-    static void F35(ref scoped R x, ref scoped R y) { F5(ref x, ref y); }
-
-    static void F40(ref scoped R x, scoped ref R y) { F0(ref x, ref y); } // 4
-    static void F41(ref scoped R x, scoped ref R y) { F1(ref x, ref y); }
-    static void F42(ref scoped R x, scoped ref R y) { F2(ref x, ref y); } // 5
-    static void F43(ref scoped R x, scoped ref R y) { F3(ref x, ref y); }
-    static void F44(ref scoped R x, scoped ref R y) { F4(ref x, ref y); }
-    static void F45(ref scoped R x, scoped ref R y) { F5(ref x, ref y); } // 6
-
     static void F50(scoped ref R x, scoped ref R y) { F0(ref x, ref y); }
-    static void F51(scoped ref R x, scoped ref R y) { F1(ref x, ref y); }
     static void F52(scoped ref R x, scoped ref R y) { F2(ref x, ref y); }
-    static void F53(scoped ref R x, scoped ref R y) { F3(ref x, ref y); }
-    static void F54(scoped ref R x, scoped ref R y) { F4(ref x, ref y); }
     static void F55(scoped ref R x, scoped ref R y) { F5(ref x, ref y); }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (20,48): error CS8350: This combination of arguments to 'Program.F0(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
-                //     static void F10(ref R x, ref scoped R y) { F0(ref x, ref y); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0(ref R, ref R)", "b").WithLocation(20, 48),
-                // (20,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F10(ref R x, ref scoped R y) { F0(ref x, ref y); } // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(20, 62),
-                // (22,48): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
-                //     static void F12(ref R x, ref scoped R y) { F2(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2(ref R, ref R)", "b").WithLocation(22, 48),
-                // (22,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F12(ref R x, ref scoped R y) { F2(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(22, 62),
-                // (25,48): error CS8350: This combination of arguments to 'Program.F5(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
-                //     static void F15(ref R x, ref scoped R y) { F5(ref x, ref y); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5(ref R, ref R)", "b").WithLocation(25, 48),
-                // (25,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F15(ref R x, ref scoped R y) { F5(ref x, ref y); } // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(25, 62),
-                // (41,55): error CS8350: This combination of arguments to 'Program.F0(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //     static void F40(ref scoped R x, scoped ref R y) { F0(ref x, ref y); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0(ref R, ref R)", "a").WithLocation(41, 55),
-                // (41,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F40(ref scoped R x, scoped ref R y) { F0(ref x, ref y); } // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(41, 62),
-                // (43,55): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //     static void F42(ref scoped R x, scoped ref R y) { F2(ref x, ref y); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2(ref R, ref R)", "a").WithLocation(43, 55),
-                // (43,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F42(ref scoped R x, scoped ref R y) { F2(ref x, ref y); } // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(43, 62),
-                // (46,55): error CS8350: This combination of arguments to 'Program.F5(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //     static void F45(ref scoped R x, scoped ref R y) { F5(ref x, ref y); } // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5(ref R, ref R)", "a").WithLocation(46, 55),
-                // (46,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F45(ref scoped R x, scoped ref R y) { F5(ref x, ref y); } // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(46, 62));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2509,10 +2819,7 @@ class Program
 class Program
 {
     static void F0<T>(ref R<T> a, ref R<T> b) => throw null;
-    static void F1<T>(ref R<T> a, ref scoped R<T> b) => throw null;
     static void F2<T>(ref R<T> a, scoped ref R<T> b) => throw null;
-    static void F3<T>(ref scoped R<T> a, ref scoped R<T> b) => throw null;
-    static void F4<T>(ref scoped R<T> a, scoped ref R<T> b) => throw null;
     static void F5<T>(scoped ref R<T> a, scoped ref R<T> b) => throw null;
 
     static void F<T>(ref R<T> x)
@@ -2521,72 +2828,60 @@ class Program
         R<T> y = new R<T>(ref t);
 
         F0(ref x, ref x);
-        F1(ref x, ref x);
         F2(ref x, ref x);
-        F3(ref x, ref x);
-        F4(ref x, ref x);
         F5(ref x, ref x);
 
         F0(ref x, ref y); // 1
-        F1(ref x, ref y);
         F2(ref x, ref y); // 2
-        F3(ref x, ref y);
-        F4(ref x, ref y);
         F5(ref x, ref y); // 3
 
         F0(ref y, ref x); // 4
-        F1(ref y, ref x);
         F2(ref y, ref x); // 5
-        F3(ref y, ref x);
-        F4(ref y, ref x);
         F5(ref y, ref x); // 6
 
         F0(ref y, ref y);
-        F1(ref y, ref y);
         F2(ref y, ref y);
-        F3(ref y, ref y);
-        F4(ref y, ref y);
         F5(ref y, ref y);
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (26,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                // (20,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F0(ref x, ref y); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "b").WithLocation(26, 9),
-                // (26,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "b").WithLocation(20, 9),
+                // (20,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F0(ref x, ref y); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(26, 23),
-                // (28,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(20, 23),
+                // (21,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F2(ref x, ref y); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "b").WithLocation(28, 9),
-                // (28,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "b").WithLocation(21, 9),
+                // (21,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F2(ref x, ref y); // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(28, 23),
-                // (31,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(21, 23),
+                // (22,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F5(ref x, ref y); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "b").WithLocation(31, 9),
-                // (31,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "b").WithLocation(22, 9),
+                // (22,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F5(ref x, ref y); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(31, 23),
-                // (33,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(22, 23),
+                // (24,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F0(ref y, ref x); // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref y, ref x)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "a").WithLocation(33, 9),
-                // (33,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref y, ref x)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "a").WithLocation(24, 9),
+                // (24,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F0(ref y, ref x); // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(33, 16),
-                // (35,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(24, 16),
+                // (25,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F2(ref y, ref x); // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y, ref x)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "a").WithLocation(35, 9),
-                // (35,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y, ref x)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "a").WithLocation(25, 9),
+                // (25,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F2(ref y, ref x); // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(35, 16),
-                // (38,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(25, 16),
+                // (26,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F5(ref y, ref x); // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref y, ref x)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "a").WithLocation(38, 9),
-                // (38,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref y, ref x)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "a").WithLocation(26, 9),
+                // (26,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F5(ref y, ref x); // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(38, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(26, 16));
         }
 
         [Fact]
@@ -2597,33 +2892,15 @@ class Program
 class Program
 {
     static void F0(ref R x, in R y) => throw null;
-    static void F1(ref R x, in scoped R y) => throw null;
     static void F2(ref R x, scoped in R y) => throw null;
 
     static void F00(ref R x, in R y) { F0(ref x, in y); }
-    static void F01(ref R x, in R y) { F1(ref x, in y); }
     static void F02(ref R x, in R y) { F2(ref x, in y); }
-    static void F10(ref R x, in scoped R y) { F0(ref x, in y); } // 1
-    static void F11(ref R x, in scoped R y) { F1(ref x, in y); }
-    static void F12(ref R x, in scoped R y) { F2(ref x, in y); } // 2
     static void F20(ref R x, scoped in R y) { F0(ref x, in y); }
-    static void F21(ref R x, scoped in R y) { F1(ref x, in y); }
     static void F22(ref R x, scoped in R y) { F2(ref x, in y); }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (11,47): error CS8350: This combination of arguments to 'Program.F0(ref R, in R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //     static void F10(ref R x, in scoped R y) { F0(ref x, in y); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, in y)").WithArguments("Program.F0(ref R, in R)", "y").WithLocation(11, 47),
-                // (11,60): error CS8352: Cannot use variable 'in R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F10(ref R x, in scoped R y) { F0(ref x, in y); } // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("in R").WithLocation(11, 60),
-                // (13,47): error CS8350: This combination of arguments to 'Program.F2(ref R, in R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //     static void F12(ref R x, in scoped R y) { F2(ref x, in y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, in y)").WithArguments("Program.F2(ref R, in R)", "y").WithLocation(13, 47),
-                // (13,60): error CS8352: Cannot use variable 'in R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F12(ref R x, in scoped R y) { F2(ref x, in y); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("in R").WithLocation(13, 60));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2634,35 +2911,15 @@ class Program
 class Program
 {
     static void F0(ref R x, out R y) => throw null;
-    static void F1(ref R x, out scoped R y) => throw null;
     static void F2(ref R x, scoped out R y) => throw null;
 
     static void F00(ref R x, out R y) { F0(ref x, out y); }
-    static void F01(ref R x, out R y) { F1(ref x, out y); }
     static void F02(ref R x, out R y) { F2(ref x, out y); }
-    static void F10(ref R x, out scoped R y) { F0(ref x, out y); } // 1
-    static void F11(ref R x, out scoped R y) { F1(ref x, out y); }
-    static void F12(ref R x, out scoped R y) { F2(ref x, out y); } // 2
     static void F20(ref R x, scoped out R y) { F0(ref x, out y); }
-    static void F21(ref R x, scoped out R y) { F1(ref x, out y); }
     static void F22(ref R x, scoped out R y) { F2(ref x, out y); }
 }";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/62094: References within out parameter
-            // should not be considered escaping.
-            comp.VerifyEmitDiagnostics(
-                // (11,48): error CS8350: This combination of arguments to 'Program.F0(ref R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //     static void F10(ref R x, out scoped R y) { F0(ref x, out y); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, out y)").WithArguments("Program.F0(ref R, out R)", "y").WithLocation(11, 48),
-                // (11,62): error CS8352: Cannot use variable 'out R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F10(ref R x, out scoped R y) { F0(ref x, out y); } // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("out R").WithLocation(11, 62),
-                // (13,48): error CS8350: This combination of arguments to 'Program.F2(ref R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //     static void F12(ref R x, out scoped R y) { F2(ref x, out y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, out y)").WithArguments("Program.F2(ref R, out R)", "y").WithLocation(13, 48),
-                // (13,62): error CS8352: Cannot use variable 'out R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F12(ref R x, out scoped R y) { F2(ref x, out y); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("out R").WithLocation(13, 62));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2675,45 +2932,616 @@ class Program
     static void F0(__arglist) { }
     static void F1(ref R a, __arglist) { }
 
-    static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); }
-    static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); }
-    static void F10(ref R x, ref scoped R y) { F0(__arglist(ref x, ref y)); } // 1
-    static void F11(ref R x, ref scoped R y) { F1(ref x, __arglist(ref y)); } // 2
-    static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); }
-    static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); }
-    static void F30(ref scoped R x, ref scoped R y) { F0(__arglist(ref x, ref y)); }
-    static void F31(ref scoped R x, ref scoped R y) { F1(ref x, __arglist(ref y)); }
-    static void F40(ref scoped R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
-    static void F41(ref scoped R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
-    static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); }
-    static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); }
+    static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+    static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+    static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
+    static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
+    static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
+    static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (7,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(7, 41),
+                // (7,58): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(7, 58),
+                // (8,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(8, 41),
+                // (8,65): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(8, 65),
                 // (9,48): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F10(ref R x, ref scoped R y) { F0(__arglist(ref x, ref y)); } // 1
+                //     static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(9, 48),
-                // (9,72): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F10(ref R x, ref scoped R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(9, 72),
+                // (9,65): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(9, 65),
                 // (10,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F11(ref R x, ref scoped R y) { F1(ref x, __arglist(ref y)); } // 2
+                //     static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(10, 48),
-                // (10,72): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F11(ref R x, ref scoped R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(10, 72),
-                // (15,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F40(ref scoped R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(15, 55),
-                // (15,72): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F40(ref scoped R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(15, 72),
-                // (16,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //     static void F41(ref scoped R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "a").WithLocation(16, 55),
-                // (16,62): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static void F41(ref scoped R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("ref R").WithLocation(16, 62));
+                // (10,72): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                //     static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(10, 72),
+                // (11,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(11, 55),
+                // (11,72): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 72),
+                // (12,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(12, 55),
+                // (12,79): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                //     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(12, 79));
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_07()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R { }
+class Program
+{
+    static void F0(__arglist) { }
+    static void F1(ref R a, __arglist) { }
+
+    static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+    static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+    static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
+    static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); }
+    static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); }
+    static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (8,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 41),
+                // (8,58): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(8, 58),
+                // (9,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 41),
+                // (9,65): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(9, 65),
+                // (10,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(10, 55),
+                // (10,72): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(10, 72));
+        }
+
+        /// <summary>
+        /// ref to ref struct in __arglist is unscoped ref.
+        /// </summary>
+        [Fact]
+        public void MethodArgumentsMustMatch_08()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public R(ref T t) { }
+}
+class Program
+{
+    static void F0(__arglist) { }
+    static void F1()
+    {
+        var x = new R<int>();
+        int i = 1;
+        var y = new R<int>(ref i);
+        F0(__arglist(ref x)); // 1
+        F0(__arglist(ref y));
+        F0(__arglist(ref x, ref x)); // 2
+        F0(__arglist(ref x, ref y)); // 3
+        F0(__arglist(ref y, ref x)); // 4
+        F0(__arglist(ref y, ref y));
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(__arglist(ref x)); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(13, 9),
+                // (13,26): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         F0(__arglist(ref x)); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(13, 26),
+                // (15,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(__arglist(ref x, ref x)); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref x))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(15, 9),
+                // (15,26): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         F0(__arglist(ref x, ref x)); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 26),
+                // (16,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(__arglist(ref x, ref y)); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(16, 9),
+                // (16,33): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         F0(__arglist(ref x, ref y)); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(16, 33),
+                // (17,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(__arglist(ref y, ref x)); // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y, ref x))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(17, 9),
+                // (17,26): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         F0(__arglist(ref y, ref x)); // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(17, 26));
+        }
+
+        /// <summary>
+        /// ref to ref struct in __arglist is unscoped ref.
+        /// </summary>
+        [Fact]
+        public void MethodArgumentsMustMatch_09()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public R(ref T t) { }
+}
+class Program
+{
+    static void F0(ref R<int> a, __arglist) { }
+    static void F1()
+    {
+        var x = new R<int>();
+        int i = 1;
+        var y = new R<int>(ref i);
+        F0(ref x, __arglist(ref x)); // 1
+        F0(ref x, __arglist(ref y)); // 2
+        F0(ref y, __arglist(ref x)); // 3
+        F0(ref y, __arglist(ref y));
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8350: This combination of arguments to 'Program.F0(ref R<int>, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(ref x, __arglist(ref x)); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, __arglist(ref x))").WithArguments("Program.F0(ref R<int>, __arglist)", "__arglist").WithLocation(13, 9),
+                // (13,33): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         F0(ref x, __arglist(ref x)); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(13, 33),
+                // (14,9): error CS8350: This combination of arguments to 'Program.F0(ref R<int>, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(ref x, __arglist(ref y)); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, __arglist(ref y))").WithArguments("Program.F0(ref R<int>, __arglist)", "__arglist").WithLocation(14, 9),
+                // (14,33): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         F0(ref x, __arglist(ref y)); // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(14, 33),
+                // (15,9): error CS8350: This combination of arguments to 'Program.F0(ref R<int>, __arglist)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         F0(ref y, __arglist(ref x)); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref y, __arglist(ref x))").WithArguments("Program.F0(ref R<int>, __arglist)", "a").WithLocation(15, 9),
+                // (15,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         F0(ref y, __arglist(ref x)); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(15, 16));
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_10()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    public R(ref int i) { }
+}
+class Program
+{
+    static void F1()
+    {
+        R r1 = default;
+        F2(ref r1);
+        F3(ref r1); // 1
+    }
+    static void F2(ref R r2)
+    {
+    }
+    static void F3([UnscopedRef] ref R r3)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (12,9): error CS8350: This combination of arguments to 'Program.F3(ref R)' is disallowed because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                //         F3(ref r1); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F3(ref r1)").WithArguments("Program.F3(ref R)", "r3").WithLocation(12, 9),
+                // (12,16): error CS8168: Cannot return local 'r1' by reference because it is not a ref local
+                //         F3(ref r1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r1").WithArguments("r1").WithLocation(12, 16));
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_11()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    public R(ref int i) { }
+}
+class Program
+{
+    static void F1()
+    {
+        R x1 = default;
+        R y1 = default;
+        F2(ref x1, ref y1); // 1
+        F2(ref y1, ref x1); // 2
+    }
+    static void F2(ref R x2, [UnscopedRef] ref R y2)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (12,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                //         F2(ref x1, ref y1); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x1, ref y1)").WithArguments("Program.F2(ref R, ref R)", "y2").WithLocation(12, 9),
+                // (12,24): error CS8168: Cannot return local 'y1' by reference because it is not a ref local
+                //         F2(ref x1, ref y1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y1").WithArguments("y1").WithLocation(12, 24),
+                // (13,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                //         F2(ref y1, ref x1); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y1, ref x1)").WithArguments("Program.F2(ref R, ref R)", "y2").WithLocation(13, 9),
+                // (13,24): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
+                //         F2(ref y1, ref x1); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(13, 24));
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_12()
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref int i) { }
+}
+class Program
+{
+    static void F1()
+    {
+        R x1 = default;
+        int i = 42;
+        R y1 = new R(ref i); // implicitly scoped
+        F2(ref x1, ref y1); // 1
+        F2(ref y1, ref x1); // 2
+    }
+    static void F2(ref R x2, ref R y2)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (12,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                //         F2(ref x1, ref y1); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x1, ref y1)").WithArguments("Program.F2(ref R, ref R)", "y2").WithLocation(12, 9),
+                // (12,24): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
+                //         F2(ref x1, ref y1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(12, 24),
+                // (13,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x2' outside of their declaration scope
+                //         F2(ref y1, ref x1); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y1, ref x1)").WithArguments("Program.F2(ref R, ref R)", "x2").WithLocation(13, 9),
+                // (13,16): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
+                //         F2(ref y1, ref x1); // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(13, 16));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Arglist_RefToRefStruct(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+ref struct R<T>
+{
+}
+class Program
+{
+    static ref R<int> F(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref R<int> r = ref __refvalue(args.GetNextArg(), R<int>);
+        return ref r;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref r;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(11, 20));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Arglist_RefReturnedAsRef(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+class Program
+{
+    static ref int F1(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        return ref __refvalue(args.GetNextArg(), int);
+    }
+    static ref int F2()
+    {
+        int i = 2;
+        return ref F1(__arglist(ref i));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref __refvalue(args.GetNextArg(), int);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "__refvalue(args.GetNextArg(), int)").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void Arglist_RefReturnedAsRefStruct()
+        {
+            var source =
+@"using System;
+ref struct R<T>
+{
+    public R(ref T t) { }
+}
+class Program
+{
+    static R<int> F1(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int i = ref __refvalue(args.GetNextArg(), int);
+        return new R<int>(ref i);
+    }
+    static R<int> F2()
+    {
+        int i = 2;
+        return F1(__arglist(ref i));
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,16): error CS8347: Cannot use a result of 'R<int>.R(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return new R<int>(ref i);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R<int>(ref i)").WithArguments("R<int>.R(ref int)", "t").WithLocation(12, 16),
+                // (12,31): error CS8157: Cannot return 'i' by reference because it was initialized to a value that cannot be returned by reference
+                //         return new R<int>(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "i").WithArguments("i").WithLocation(12, 31));
+        }
+
+        [Fact]
+        public void ImplicitIn_01()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public void F(in T t)  { }
+}
+class Program
+{
+    static R<int> F1()
+    {
+        var r1 = new R<int>();
+        int i = 1;
+        r1.F(in i); // 1
+        return r1;
+    }
+    static R<int> F2()
+    {
+        var r2 = new R<int>();
+        int i = 2;
+        r2.F(i); // 2
+        return r2;
+    }
+    static R<int> F3()
+    {
+        var r3 = new R<int>();
+        r3.F(3); // 3
+        return r3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         r1.F(in i); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.F(in i)").WithArguments("R<int>.F(in int)", "t").WithLocation(11, 9),
+                // (11,17): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r1.F(in i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 17),
+                // (18,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         r2.F(i); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r2.F(i)").WithArguments("R<int>.F(in int)", "t").WithLocation(18, 9),
+                // (18,14): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r2.F(i); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 14),
+                // (24,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         r3.F(3); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r3.F(3)").WithArguments("R<int>.F(in int)", "t").WithLocation(24, 9),
+                // (24,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         r3.F(3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(24, 14));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ImplicitIn_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"class Program
+{
+    static ref readonly T F<T>(in T t)
+    {
+        return ref t;
+    }
+    static ref readonly int F1()
+    {
+        int i1 = 1;
+        return ref F(in i1); // 1
+    }
+    static ref readonly int F2()
+    {
+        int i2 = 2;
+        return ref F(i2); // 2
+    }
+    static ref readonly int F3()
+    {
+        return ref F(3); // 3
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'Program.F<int>(in int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return ref F(in i1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(in i1)").WithArguments("Program.F<int>(in int)", "t").WithLocation(10, 20),
+                // (10,25): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
+                //         return ref F(in i1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(10, 25),
+                // (15,20): error CS8347: Cannot use a result of 'Program.F<int>(in int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return ref F(i2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(i2)").WithArguments("Program.F<int>(in int)", "t").WithLocation(15, 20),
+                // (15,22): error CS8168: Cannot return local 'i2' by reference because it is not a ref local
+                //         return ref F(i2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i2").WithArguments("i2").WithLocation(15, 22),
+                // (19,20): error CS8347: Cannot use a result of 'Program.F<int>(in int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return ref F(3); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(3)").WithArguments("Program.F<int>(in int)", "t").WithLocation(19, 20),
+                // (19,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref F(3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(19, 22));
+        }
+
+        [Fact]
+        public void ImplicitIn_03()
+        {
+            var source =
+@"class Program
+{
+    static ref readonly T F<T>(in T x, scoped in T y)
+    {
+        return ref x;
+    }
+    static ref readonly int F1()
+    {
+        int x1 = 1;
+        int y1 = 1;
+        return ref F(in x1, in y1); // 1
+    }
+    static ref readonly int F2()
+    {
+        int x2 = 2;
+        int y2 = 2;
+        return ref F(x2, in y2); // 2
+    }
+    static ref readonly int F3()
+    {
+        int y3 = 3;
+        return ref F(3, in y3); // 3
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref F(in x1, in y1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(in x1, in y1)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(11, 20),
+                // (11,25): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
+                //         return ref F(in x1, in y1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(11, 25),
+                // (17,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref F(x2, in y2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(x2, in y2)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(17, 20),
+                // (17,22): error CS8168: Cannot return local 'x2' by reference because it is not a ref local
+                //         return ref F(x2, in y2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x2").WithArguments("x2").WithLocation(17, 22),
+                // (22,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref F(3, in y3); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(3, in y3)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(22, 20),
+                // (22,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref F(3, in y3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(22, 22));
+        }
+
+        [Fact]
+        public void RefToRefStruct_InstanceMethods()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    public R(ref R other) { }
+    public void F1(ref R other) { }
+    [UnscopedRef] public void F2(ref R other) { }
+}
+class Program
+{
+    static R F0()
+    {
+        var x0 = new R();
+        var y0 = new R(ref x0);
+        return x0;
+    }
+    static R F1()
+    {
+        var x1 = new R();
+        var y1 = new R();
+        y1.F1(ref x1);
+        return x1;
+    }
+    static R F2()
+    {
+        var x2 = new R();
+        var y2 = new R();
+        y2.F2(ref x2); // 1
+        return x2;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS8168: Cannot return local 'y2' by reference because it is not a ref local
+                //         y2.F2(ref x2); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y2").WithArguments("y2").WithLocation(27, 9));
+        }
+
+        [Fact]
+        public void RefToRefStruct_ConstructorInitializer()
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref R other) { }
+    public R(ref R other, int i) :
+        this(ref other)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2731,7 +3559,7 @@ class Program
 {
     static ref T F2<T>(ref R<T> r) => ref r.F0();
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2782,7 +3610,7 @@ class Program
         s = new S<T> { F = t4 };
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (12,16): error CS8347: Cannot use a result of 'S<T>.S(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new S<T>(ref t0);
@@ -2850,7 +3678,7 @@ class Program
         new S4<T>().F = t;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (27,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         new S1<T>().F = ref t;
@@ -2880,7 +3708,7 @@ class Program
         F = t;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2919,7 +3747,7 @@ class Program
         y.F4 = ref t;
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (10,9): error CS8374: Cannot ref-assign 't' to 'F1' because 't' has a narrower escape scope than 'F1'.
                 //         F1 = ref t;
@@ -2987,7 +3815,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -3019,7 +3847,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tValue; // 1
@@ -3072,7 +3900,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -3104,7 +3932,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tValue; // 1
@@ -3156,7 +3984,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3202,7 +4030,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3242,7 +4070,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3288,7 +4116,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3409,7 +4237,8 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 0
@@ -3653,7 +4482,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
@@ -3813,7 +4642,8 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 0
@@ -4057,7 +4887,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
@@ -4141,7 +4971,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 12
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 13
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4222,7 +5052,8 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 4
 6"));
@@ -4290,7 +5121,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 9
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 10
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4377,7 +5208,8 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 1
 4
@@ -4477,7 +5309,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4561,7 +5393,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4648,7 +5480,7 @@ class Program
     static void FromInReadonlyRef<T>(in S<T> s, out T t)         { t = s.ReadonlyRef; }
     static void FromInReadonlyRefReadonly<T>(in S<T> s, out T t) { t = s.ReadonlyRefReadonly; }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4686,7 +5518,7 @@ class Program
     static void FromInReadonlyRef<T>(in S<T> s)         { ref T t = ref s.ReadonlyRef; }
     static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 8
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (12,73): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromValueRefReadonly<T>(S<T> s)         { ref T t = ref s.RefReadonly; } // 1
@@ -4748,7 +5580,7 @@ class Program
     static void FromInReadonlyRef<T>(in S<T> s)         { ref readonly T t = ref s.ReadonlyRef; }
     static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref readonly T t = ref s.ReadonlyRefReadonly; }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4807,7 +5639,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4832,7 +5664,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
@@ -4872,7 +5704,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4897,7 +5729,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
@@ -4956,7 +5788,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5000,7 +5832,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 1
@@ -5062,7 +5894,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5106,7 +5938,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 1
@@ -5168,7 +6000,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5212,7 +6044,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
@@ -5280,7 +6112,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5324,7 +6156,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
@@ -5383,7 +6215,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"), runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5417,7 +6249,8 @@ class Program
         r.S = new S<T>();
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"42
 42
 "));
@@ -5462,7 +6295,8 @@ class Program
         s.F = value;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"42
 42
 "));
@@ -5501,6 +6335,7 @@ class Program
         {
             var source =
 @"using System;
+using System.Diagnostics.CodeAnalysis;
 ref struct R1<T>
 {
     public ref T F;
@@ -5509,7 +6344,7 @@ ref struct R1<T>
 ref struct R2<T>
 {
     public ref R1<T> R1;
-    public R2(ref R1<T> r1) { R1 = ref r1; }
+    public R2([UnscopedRef] ref R1<T> r1) { R1 = ref r1; }
 }
 class Program
 {
@@ -5532,11 +6367,11 @@ class Program
         return r2In.R1.F;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (9,12): error CS9050: A ref field cannot refer to a ref struct.
-                //     public ref R1<T> R1;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(9, 12));
+                // (10,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R1<T> R1
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12));
         }
 
         [Fact]
@@ -5560,7 +6395,7 @@ class Program
         return new S<T>(1).F = ref t;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,16): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         return new S<T>().F = ref t;
@@ -5575,7 +6410,8 @@ class Program
         public void ReadAndDiscard()
         {
             var source =
-@"ref struct S<T>
+@"using System;
+ref struct S<T>
 {
     public ref T F;
     public S(ref T t) { F = ref t; }
@@ -5585,9 +6421,21 @@ class Program
     static void Main()
     {
         int i = 1;
-        ReadAndDiscard1(ref i);
-        ReadAndDiscardNoArg<int>();
-        ReadAndDiscard2(new S<int>(ref i));
+        Try(() => ReadAndDiscard1(ref i));
+        Try(() => ReadAndDiscardNoArg<int>());
+        Try(() => ReadAndDiscard2(new S<int>(ref i)));
+
+        void Try(Action a)
+        {
+            try
+            {
+                a();
+            }
+            catch (NullReferenceException)
+            {
+                System.Console.WriteLine(""NullReferenceException"");
+            }
+        }
     }
     static void ReadAndDiscard1<T>(ref T t)
     {
@@ -5602,31 +6450,45 @@ class Program
         _ = s.F;
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/62122: The dereference of a ref field
-            // should be emitted to IL, even if the value is ignored, because the behavior
-            // may be observable as a NullReferenceException.
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(""));
-            verifier.VerifyIL("Program.ReadAndDiscard1<T>",
-@"{
-  // Code size        8 (0x8)
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("NullReferenceException"));
+            verifier.VerifyIL("Program.ReadAndDiscard1<T>", """
+{
+  // Code size       18 (0x12)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  newobj     ""S<T>..ctor(ref T)""
-  IL_0006:  pop
-  IL_0007:  ret
-}");
-            verifier.VerifyIL("Program.ReadAndDiscardNoArg<T>",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}");
-            verifier.VerifyIL("Program.ReadAndDiscard2<T>",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}");
+  IL_0001:  newobj     "S<T>..ctor(ref T)"
+  IL_0006:  ldfld      "ref T S<T>.F"
+  IL_000b:  ldobj      "T"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+            verifier.VerifyIL("Program.ReadAndDiscardNoArg<T>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S<T> V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S<T>"
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "ref T S<T>.F"
+  IL_000e:  ldobj      "T"
+  IL_0013:  pop
+  IL_0014:  ret
+}
+""");
+            verifier.VerifyIL("Program.ReadAndDiscard2<T>", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
         }
 
         [Fact]
@@ -5652,7 +6514,8 @@ class Program
     static ref T RefReturn<T>(S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(S<T> s) => ref s.F;
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
   // Code size        8 (0x8)
@@ -5688,7 +6551,8 @@ class Program
     static ref T RefReturn<T>(ref S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(ref S<T> s) => ref s.F;
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
   // Code size        7 (0x7)
@@ -5724,7 +6588,8 @@ class Program
     static ref T RefReturn<T>(in S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(in S<T> s) => ref s.F;
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
   // Code size        7 (0x7)
@@ -5752,7 +6617,7 @@ class Program
     static void Main()
     {
         int i = 1;
-        S<int> s;
+        scoped S<int> s;
         RefReturn(out s, ref i) = 2;
         i = RefReadonlyReturn(out s, ref i);
         Console.WriteLine(i);
@@ -5768,7 +6633,8 @@ class Program
         return ref s.F;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
   // Code size       19 (0x13)
@@ -5817,7 +6683,8 @@ class Program
         s.F -= offset;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
 33
@@ -5885,7 +6752,8 @@ class Program
         Console.WriteLine(x);
     }}
 }}";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
 33
@@ -5955,7 +6823,8 @@ class Program
         return ref b ? ref sx.F : ref sy.F;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
 3
@@ -6017,7 +6886,8 @@ class Program
         return s.F?.ToString();
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
 "));
@@ -6089,7 +6959,12 @@ class Program
         (s1.F, s2.F) = pair;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"(1, Hello world)"));
+            var references = TargetFrameworkUtil.GetReferences(TargetFramework.Standard, additionalReferences: null);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(source, references: CopyWithoutSharingCachedSymbols(references), options: TestOptions.ReleaseExe, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsByRefFields = true;
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"(1, Hello world)"));
             verifier.VerifyIL("Program.Deconstruct<T, U>",
 @"{
   // Code size       39 (0x27)
@@ -6120,6 +6995,7 @@ class Program
         {
             var source =
 @"using System;
+using System.Diagnostics.CodeAnalysis;
 ref struct S<T>
 {
     public ref T F;
@@ -6135,11 +7011,11 @@ class Program
         var sy = new S<int>(ref y);
         Reorder(sx, sy);
     }
-    static ref S<T> Get<T>(ref S<T> s)
+    static ref S<T> Get<T>([UnscopedRef] ref S<T> s)
     {
         return ref s;
     }
-    static void Reorder<T>(S<T> sx, S<T> sy)
+    static void Reorder<T>(scoped S<T> sx, scoped S<T> sy)
     {
         M(y: in Get(ref sy).F, x: in Get(ref sx).F);
     }
@@ -6149,7 +7025,8 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
 "));
@@ -6175,12 +7052,14 @@ class Program
         public void ReturnRefToByValueParameter_01()
         {
             var source =
-@"ref struct S<T>
+@"
+using System.Diagnostics.CodeAnalysis;
+ref struct S<T>
 {
 }
 class Program
 {
-    static ref S<T> F1<T>(ref S<T> x1)
+    static ref S<T> F1<T>([UnscopedRef] ref S<T> x1)
     {
         return ref x1;
     }
@@ -6190,23 +7069,34 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (8,28): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref S<T> F1<T>([UnscopedRef] ref S<T> x1)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 28));
 
-            comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         var y2 = F1(ref x2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2)").WithArguments("Program.F1<T>(ref S<T>)", "x1").WithLocation(14, 18),
+                // (14,25): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         var y2 = F1(ref x2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
         }
 
         [Fact]
         public void ReturnRefToByValueParameter_02()
         {
             var source =
-@"ref struct S<T>
+@"
+using System.Diagnostics.CodeAnalysis;
+ref struct S<T>
 {
 }
 class Program
 {
-    static ref S<T> F1<T>(ref S<T> x1, ref S<T> y1)
+    static ref S<T> F1<T>([UnscopedRef] ref S<T> x1, [UnscopedRef] ref S<T> y1)
     {
         return ref x1;
     }
@@ -6216,11 +7106,23 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (8,28): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref S<T> F1<T>([UnscopedRef] ref S<T> x1, [UnscopedRef] ref S<T> y1)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 28),
+                // (8,55): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref S<T> F1<T>([UnscopedRef] ref S<T> x1, [UnscopedRef] ref S<T> y1)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 55));
 
-            comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>, ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         var z1 = F1(ref x2, ref y2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2, ref y2)").WithArguments("Program.F1<T>(ref S<T>, ref S<T>)", "x1").WithLocation(14, 18),
+                // (14,25): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         var z1 = F1(ref x2, ref y2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
         }
 
         [WorkItem(62098, "https://github.com/dotnet/roslyn/issues/62098")]
@@ -6228,26 +7130,28 @@ class Program
         public void RefToContainingType()
         {
             var source =
-@"ref struct R<T>
+@"
+using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
 {
     public ref R<T> Next;
 }
 class Program
 {
-    static void F<T>(ref R<T> r)
+    static void F<T>([UnscopedRef] ref R<T> r)
     {
         r.Next = ref r;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             // https://github.com/dotnet/roslyn/issues/62098: Allow ref field of the containing type.
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS9050: A ref field cannot refer to a ref struct.
+                // (5,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R<T> Next;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R<T>").WithLocation(3, 12),
-                // (3,21): error CS0523: Struct member 'R<T>.Next' of type 'R<T>' causes a cycle in the struct layout
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R<T>").WithLocation(5, 12),
+                // (5,21): error CS0523: Struct member 'R<T>.Next' of type 'R<T>' causes a cycle in the struct layout
                 //     public ref R<T> Next;
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Next").WithArguments("R<T>.Next", "R<T>").WithLocation(3, 21));
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Next").WithArguments("R<T>.Next", "R<T>").WithLocation(5, 21));
         }
 
         /// <summary>
@@ -6452,7 +7356,8 @@ class Program
         Console.WriteLine(s.t);
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -6470,8 +7375,8 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void Span(LanguageVersion languageVersion)
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Span_01(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -6489,7 +7394,48 @@ class Program
     }
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref s1[1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        // A version of above with an explicit definition of Span<T>.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Span_02(LanguageVersion languageVersion)
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        unsafe public Span(void* ptr, int length) { }
+        public ref T this[int index] => throw null;
+        public static implicit operator Span<T>(T[] a) => throw null;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseDll);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static ref int F1()
+    {
+        Span<int> s1 = stackalloc int[10];
+        return ref s1[1]; // 1
+    }
+    static ref int F2()
+    {
+        Span<int> s2 = new int[10];
+        return ref s2[1];
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
                 // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref s1[1]; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
@@ -6519,17 +7465,104 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(6, 20));
         }
 
+        // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
+        [Theory]
+        [CombinatorialData]
+        public void BreakingChange_RefStructInstanceMethodMayCaptureRef(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+    public void MayCaptureArg(ref T t) { }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static R<int> Use(R<int> r)
+    {
+        int i = 42;
+        r.MayCaptureArg(ref i);
+        return r;
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            if (languageVersionA == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,9): error CS8350: This combination of arguments to 'R<int>.MayCaptureArg(ref int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         r.MayCaptureArg(ref i);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r.MayCaptureArg(ref i)").WithArguments("R<int>.MayCaptureArg(ref int)", "t").WithLocation(6, 9),
+                    // (6,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                    //         r.MayCaptureArg(ref i);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 29));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefStructInstanceMethodMayCaptureRef(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+    public void MayCaptureArg(ref T t) { }
+    public static R<int> Create(ref int i) => default;
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void Use()
+    {
+        int x = 1;
+        int y = 2;
+        R<int>.Create(ref x).MayCaptureArg(ref y);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp.VerifyEmitDiagnostics();
+        }
+
         // Breaking change in C#11: The rvalue from a method invocation that
         // returns a ref struct is safe-to-escape from ... the ref-safe-to-escape of all ref arguments.
-        [Fact]
-        public void BreakingChange_RefStructReturnFromRefArguments()
+        [Theory]
+        [CombinatorialData]
+        public void BreakingChange_RefStructReturnFromRefArguments_01(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
         {
-            var source =
-@"ref struct R { }
-class Program
+            var sourceA =
+@"public ref struct R { }
+public class A
 {
-    static R MayCaptureArg(ref int i) => new R();
-    static R MayCaptureDefaultArg(in int i = 0) => new R();
+    public static R MayCaptureArg(ref int i) => new R();
+    public static R MayCaptureDefaultArg(in int i = 0) => new R();
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
     static R Create()
     {
         int i = 0;
@@ -6540,24 +7573,177 @@ class Program
         return MayCaptureDefaultArg();
     }
 }";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            if (languageVersionA == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS8347: Cannot use a result of 'A.MayCaptureArg(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                    //         return MayCaptureArg(ref i);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "MayCaptureArg(ref i)").WithArguments("A.MayCaptureArg(ref int)", "i").WithLocation(6, 16),
+                    // (6,34): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                    //         return MayCaptureArg(ref i);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 34),
+                    // (10,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return MayCaptureDefaultArg();
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "MayCaptureDefaultArg()").WithLocation(10, 16),
+                    // (10,16): error CS8347: Cannot use a result of 'A.MayCaptureDefaultArg(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                    //         return MayCaptureDefaultArg();
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "MayCaptureDefaultArg()").WithArguments("A.MayCaptureDefaultArg(in int)", "i").WithLocation(10, 16));
+            }
+        }
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics();
+        // Another version of the breaking change above, this time
+        // with ref structs passed by reference as constructor this.
+        [WorkItem(62940, "https://github.com/dotnet/roslyn/issues/62940")]
+        [Theory]
+        [CombinatorialData]
+        public void BreakingChange_RefStructReturnFromRefArguments_02(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R1
+{
+    public R1(ref object o) { }
+}
+public readonly ref struct R2
+{
+    public R2(in object o) { }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
 
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,16): error CS8347: Cannot use a result of 'Program.MayCaptureArg(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         return MayCaptureArg(ref i);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayCaptureArg(ref i)").WithArguments("Program.MayCaptureArg(ref int)", "i").WithLocation(9, 16),
-                // (9,34): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         return MayCaptureArg(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(9, 34),
-                // (13,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         return MayCaptureDefaultArg();
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "MayCaptureDefaultArg()").WithLocation(13, 16),
-                // (13,16): error CS8347: Cannot use a result of 'Program.MayCaptureDefaultArg(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         return MayCaptureDefaultArg();
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayCaptureDefaultArg()").WithArguments("Program.MayCaptureDefaultArg(in int)", "i").WithLocation(13, 16));
+            var sourceB =
+@"class Program
+{
+    static R1 F1()
+    {
+        var o = new object();
+        return new R1(ref o);
+    }
+    static R2 F2()
+    {
+        return new R2(new object());
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            if (languageVersionA == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS8347: Cannot use a result of 'R1.R1(ref object)' in this context because it may expose variables referenced by parameter 'o' outside of their declaration scope
+                    //         return new R1(ref o);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R1(ref o)").WithArguments("R1.R1(ref object)", "o").WithLocation(6, 16),
+                    // (6,27): error CS8168: Cannot return local 'o' by reference because it is not a ref local
+                    //         return new R1(ref o);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "o").WithArguments("o").WithLocation(6, 27),
+                    // (10,16): error CS8347: Cannot use a result of 'R2.R2(in object)' in this context because it may expose variables referenced by parameter 'o' outside of their declaration scope
+                    //         return new R2(new object());
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R2(new object())").WithArguments("R2.R2(in object)", "o").WithLocation(10, 16),
+                    // (10,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R2(new object());
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new object()").WithLocation(10, 23));
+            }
+        }
+
+        // Another version of the breaking change above, this time
+        // with a function pointer type.
+        [Theory]
+        [CombinatorialData]
+        public void BreakingChange_RefStructReturnFromRefArguments_03(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R { }
+unsafe public class A
+{
+    private static R _MayCaptureArg(ref int i) => new R();
+    public static delegate*<ref int, R> MayCaptureArg = &_MayCaptureArg;
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    unsafe static R Create()
+    {
+        int i = 0;
+        return MayCaptureArg(ref i);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB), options: TestOptions.UnsafeReleaseDll);
+            if (languageVersionA == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS8347: Cannot use a result of 'delegate*<ref int, R>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                    //         return MayCaptureArg(ref i);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "MayCaptureArg(ref i)").WithArguments("delegate*<ref int, R>", "0").WithLocation(6, 16),
+                    // (6,34): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                    //         return MayCaptureArg(ref i);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 34));
+            }
+        }
+
+        // Breaking change in C#11: A ref to ref struct argument is considered
+        // an unscoped reference when passed to an __arglist.
+        [Theory]
+        [CombinatorialData]
+        public void BreakingChange_RefToRefStructInArglist(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R { }
+public class A
+{
+    public static void MayCaptureRef(__arglist) { }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        var r = new R();
+        MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            if (languageVersionA == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,9): error CS8350: This combination of arguments to 'A.MayCaptureRef(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                    //         MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "MayCaptureRef(__arglist(ref r))").WithArguments("A.MayCaptureRef(__arglist)", "__arglist").WithLocation(6, 9),
+                    // (6,37): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                    //         MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(6, 37));
+            }
         }
 
         [Theory]
@@ -6572,35 +7758,26 @@ class Program
 public static class A
 {
     public static void F1(R x1, scoped R y1) { }
-    public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-    public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-    public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
+    public static void F2(ref R x2, scoped ref R y2) { }
+    public static void F3(in R x3, scoped in R y3) { }
+    public static void F4(out R x4, scoped out R y4) { x4 = default; y4 = default; }
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F1(R x1, scoped R y1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 33),
-                // (8,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 37),
-                // (8,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 58),
-                // (9,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 36),
-                // (9,55): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 55),
-                // (10,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 37),
-                // (10,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 58));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 33),
+                // (8,37): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static void F2(ref R x2, scoped ref R y2) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 37),
+                // (9,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static void F3(in R x3, scoped in R y3) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 36),
+                // (10,37): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static void F4(out R x4, scoped out R y4) { x4 = default; y4 = default; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 37));
 
-            verify(comp);
+            verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -6613,40 +7790,37 @@ public static class A
     {
         int i = 0;
         R y = new R(ref i);
-        A.F2(ref x, ref y, ref y);
+        A.F2(ref x, ref y);
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
-                //         A.F2(ref x, ref y, ref y);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y, ref y)").WithArguments("A.F2(ref R, ref R, ref R)", "y2").WithLocation(7, 9),
+                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                //         A.F2(ref x, ref y);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y)").WithArguments("A.F2(ref R, ref R)", "y2").WithLocation(7, 9),
                 // (7,25): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
-                //         A.F2(ref x, ref y, ref y);
+                //         A.F2(ref x, ref y);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(7, 25));
 
-            verify(comp);
+            verify(comp, useUpdatedEscapeRules: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 var parameters = comp.GetMember<MethodSymbol>("A.F1").Parameters;
                 VerifyParameterSymbol(parameters[0], "R x1", RefKind.None, DeclarationScope.Unscoped);
                 VerifyParameterSymbol(parameters[1], "scoped R y1", RefKind.None, DeclarationScope.ValueScoped);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F2").Parameters;
-                VerifyParameterSymbol(parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], "scoped ref R y2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(parameters[2], "ref scoped R z2", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(parameters[0], "ref R x2", RefKind.Ref, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(parameters[1], useUpdatedEscapeRules ? "ref R y2" : "scoped ref R y2", RefKind.Ref, DeclarationScope.RefScoped);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F3").Parameters;
-                VerifyParameterSymbol(parameters[0], "in R x3", RefKind.In, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], "scoped in R y3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(parameters[2], "in scoped R z3", RefKind.In, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(parameters[0], "in R x3", RefKind.In, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(parameters[1], useUpdatedEscapeRules ? "in R y3" : "scoped in R y3", RefKind.In, DeclarationScope.RefScoped);
 
                 parameters = comp.GetMember<MethodSymbol>("A.F4").Parameters;
-                VerifyParameterSymbol(parameters[0], "out R x4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(parameters[1], "out R y4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(parameters[2], "out scoped R z4", RefKind.Out, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(parameters[0], "out R x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(parameters[1], useUpdatedEscapeRules ? "out R y4" : "scoped out R y4", RefKind.Out, DeclarationScope.RefScoped);
             }
         }
 
@@ -6658,22 +7832,22 @@ public static class A
 {
     A(scoped ref T t) { }
     T this[scoped in object o] => default;
-    public static implicit operator B<T>(in scoped A<T> a) => default;
+    public static implicit operator B<T>(scoped in A<T> a) => default;
 }
 struct B<T>
 {
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,7): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     A(scoped ref T t) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 7),
-                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 7),
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     T this[scoped in object o] => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 12),
-                // (5,45): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static implicit operator B<T>(in scoped A<T> a) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 45));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (5,42): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static implicit operator B<T>(scoped in A<T> a) => default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 42));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6684,7 +7858,6 @@ struct B<T>
             {
                 VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("A").Constructors.Single(c => !c.IsImplicitlyDeclared).Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(comp.GetMember<PropertySymbol>("A.this[]").GetMethod.Parameters[0], "scoped in System.Object o", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.op_Implicit").Parameters[0], "in scoped A<T> a", RefKind.In, DeclarationScope.ValueScoped);
             }
         }
 
@@ -6698,48 +7871,65 @@ class Program
     static void Main()
     {
 #pragma warning disable 8321
-        static void L1(scoped R x1) { }
-        static void L2(scoped ref int x2) { }
-        static void L3(scoped in int x3) { }
-        static void L4(scoped out int x4) { x4 = 0; }
-        static void L5(object o, ref scoped R x5) { }
+        static void L1(R x1, scoped R y1) { }
+        static void L2(ref int x2, scoped ref int y2) { }
+        static void L3(in int x3, scoped in int y3) { }
+        static void L4(out int x4, scoped out int y4) { x4 = 0; y4 = 0; }
+        static void L5(ref R x5, scoped ref R y5) { }
+        static void L6(in R x6, scoped in R y6) { }
+        static void L7(out R x7, scoped out R y7) { x7 = default; y7 = default; }
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         static void L1(scoped R x1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 24),
-                // (8,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         static void L2(scoped ref int x2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 24),
-                // (9,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         static void L3(scoped in int x3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 24),
-                // (10,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         static void L4(scoped out int x4) { x4 = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 24),
-                // (11,38): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         static void L5(object o, ref scoped R x5) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 38));
-            verify(comp);
+                // (7,30): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L1(R x1, scoped R y1) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 30),
+                // (8,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L2(ref int x2, scoped ref int y2) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 36),
+                // (9,35): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L3(in int x3, scoped in int y3) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 35),
+                // (10,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L4(out int x4, scoped out int y4) { x4 = 0; y4 = 0; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 36),
+                // (11,34): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L5(ref R x5, scoped ref R y5) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 34),
+                // (12,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L6(in R x6, scoped in R y6) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 33),
+                // (13,34): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         static void L7(out R x7, scoped out R y7) { x7 = default; y7 = default; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 34));
+            verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp);
+            verify(comp, useUpdatedEscapeRules: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
                 var decls = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
                 var localFunctions = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalFunctionSymbol>()).ToArray();
 
-                VerifyParameterSymbol(localFunctions[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(localFunctions[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[3].Parameters[0], "out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(localFunctions[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(localFunctions[0].Parameters[0], "R x1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[0].Parameters[1], "scoped R y1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(localFunctions[1].Parameters[0], "ref System.Int32 x2", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[1].Parameters[1], "scoped ref System.Int32 y2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[2].Parameters[0], "in System.Int32 x3", RefKind.In, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[2].Parameters[1], "scoped in System.Int32 y3", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[3].Parameters[0], "out System.Int32 x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[3].Parameters[1], useUpdatedEscapeRules ? "out System.Int32 y4" : "scoped out System.Int32 y4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[4].Parameters[0], "ref R x5", RefKind.Ref, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[4].Parameters[1], useUpdatedEscapeRules ? "ref R y5" : "scoped ref R y5", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[5].Parameters[0], "in R x6", RefKind.In, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[5].Parameters[1], useUpdatedEscapeRules ? "in R y6" : "scoped in R y6", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[6].Parameters[0], "out R x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                VerifyParameterSymbol(localFunctions[6].Parameters[1], useUpdatedEscapeRules ? "out R y7" : "scoped out R y7", RefKind.Out, DeclarationScope.RefScoped);
             }
         }
 
@@ -6752,47 +7942,64 @@ class Program
 {
     static void Main()
     {
-        var f1 = (scoped R x1) => { };
-        var f2 = (scoped ref int x2) => { };
-        var f3 = (scoped in int x3) => { };
-        var f4 = (scoped out int x4) => { x4 = 0; };
-        var f5 = (object o, ref scoped R x5) => { };
+        var f1 = (R x1, scoped R y1) => { };
+        var f2 = (ref int x2, scoped ref int y2) => { };
+        var f3 = (in int x3, scoped in int y3) => { };
+        var f4 = (out int x4, scoped out int y4) => { x4 = 0; y4 = 0; };
+        var f5 = (ref R x5, scoped ref R y5) => { };
+        var f6 = (in R x6, scoped in R y6) => { };
+        var f7 = (out R x7, scoped out R y7) => { x7 = default; y7 = default; };
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (6,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var f1 = (scoped R x1) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(6, 19),
-                // (7,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var f2 = (scoped ref int x2) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 19),
-                // (8,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var f3 = (scoped in int x3) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 19),
-                // (9,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var f4 = (scoped out int x4) => { x4 = 0; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 19),
-                // (10,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var f5 = (object o, ref scoped R x5) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 33));
-            verify(comp);
+                // (6,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f1 = (R x1, scoped R y1) => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 25),
+                // (7,31): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f2 = (ref int x2, scoped ref int y2) => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 31),
+                // (8,30): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f3 = (in int x3, scoped in int y3) => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 30),
+                // (9,31): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f4 = (out int x4, scoped out int y4) => { x4 = 0; y4 = 0; };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 31),
+                // (10,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f5 = (ref R x5, scoped ref R y5) => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 29),
+                // (11,28): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f6 = (in R x6, scoped in R y6) => { };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 28),
+                // (12,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         var f7 = (out R x7, scoped out R y7) => { x7 = default; y7 = default; };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 29));
+            verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp);
+            verify(comp, useUpdatedEscapeRules: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
                 var delegateTypesAndLambdas = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => getDelegateTypeAndLambda(model, d)).ToArray();
 
-                verifyParameter(delegateTypesAndLambdas[0], 0, "scoped R", "x1", RefKind.None, DeclarationScope.ValueScoped);
-                verifyParameter(delegateTypesAndLambdas[1], 0, "scoped ref System.Int32", "x2", RefKind.Ref, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[2], 0, "scoped in System.Int32", "x3", RefKind.In, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, DeclarationScope.RefScoped);
-                verifyParameter(delegateTypesAndLambdas[4], 1, "ref scoped R", "x5", RefKind.Ref, DeclarationScope.ValueScoped);
+                verifyParameter(delegateTypesAndLambdas[0], 0, "R", "x1", RefKind.None, DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[0], 1, "scoped R", "y1", RefKind.None, DeclarationScope.ValueScoped);
+                verifyParameter(delegateTypesAndLambdas[1], 0, "ref System.Int32", "x2", RefKind.Ref, DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[1], 1, "scoped ref System.Int32", "y2", RefKind.Ref, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[2], 0, "in System.Int32", "x3", RefKind.In, DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[2], 1, "scoped in System.Int32", "y3", RefKind.In, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[3], 1, useUpdatedEscapeRules ? "out System.Int32" : "scoped out System.Int32", "y4", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[4], 0, "ref R", "x5", RefKind.Ref, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[4], 1, useUpdatedEscapeRules ? "ref R" : "scoped ref R", "y5", RefKind.Ref, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[5], 0, "in R", "x6", RefKind.In, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[5], 1, useUpdatedEscapeRules ? "in R" : "scoped in R", "y6", RefKind.In, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[6], 0, "out R", "x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                verifyParameter(delegateTypesAndLambdas[6], 1, useUpdatedEscapeRules ? "out R" : "scoped out R", "y7", RefKind.Out, DeclarationScope.RefScoped);
             }
 
             static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
@@ -6818,30 +8025,25 @@ class Program
 @"ref struct R { }
 delegate void D1(scoped R r1);
 delegate void D2(scoped ref R r2);
-delegate void D3(object o, ref scoped R r3);
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (2,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D1(scoped R r1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(2, 18),
-                // (3,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 18),
+                // (3,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D2(scoped ref R r2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 18),
-                // (4,32): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // delegate void D3(object o, ref scoped R r3);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 32));
-            verify(comp);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 18));
+            verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp);
+            verify(comp, useUpdatedEscapeRules: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D1").DelegateInvokeMethod.Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D3").DelegateInvokeMethod.Parameters[1], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], useUpdatedEscapeRules ? "ref R r2" : "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
             }
         }
 
@@ -6854,66 +8056,72 @@ class Program
 {
     static void F1(scoped R r1) { }
     static void F2(ref scoped R x, scoped ref int y) { }
+    static ref R F3(ref R r) => throw null;
     static unsafe void Main()
     {
         delegate*<scoped R, void> f1 = &F1;
         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+        delegate*<ref R, ref R> f3 = &F3;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyEmitDiagnostics(
-                // (4,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F1(scoped R r1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 20),
-                // (5,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (5,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F2(ref scoped R x, scoped ref int y) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 24),
-                // (5,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 24),
+                // (5,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static void F2(ref scoped R x, scoped ref int y) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 36),
-                // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(5, 24),
+                // (5,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void F2(ref scoped R x, scoped ref int y) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 36),
+                // (9,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped R, void> f1 = &F1;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
-                // (8,40): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'delegate*<R, void>'.
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 19)/*,
+                // (9,40): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'delegate*<R, void>'.
                 //         delegate*<scoped R, void> f1 = &F1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("r1", "delegate*<R, void>").WithLocation(8, 40),
-                // (9,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("r1", "delegate*<R, void>").WithLocation(9, 40)*/,
+                // (10,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 23),
-                // (9,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(10, 23),
+                // (10,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33),
-                // (9,60): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'delegate*<ref R, ref int, void>'.
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(10, 33)/*,
+                // (10,60): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref int, void>'.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("x", "delegate*<ref R, ref int, void>").WithLocation(9, 60),
-                // (9,60): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref int, void>'.
-                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref int, void>").WithLocation(9, 60));
-            verify(comp);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref int, void>").WithLocation(10, 60)*/);
+            verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyEmitDiagnostics(
-                // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                // (5,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     static void F2(ref scoped R x, scoped ref int y) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(5, 24),
+                // (9,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped R, void> f1 = &F1;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
-                // (8,40): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'delegate*<R, void>'.
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 19)/*,
+                // (9,40): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'delegate*<R, void>'.
                 //         delegate*<scoped R, void> f1 = &F1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("r1", "delegate*<R, void>").WithLocation(8, 40),
-                // (9,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("r1", "delegate*<R, void>").WithLocation(9, 40)*/,
+                // (10,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 23),
-                // (9,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(10, 23),
+                // (10,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33),
-                // (9,60): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'delegate*<ref R, ref int, void>'.
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(10, 33)/*,
+                // (10,60): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref int, void>'.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("x", "delegate*<ref R, ref int, void>").WithLocation(9, 60),
-                // (9,60): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref int, void>'.
-                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref int, void>").WithLocation(9, 60));
-            verify(comp);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref int, void>").WithLocation(10, 60)*/);
+            verify(comp, useUpdatedEscapeRules: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
@@ -6921,8 +8129,9 @@ class Program
                 var methods = decls.Select(d => ((FunctionPointerTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).Signature).ToArray();
 
                 VerifyParameterSymbol(methods[0].Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(methods[1].Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(methods[1].Parameters[0], "ref R", RefKind.Ref, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
                 VerifyParameterSymbol(methods[1].Parameters[1], "ref System.Int32", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(methods[2].Parameters[0], "ref R", RefKind.Ref, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
             }
         }
 
@@ -6949,34 +8158,52 @@ class Program
                 // (4,27): error CS1107: A parameter can only have one 'scoped' modifier
                 //     static void F0(scoped scoped R r) { }
                 Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(4, 27),
-                // (5,31): error CS1107: A parameter can only have one 'scoped' modifier
+                // (5,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static void F1(ref scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(5, 31),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(5, 24),
+                // (5,31): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     static void F1(ref scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(5, 31),
+                // (6,31): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     static void F2(scoped ref scoped R r) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(6, 31),
                 // (7,27): error CS1107: A parameter can only have one 'scoped' modifier
                 //     static void F3(scoped scoped ref R r) { }
                 Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(7, 27),
-                // (8,30): error CS1107: A parameter can only have one 'scoped' modifier
+                // (8,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
                 //     static void F4(in scoped scoped R r) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "in").WithLocation(8, 23),
+                // (8,30): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
+                //     static void F4(in scoped scoped R r) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "in").WithLocation(8, 30),
+                // (9,30): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
+                //     static void F5(scoped in scoped R r) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "in").WithLocation(9, 30),
                 // (10,27): error CS1107: A parameter can only have one 'scoped' modifier
                 //     static void F6(scoped scoped in R r) { }
                 Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(10, 27),
-                // (11,31): error CS1107: A parameter can only have one 'scoped' modifier
+                // (11,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
                 //     static void F7(out scoped scoped R r) { r = default; }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(11, 31),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "out").WithLocation(11, 24),
+                // (11,31): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
+                //     static void F7(out scoped scoped R r) { r = default; }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "out").WithLocation(11, 31),
+                // (12,31): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
+                //     static void F8(scoped out scoped R r) { r = default; }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "out").WithLocation(12, 31),
                 // (13,27): error CS1107: A parameter can only have one 'scoped' modifier
                 //     static void F9(scoped scoped out R r) { r = default; }
                 Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(13, 27));
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F0").Parameters[0], "scoped R r", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "ref scoped R r", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref scoped R r", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "scoped ref R r", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "in scoped R r", RefKind.In, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "in scoped R r", RefKind.In, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F6").Parameters[0], "scoped in R r", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F7").Parameters[0], "out scoped R r", RefKind.Out, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F8").Parameters[0], "out scoped R r", RefKind.Out, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "ref R r", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref R r", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref R r", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "in R r", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "in R r", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F6").Parameters[0], "in R r", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F7").Parameters[0], "out R r", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F8").Parameters[0], "out R r", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F9").Parameters[0], "out R r", RefKind.Out, DeclarationScope.RefScoped);
         }
 
@@ -6999,9 +8226,12 @@ class Program
                 // (6,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f1 = (scoped scoped R r) => { };
                 Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(6, 26),
-                // (7,30): error CS1107: A parameter can only have one 'scoped' modifier
+                // (7,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(7, 30),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(7, 23),
+                // (7,30): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(7, 30),
                 // (8,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(8, 26));
@@ -7011,7 +8241,7 @@ class Program
         public void ParameterScope_09()
         {
             var source =
-@"ref struct scoped { }
+@"ref struct @scoped { }
 class Program
 {
     static void F0(scoped s) { }
@@ -7028,62 +8258,27 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 12));
+                // (7,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     static void F3(ref scoped scoped s) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(7, 24),
+                // (10,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
+                //     static void F6(in scoped scoped s) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "in").WithLocation(10, 23),
+                // (13,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
+                //     static void F9(out scoped scoped s) { s = default; }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "out").WithLocation(13, 24));
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F0").Parameters[0], "scoped s", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "scoped scoped s", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref scoped s", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref scoped scoped s", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "scoped ref scoped s", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "in scoped s", RefKind.In, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F6").Parameters[0], "in scoped scoped s", RefKind.In, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F7").Parameters[0], "scoped in scoped s", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref scoped s", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref scoped s", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "ref scoped s", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "in scoped s", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F6").Parameters[0], "in scoped s", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F7").Parameters[0], "in scoped s", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F8").Parameters[0], "out scoped s", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F9").Parameters[0], "out scoped scoped s", RefKind.Out, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F9").Parameters[0], "out scoped s", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.FA").Parameters[0], "out scoped s", RefKind.Out, DeclarationScope.RefScoped);
-        }
-
-        [Fact]
-        public void ParameterScope_10()
-        {
-            var source0 =
-@".class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
-{
-  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
-}
-.class public sealed R extends [mscorlib]System.ValueType
-{
-  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
-  .field public int32& modreq(int32) F
-}
-.class public A
-{
-  .method public static void F(valuetype R r)
-  {
-    .param [1]
-    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 00 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: false, isValueScoped: false)
-    ret
-  }
-}
-";
-            var ref0 = CompileIL(source0);
-
-            var source1 =
-@"class Program
-{
-    static void Main()
-    {
-        var r = new R();
-        A.F(r);
-    }
-}";
-            var comp = CreateCompilation(source1, references: new[] { ref0 });
-            comp.VerifyDiagnostics();
-
-            var method = comp.GetMember<PEMethodSymbol>("A.F");
-            VerifyParameterSymbol(method.Parameters[0], "R r", RefKind.None, DeclarationScope.Unscoped);
         }
 
         [WorkItem(62080, "https://github.com/dotnet/roslyn/issues/62080")]
@@ -7104,10 +8299,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             // https://github.com/dotnet/roslyn/issues/62080: Lambda parameter r2 should be inferred as 'scoped R' rather than 'R'.
-            comp.VerifyEmitDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (9,17): error CS8986: The 'scoped' modifier of parameter 'r2' doesn't match target 'D2'.
                 //         D2 d2 = r2 => r2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "r2 => r2").WithArguments("r2", "D2").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "r2 => r2").WithArguments("r2", "D2").WithLocation(9, 17)*/);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7121,29 +8318,31 @@ class Program
         public void ParameterScope_12()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
 {
-  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
 .class public A
 {
   .method public static void F1([out] int32& i)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 01 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: true, isValueScoped: false)
-    ldnull
-    throw
-  }
-  .method public static void F2([out] int32& i)
-  {
-    .param [1]
-    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 00 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: false, isValueScoped: false)
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 ) // ScopedRefAttribute()
     ldnull
     throw
   }
 }
 ";
-            var ref0 = CompileIL(source0);
+            var ref0 = CompileIL(source0, prependDefaultHeader: false);
 
             var source1 =
 @"class Program
@@ -7152,18 +8351,94 @@ class Program
     {
         int i;
         A.F1(out i);
-        A.F2(out i);
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
             comp.VerifyDiagnostics();
 
             VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F1").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<PEMethodSymbol>("A.F2").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
         }
 
+        [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
+        [CombinatorialData]
+        [Theory]
+        public void RefToRefStructParameter_01(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R { }
+public class A
+{
+    public static void F(R a, ref R b, in R c, out R d) { d = default; }
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        R a = new R();
+        R b = new R();
+        R c = new R();
+        R d;
+        A.F(a, ref b, in c, out d);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics();
+
+            var parameters = comp.GetMember<MethodSymbol>("A.F").Parameters;
+            VerifyParameterSymbol(parameters[0], "R a", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(parameters[1], "ref R b", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(parameters[2], "in R c", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(parameters[3], "out R d", RefKind.Out, DeclarationScope.RefScoped);
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
+        }
+
+        [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
         [Fact]
-        public void ThisScope()
+        public void RefToRefStructParameter_02()
+        {
+            var source =
+@"ref struct R
+{
+    public ref int F;
+    public R(ref int i) { F = ref i; }
+}
+class Program
+{
+    static ref R F1()
+    {
+        int i = 42;
+        var r1 = new R(ref i);
+        return ref ReturnRef(ref r1); // 1
+    }
+    static ref R F2(ref int i)
+    {
+        var r2 = new R(ref i);
+        return ref ReturnRef(ref r2);
+    }
+    static ref R ReturnRef(ref R r) => throw null;
+}";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnRef(ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         return ref ReturnRef(ref r1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnRef(ref r1)").WithArguments("Program.ReturnRef(ref R)", "r").WithLocation(12, 20),
+                // (12,34): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref ReturnRef(ref r1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 34));
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.ReturnRef").Parameters[0], "ref R r", RefKind.Ref, DeclarationScope.RefScoped);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ThisScope(LanguageVersion languageVersion)
         {
             var source =
 @"class C
@@ -7195,23 +8470,32 @@ readonly ref struct R2
     void F1() { }
     readonly void F2() { }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C.F1").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1..ctor").ThisParameter, "out S1 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "scoped ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F2").ThisParameter, "scoped in S1 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F2").ThisParameter, "in S1 this", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1..ctor").ThisParameter, "out R1 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F1").ThisParameter, "scoped ref R1 this", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F2").ThisParameter, "scoped in R1 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F1").ThisParameter, "ref R1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F2").ThisParameter, "in R1 this", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2..ctor").ThisParameter, "out S2 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F1").ThisParameter, "scoped in S2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "scoped in S2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F1").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "out R2 this", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "scoped in R2 this", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "scoped in R2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "in R2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "in R2 this", RefKind.In, DeclarationScope.RefScoped);
+
+            var type = comp.GetMember<NamedTypeSymbol>("S1");
+            var thisParameter = new ThisParameterSymbol(forMethod: null, type); // "this" parameter for property for instance.
+            VerifyParameterSymbol(thisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+
+            bool useUpdatedEscapeRules = languageVersion == LanguageVersion.CSharp11;
+            Assert.Equal(useUpdatedEscapeRules, thisParameter.UseUpdatedEscapeRules);
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]
@@ -7225,7 +8509,6 @@ static class Extensions
     static void F1(this scoped R<object> r) { }
     static void F2<T>(scoped this R<T> r) { }
     static void F3<T>(this scoped ref T t) where T : struct { }
-    static void F4(this ref scoped R<int> r) { }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
@@ -7234,7 +8517,6 @@ static class Extensions
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped R<T> r", RefKind.None, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F3").Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F4").Parameters[0], "ref scoped R<System.Int32> r", RefKind.Ref, DeclarationScope.ValueScoped);
         }
 
         [Fact]
@@ -7261,7 +8543,7 @@ static class Extensions
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7270,13 +8552,11 @@ class Program
 {
     static scoped R F1<T>() => throw null;
     static scoped ref R F2<T>() => throw null;
-    static ref scoped R F3<T>() => throw null;
     static void Main()
     {
 #pragma warning disable 8321
         static scoped R L1<T>() => throw null;
         static scoped ref readonly R L2<T>() => throw null;
-        static ref readonly scoped R L3<T>() => throw null;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
@@ -7287,23 +8567,17 @@ class Program
                 // (5,25): error CS0106: The modifier 'scoped' is not valid for this item
                 //     static scoped ref R F2<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("scoped").WithLocation(5, 25),
-                // (6,16): error CS0106: The modifier 'scoped' is not valid for this item
-                //     static ref scoped R F3<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 16),
-                // (10,16): error CS0106: The modifier 'scoped' is not valid for this item
+                // (9,16): error CS0106: The modifier 'scoped' is not valid for this item
                 //         static scoped R L1<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(10, 16),
-                // (11,16): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(9, 16),
+                // (10,16): error CS0106: The modifier 'scoped' is not valid for this item
                 //         static scoped ref readonly R L2<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(11, 16),
-                // (12,29): error CS0106: The modifier 'scoped' is not valid for this item
-                //         static ref readonly scoped R L3<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(12, 29));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(10, 16));
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void DelegateReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7312,14 +8586,14 @@ delegate ref scoped R D();
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS0106: The modifier 'scoped' is not valid for this item
+                // (2,14): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 14));
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void TypeScopeModifier_01(LanguageVersion langVersion)
         {
             var source =
@@ -7342,7 +8616,7 @@ scoped readonly ref struct C { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void TypeScopeModifier_02(LanguageVersion langVersion)
         {
             var source =
@@ -7372,50 +8646,34 @@ ref struct R1 { }
 ref struct R2
 {
     scoped R1 F1;
-    ref scoped R1 F2;
     scoped ref int F3;
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 15),
-                // (6,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref scoped R1").WithArguments("ref fields").WithLocation(6, 5),
-                // (6,5): error CS9050: A ref field cannot refer to a ref struct.
-                //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
-                // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
-                //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
-                // (7,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     scoped ref int F3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref int").WithArguments("ref fields").WithLocation(7, 12),
-                // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(6, 12),
+                // (6,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int F3;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 20));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 15),
-                // (6,5): error CS9050: A ref field cannot refer to a ref struct.
-                //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
-                // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
-                //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
-                // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
+                // (6,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int F3;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 20));
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void PropertyTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7425,7 +8683,6 @@ ref struct R2
     scoped R1 P1 { get; }
     scoped R1 P2 { get; init; }
     scoped R1 P3 { set { } }
-    ref scoped R1 P4 => throw null;
     scoped ref int P5 => throw null;
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
@@ -7439,12 +8696,9 @@ ref struct R2
                 // (6,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P3 { set { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("scoped").WithLocation(6, 15),
-                // (7,9): error CS0106: The modifier 'scoped' is not valid for this item
-                //     ref scoped R1 P4 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(7, 9),
-                // (8,20): error CS0106: The modifier 'scoped' is not valid for this item
+                // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int P5 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("scoped").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("scoped").WithLocation(7, 20));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -7521,10 +8775,10 @@ public class A
         private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            Assert.Equal(expectedScope, parameter.Scope);
+            Assert.Equal(expectedScope, parameter.EffectiveScope);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
 
-            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(parameter, AttributeDescription.LifetimeAnnotationAttribute) != -1);
+            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(parameter, AttributeDescription.ScopedRefAttribute) != -1);
             Assert.Null(attribute);
 
             VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
@@ -7551,42 +8805,20 @@ class Program
     {
         scoped R r1 = default;
         scoped ref R r2 = ref r;
-        ref scoped R r3 = ref r;
-        scoped ref scoped R r4 = ref r;
         scoped ref readonly R r5 = ref r;
-        ref readonly scoped R r6 = ref r;
-        scoped ref readonly scoped R r7 = ref r;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped R r1 = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 9),
-                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 9),
+                // (8,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref R r2 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 9),
-                // (9,13): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ref scoped R r3 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 13),
-                // (10,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref scoped R r4 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 9),
-                // (10,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref scoped R r4 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 20),
-                // (11,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 9),
+                // (9,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly R r5 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 9),
-                // (12,22): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ref readonly scoped R r6 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 22),
-                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref readonly scoped R r7 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 9),
-                // (13,29): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref readonly scoped R r7 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 29));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 9));
             verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
@@ -7602,11 +8834,7 @@ class Program
 
                 VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
                 VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "ref scoped R r4", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "ref readonly scoped R r6", RefKind.RefReadOnly, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[6], "ref readonly scoped R r7", RefKind.RefReadOnly, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
             }
         }
 
@@ -7620,7 +8848,6 @@ class Program
     static void Main()
     {
         scoped scoped R x = default;
-        ref scoped scoped R y = ref x;
         scoped scoped ref R z = ref x;
     }
 }";
@@ -7630,30 +8857,15 @@ class Program
                 // (6,16): error CS1031: Type expected
                 //         scoped scoped R x = default;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithLocation(6, 16),
-                // (7,20): error CS0118: 'scoped' is a variable but is used like a type
-                //         ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(7, 20),
-                // (7,27): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(7, 27),
-                // (7,27): warning CS0168: The variable 'R' is declared but never used
-                //         ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(7, 27),
-                // (7,29): error CS1002: ; expected
-                //         ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(7, 29),
-                // (7,29): error CS0103: The name 'y' does not exist in the current context
-                //         ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(7, 29),
-                // (8,9): error CS0118: 'scoped' is a variable but is used like a type
+                // (7,9): error CS0118: 'scoped' is a variable but is used like a type
                 //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(8, 9),
-                // (8,16): warning CS0168: The variable 'scoped' is declared but never used
+                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(7, 9),
+                // (7,16): warning CS0168: The variable 'scoped' is declared but never used
                 //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(8, 16),
-                // (8,23): error CS1002: ; expected
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(7, 16),
+                // (7,23): error CS1002: ; expected
                 //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(8, 23));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23));
         }
 
         [Fact]
@@ -7661,7 +8873,6 @@ class Program
         {
             var source =
 @"scoped scoped R x = default;
-ref scoped scoped R y = ref x;
 scoped scoped ref R z = ref x;
 ref struct R { }
 ";
@@ -7674,27 +8885,15 @@ ref struct R { }
                 // (1,17): warning CS0219: The variable 'x' is assigned but its value is never used
                 // scoped scoped R x = default;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 17),
-                // (2,12): error CS0118: 'scoped' is a variable but is used like a type
-                // ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(2, 12),
-                // (2,19): error CS8174: A declaration of a by-reference variable must have an initializer
-                // ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(2, 19),
-                // (2,19): warning CS0168: The variable 'R' is declared but never used
-                // ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(2, 19),
-                // (2,21): error CS1003: Syntax error, ',' expected
-                // ref scoped scoped R y = ref x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",").WithLocation(2, 21),
-                // (3,1): error CS0118: 'scoped' is a variable but is used like a type
+                // (2,1): error CS0118: 'scoped' is a variable but is used like a type
                 // scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(3, 1),
-                // (3,8): warning CS0168: The variable 'scoped' is declared but never used
+                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(2, 1),
+                // (2,8): warning CS0168: The variable 'scoped' is declared but never used
                 // scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(3, 8),
-                // (3,15): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(2, 8),
+                // (2,15): error CS1003: Syntax error, ',' expected
                 // scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(3, 15));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(2, 15));
         }
 
         [Fact]
@@ -7702,35 +8901,55 @@ ref struct R { }
         {
             var source =
 @"scoped s1 = default;
-ref scoped s2 = ref s1;
-scoped scoped s3 = default;
-scoped ref scoped s4 = ref s1;
-ref struct scoped { }
+ref scoped s2 = ref s1; // 1
+ref @scoped s3 = ref s1;
+scoped scoped s4 = default; // 2
+scoped ref scoped s5 = ref s1; // 3
+scoped ref @scoped s6 = ref s1; // 4
+ref struct @scoped { } // 5
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 1),
-                // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
-                // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
-                // (4,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // scoped ref scoped s4 = ref s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 1),
-                // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+                // (2,5): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 5),
+                // (2,15): error CS1525: Invalid expression term '='
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 15),
+                // (4,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // scoped scoped s4 = default; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 1),
+                // (4,15): warning CS0219: The variable 's4' is assigned but its value is never used
+                // scoped scoped s4 = default; // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 15),
+                // (5,12): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
+                // (5,22): error CS1525: Invalid expression term '='
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
+                // (6,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 1));
             verify(comp);
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
-                // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
-                // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+                // (2,5): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 5),
+                // (2,15): error CS1525: Invalid expression term '='
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 15),
+                // (4,15): warning CS0219: The variable 's4' is assigned but its value is never used
+                // scoped scoped s4 = default; // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 15),
+                // (5,12): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
+                // (5,22): error CS1525: Invalid expression term '='
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -7741,15 +8960,15 @@ ref struct scoped { }
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
                 VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "scoped scoped s3", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped ref scoped s4", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[1], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[2], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[3], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
             }
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void LocalScope_05(LanguageVersion langVersion)
         {
             var source =
@@ -7780,13 +8999,15 @@ class Program
     static void M(R<int> r0)
     {
         scoped var r1 = new R<int>();
-        ref scoped var r2 = ref r1;
         scoped ref var r3 = ref r0;
-        scoped ref scoped var r4 = ref r0;
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS0219: The variable 'r1' is assigned but its value is never used
+                //         scoped var r1 = new R<int>();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "r1").WithArguments("r1").WithLocation(6, 20)
+                );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7794,9 +9015,7 @@ class Program
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
             VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[1], "ref scoped R<System.Int32> r2", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[2], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[3], "ref scoped R<System.Int32> r4", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
         [Fact]
@@ -7813,24 +9032,16 @@ class Program
         scoped R r21 = r1;
         scoped R r22 = r2;
     }
-    static void Refs(ref R r1, scoped ref R r2, ref scoped R r3)
+    static void Refs(ref R r1, scoped ref R r2)
     {
         ref R r31 = ref r1;
         ref R r32 = ref r2;
-        ref R r33 = ref r3;
         scoped ref R r41 = ref r1;
         scoped ref R r42 = ref r2;
-        scoped ref R r43 = ref r3;
-        ref scoped R r51 = ref r1;
-        ref scoped R r52 = ref r2;
-        ref scoped R r53 = ref r3;
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (18,32): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref R r43 = ref r3;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r3").WithArguments("ref R").WithLocation(18, 32));
+            comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7844,33 +9055,8 @@ class Program
 
             VerifyLocalSymbol(locals[4], "ref R r31", RefKind.Ref, DeclarationScope.Unscoped);
             VerifyLocalSymbol(locals[5], "ref R r32", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[6], "ref R r33", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyLocalSymbol(locals[7], "scoped ref R r41", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[8], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[9], "scoped ref R r43", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[10], "ref scoped R r51", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[11], "ref scoped R r52", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[12], "ref scoped R r53", RefKind.Ref, DeclarationScope.ValueScoped);
-        }
-
-        [Fact]
-        public void LocalScopeAndInitializer_02()
-        {
-            var source =
-@"ref struct R { }
-class Program
-{
-    static R Refs(ref scoped R r3)
-    {
-        scoped ref R r43 = ref r3;
-        return r43;
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (6,32): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref R r43 = ref r3;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r3").WithArguments("ref R").WithLocation(6, 32));
+            VerifyLocalSymbol(locals[6], "scoped ref R r41", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[7], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
         private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
@@ -7937,11 +9123,9 @@ class Program
 {
     static R Implicit1(scoped R r) => r;
     static R Implicit2(ref R r) => r;
-    static R Implicit3(ref scoped R r) => r;
     static R Implicit4(scoped ref R r) => r;
     static R Explicit1(scoped R r) => (R)r;
     static R Explicit2(ref R r) => (R)r;
-    static R Explicit3(ref scoped R r) => (R)r;
     static R Explicit4(scoped ref R r) => (R)r;
 }";
             var comp = CreateCompilation(source);
@@ -7949,15 +9133,9 @@ class Program
                 // (4,39): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R Implicit1(scoped R r) => r;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("R").WithLocation(4, 39),
-                // (6,43): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static R Implicit3(ref scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("ref R").WithLocation(6, 43),
-                // (8,39): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,39): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R Explicit1(scoped R r) => (R)r;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(R)r").WithArguments("R").WithLocation(8, 39),
-                // (10,43): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static R Explicit3(ref scoped R r) => (R)r;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(R)r").WithArguments("ref R").WithLocation(10, 43));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(R)r").WithArguments("R").WithLocation(7, 39));
         }
 
         [Fact]
@@ -7967,8 +9145,6 @@ class Program
 @"ref struct R { }
 delegate R D1(R x, R y);
 delegate R D2(R x, scoped R y);
-delegate ref R D3(ref R x, ref R y);
-delegate ref R D4(ref R x, ref scoped R y);
 delegate ref R D5(ref R x, scoped ref R y);
 class Program
 {
@@ -7976,74 +9152,52 @@ class Program
     {
         D1 d1 = (R x, scoped R y) => x;
         D2 d2 = (R x, R y) => x;
-        D3 d3 = (ref R x, ref scoped R y) => ref x;
-        D4 d4 = (ref R x, scoped ref R y) => ref x;
         D5 d5 = (ref R x, ref R y) => ref x;
     }
     static void Explicit()
     {
         var d1 = (D1)((R x, scoped R y) => x);
         var d2 = (D2)((R x, R y) => x);
-        var d3 = (D3)((ref R x, ref scoped R y) => ref x);
-        var d4 = (D4)((ref R x, scoped ref R y) => ref x);
         var d5 = (D5)((ref R x, ref R y) => ref x);
     }
     static void New()
     {
         var d1 = new D1((R x, scoped R y) => x);
         var d2 = new D2((R x, R y) => x);
-        var d3 = new D3((ref R x, ref scoped R y) => ref x);
-        var d4 = new D4((ref R x, scoped ref R y) => ref x);
         var d5 = new D5((ref R x, ref R y) => ref x);
     }
 }";
             var comp = CreateCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyDiagnostics(
-                // (11,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
-                //         D1 d1 = (R x, scoped R y) => x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "D1").WithLocation(11, 17),
-                // (12,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         D2 d2 = (R x, R y) => x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(12, 17),
-                // (13,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         D3 d3 = (ref R x, ref scoped R y) => ref x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref scoped R y) => ref x").WithArguments("y", "D3").WithLocation(13, 17),
-                // (14,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         D4 d4 = (ref R x, scoped ref R y) => ref x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, scoped ref R y) => ref x").WithArguments("y", "D4").WithLocation(14, 17),
-                // (15,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //// (9,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                ////         D1 d1 = (R x, scoped R y) => x;
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "D1").WithLocation(9, 17),
+                //// (10,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                ////         D2 d2 = (R x, R y) => x;
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(10, 17),
+                // (11,43): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         D5 d5 = (ref R x, ref R y) => ref x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref R y) => ref x").WithArguments("y", "D5").WithLocation(15, 17),
-                // (19,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
-                //         var d1 = (D1)((R x, scoped R y) => x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)((R x, scoped R y) => x)").WithArguments("y", "D1").WithLocation(19, 18),
-                // (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = (D2)((R x, R y) => x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)((R x, R y) => x)").WithArguments("y", "D2").WithLocation(20, 18),
-                // (21,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         var d3 = (D3)((ref R x, ref scoped R y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D3)((ref R x, ref scoped R y) => ref x)").WithArguments("y", "D3").WithLocation(21, 18),
-                // (22,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         var d4 = (D4)((ref R x, scoped ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D4)((ref R x, scoped ref R y) => ref x)").WithArguments("y", "D4").WithLocation(22, 18),
-                // (23,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 43),
+                //// (15,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                ////         var d1 = (D1)((R x, scoped R y) => x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)((R x, scoped R y) => x)").WithArguments("y", "D1").WithLocation(15, 18),
+                //// (16,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                ////         var d2 = (D2)((R x, R y) => x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)((R x, R y) => x)").WithArguments("y", "D2").WithLocation(16, 18),
+                // (17,49): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         var d5 = (D5)((ref R x, ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)((ref R x, ref R y) => ref x)").WithArguments("y", "D5").WithLocation(23, 18),
-                // (27,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
-                //         var d1 = new D1((R x, scoped R y) => x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "D1").WithLocation(27, 25),
-                // (28,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = new D2((R x, R y) => x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(28, 25),
-                // (29,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         var d3 = new D3((ref R x, ref scoped R y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref scoped R y) => ref x").WithArguments("y", "D3").WithLocation(29, 25),
-                // (30,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         var d4 = new D4((ref R x, scoped ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, scoped ref R y) => ref x").WithArguments("y", "D4").WithLocation(30, 25),
-                // (31,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(17, 49),
+                //// (21,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                ////         var d1 = new D1((R x, scoped R y) => x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "D1").WithLocation(21, 25),
+                //// (22,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                ////         var d2 = new D2((R x, R y) => x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(22, 25),
+                // (23,51): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         var d5 = new D5((ref R x, ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref R y) => ref x").WithArguments("y", "D5").WithLocation(31, 25));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(23, 51));
         }
 
         [Fact]
@@ -8053,88 +9207,60 @@ class Program
 @"ref struct R { }
 delegate R D1(R x, R y);
 delegate R D2(R x, scoped R y);
-delegate ref R D3(ref R x, ref R y);
-delegate ref R D4(ref R x, ref scoped R y);
 delegate ref R D5(ref R x, scoped ref R y);
 class Program
 {
     static R M1(R x, R y) => x;
     static R M2(R x, scoped R y) => x;
     static ref R M3(ref R x, ref R y) => ref x;
-    static ref R M4(ref R x, ref scoped R y) => ref x;
     static ref R M5(ref R x, scoped ref R y) => ref x;
     static void Implicit()
     {
         D1 dA = M2;
         D2 d2 = M1;
-        D3 d3 = M4;
-        D4 d4 = M5;
         D5 d5 = M3;
     }
     static void Explicit()
     {
         var d1 = (D1)M2;
         var d2 = (D2)M1;
-        var d3 = (D3)M4;
-        var d4 = (D4)M5;
         var d5 = (D5)M3;
     }
     static void New()
     {
         var d1 = new D1(M2);
         var d2 = new D2(M1);
-        var d3 = new D3(M4);
-        var d4 = new D4(M5);
         var d5 = new D5(M3);
     }
 }";
             var comp = CreateCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyDiagnostics(
-                // (16,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                // (9,46): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static ref R M3(ref R x, ref R y) => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(9, 46),
+                // (10,53): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     static ref R M5(ref R x, scoped ref R y) => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(10, 53)/*,
+                // (13,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
                 //         D1 dA = M2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("y", "D1").WithLocation(16, 17),
-                // (17,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("y", "D1").WithLocation(13, 17),
+                // (14,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         D2 d2 = M1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(17, 17),
-                // (18,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         D3 d3 = M4;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M4").WithArguments("y", "D3").WithLocation(18, 17),
-                // (19,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         D4 d4 = M5;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M5").WithArguments("y", "D4").WithLocation(19, 17),
-                // (20,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         D5 d5 = M3;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M3").WithArguments("y", "D5").WithLocation(20, 17),
-                // (24,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(14, 17),
+                // (19,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
                 //         var d1 = (D1)M2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)M2").WithArguments("y", "D1").WithLocation(24, 18),
-                // (25,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)M2").WithArguments("y", "D1").WithLocation(19, 18),
+                // (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         var d2 = (D2)M1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)M1").WithArguments("y", "D2").WithLocation(25, 18),
-                // (26,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         var d3 = (D3)M4;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D3)M4").WithArguments("y", "D3").WithLocation(26, 18),
-                // (27,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         var d4 = (D4)M5;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D4)M5").WithArguments("y", "D4").WithLocation(27, 18),
-                // (28,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = (D5)M3;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)M3").WithArguments("y", "D5").WithLocation(28, 18),
-                // (32,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)M1").WithArguments("y", "D2").WithLocation(20, 18),
+                // (25,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
                 //         var d1 = new D1(M2);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("y", "D1").WithLocation(32, 25),
-                // (33,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("y", "D1").WithLocation(25, 25),
+                // (26,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         var d2 = new D2(M1);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(33, 25),
-                // (34,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         var d3 = new D3(M4);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M4").WithArguments("y", "D3").WithLocation(34, 25),
-                // (35,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         var d4 = new D4(M5);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M5").WithArguments("y", "D4").WithLocation(35, 25),
-                // (36,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = new D5(M3);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M3").WithArguments("y", "D5").WithLocation(36, 25));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(26, 25)*/);
         }
 
         [Fact]
@@ -8164,7 +9290,9 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
+            comp.VerifyDiagnostics(/*
                 // (9,24): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
                 //         D1R d1 = () => (scoped ref int x, ref int y) => ref y;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped ref int x, ref int y) => ref y").WithArguments("x", "D1").WithLocation(9, 24),
@@ -8182,7 +9310,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped ref int x, ref int y) => ref y").WithArguments("x", "D1").WithLocation(19, 32),
                 // (20,32): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
                 //         var d2 = new D2R(() => (ref int x, ref int y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("x", "D2").WithLocation(20, 32));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("x", "D2").WithLocation(20, 32)*/);
         }
 
         [Fact]
@@ -8214,13 +9342,15 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
+            comp.VerifyDiagnostics(/*
                 // (11,24): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
                 //         D1R d1 = () => M2;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("x", "D1").WithLocation(11, 24),
                 // (12,24): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
                 //         D2R d2 = () => M1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("x", "D2").WithLocation(12, 24),
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("x", "D2").WithLocation(12, 24),*/
                 // (16,18): error CS0123: No overload for 'M2' matches delegate 'D1R'
                 //         var d1 = (D1R)M2;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(D1R)M2").WithArguments("M2", "D1R").WithLocation(16, 18),
@@ -8242,8 +9372,6 @@ class Program
 @"ref struct R { }
 delegate R D1(R x, R y);
 delegate R D2(R x, scoped R y);
-delegate ref R D3(ref R x, ref R y);
-delegate ref R D4(ref R x, ref scoped R y);
 delegate ref R D5(ref R x, scoped ref R y);
 class Program
 {
@@ -8251,74 +9379,52 @@ class Program
     {
         D1 d1 = delegate(R x, scoped R y) { return x; };
         D2 d2 = delegate(R x, R y) { return x; };
-        D3 d3 = delegate(ref R x, ref scoped R y) { return ref x; };
-        D4 d4 = delegate(ref R x, scoped ref R y) { return ref x; };
         D5 d5 = delegate(ref R x, ref R y) { return ref x; };
     }
     static void Explicit()
     {
         var d1 = (D1)(delegate(R x, scoped R y) { return x; });
         var d2 = (D2)(delegate(R x, R y) { return x; });
-        var d3 = (D3)(delegate(ref R x, ref scoped R y) { return ref x; });
-        var d4 = (D4)(delegate(ref R x, scoped ref R y) { return ref x; });
         var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
     }
     static void New()
     {
         var d1 = new D1(delegate(R x, scoped R y) { return x; });
         var d2 = new D2(delegate(R x, R y) { return x; });
-        var d3 = new D3(delegate(ref R x, ref scoped R y) { return ref x; });
-        var d4 = new D4(delegate(ref R x, scoped ref R y) { return ref x; });
         var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
     }
 }";
             var comp = CreateCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyDiagnostics(
-                // (11,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
-                //         D1 d1 = delegate(R x, scoped R y) { return x; };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, scoped R y) { return x; }").WithArguments("y", "D1").WithLocation(11, 17),
-                // (12,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         D2 d2 = delegate(R x, R y) { return x; };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(12, 17),
-                // (13,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         D3 d3 = delegate(ref R x, ref scoped R y) { return ref x; };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref scoped R y) { return ref x; }").WithArguments("y", "D3").WithLocation(13, 17),
-                // (14,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         D4 d4 = delegate(ref R x, scoped ref R y) { return ref x; };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, scoped ref R y) { return ref x; }").WithArguments("y", "D4").WithLocation(14, 17),
-                // (15,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //// (9,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                ////         D1 d1 = delegate(R x, scoped R y) { return x; };
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, scoped R y) { return x; }").WithArguments("y", "D1").WithLocation(9, 17),
+                //// (10,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                ////         D2 d2 = delegate(R x, R y) { return x; };
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(10, 17),
+                // (11,57): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         D5 d5 = delegate(ref R x, ref R y) { return ref x; };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref R y) { return ref x; }").WithArguments("y", "D5").WithLocation(15, 17),
-                // (19,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
-                //         var d1 = (D1)(delegate(R x, scoped R y) { return x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)(delegate(R x, scoped R y) { return x; })").WithArguments("y", "D1").WithLocation(19, 18),
-                // (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = (D2)(delegate(R x, R y) { return x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)(delegate(R x, R y) { return x; })").WithArguments("y", "D2").WithLocation(20, 18),
-                // (21,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         var d3 = (D3)(delegate(ref R x, ref scoped R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D3)(delegate(ref R x, ref scoped R y) { return ref x; })").WithArguments("y", "D3").WithLocation(21, 18),
-                // (22,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         var d4 = (D4)(delegate(ref R x, scoped ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D4)(delegate(ref R x, scoped ref R y) { return ref x; })").WithArguments("y", "D4").WithLocation(22, 18),
-                // (23,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 57),
+                //// (15,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                ////         var d1 = (D1)(delegate(R x, scoped R y) { return x; });
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)(delegate(R x, scoped R y) { return x; })").WithArguments("y", "D1").WithLocation(15, 18),
+                //// (16,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                ////         var d2 = (D2)(delegate(R x, R y) { return x; });
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)(delegate(R x, R y) { return x; })").WithArguments("y", "D2").WithLocation(16, 18),
+                // (17,63): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)(delegate(ref R x, ref R y) { return ref x; })").WithArguments("y", "D5").WithLocation(23, 18),
-                // (27,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
-                //         var d1 = new D1(delegate(R x, scoped R y) { return x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, scoped R y) { return x; }").WithArguments("y", "D1").WithLocation(27, 25),
-                // (28,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = new D2(delegate(R x, R y) { return x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(28, 25),
-                // (29,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
-                //         var d3 = new D3(delegate(ref R x, ref scoped R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref scoped R y) { return ref x; }").WithArguments("y", "D3").WithLocation(29, 25),
-                // (30,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
-                //         var d4 = new D4(delegate(ref R x, scoped ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, scoped ref R y) { return ref x; }").WithArguments("y", "D4").WithLocation(30, 25),
-                // (31,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(17, 63),
+                //// (21,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                ////         var d1 = new D1(delegate(R x, scoped R y) { return x; });
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, scoped R y) { return x; }").WithArguments("y", "D1").WithLocation(21, 25),
+                //// (22,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                ////         var d2 = new D2(delegate(R x, R y) { return x; });
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(22, 25),
+                // (23,65): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref R y) { return ref x; }").WithArguments("y", "D5").WithLocation(31, 25));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(23, 65));
         }
 
         [Fact]
@@ -8349,10 +9455,12 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyDiagnostics(
-                // (11,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D1>'.
-                //         Expression<D1> e1 = (R x, scoped R y) => x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "System.Linq.Expressions.Expression<D1>").WithLocation(11, 29),
+                //// (11,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D1>'.
+                ////         Expression<D1> e1 = (R x, scoped R y) => x;
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "System.Linq.Expressions.Expression<D1>").WithLocation(11, 29),
                 // (11,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         Expression<D1> e1 = (R x, scoped R y) => x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(11, 32),
@@ -8362,9 +9470,9 @@ class Program
                 // (11,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         Expression<D1> e1 = (R x, scoped R y) => x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(11, 50),
-                // (12,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D2>'.
-                //         Expression<D2> e2 = (R x, R y) => x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "System.Linq.Expressions.Expression<D2>").WithLocation(12, 29),
+                //// (12,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D2>'.
+                ////         Expression<D2> e2 = (R x, R y) => x;
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "System.Linq.Expressions.Expression<D2>").WithLocation(12, 29),
                 // (12,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         Expression<D2> e2 = (R x, R y) => x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(12, 32),
@@ -8374,9 +9482,9 @@ class Program
                 // (12,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         Expression<D2> e2 = (R x, R y) => x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(12, 43),
-                // (13,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D3>'.
-                //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, scoped ref int y) => ref x").WithArguments("y", "System.Linq.Expressions.Expression<D3>").WithLocation(13, 29),
+                //// (13,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D3>'.
+                ////         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, scoped ref int y) => ref x").WithArguments("y", "System.Linq.Expressions.Expression<D3>").WithLocation(13, 29),
                 // (13,29): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, scoped ref int y) => ref x").WithLocation(13, 29),
@@ -8386,9 +9494,9 @@ class Program
                 // (13,56): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
                 Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(13, 56),
-                // (14,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D4>'.
-                //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("y", "System.Linq.Expressions.Expression<D4>").WithLocation(14, 29),
+                //// (14,29): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D4>'.
+                ////         Expression<D4> e4 = (ref int x, ref int y) => ref x;
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("y", "System.Linq.Expressions.Expression<D4>").WithLocation(14, 29),
                 // (14,29): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, ref int y) => ref x").WithLocation(14, 29),
@@ -8398,9 +9506,9 @@ class Program
                 // (14,49): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
                 Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(14, 49),
-                // (18,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D1>'.
-                //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D1>)((R x, scoped R y) => x)").WithArguments("y", "System.Linq.Expressions.Expression<D1>").WithLocation(18, 18),
+                //// (18,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D1>'.
+                ////         var e1 = (Expression<D1>)((R x, scoped R y) => x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D1>)((R x, scoped R y) => x)").WithArguments("y", "System.Linq.Expressions.Expression<D1>").WithLocation(18, 18),
                 // (18,38): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(18, 38),
@@ -8410,9 +9518,9 @@ class Program
                 // (18,56): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(18, 56),
-                // (19,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D2>'.
-                //         var e2 = (Expression<D2>)((R x, R y) => x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D2>)((R x, R y) => x)").WithArguments("y", "System.Linq.Expressions.Expression<D2>").WithLocation(19, 18),
+                //// (19,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D2>'.
+                ////         var e2 = (Expression<D2>)((R x, R y) => x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D2>)((R x, R y) => x)").WithArguments("y", "System.Linq.Expressions.Expression<D2>").WithLocation(19, 18),
                 // (19,38): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         var e2 = (Expression<D2>)((R x, R y) => x);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(19, 38),
@@ -8422,9 +9530,9 @@ class Program
                 // (19,49): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
                 //         var e2 = (Expression<D2>)((R x, R y) => x);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(19, 49),
-                // (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D3>'.
-                //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D3>)((ref int x, scoped ref int y) => ref x)").WithArguments("y", "System.Linq.Expressions.Expression<D3>").WithLocation(20, 18),
+                //// (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D3>'.
+                ////         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D3>)((ref int x, scoped ref int y) => ref x)").WithArguments("y", "System.Linq.Expressions.Expression<D3>").WithLocation(20, 18),
                 // (20,35): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, scoped ref int y) => ref x").WithLocation(20, 35),
@@ -8434,9 +9542,9 @@ class Program
                 // (20,62): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
                 Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(20, 62),
-                // (21,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D4>'.
-                //         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D4>)((ref int x, ref int y) => ref x)").WithArguments("y", "System.Linq.Expressions.Expression<D4>").WithLocation(21, 18),
+                //// (21,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D4>'.
+                ////         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
+                //Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D4>)((ref int x, ref int y) => ref x)").WithArguments("y", "System.Linq.Expressions.Expression<D4>").WithLocation(21, 18),
                 // (21,35): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
                 //         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
                 Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, ref int y) => ref x").WithLocation(21, 35),
@@ -8454,23 +9562,23 @@ class Program
             var source =
 @"ref struct R { }
 delegate void D1(out int x, scoped out int y);
-delegate void D2(out scoped R x, scoped out scoped R y);
+delegate void D2(out R x, scoped out R y);
 class Program
 {
     static void Implicit()
     {
         D1 d1 = (scoped out int x, out int y) => { x = 0; y = 0; };
-        D2 d2 = (scoped out scoped R x, out scoped R y) => { x = default; y = default; };
+        D2 d2 = (scoped out R x, out R y) => { x = default; y = default; };
     }
     static void Explicit()
     {
         var d1 = (D1)((scoped out int x, out int y) => { x = 0; y = 0; });
-        var d2 = (D2)((scoped out scoped R x, out scoped R y) => { x = default; y = default; });
+        var d2 = (D2)((scoped out R x, out R y) => { x = default; y = default; });
     }
     static void New()
     {
         var d1 = new D1((scoped out int x, out int y) => { x = 0; y = 0; });
-        var d2 = new D2((scoped out scoped R x, out scoped R y) => { x = default; y = default; });
+        var d2 = new D2((scoped out R x, out R y) => { x = default; y = default; });
     }
 }";
             var comp = CreateCompilation(source);
@@ -8485,41 +9593,34 @@ class Program
 unsafe class Program
 {
     static R F1(R x, scoped R y) => x;
-    static ref R F2(ref R x, ref scoped R y) => ref x;
     static ref readonly int F3(in int x, scoped in int y) => ref x;
     static void Implicit()
     {
         delegate*<R, R, R> d1 = &F1;
-        delegate*<ref R, ref R, ref R> d2 = &F2;
         delegate*<in int, in int, ref readonly int> d3 = &F3;
     }
     static void Explicit()
     {
         var d1 = (delegate*<R, R, R>)&F1;
-        var d2 = (delegate*<ref R, ref R, ref R>)&F2;
         var d3 = (delegate*<in int, in int, ref readonly int>)&F3;
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            comp.VerifyDiagnostics(
-                // (9,33): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<R, R, R>'.
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (8,33): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<R, R, R>'.
                 //         delegate*<R, R, R> d1 = &F1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("y", "delegate*<R, R, R>").WithLocation(9, 33),
-                // (10,45): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref R, ref R>'.
-                //         delegate*<ref R, ref R, ref R> d2 = &F2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref R, ref R>").WithLocation(10, 45),
-                // (11,58): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("y", "delegate*<R, R, R>").WithLocation(8, 33),
+                // (9,58): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
                 //         delegate*<in int, in int, ref readonly int> d3 = &F3;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(11, 58),
-                // (15,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<R, R, R>'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(9, 58),
+                // (13,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<R, R, R>'.
                 //         var d1 = (delegate*<R, R, R>)&F1;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<R, R, R>)&F1").WithArguments("y", "delegate*<R, R, R>").WithLocation(15, 18),
-                // (16,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref R, ref R>'.
-                //         var d2 = (delegate*<ref R, ref R, ref R>)&F2;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<ref R, ref R, ref R>)&F2").WithArguments("y", "delegate*<ref R, ref R, ref R>").WithLocation(16, 18),
-                // (17,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<R, R, R>)&F1").WithArguments("y", "delegate*<R, R, R>").WithLocation(13, 18),
+                // (14,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
                 //         var d3 = (delegate*<in int, in int, ref readonly int>)&F3;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<in int, in int, ref readonly int>)&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(17, 18));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<in int, in int, ref readonly int>)&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(14, 18)*/);
         }
 
         [Fact]
@@ -8551,32 +9652,22 @@ class C<T>
 {
     static void M1(R<T> r) { }
     void M2(scoped R<T> r) { }
-    static void M3(ref scoped R<T> r) { }
-    void M4(scoped ref R<T> r) { }
     object this[R<T> r] => null;
     static void M1(scoped R<T> r) { } // 1
     void M2(R<T> r) { } // 2 
-    static void M3(scoped ref R<T> r) { } // 3
-    void M4(ref scoped R<T> r) { } // 4
-    object this[scoped R<T> r] => null; // 5
+    object this[scoped R<T> r] => null; // 3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS0111: Type 'C<T>' already defines a member called 'M1' with the same parameter types
+                // (7,17): error CS0111: Type 'C<T>' already defines a member called 'M1' with the same parameter types
                 //     static void M1(scoped R<T> r) { } // 1
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C<T>").WithLocation(9, 17),
-                // (10,10): error CS0111: Type 'C<T>' already defines a member called 'M2' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C<T>").WithLocation(7, 17),
+                // (8,10): error CS0111: Type 'C<T>' already defines a member called 'M2' with the same parameter types
                 //     void M2(R<T> r) { } // 2 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C<T>").WithLocation(10, 10),
-                // (11,17): error CS0111: Type 'C<T>' already defines a member called 'M3' with the same parameter types
-                //     static void M3(scoped ref R<T> r) { } // 3
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C<T>").WithLocation(11, 17),
-                // (12,10): error CS0111: Type 'C<T>' already defines a member called 'M4' with the same parameter types
-                //     void M4(ref scoped R<T> r) { } // 4
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C<T>").WithLocation(12, 10),
-                // (13,12): error CS0111: Type 'C<T>' already defines a member called 'this' with the same parameter types
-                //     object this[scoped R<T> r] => null; // 5
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C<T>").WithLocation(13, 12));
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C<T>").WithLocation(8, 10),
+                // (9,12): error CS0111: Type 'C<T>' already defines a member called 'this' with the same parameter types
+                //     object this[scoped R<T> r] => null; // 3
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C<T>").WithLocation(9, 12));
         }
 
         [Fact]
@@ -8589,30 +9680,36 @@ class C
     static void M1(R<int> r) { }
     static void M2(scoped R<int> r) { }
     static void M3(ref R<int> r) { }
-    static void M4(ref scoped R<int> r) { }
+    static void M4(ref scoped R<int> r) { } // 1
     static void M5(scoped ref R<int> r) { }
-    static void M1(scoped R<int> r) { } // 1
-    static void M2(R<int> r) { } // 2
-    static void M3(ref scoped R<int> r) { } // 3
-    static void M4(scoped ref R<int> r) { } // 4
-    static void M5(ref R<int> r) { } // 5
+    static void M1(scoped R<int> r) { } // 2
+    static void M2(R<int> r) { } // 3
+    static void M3(ref scoped R<int> r) { } // 4
+    static void M4(scoped ref R<int> r) { } // 5
+    static void M5(ref R<int> r) { } // 6
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (7,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     static void M4(ref scoped R<int> r) { } // 1
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(7, 24),
                 // (9,17): error CS0111: Type 'C' already defines a member called 'M1' with the same parameter types
-                //     static void M1(scoped R<int> r) { } // 1
+                //     static void M1(scoped R<int> r) { } // 2
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C").WithLocation(9, 17),
                 // (10,17): error CS0111: Type 'C' already defines a member called 'M2' with the same parameter types
-                //     static void M2(R<int> r) { } // 2
+                //     static void M2(R<int> r) { } // 3
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C").WithLocation(10, 17),
                 // (11,17): error CS0111: Type 'C' already defines a member called 'M3' with the same parameter types
-                //     static void M3(ref scoped R<int> r) { } // 3
+                //     static void M3(ref scoped R<int> r) { } // 4
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C").WithLocation(11, 17),
+                // (11,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     static void M3(ref scoped R<int> r) { } // 4
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(11, 24),
                 // (12,17): error CS0111: Type 'C' already defines a member called 'M4' with the same parameter types
-                //     static void M4(scoped ref R<int> r) { } // 4
+                //     static void M4(scoped ref R<int> r) { } // 5
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(12, 17),
                 // (13,17): error CS0111: Type 'C' already defines a member called 'M5' with the same parameter types
-                //     static void M5(ref R<int> r) { } // 5
+                //     static void M5(ref R<int> r) { } // 6
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "C").WithLocation(13, 17));
         }
 
@@ -8626,7 +9723,6 @@ partial class C
     static partial void M1(R<int> r);
     static partial void M2(scoped R<int> r);
     static partial void M3(ref R<int> r);
-    static partial void M4(ref scoped R<int> r);
     static partial void M5(scoped ref R<int> r);
 }";
             var sourceB1 =
@@ -8635,7 +9731,6 @@ partial class C
     static partial void M1(R<int> r) { }
     static partial void M2(scoped R<int> r) { }
     static partial void M3(ref R<int> r) { }
-    static partial void M4(ref scoped R<int> r) { }
     static partial void M5(scoped ref R<int> r) { }
 }";
             var sourceB2 =
@@ -8644,8 +9739,7 @@ partial class C
     static partial void M1(scoped R<int> r) { } // 1
     static partial void M2(R<int> r) { } // 2
     static partial void M3(ref scoped R<int> r) { } // 3
-    static partial void M4(scoped ref R<int> r) { } // 4
-    static partial void M5(ref R<int> r) { } // 5
+    static partial void M5(ref R<int> r) { }
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB1 });
             comp.VerifyEmitDiagnostics();
@@ -8658,15 +9752,9 @@ partial class C
                 // (4,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
                 //     static partial void M2(R<int> r) { } // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M2").WithArguments("r").WithLocation(4, 25),
-                // (5,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                // (5,32): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static partial void M3(ref scoped R<int> r) { } // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M3").WithArguments("r").WithLocation(5, 25),
-                // (6,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
-                //     static partial void M4(scoped ref R<int> r) { } // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M4").WithArguments("r").WithLocation(6, 25),
-                // (7,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
-                //     static partial void M5(ref R<int> r) { } // 5
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M5").WithArguments("r").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(5, 32)
             };
 
             comp = CreateCompilation(new[] { sourceA, sourceB2 });
@@ -8685,12 +9773,8 @@ partial class C
 {
     private partial void F1(out int i);
     private partial void F2(scoped out int i);
-    private partial void F3(out scoped R r);
-    private partial void F4(scoped out scoped R r);
     private partial void F1(scoped out int i) { i = 0; }
     private partial void F2(out int i) { i = 0; }
-    private partial void F3(scoped out scoped R r) { r = default; }
-    private partial void F4(out scoped R r) { r = default; }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
@@ -8706,8 +9790,7 @@ public class A<T>
 {
     public void M1(R<T> r) { }
     public void M2(scoped R<T> r) { }
-    public void M3(ref scoped R<T> r) { }
-    public void M4(scoped ref R<T> r) { }
+    public void M3(ref R<T> r) { }
     public object this[R<T> r] { get { return null; } set { } }
     public object this[int x, scoped R<T> y] => null;
 }";
@@ -8720,8 +9803,7 @@ public class A<T>
 {
     public new void M1(scoped R<int> r) { }
     public new void M2(R<int> r) { }
-    public new void M3(scoped ref R<int> r) { }
-    public new void M4(ref scoped R<int> r) { }
+    public new void M3(ref R<int> r) { }
     public new object this[scoped R<int> r] { get { return null; } set { } }
     public new object this[int x, R<int> y] => null;
 }
@@ -8730,30 +9812,26 @@ class B2 : A<string>
     public void M1(scoped R<string> r) { } // 1
     public void M2(R<string> r) { } // 2
     public void M3(scoped ref R<string> r) { } // 3
-    public void M4(ref scoped R<string> r) { } // 4
-    public object this[scoped R<string> r] { get { return null; } set { } } // 5
-    public object this[int x, R<string> y] => null; // 6
+    public object this[scoped R<string> r] { get { return null; } set { } } // 4
+    public object this[int x, R<string> y] => null; // 5
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (12,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M1(scoped R<string> r) { } // 1
-                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(12, 17),
-                // (13,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M2(R<string> r) { } // 2
-                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(13, 17),
-                // (14,17): warning CS0108: 'B2.M3(ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M3(scoped ref R<string> r) { } // 3
-                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(14, 17),
-                // (15,17): warning CS0108: 'B2.M4(ref R<string>)' hides inherited member 'A<string>.M4(ref R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M4(ref scoped R<string> r) { } // 4
-                Diagnostic(ErrorCode.WRN_NewRequired, "M4").WithArguments("B2.M4(ref R<string>)", "A<string>.M4(ref R<string>)").WithLocation(15, 17),
-                // (16,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
-                //     public object this[scoped R<string> r] { get { return null; } set { } } // 5
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(16, 19),
-                // (17,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
-                //     public object this[int x, R<string> y] => null; // 6
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(17, 19));
+                    // (11,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
+                    //     public void M1(scoped R<string> r) { } // 1
+                    Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(11, 17),
+                    // (12,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
+                    //     public void M2(R<string> r) { } // 2
+                    Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(12, 17),
+                    // (13,17): warning CS0108: 'B2.M3(ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
+                    //     public void M3(scoped ref R<string> r) { } // 3
+                    Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(13, 17),
+                    // (14,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
+                    //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
+                    Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(14, 19),
+                    // (15,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
+                    //     public object this[int x, R<string> y] => null; // 5
+                    Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(15, 19));
         }
 
         [CombinatorialData]
@@ -8766,7 +9844,7 @@ public abstract class A<T>
 {
     public abstract R<T> F1(R<T> r);
     public abstract R<T> F2(scoped R<T> r);
-    public abstract R<T> F3(ref scoped R<T> r);
+    public abstract R<T> F3(ref R<T> r);
     public abstract R<T> F4(scoped ref R<T> r);
     public abstract object this[R<T> r] { get; set; }
     public abstract object this[int x, scoped R<T> y] { get; }
@@ -8780,7 +9858,7 @@ public abstract class A<T>
 {
     public override R<int> F1(R<int> r) => default;
     public override R<int> F2(scoped R<int> r) => default;
-    public override R<int> F3(ref scoped R<int> r) => default;
+    public override R<int> F3(ref R<int> r) => default;
     public override R<int> F4(scoped ref R<int> r) => default;
     public override object this[R<int> r] { get { return null; } set { } }
     public override object this[int x, scoped R<int> y] => null;
@@ -8789,31 +9867,27 @@ class B2 : A<string>
 {
     public override R<string> F1(scoped R<string> r) => default; // 1
     public override R<string> F2(R<string> r) => default; // 2
-    public override R<string> F3(scoped ref R<string> r) => default; // 3
-    public override R<string> F4(ref scoped R<string> r) => default; // 4
-    public override object this[scoped R<string> r] { get { return null; } set { } } // 5
-    public override object this[int x, R<string> y] => null; // 6
+    public override R<string> F3(scoped ref R<string> r) => default;
+    public override R<string> F4(ref R<string> r) => default;
+    public override object this[scoped R<string> r] { get { return null; } set { } } // 3
+    public override object this[int x, R<string> y] => null; // 4
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
-            comp.VerifyEmitDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (12,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R<string> F1(scoped R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 31),
                 // (13,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R<string> F2(R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 31),
-                // (14,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override R<string> F3(scoped ref R<string> r) => default; // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 31),
-                // (15,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 31),
                 // (16,76): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
                 // (17,56): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public override object this[int x, R<string> y] => null; // 6
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56));
+                //     public override object this[int x, R<string> y] => null; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56)*/);
         }
 
         [CombinatorialData]
@@ -8826,10 +9900,12 @@ public interface I<T>
 {
     R<T> F1(R<T> r);
     R<T> F2(scoped R<T> r);
-    R<T> F3(ref scoped R<T> r);
+    R<T> F3(ref R<T> r);
     R<T> F4(scoped ref R<T> r);
     object this[R<T> r] { get; set; }
     object this[int x, scoped R<T> y] { get; }
+    object this[object x, in R<T> y] { get; set; }
+    object this[scoped in R<T> x, int y] { get; }
 }";
             var comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -8840,80 +9916,80 @@ public interface I<T>
 {
     public R<int> F1(R<int> r) => default;
     public R<int> F2(scoped R<int> r) => default;
-    public R<int> F3(ref scoped R<int> r) => default;
+    public R<int> F3(ref R<int> r) => default;
     public R<int> F4(scoped ref R<int> r) => default;
     public object this[R<int> r] { get { return null; } set { } }
     public object this[int x, scoped R<int> y] => null;
+    public object this[object x, in R<int> y] { get { return null; } set { } }
+    public object this[scoped in R<int> x, int y] => null;
 }
 class C2 : I<string>
 {
     public R<string> F1(scoped R<string> r) => default; // 1
     public R<string> F2(R<string> r) => default; // 2
-    public R<string> F3(scoped ref R<string> r) => default; // 3
-    public R<string> F4(ref scoped R<string> r) => default; // 4
-    public object this[scoped R<string> r] { get { return null; } set { } } // 5
-    public object this[int x, R<string> y] => null; // 6
+    public R<string> F3(scoped ref R<string> r) => default;
+    public R<string> F4(ref R<string> r) => default;
+    public object this[scoped R<string> r] { get { return null; } set { } } // 3
+    public object this[int x, R<string> y] => null; // 4
+    public object this[object x, scoped in R<string> y] { get { return null; } set { } }
+    public object this[in R<string> x, int y] => null;
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
-            comp.VerifyEmitDiagnostics(
-                // (12,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public R<string> F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 22),
-                // (13,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public R<string> F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 22),
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (14,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public R<string> F3(scoped ref R<string> r) => default; // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 22),
+                //     public R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(14, 22),
                 // (15,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public R<string> F4(ref scoped R<string> r) => default; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 22),
-                // (16,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public object this[scoped R<string> r] { get { return null; } set { } } // 5
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 67),
-                // (17,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public object this[int x, R<string> y] => null; // 6
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 47));
+                //     public R<string> F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 22),
+                // (18,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(18, 67),
+                // (19,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     public object this[int x, R<string> y] => null; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 47)*/);
 
             var sourceB2 =
 @"class C3 : I<int>
 {
     R<int> I<int>.F1(R<int> r) => default;
     R<int> I<int>.F2(scoped R<int> r) => default;
-    R<int> I<int>.F3(ref scoped R<int> r) => default;
+    R<int> I<int>.F3(ref R<int> r) => default;
     R<int> I<int>.F4(scoped ref R<int> r) => default;
     object I<int>.this[R<int> r] { get { return null; } set { } }
     object I<int>.this[int x, scoped R<int> y] => null;
+    object I<int>.this[object x, in R<int> y] { get { return null; } set { } }
+    object I<int>.this[scoped in R<int> x, int y] => null;
 }
 class C4 : I<string>
 {
     R<string> I<string>.F1(scoped R<string> r) => default; // 1
     R<string> I<string>.F2(R<string> r) => default; // 2
-    R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
-    R<string> I<string>.F4(ref scoped R<string> r) => default; // 4
-    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 5
-    object I<string>.this[int x, R<string> y] => null; // 6
+    R<string> I<string>.F3(scoped ref R<string> r) => default;
+    R<string> I<string>.F4(ref R<string> r) => default;
+    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
+    object I<string>.this[int x, R<string> y] => null; // 4
+    object I<string>.this[object x, scoped in R<string> y] { get { return null; } set { } }
+    object I<string>.this[in R<string> x, int y] => null;
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
-            comp.VerifyEmitDiagnostics(
-                // (12,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 25),
-                // (13,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     R<string> I<string>.F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 25),
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (14,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 25),
+                //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(14, 25),
                 // (15,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     R<string> I<string>.F4(ref scoped R<string> r) => default; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 25),
-                // (16,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 5
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 70),
-                // (17,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     object I<string>.this[int x, R<string> y] => null; // 6
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
+                //     R<string> I<string>.F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 25),
+                // (18,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(18, 70),
+                // (19,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     object I<string>.this[int x, R<string> y] => null; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 50)*/);
         }
 
         [CombinatorialData]
@@ -8929,7 +10005,7 @@ public interface I<T>
 {
     void F2(out T t);
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -8956,15 +10032,11 @@ abstract class A
 {
     public abstract void F1(out int i);
     public abstract void F2(scoped out int i);
-    public abstract void F3(out scoped R r);
-    public abstract void F4(scoped out scoped R r);
 }
 class B : A
 {
     public override void F1(scoped out int i) { i = 0; }
     public override void F2(out int i) { i = 0; }
-    public override void F3(scoped out scoped R r) { r = default; }
-    public override void F4(out scoped R r) { r = default; }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
@@ -8979,25 +10051,90 @@ interface I
 {
     void F1(out int i);
     void F2(scoped out int i);
-    void F3(out scoped R r);
-    void F4(scoped out scoped R r);
 }
 class C1 : I
 {
     public void F1(out int i) { i = 0; }
     public void F2(scoped out int i) { i = 0; }
-    public void F3(scoped out scoped R r) { r = default; }
-    public void F4(out scoped R r) { r = default; }
 }
 class C2 : I
 {
     void I.F1(out int i) { i = 0; }
     void I.F2(scoped out int i) { i = 0; }
-    void I.F3(scoped out scoped R r) { r = default; }
-    void I.F4(out scoped R r) { r = default; }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void OverridesAndInterfaceImplementations_Out_04()
+        {
+            var source =
+@"#nullable enable
+abstract class A
+{
+    public abstract void F1<T>(out T t);
+    public abstract void F2<T>(out T? t);
+}
+class B1 : A
+{
+    public override void F1<T>(out T t) { t = default!; }
+    public override void F2<T>(out T? t) where T : default { t = default; }
+}
+class B2 : A
+{
+    public override void F1<T>(out T? t) where T : default { t = default; }
+    public override void F2<T>(out T t) { t = default!; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,26): warning CS8765: Nullability of type of parameter 't' doesn't match overridden member (possibly because of nullability attributes).
+                //     public override void F1<T>(out T? t) where T : default { t = default; }
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "F1").WithArguments("t").WithLocation(14, 26));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
+        }
+
+        [Fact]
+        public void OverridesAndInterfaceImplementations_Out_05()
+        {
+            var source =
+@"#nullable enable
+interface I
+{
+    void F1<T>(out T t);
+    void F2<T>(out T? t);
+}
+class C1 : I
+{
+    public void F1<T>(out T t) { t = default!; }
+    public void F2<T>(out T? t) { t = default; }
+}
+class C2 : I
+{
+    public void F1<T>(out T? t) { t = default; }
+    public void F2<T>(out T t) { t = default!; }
+}
+class C3 : I
+{
+    void I.F1<T>(out T t) { t = default!; }
+    void I.F2<T>(out T? t) where T : default { t = default; }
+}
+class C4 : I
+{
+    void I.F1<T>(out T? t) where T : default { t = default; }
+    void I.F2<T>(out T t) { t = default!; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,17): warning CS8767: Nullability of reference types in type of parameter 't' of 'void C2.F1<T>(out T? t)' doesn't match implicitly implemented member 'void I.F1<T>(out T t)' (possibly because of nullability attributes).
+                //     public void F1<T>(out T? t) { t = default; }
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation, "F1").WithArguments("t", "void C2.F1<T>(out T? t)", "void I.F1<T>(out T t)").WithLocation(14, 17),
+                // (24,12): warning CS8769: Nullability of reference types in type of parameter 't' doesn't match implemented member 'void I.F1<T>(out T t)' (possibly because of nullability attributes).
+                //     void I.F1<T>(out T? t) where T : default { t = default; }
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation, "F1").WithArguments("t", "void I.F1<T>(out T t)").WithLocation(24, 12));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]
@@ -9037,14 +10174,16 @@ class Program
         R r2 = F2(new B());
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (13,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R F1(R r) => r;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(13, 23),
                 // (14,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R F2(scoped R r) => default;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(14, 23));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(14, 23)*/);
         }
 
         [Fact]
@@ -9076,7 +10215,9 @@ class Program
         R r2 = F2((scoped R x) => default);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
             comp.VerifyEmitDiagnostics(
                 // (18,16): error CS8347: Cannot use a result of 'D2.Invoke(R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return d2(new R(ref i));
@@ -9086,13 +10227,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i)").WithArguments("R.R(ref int)", "i").WithLocation(18, 19),
                 // (18,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return d2(new R(ref i));
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 29),
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 29)/*,
                 // (22,19): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
                 //         R r1 = F1((R x) => x); // unsafe
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x) => x").WithArguments("x", "D1").WithLocation(22, 19),
                 // (23,19): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
                 //         R r2 = F2((scoped R x) => default);
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped R x) => default").WithArguments("x", "D2").WithLocation(23, 19));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped R x) => default").WithArguments("x", "D2").WithLocation(23, 19)*/);
         }
 
         [Fact]
@@ -9113,32 +10254,6 @@ class Program
                 // (5,49): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R F2(bool b, R x, scoped R y) => b ? y : x;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("R").WithLocation(5, 49));
-        }
-
-        [Fact]
-        public void BestCommonType_02()
-        {
-            var source =
-@"ref struct R { }
-class Program
-{
-    static ref R F1(bool b, ref R x, ref scoped R y) => ref b ? ref x : ref y;
-    static ref R F2(bool b, ref R x, ref scoped R y) => ref b ? ref y : ref x;
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (4,61): error CS8351: Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes
-                //     static ref R F1(bool b, ref R x, ref scoped R y) => ref b ? ref x : ref y;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b ? ref x : ref y").WithLocation(4, 61),
-                // (4,77): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref R F1(bool b, ref R x, ref scoped R y) => ref b ? ref x : ref y;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(4, 77),
-                // (5,61): error CS8351: Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes
-                //     static ref R F2(bool b, ref R x, ref scoped R y) => ref b ? ref y : ref x;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b ? ref y : ref x").WithLocation(5, 61),
-                // (5,69): error CS8352: Cannot use variable 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref R F2(bool b, ref R x, ref scoped R y) => ref b ? ref y : ref x;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("ref R").WithLocation(5, 69));
         }
 
         [Fact]
@@ -9171,28 +10286,15 @@ class Program
     {
         var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1
         var f2 = new[] { (scoped R r) => { }, (scoped R r) => { } }[0];
-        var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0]; // 2 
+        var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0];
         var f4 = new[] { (scoped ref R r) => { }, (scoped ref R r) => { } }[0];
-        var f5 = new[] { (scoped in R r) => { }, (in scoped R r) => { } }[0]; // 3
-        var f6 = new[] { (in scoped R r) => { }, (in scoped R r) => { } }[0];
-        var f7 = new[] { (out scoped R r) => { r = default; }, (out R r) => { r = default; } }[0]; // 4
-        var f8 = new[] { (out scoped R r) => { r = default; }, (out scoped R r) => { r = default; } }[0];
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0826: No best type found for implicitly-typed array
                 //         var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (R r) => { }, (scoped R r) => { } }").WithLocation(6, 18),
-                // (8,18): error CS0826: No best type found for implicitly-typed array
-                //         var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0]; // 2 
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (ref R r) => { }, (scoped ref R r) => { } }").WithLocation(8, 18),
-                // (10,18): error CS0826: No best type found for implicitly-typed array
-                //         var f5 = new[] { (scoped in R r) => { }, (in scoped R r) => { } }[0]; // 3
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (scoped in R r) => { }, (in scoped R r) => { } }").WithLocation(10, 18),
-                // (12,18): error CS0826: No best type found for implicitly-typed array
-                //         var f7 = new[] { (out scoped R r) => { r = default; }, (out R r) => { r = default; } }[0]; // 4
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (out scoped R r) => { r = default; }, (out R r) => { r = default; } }").WithLocation(12, 18));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (R r) => { }, (scoped R r) => { } }").WithLocation(6, 18));
         }
 
         [Fact]
@@ -9209,13 +10311,6 @@ class Program
         z = f(x1, y1);
         z = f(y1, x1); // 1
     }
-    static void F2(ref R x2, ref scoped R y2)
-    {
-        var f = (ref R x, ref scoped R y) => ref x;
-        R z;
-        z = f(ref x2, ref y2);
-        z = f(ref y2, ref x2); // 2
-    }
     static void F3(ref int x3, scoped ref int y3)
     {
         var f = (ref int x, scoped ref int y) => ref x;
@@ -9225,28 +10320,23 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/62768: Improve error message for `scoped ref` parameter returned by reference.
             comp.VerifyDiagnostics(
                 // (9,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         z = f(y1, x1); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "f(y1, x1)").WithArguments("<anonymous delegate>.Invoke(R, R)", "0").WithLocation(9, 13),
                 // (9,15): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
                 //         z = f(y1, x1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("R").WithLocation(9, 15),
-                // (16,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(ref R, ref R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
-                //         z = f(ref y2, ref x2); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "f(ref y2, ref x2)").WithArguments("<anonymous delegate>.Invoke(ref R, ref R)", "0").WithLocation(16, 13),
-                // (16,19): error CS8166: Cannot return a parameter by reference 'y2' because it is not a ref parameter
-                //         z = f(ref y2, ref x2); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y2").WithArguments("y2").WithLocation(16, 19));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("R").WithLocation(9, 15));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "f").ToArray();
             var delegateInvokeMethods = decls.Select(d => ((ILocalSymbol)model.GetDeclaredSymbol(d)).Type.GetSymbol<NamedTypeSymbol>().DelegateInvokeMethod).ToArray();
 
+            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "scoped R", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "ref scoped R", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(delegateInvokeMethods[2].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
         [Fact]
@@ -9258,15 +10348,11 @@ static class E1
 {
     public static void F1(this object o, R r) { }
     public static void F2(this object o, ref R r) { }
-    public static void F3(this object o, scoped in R r) { }
-    public static void F4(this object o, out scoped R r) { }
 }
 static class E2
 {
     public static void F1(this object o, scoped R r) { }
     public static void F2(this object o, scoped ref R r) { }
-    public static void F3(this object o, in scoped R r) { }
-    public static void F4(this object o, out R r) { }
 }
 class Program
 {
@@ -9275,24 +10361,16 @@ class Program
         object o = new object();
         var d1 = o.F1;
         var d2 = o.F2;
-        var d3 = o.F3;
-        var d4 = o.F4;
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (21,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F1(object, R)' and 'E2.F1(object, R)'
+                // (17,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F1(object, R)' and 'E2.F1(object, R)'
                 //         var d1 = o.F1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F1").WithArguments("E1.F1(object, R)", "E2.F1(object, R)").WithLocation(21, 18),
-                // (22,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F2(object, ref R)' and 'E2.F2(object, ref R)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F1").WithArguments("E1.F1(object, R)", "E2.F1(object, R)").WithLocation(17, 18),
+                // (18,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F2(object, ref R)' and 'E2.F2(object, ref R)'
                 //         var d2 = o.F2;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F2").WithArguments("E1.F2(object, ref R)", "E2.F2(object, ref R)").WithLocation(22, 18),
-                // (23,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F3(object, in R)' and 'E2.F3(object, in R)'
-                //         var d3 = o.F3;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F3").WithArguments("E1.F3(object, in R)", "E2.F3(object, in R)").WithLocation(23, 18),
-                // (24,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F4(object, out R)' and 'E2.F4(object, out R)'
-                //         var d4 = o.F4;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F4").WithArguments("E1.F4(object, out R)", "E2.F4(object, out R)").WithLocation(24, 18));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F2").WithArguments("E1.F2(object, ref R)", "E2.F2(object, ref R)").WithLocation(18, 18));
         }
 
         [Fact]
@@ -9315,21 +10393,21 @@ class Program
                 // (4,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     static void F1(scoped S s) { }
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped S s").WithLocation(4, 20),
-                // (5,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // (5,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static void F2(ref scoped S s) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "ref scoped S s").WithLocation(5, 20),
-                // (7,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(5, 24),
+                // (7,31): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static void F4(scoped ref scoped S s) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped ref scoped S s").WithLocation(7, 20),
-                // (8,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(7, 31),
+                // (8,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static void F5(ref scoped int i) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "ref scoped int i").WithLocation(8, 20),
-                // (9,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(8, 24),
+                // (9,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
                 //     static void F6(in scoped  int i) { }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "in scoped  int i").WithLocation(9, 20),
-                // (10,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "in").WithLocation(9, 23),
+                // (10,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
                 //     static void F7(out scoped int i) { i = 0; }
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "out scoped int i").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "out").WithLocation(10, 24));
         }
 
         [Fact]
@@ -9417,19 +10495,36 @@ class Program
 {{
     static void F(S s)
     {{
-        {refModifier} scoped S s1 = ref s;
         scoped {refModifier} S s2 = ref s;
+    }}
+}}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("ref         ")]
+        [InlineData("ref readonly")]
+        public void ScopedRefAndRefStructOnly_05_RefScoped(string refModifier)
+        {
+            var source =
+$@"struct S {{ }}
+class Program
+{{
+    static void F(S s)
+    {{
+        {refModifier} scoped S s1 = ref s;
         scoped {refModifier} scoped S s3 = ref s;
     }}
 }}";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,29): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S").WithLocation(6, 29),
-                // (8,36): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S").WithLocation(8, 36));
+                // (6,22): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //         ref          scoped S s1 = ref s;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(6, 22),
+                // (7,29): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //         scoped ref          scoped S s3 = ref s;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(7, 29));
         }
 
         [Fact]
@@ -9443,29 +10538,19 @@ class Program
     static void Main()
     {
         scoped var x1 = new R<int>();
-        ref scoped var x2 = ref x1;
-        scoped ref var x3 = ref x1;
-        scoped ref scoped var x4 = ref x1;
-        scoped var y1 = new S<int>(); // 1
-        ref scoped var y2 = ref y1; // 2
+        scoped ref var x3 = ref x1; // 1
+        scoped var y1 = new S<int>(); // 2
         scoped ref var y3 = ref y1;
-        scoped ref scoped var y4 = ref y1; // 3
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,33): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref var x3 = ref x1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(9, 33),
-                // (11,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         scoped var y1 = new S<int>(); // 1
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(11, 16),
-                // (12,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         ref scoped var y2 = ref y1; // 2
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(12, 20),
-                // (14,27): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         scoped ref scoped var y4 = ref y1; // 3
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(14, 27));
+                // (8,33): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref var x3 = ref x1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(8, 33),
+                // (9,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped var y1 = new S<int>(); // 2
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(9, 16));
         }
 
         [Fact]
@@ -9477,13 +10562,16 @@ class Program
 {
     static void F1(scoped Unknown x, scoped R<Unknown> y)
     {
-        var f = (ref scoped Unknown u) => { };
+        var f = (scoped ref Unknown u) => { };
         scoped R<Unknown> z = y;
         scoped var v = F2();
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F1(scoped Unknown x, scoped R<Unknown> y)
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped Unknown x").WithLocation(4, 20),
                 // (4,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(scoped Unknown x, scoped R<Unknown> y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 27),
@@ -9491,7 +10579,7 @@ class Program
                 //     static void F1(scoped Unknown x, scoped R<Unknown> y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 47),
                 // (6,29): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
-                //         var f = (ref scoped Unknown u) => { };
+                //         var f = (scoped ref Unknown u) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(6, 29),
                 // (7,18): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //         scoped R<Unknown> z = y;
@@ -9517,12 +10605,13 @@ class Program
     {
         int x = 1;
         scoped R<int> y = new R<int>(ref x);
-        ref scoped R<int> z = ref y;
+        ref R<int> z = ref y;
         z.F = 2;
         Console.WriteLine(x);
     }
 }";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
                 source: source,
                 sequencePoints: "Program.Main",
@@ -9542,7 +10631,7 @@ class Program
   IL_0003:  ldloca.s   V_0
   IL_0005:  newobj     ""R<int>..ctor(ref int)""
   IL_000a:  stloc.1
-  // sequence point: ref scoped R<int> z = ref y;
+  // sequence point: ref R<int> z = ref y;
   IL_000b:  ldloca.s   V_1
   IL_000d:  stloc.2
   // sequence point: z.F = 2;
@@ -9570,20 +10659,12 @@ class Program
     static R<int> F1(scoped R<int> r1) => r1; // 1
     static R<int> F2(ref R<int> r2) => r2;
     static R<int> F3(scoped ref R<int> r3) => r3;
-    static R<int> F4(ref scoped R<int> r4) => r4; // 2
-    static R<int> F5(scoped ref scoped R<int> r5) => r5; // 3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,43): error CS8352: Cannot use variable 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R<int> F1(scoped R<int> r1) => r1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(5, 43),
-                // (8,47): error CS8352: Cannot use variable 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static R<int> F4(ref scoped R<int> r4) => r4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r4").WithArguments("ref R<int>").WithLocation(8, 47),
-                // (9,54): error CS8352: Cannot use variable 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static R<int> F5(scoped ref scoped R<int> r5) => r5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r5").WithArguments("ref R<int>").WithLocation(9, 54));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(5, 43));
         }
 
         [Fact]
@@ -9597,8 +10678,6 @@ class Program
     static ref R<int> F1(scoped R<int> r1) => ref r1; // 2
     static ref R<int> F2(ref R<int> r2) => ref r2;
     static ref R<int> F3(scoped ref R<int> r3) => ref r3; // 3
-    static ref R<int> F4(ref scoped R<int> r4) => ref r4; // 4
-    static ref R<int> F5(scoped ref scoped R<int> r5) => ref r5; // 5
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -9608,15 +10687,14 @@ class Program
                 // (5,51): error CS8166: Cannot return a parameter by reference 'r1' because it is not a ref parameter
                 //     static ref R<int> F1(scoped R<int> r1) => ref r1; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "r1").WithArguments("r1").WithLocation(5, 51),
+                // (6,48): error CS8166: Cannot return a parameter by reference 'r2' because it is not a ref parameter
+                //     static ref R<int> F2(ref R<int> r2) => ref r2;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r2").WithArguments("r2").WithLocation(6, 48),
                 // (7,55): error CS8166: Cannot return a parameter by reference 'r3' because it is not a ref parameter
                 //     static ref R<int> F3(scoped ref R<int> r3) => ref r3; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r3").WithArguments("r3").WithLocation(7, 55),
-                // (8,55): error CS8166: Cannot return a parameter by reference 'r4' because it is not a ref parameter
-                //     static ref R<int> F4(ref scoped R<int> r4) => ref r4; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r4").WithArguments("r4").WithLocation(8, 55),
-                // (9,62): error CS8166: Cannot return a parameter by reference 'r5' because it is not a ref parameter
-                //     static ref R<int> F5(scoped ref scoped R<int> r5) => ref r5; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r5").WithArguments("r5").WithLocation(9, 62));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r3").WithArguments("r3").WithLocation(7, 55));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]
@@ -9646,28 +10724,12 @@ class Program
         R<int> l3 = r3;
         return l3;
     }
-    static R<int> F4(ref scoped R<int> r4)
-    {
-        R<int> l4 = r4;
-        return l4; // 2
-    }
-    static R<int> F5(scoped ref scoped R<int> r5)
-    {
-        R<int> l5 = r5;
-        return l5; // 3
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,16): error CS8352: Cannot use variable 'l1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return l1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l1").WithArguments("l1").WithLocation(12, 16),
-                // (27,16): error CS8352: Cannot use variable 'l4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l4").WithArguments("l4").WithLocation(27, 16),
-                // (32,16): error CS8352: Cannot use variable 'l5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l5").WithArguments("l5").WithLocation(32, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "l1").WithArguments("l1").WithLocation(12, 16));
         }
 
         [Fact]
@@ -9697,16 +10759,6 @@ class Program
         R<int> l3 = r3;
         return ref l3; // 4
     }
-    static ref R<int> F4(ref scoped R<int> r4)
-    {
-        R<int> l4 = r4;
-        return ref l4; // 5
-    }
-    static ref R<int> F5(scoped ref scoped R<int> r5)
-    {
-        R<int> l5 = r5;
-        return ref l5; // 6
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -9721,13 +10773,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "l2").WithArguments("l2").WithLocation(17, 20),
                 // (22,20): error CS8168: Cannot return local 'l3' by reference because it is not a ref local
                 //         return ref l3; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l3").WithArguments("l3").WithLocation(22, 20),
-                // (27,20): error CS8168: Cannot return local 'l4' by reference because it is not a ref local
-                //         return ref l4; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l4").WithArguments("l4").WithLocation(27, 20),
-                // (32,20): error CS8168: Cannot return local 'l5' by reference because it is not a ref local
-                //         return ref l5; // 6
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l5").WithArguments("l5").WithLocation(32, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l3").WithArguments("l3").WithLocation(22, 20));
         }
 
         [Fact]
@@ -9757,16 +10803,6 @@ class Program
         scoped R<int> l3 = r3;
         return l3; // 4
     }
-    static R<int> F4(ref scoped R<int> r4)
-    {
-        scoped R<int> l4 = r4;
-        return l4; // 5
-    }
-    static R<int> F5(scoped ref scoped R<int> r5)
-    {
-        scoped R<int> l5 = r5;
-        return l5; // 6
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -9781,13 +10817,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "l2").WithArguments("l2").WithLocation(17, 16),
                 // (22,16): error CS8352: Cannot use variable 'l3' in this context because it may expose referenced variables outside of their declaration scope
                 //         return l3; // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l3").WithArguments("l3").WithLocation(22, 16),
-                // (27,16): error CS8352: Cannot use variable 'l4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l4; // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l4").WithArguments("l4").WithLocation(27, 16),
-                // (32,16): error CS8352: Cannot use variable 'l5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l5; // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l5").WithArguments("l5").WithLocation(32, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "l3").WithArguments("l3").WithLocation(22, 16));
         }
 
         [Fact]
@@ -9817,16 +10847,6 @@ class Program
         scoped R<int> l3 = r3;
         return ref l3; // 4
     }
-    static ref R<int> F4(ref scoped R<int> r4)
-    {
-        scoped R<int> l4 = r4;
-        return ref l4; // 5
-    }
-    static ref R<int> F5(scoped ref scoped R<int> r5)
-    {
-        scoped R<int> l5 = r5;
-        return ref l5; // 6
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -9841,13 +10861,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "l2").WithArguments("l2").WithLocation(17, 20),
                 // (22,20): error CS8168: Cannot return local 'l3' by reference because it is not a ref local
                 //         return ref l3; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l3").WithArguments("l3").WithLocation(22, 20),
-                // (27,20): error CS8168: Cannot return local 'l4' by reference because it is not a ref local
-                //         return ref l4; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l4").WithArguments("l4").WithLocation(27, 20),
-                // (32,20): error CS8168: Cannot return local 'l5' by reference because it is not a ref local
-                //         return ref l5; // 6
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l5").WithArguments("l5").WithLocation(32, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l3").WithArguments("l3").WithLocation(22, 20));
         }
 
         [Fact]
@@ -9877,28 +10891,12 @@ class Program
         ref R<int> l3 = ref r3;
         return l3;
     }
-    static R<int> F4(ref scoped R<int> r4)
-    {
-        ref R<int> l4 = ref r4;
-        return l4; // 2
-    }
-    static R<int> F5(scoped ref scoped R<int> r5)
-    {
-        ref R<int> l5 = ref r5;
-        return l5; // 3
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,16): error CS8352: Cannot use variable 'l1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return l1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l1").WithArguments("l1").WithLocation(12, 16),
-                // (27,16): error CS8352: Cannot use variable 'l4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l4").WithArguments("l4").WithLocation(27, 16),
-                // (32,16): error CS8352: Cannot use variable 'l5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l5").WithArguments("l5").WithLocation(32, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "l1").WithArguments("l1").WithLocation(12, 16));
         }
 
         [Fact]
@@ -9921,22 +10919,12 @@ class Program
     static ref R<int> F2(ref R<int> r2)
     {
         ref R<int> l2 = ref r2;
-        return ref l2;
+        return ref l2; // 3
     }
     static ref R<int> F3(scoped ref R<int> r3)
     {
         ref R<int> l3 = ref r3;
-        return ref l3; // 3
-    }
-    static ref R<int> F4(ref scoped R<int> r4)
-    {
-        ref R<int> l4 = ref r4;
-        return ref l4; // 4
-    }
-    static ref R<int> F5(scoped ref scoped R<int> r5)
-    {
-        ref R<int> l5 = ref r5;
-        return ref l5; // 5
+        return ref l3; // 4
     }
 }";
             var comp = CreateCompilation(source);
@@ -9947,15 +10935,14 @@ class Program
                 // (12,20): error CS8157: Cannot return 'l1' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref l1; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l1").WithArguments("l1").WithLocation(12, 20),
+                // (17,20): error CS8157: Cannot return 'l2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref l2; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l2").WithArguments("l2").WithLocation(17, 20),
                 // (22,20): error CS8157: Cannot return 'l3' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l3; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20),
-                // (27,20): error CS8157: Cannot return 'l4' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l4; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l4").WithArguments("l4").WithLocation(27, 20),
-                // (32,20): error CS8157: Cannot return 'l5' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l5; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l5").WithArguments("l5").WithLocation(32, 20));
+                //         return ref l3; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]
@@ -9980,33 +10967,12 @@ class Program
         scoped ref R<int> l2 = ref r2;
         return l2;
     }
-    static R<int> F3(scoped ref R<int> r3)
-    {
-        scoped ref R<int> l3 = ref r3;
-        return l3;
-    }
-    static R<int> F4(ref scoped R<int> r4)
-    {
-        scoped ref R<int> l4 = ref r4; // 2
-        return l4;
-    }
-    static R<int> F5(scoped ref scoped R<int> r5)
-    {
-        scoped ref R<int> l5 = ref r5; // 3
-        return l5;
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,36): error CS8352: Cannot use variable 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
                 //         scoped ref R<int> l1 = ref r1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(11, 36),
-                // (26,36): error CS8352: Cannot use variable 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref R<int> l4 = ref r4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r4").WithArguments("ref R<int>").WithLocation(26, 36),
-                // (31,36): error CS8352: Cannot use variable 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref R<int> l5 = ref r5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r5").WithArguments("ref R<int>").WithLocation(31, 36));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(11, 36));
         }
 
         [Fact]
@@ -10036,16 +11002,6 @@ class Program
         scoped ref R<int> l3 = ref r3;
         return ref l3; // 5
     }
-    static ref R<int> F4(ref scoped R<int> r4)
-    {
-        scoped ref R<int> l4 = ref r4; // 6
-        return ref l4; // 7
-    }
-    static ref R<int> F5(scoped ref scoped R<int> r5)
-    {
-        scoped ref R<int> l5 = ref r5; // 8
-        return ref l5; // 9
-    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -10063,259 +11019,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l2").WithArguments("l2").WithLocation(17, 20),
                 // (22,20): error CS8157: Cannot return 'l3' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref l3; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20),
-                // (26,36): error CS8352: Cannot use variable 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref R<int> l4 = ref r4; // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r4").WithArguments("ref R<int>").WithLocation(26, 36),
-                // (27,20): error CS8157: Cannot return 'l4' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l4; // 7
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l4").WithArguments("l4").WithLocation(27, 20),
-                // (31,36): error CS8352: Cannot use variable 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
-                //         scoped ref R<int> l5 = ref r5; // 8
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r5").WithArguments("ref R<int>").WithLocation(31, 36),
-                // (32,20): error CS8157: Cannot return 'l5' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l5; // 9
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l5").WithArguments("l5").WithLocation(32, 20));
-        }
-
-        [Fact]
-        public void SafeToEscape_06()
-        {
-            var source =
-@"ref struct R<T> { }
-class Program
-{
-    static R<int> F0(R<int> r0)
-    {
-        ref scoped R<int> l0 = ref r0;
-        return l0; // 1
-    }
-    static R<int> F1(scoped R<int> r1)
-    {
-        ref scoped R<int> l1 = ref r1;
-        return l1; // 2
-    }
-    static R<int> F2(ref R<int> r2)
-    {
-        ref scoped R<int> l2 = ref r2;
-        return l2; // 3
-    }
-    static R<int> F3(scoped ref R<int> r3)
-    {
-        ref scoped R<int> l3 = ref r3;
-        return l3; // 4
-    }
-    static R<int> F4(ref scoped R<int> r4)
-    {
-        ref scoped R<int> l4 = ref r4;
-        return l4; // 5
-    }
-    static R<int> F5(scoped ref scoped R<int> r5)
-    {
-        ref scoped R<int> l5 = ref r5;
-        return l5; // 6
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,16): error CS8352: Cannot use variable 'l0' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l0; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l0").WithArguments("l0").WithLocation(7, 16),
-                // (12,16): error CS8352: Cannot use variable 'l1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l1; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l1").WithArguments("l1").WithLocation(12, 16),
-                // (17,16): error CS8352: Cannot use variable 'l2' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l2; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l2").WithArguments("l2").WithLocation(17, 16),
-                // (22,16): error CS8352: Cannot use variable 'l3' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l3; // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l3").WithArguments("l3").WithLocation(22, 16),
-                // (27,16): error CS8352: Cannot use variable 'l4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l4; // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l4").WithArguments("l4").WithLocation(27, 16),
-                // (32,16): error CS8352: Cannot use variable 'l5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l5; // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l5").WithArguments("l5").WithLocation(32, 16));
-        }
-
-        [Fact]
-        public void RefSafeToEscape_06()
-        {
-            var source =
-@"ref struct R<T> { }
-class Program
-{
-    static ref R<int> F0(R<int> r0)
-    {
-        ref scoped R<int> l0 = ref r0;
-        return ref l0; // 1
-    }
-    static ref R<int> F1(scoped R<int> r1)
-    {
-        ref scoped R<int> l1 = ref r1;
-        return ref l1; // 2
-    }
-    static ref R<int> F2(ref R<int> r2)
-    {
-        ref scoped R<int> l2 = ref r2;
-        return ref l2; // 3
-    }
-    static ref R<int> F3(scoped ref R<int> r3)
-    {
-        ref scoped R<int> l3 = ref r3;
-        return ref l3; // 4
-    }
-    static ref R<int> F4(ref scoped R<int> r4)
-    {
-        ref scoped R<int> l4 = ref r4;
-        return ref l4; // 5
-    }
-    static ref R<int> F5(scoped ref scoped R<int> r5)
-    {
-        ref scoped R<int> l5 = ref r5;
-        return ref l5; // 6
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,20): error CS8157: Cannot return 'l0' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l0; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l0").WithArguments("l0").WithLocation(7, 20),
-                // (12,20): error CS8157: Cannot return 'l1' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l1; // 2
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l1").WithArguments("l1").WithLocation(12, 20),
-                // (17,20): error CS8157: Cannot return 'l2' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l2; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l2").WithArguments("l2").WithLocation(17, 20),
-                // (22,20): error CS8157: Cannot return 'l3' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l3; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20),
-                // (27,20): error CS8157: Cannot return 'l4' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l4; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l4").WithArguments("l4").WithLocation(27, 20),
-                // (32,20): error CS8157: Cannot return 'l5' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l5; // 6
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l5").WithArguments("l5").WithLocation(32, 20));
-        }
-
-        [Fact]
-        public void SafeToEscape_07()
-        {
-            var source =
-@"ref struct R<T> { }
-class Program
-{
-    static R<int> F0(R<int> r0)
-    {
-        scoped ref scoped R<int> l0 = ref r0;
-        return l0; // 1
-    }
-    static R<int> F1(scoped R<int> r1)
-    {
-        scoped ref scoped R<int> l1 = ref r1;
-        return l1; // 2
-    }
-    static R<int> F2(ref R<int> r2)
-    {
-        scoped ref scoped R<int> l2 = ref r2;
-        return l2; // 3
-    }
-    static R<int> F3(scoped ref R<int> r3)
-    {
-        scoped ref scoped R<int> l3 = ref r3;
-        return l3; // 4
-    }
-    static R<int> F4(ref scoped R<int> r4)
-    {
-        scoped ref scoped R<int> l4 = ref r4;
-        return l4; // 5
-    }
-    static R<int> F5(scoped ref scoped R<int> r5)
-    {
-        scoped ref scoped R<int> l5 = ref r5;
-        return l5; // 6
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,16): error CS8352: Cannot use variable 'l0' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l0; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l0").WithArguments("l0").WithLocation(7, 16),
-                // (12,16): error CS8352: Cannot use variable 'l1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l1; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l1").WithArguments("l1").WithLocation(12, 16),
-                // (17,16): error CS8352: Cannot use variable 'l2' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l2; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l2").WithArguments("l2").WithLocation(17, 16),
-                // (22,16): error CS8352: Cannot use variable 'l3' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l3; // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l3").WithArguments("l3").WithLocation(22, 16),
-                // (27,16): error CS8352: Cannot use variable 'l4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l4; // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l4").WithArguments("l4").WithLocation(27, 16),
-                // (32,16): error CS8352: Cannot use variable 'l5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l5; // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "l5").WithArguments("l5").WithLocation(32, 16));
-        }
-
-        [Fact]
-        public void RefSafeToEscape_07()
-        {
-            var source =
-@"ref struct R<T> { }
-class Program
-{
-    static ref R<int> F0(R<int> r0)
-    {
-        scoped ref scoped R<int> l0 = ref r0;
-        return ref l0; // 1
-    }
-    static ref R<int> F1(scoped R<int> r1)
-    {
-        scoped ref scoped R<int> l1 = ref r1;
-        return ref l1; // 2
-    }
-    static ref R<int> F2(ref R<int> r2)
-    {
-        scoped ref scoped R<int> l2 = ref r2;
-        return ref l2; // 3
-    }
-    static ref R<int> F3(scoped ref R<int> r3)
-    {
-        scoped ref scoped R<int> l3 = ref r3;
-        return ref l3; // 4
-    }
-    static ref R<int> F4(ref scoped R<int> r4)
-    {
-        scoped ref scoped R<int> l4 = ref r4;
-        return ref l4; // 5
-    }
-    static ref R<int> F5(scoped ref scoped R<int> r5)
-    {
-        scoped ref scoped R<int> l5 = ref r5;
-        return ref l5; // 6
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,20): error CS8157: Cannot return 'l0' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l0; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l0").WithArguments("l0").WithLocation(7, 20),
-                // (12,20): error CS8157: Cannot return 'l1' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l1; // 2
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l1").WithArguments("l1").WithLocation(12, 20),
-                // (17,20): error CS8157: Cannot return 'l2' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l2; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l2").WithArguments("l2").WithLocation(17, 20),
-                // (22,20): error CS8157: Cannot return 'l3' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l3; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20),
-                // (27,20): error CS8157: Cannot return 'l4' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l4; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l4").WithArguments("l4").WithLocation(27, 20),
-                // (32,20): error CS8157: Cannot return 'l5' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l5; // 6
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l5").WithArguments("l5").WithLocation(32, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20));
         }
 
         [Fact]
@@ -10371,7 +11075,7 @@ class Program
     public ref T GetRef() => ref F;
     public ref readonly T GetRefReadonly() => ref F;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -10386,7 +11090,7 @@ class Program
     public ref T GetRef() => ref F; // 1
     public ref readonly T GetRefReadonly() => ref F;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (5,34): error CS8333: Cannot return field 'R<T>.F' by writable reference because it is a readonly variable
                 //     public ref T GetRef() => ref F; // 1
@@ -10408,8 +11112,6 @@ class Program
     static T F1<T>(scoped R<T> r1) => r1.F;
     static T F2<T>(ref R<T> r2) => r2.F;
     static T F3<T>(scoped ref R<T> r3) => r3.F;
-    static T F4<T>(ref scoped R<T> r4) => r4.F;
-    static T F5<T>(scoped ref scoped R<T> r5) => r5.F;
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
@@ -10429,8 +11131,6 @@ class Program
     static ref T F1<T>(scoped R<T> r1) => ref r1.F; // 2
     static ref T F2<T>(ref R<T> r2) => ref r2.F;
     static ref T F3<T>(scoped ref R<T> r3) => ref r3.F; // 3
-    static ref T F4<T>(ref scoped R<T> r4) => ref r4.F; // 4
-    static ref T F5<T>(scoped ref scoped R<T> r5) => ref r5.F; // 5
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -10440,15 +11140,14 @@ class Program
                 // (8,47): error CS8167: Cannot return by reference a member of parameter 'r1' because it is not a ref or out parameter
                 //     static ref T F1<T>(scoped R<T> r1) => ref r1.F; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(8, 47),
+                // (9,44): error CS8167: Cannot return by reference a member of parameter 'r2' because it is not a ref or out parameter
+                //     static ref T F2<T>(ref R<T> r2) => ref r2.F;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r2").WithArguments("r2").WithLocation(9, 44),
                 // (10,51): error CS8167: Cannot return by reference a member of parameter 'r3' because it is not a ref or out parameter
                 //     static ref T F3<T>(scoped ref R<T> r3) => ref r3.F; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r3").WithArguments("r3").WithLocation(10, 51),
-                // (11,51): error CS8167: Cannot return by reference a member of parameter 'r4' because it is not a ref or out parameter
-                //     static ref T F4<T>(ref scoped R<T> r4) => ref r4.F; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r4").WithArguments("r4").WithLocation(11, 51),
-                // (12,58): error CS8167: Cannot return by reference a member of parameter 'r5' because it is not a ref or out parameter
-                //     static ref T F5<T>(scoped ref scoped R<T> r5) => ref r5.F; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r5").WithArguments("r5").WithLocation(12, 58));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r3").WithArguments("r3").WithLocation(10, 51));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Theory]
@@ -10472,14 +11171,8 @@ class Program
     static T F5<T>(scoped ref R<T> r) => r.F;
     static T F6<T>(scoped out R<T> r) {{ r = default; return r.F; }}
     static T F7<T>(scoped in R<T> r) => r.F;
-    static T F8<T>(ref scoped R<T> r) => r.F;
-    static T F9<T>(out scoped R<T> r) {{ r = default; return r.F; }}
-    static T FA<T>(in scoped R<T> r) => r.F;
-    static T FB<T>(scoped ref scoped R<T> r) => r.F;
-    static T FC<T>(scoped out scoped R<T> r) {{ r = default; return r.F; }}
-    static T FD<T>(scoped in scoped R<T> r) => r.F;
 }}";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -10504,36 +11197,12 @@ class Program
     static {refOrRefReadonly} T F5<T>(scoped ref R<T> r) => ref r.F;
     static {refOrRefReadonly} T F6<T>(scoped out R<T> r) {{ r = default; return ref r.F; }}
     static {refOrRefReadonly} T F7<T>(scoped in R<T> r) => ref r.F;
-    static {refOrRefReadonly} T F8<T>(ref scoped R<T> r) => ref r.F; // 2
-    static {refOrRefReadonly} T F9<T>(out scoped R<T> r) {{ r = default; return ref r.F; }} // 3
-    static {refOrRefReadonly} T FA<T>(in scoped R<T> r) => ref r.F; // 4
-    static {refOrRefReadonly} T FB<T>(scoped ref scoped R<T> r) => ref r.F; // 5
-    static {refOrRefReadonly} T FC<T>(scoped out scoped R<T> r) {{ r = default; return ref r.F; }} // 6
-    static {refOrRefReadonly} T FD<T>(scoped in scoped R<T> r) => ref r.F; // 7
 }}";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (12,55): error CS8352: Cannot use variable 'R<T>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static ref          T F4<T>(scoped R<T> r) => ref r.F; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("R<T>").WithLocation(12, 55),
-                // (16,59): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref          T F8<T>(ref scoped R<T> r) => ref r.F; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("ref R<T>").WithLocation(16, 59),
-                // (17,78): error CS8352: Cannot use variable 'out R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref          T F9<T>(out scoped R<T> r) { r = default; return ref r.F; } // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("out R<T>").WithLocation(17, 78),
-                // (18,58): error CS8352: Cannot use variable 'in R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref          T FA<T>(in scoped R<T> r) => ref r.F; // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("in R<T>").WithLocation(18, 58),
-                // (19,66): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref          T FB<T>(scoped ref scoped R<T> r) => ref r.F; // 5
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("ref R<T>").WithLocation(19, 66),
-                // (20,85): error CS8352: Cannot use variable 'out R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref          T FC<T>(scoped out scoped R<T> r) { r = default; return ref r.F; } // 6
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("out R<T>").WithLocation(20, 85),
-                // (21,65): error CS8352: Cannot use variable 'in R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static ref          T FD<T>(scoped in scoped R<T> r) => ref r.F; // 7
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("in R<T>").WithLocation(21, 65));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("R<T>").WithLocation(12, 55));
         }
 
         [Fact]
@@ -10559,7 +11228,7 @@ class Program
         return ref r2.F;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,20): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref r1.F; // 1
@@ -10594,7 +11263,7 @@ class Program
         return ref r2.F; // 2
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,20): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref r1.F; // 1
@@ -10620,7 +11289,7 @@ class Program
     static R<T> F3<T>(scoped ref T t) => new R<T>(ref t); // 2
     static R<T> F4<T>(scoped out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 3
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (9,63): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F2<T>(out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 1
@@ -10662,20 +11331,12 @@ class Program
     static R0<T> F1<T>(scoped R1<T> r1) => r1.F1; // 1
     static R0<T> F2<T>(ref R1<T> r2) => r2.F1;
     static R0<T> F3<T>(scoped ref R1<T> r3) => r3.F1;
-    static R0<T> F4<T>(ref scoped R1<T> r4) => r4.F1; // 2
-    static R0<T> F5<T>(scoped ref scoped R1<T> r5) => r5.F1; // 3
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (14,44): error CS8352: Cannot use variable 'R1<T>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R0<T> F1<T>(scoped R1<T> r1) => r1.F1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1.F1").WithArguments("R1<T>").WithLocation(14, 44),
-                // (17,48): error CS8352: Cannot use variable 'ref R1<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static R0<T> F4<T>(ref scoped R1<T> r4) => r4.F1; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r4.F1").WithArguments("ref R1<T>").WithLocation(17, 48),
-                // (18,55): error CS8352: Cannot use variable 'ref R1<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //     static R0<T> F5<T>(scoped ref scoped R1<T> r5) => r5.F1; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r5.F1").WithArguments("ref R1<T>").WithLocation(18, 55));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1.F1").WithArguments("R1<T>").WithLocation(14, 44));
         }
 
         [Fact]
@@ -10698,10 +11359,8 @@ class Program
     static ref R0<T> F1<T>(scoped R1<T> r1) => ref r1.F1; // 2
     static ref R0<T> F2<T>(ref R1<T> r2) => ref r2.F1;
     static ref R0<T> F3<T>(scoped ref R1<T> r3) => ref r3.F1; // 3
-    static ref R0<T> F4<T>(ref scoped R1<T> r4) => ref r4.F1; // 4
-    static ref R0<T> F5<T>(scoped ref scoped R1<T> r5) => ref r5.F1; // 5
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (13,45): error CS8167: Cannot return by reference a member of parameter 'r0' because it is not a ref or out parameter
                 //     static ref R0<T> F0<T>(R1<T> r0) => ref r0.F1; // 1
@@ -10709,15 +11368,14 @@ class Program
                 // (14,52): error CS8167: Cannot return by reference a member of parameter 'r1' because it is not a ref or out parameter
                 //     static ref R0<T> F1<T>(scoped R1<T> r1) => ref r1.F1; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(14, 52),
+                // (15,49): error CS8167: Cannot return by reference a member of parameter 'r2' because it is not a ref or out parameter
+                //     static ref R0<T> F2<T>(ref R1<T> r2) => ref r2.F1;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r2").WithArguments("r2").WithLocation(15, 49),
                 // (16,56): error CS8167: Cannot return by reference a member of parameter 'r3' because it is not a ref or out parameter
                 //     static ref R0<T> F3<T>(scoped ref R1<T> r3) => ref r3.F1; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r3").WithArguments("r3").WithLocation(16, 56),
-                // (17,56): error CS8167: Cannot return by reference a member of parameter 'r4' because it is not a ref or out parameter
-                //     static ref R0<T> F4<T>(ref scoped R1<T> r4) => ref r4.F1; // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r4").WithArguments("r4").WithLocation(17, 56),
-                // (18,63): error CS8167: Cannot return by reference a member of parameter 'r5' because it is not a ref or out parameter
-                //     static ref R0<T> F5<T>(scoped ref scoped R1<T> r5) => ref r5.F1; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r5").WithArguments("r5").WithLocation(18, 63));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r3").WithArguments("r3").WithLocation(16, 56));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]
@@ -10745,7 +11403,7 @@ class Program
         return ref F0(new R<T>(ref t)); // error
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (19,20): error CS8347: Cannot use a result of 'Program.F0<T>(R<T>)' in this context because it may expose variables referenced by parameter 'r0' outside of their declaration scope
                 //         return ref F0(new R<T>(ref t)); // error
@@ -10789,7 +11447,7 @@ class C
         return c[new R(ref i4), y4]; // 2
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         return this[x2, new R(ref i2)]; // 1
@@ -10842,7 +11500,7 @@ class C
         return c[x4, y4]; // 2
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8347: Cannot use a result of 'C.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         return this[x2, y2]; // 1
@@ -10889,7 +11547,7 @@ class C
         return ref c[new R(ref i4), y4]; // 2
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (16,20): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         return ref this[x2, new R(ref i2)]; // 1
@@ -11028,7 +11686,7 @@ class Program
         return r8.F;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (29,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r3.F = ref t;
@@ -11105,7 +11763,7 @@ class Program
         return r8.F;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (26,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r3.F = ref t;
@@ -11190,7 +11848,7 @@ class Program
         return r8;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (16,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r1;
@@ -11285,7 +11943,7 @@ class Program
         return r8;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (15,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r1;
@@ -11408,7 +12066,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (11,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t1);
@@ -11464,7 +12122,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (10,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t1);
@@ -11506,7 +12164,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t2);
@@ -11534,28 +12192,45 @@ class Program
         this = r2;
         M(this);
     }
-    R(int unused, ref scoped R<T> r3)
-    {
-        this = r3;
-        M(this);
-    }
-    R(long unused, scoped ref scoped R<T> r4)
-    {
-        this = r4;
-        M(this);
-    }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,19): warning CS0169: The field 'R<T>.F' is never used
                 //     private ref T F;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("R<T>.F").WithLocation(4, 19),
-                // (17,16): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //         this = r3;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r3").WithArguments("ref R<T>").WithLocation(17, 16),
-                // (22,16): error CS8352: Cannot use variable 'ref R<T>' in this context because it may expose referenced variables outside of their declaration scope
-                //         this = r4;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r4").WithArguments("ref R<T>").WithLocation(22, 16));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("R<T>.F").WithLocation(4, 19));
+        }
+
+        [WorkItem(63140, "https://github.com/dotnet/roslyn/issues/63140")]
+        [Fact]
+        public void Scoped_Cycle()
+        {
+            var source =
+@"interface I 
+{
+    void M<T>(T s);  
+}
+
+class C : I
+{
+    void I.M<T>(scoped T? s) {}
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0535: 'C' does not implement interface member 'I.M<T>(T)'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M<T>(T)").WithLocation(6, 11),
+                // (8,12): error CS0539: 'C.M<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("C.M<T>(T?)").WithLocation(8, 12),
+                // (8,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T? s").WithLocation(8, 17),
+                // (8,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 25),
+                // (8,27): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "s").WithArguments("System.Nullable<T>", "T", "T").WithLocation(8, 27));
         }
 
         [Fact]
@@ -11578,7 +12253,7 @@ class Program
         return r.F;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (12,13): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //             r.F = ref t;
@@ -11587,7 +12262,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void InstanceMethodWithOutVar_01(LanguageVersion languageVersion)
         {
             var source =
@@ -11632,7 +12307,7 @@ class Program
         r1.F(out r);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (13,9): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         r1.F(out r);
@@ -11641,7 +12316,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void InstanceMethodWithOutVar_03(LanguageVersion languageVersion)
         {
             var source =
@@ -11669,9 +12344,157 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(12, 17));
         }
 
+        [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
+        [Fact]
+        public void RefToLocalFromInstanceMethod_01()
+        {
+            var source =
+@"ref struct R
+{
+    private ref int _i;
+    public void M1()
+    {
+        int i = 42;
+        M2(ref i);
+    }
+    private void M2(ref int i)
+    {
+        _i = ref i;
+    }
+}";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8350: This combination of arguments to 'R.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M2(ref i);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref i)").WithArguments("R.M2(ref int)", "i").WithLocation(7, 9),
+                // (7,16): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         M2(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(7, 16));
+        }
+
+        [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
+        [Fact]
+        public void RefToLocalFromInstanceMethod_02()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        unsafe public Span(void* ptr, int length) { }
+        public ref T this[int index] => throw null;
+        public static implicit operator Span<T>(T[] a) => throw null;
+    }
+}";
+            var sourceB =
+@"using System;
+ref struct S
+{
+    private ref int _i;
+    public S(ref int i)
+    {
+        Span<int> s = stackalloc int[100];
+        M2(ref s[0]);
+    }
+    private void M2(ref int i)
+    {
+        _i = ref i;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8350: This combination of arguments to 'S.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M2(ref s[0]);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s[0])").WithArguments("S.M2(ref int)", "i").WithLocation(8, 9),
+                // (8,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s[0]);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void RefStructProperty_01()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public R(ref T t) { } 
+}
+class C
+{
+    R<object> this[R<int> r] => default;
+    static R<object> F1(C c)
+    {
+        int i = 1;
+        var r1 = new R<int>(ref i);
+        return c[r1]; // 1
+    }
+    static R<object> F2(C c)
+    {
+        var r2 = new R<int>();
+        return c[r2];
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,16): error CS8347: Cannot use a result of 'C.this[R<int>]' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         return c[r1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[r1]").WithArguments("C.this[R<int>]", "r").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c[r1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 18));
+        }
+
+        [Fact]
+        public void RefStructProperty_02()
+        {
+            var source =
+@"ref struct R<T>
+{
+}
+class C
+{
+    R<object> this[in int i] => default;
+    static R<object> F1(C c)
+    {
+        int i1 = 1;
+        return c[i1]; // 1
+    }
+    static R<object> F2(C c)
+    {
+        return c[2]; // 2
+    }
+    static R<object> F2(C c, in int i3)
+    {
+        return c[i3];
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8347: Cannot use a result of 'C.this[in int]' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return c[i1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[i1]").WithArguments("C.this[in int]", "i").WithLocation(10, 16),
+                // (10,18): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
+                //         return c[i1]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(10, 18),
+                // (14,16): error CS8347: Cannot use a result of 'C.this[in int]' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return c[2]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[2]").WithArguments("C.this[in int]", "i").WithLocation(14, 16),
+                // (14,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c[2]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(14, 18));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnThis_01(LanguageVersion languageVersion)
         {
             var source =
@@ -11681,7 +12504,7 @@ class Program
     ref R F2() => ref this;
     ref readonly R F3() => ref this;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (4,23): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     ref R F2() => ref this;
@@ -11693,7 +12516,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnThis_02(LanguageVersion languageVersion)
         {
             var source =
@@ -11703,7 +12526,7 @@ class Program
     ref R F2() => ref this;
     ref readonly R F3() => ref this;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (4,23): error CS8354: Cannot return 'this' by reference.
                 //     ref R F2() => ref this;
@@ -11711,6 +12534,4285 @@ class Program
                 // (5,32): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     ref readonly R F3() => ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(5, 32));
+        }
+
+        [Fact]
+        public void RefInitializer_LangVer()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_LangVer_FromMetadata()
+        {
+            var lib_cs = @"
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var source = @"
+int x = 42;
+var r1 = new R() { field = ref x }; // 1
+var r2 = new R() { field = x }; // 2
+
+R r3 = default;
+_ = r3 with { field = ref x }; // 3
+";
+            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
+
+            var comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r1 = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 20),
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r2 = new R() { field = x }; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // _ = r3 with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(7, 15)
+                );
+
+            comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r1 = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 20),
+                // (3,20): error CS9061: Target runtime doesn't support ref fields.
+                // var r1 = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "field").WithLocation(3, 20),
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r2 = new R() { field = x }; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (4,20): error CS9061: Target runtime doesn't support ref fields.
+                // var r2 = new R() { field = x }; // 2
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "field").WithLocation(4, 20),
+                // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // _ = r3 with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(7, 15),
+                // (7,15): error CS9061: Target runtime doesn't support ref fields.
+                // _ = r3 with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "field").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x = 42;
+        var r = new R() { field = ref x };
+        System.Console.Write(r.ToString());
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main",
+"""
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R V_1, //r
+                R V_2)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    "R"
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  stfld      "ref int R.field"
+  IL_0014:  ldloc.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  constrained. "R"
+  IL_001e:  callvirt   "string object.ToString()"
+  IL_0023:  call       "void System.Console.Write(string)"
+  IL_0028:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_RHSMustBeDefinitelyAssigned()
+        {
+            // The right operand must be definitely assigned at the point of the ref assignment.
+            var source = @"
+int x;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS0165: Use of unassigned local variable 'x'
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RHSTypeMustMatch()
+        {
+            // The right operand must be an expression that yields an lvalue designating a value of the same type as the left operand.
+            var source = @"
+object x = null;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS8173: The expression must be of type 'int' because it is being assigned by reference
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("int").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RHSTypeMustMatch_ImplicitConversionExists()
+        {
+            // The right operand must be an expression that yields an lvalue designating a value of the same type as the left operand.
+            var source = @"
+S1 x = default;
+var r = new R() { field = ref x };
+
+struct S1 { }
+struct S2
+{
+    public static implicit operator S2(S1 s1) => throw null;
+}
+ref struct R
+{
+    public ref S2 field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS8173: The expression must be of type 'S2' because it is being assigned by reference
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("S2").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_StaticRefField()
+        {
+            var source = @"
+int x = 0;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public static ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS1914: Static field or property 'R.field' cannot be assigned in an object initializer
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "field").WithArguments("R.field").WithLocation(3, 19),
+                // (7,27): error CS0106: The modifier 'static' is not valid for this item
+                //     public static ref int field;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "field").WithArguments("static").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_VarInvocationReserved()
+        {
+            var source = @"
+var r = new R() { field = ref var() };
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (2,31): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                // var r = new R() { field = ref var() };
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var()").WithLocation(2, 31),
+                // (2,31): error CS0103: The name 'var' does not exist in the current context
+                // var r = new R() { field = ref var() };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(2, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_ReadonlyRefField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public readonly ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(3, 19)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref readonly int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Field()
+        {
+            // If the left operand is a writeable ref (i.e. it designates anything other than a `ref readonly` local or  `in` parameter), then the right operand must be a writeable lvalue.
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            // Confusing error message
+            // Tracked by https://github.com/dotnet/roslyn/issues/62756
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
+                //         var r = new R() { field = ref Value() };
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "C.Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_AssignInParameter()
+        {
+            var source = @"
+class C
+{
+    static void F(in int i)
+    {
+        _ = new R1 { _f = ref i };
+        _ = new R2 { _f = ref i }; // 1
+    }
+}
+
+ref struct R1
+{
+    public ref readonly int _f;
+}
+
+ref struct R2
+{
+    public ref int _f;
+}
+";
+            // Diagnostic is missing parameter name
+            // Tracked by https://github.com/dotnet/roslyn/issues/62096
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS8331: Cannot assign to variable 'in int' because it is a readonly variable
+                //         _ = new R2 { _f = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(7, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_GetOnlyProperty()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { Property = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int Property { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var r = new R() { Property = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Property()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { Property = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int Property { get => throw null; set => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var r = new R() { Property = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(8, 27),
+                // (14,50): error CS8147: Properties which return by reference cannot have set accessors
+                //     public ref int Property { get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(14, 50)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Indexer()
+        {
+            var source = @"
+var r = new R() { [0] = ref Value() }; // 1
+
+R r2 = default;
+r2[0] = ref Value(); // 2
+
+ref readonly int Value() => throw null;
+
+ref struct R
+{
+    public ref int this[int i] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref Value() }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(2, 19),
+                // (5,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref Value(); // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Indexer()
+        {
+            var source = @"
+var r = new R() { [0] = ref Value() }; // 1
+
+R r2 = default;
+r2[0] = ref Value(); // 2
+
+ref int Value() => throw null;
+
+ref struct R
+{
+    public ref int this[int i] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref Value() }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(2, 19),
+                // (5,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref Value(); // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_ValueMustReferToLocation()
+        {
+            var source = @"
+class C
+{
+    int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS1510: A ref or out value must be an assignable variable
+                //         var r = new R() { field = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyField_RefReadonlyValue()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref readonly int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_OnInterface_Field()
+        {
+            var source = @"
+class C
+{
+    void M<T>() where T : I, new()
+    {
+        int x = 42;
+        var t = new T() { field = ref x };
+    }
+}
+interface I
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (12,20): error CS0525: Interfaces cannot contain instance fields
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 20),
+                // (12,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "field").WithLocation(12, 20)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnInterface_Property()
+        {
+            var source = @"
+class C
+{
+    void M<T>() where T : I, new()
+    {
+        int x = 42;
+        var t = new T() { Property = ref x };
+    }
+}
+
+interface I
+{
+    public ref int Property { get; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var t = new T() { Property = ref x };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Collection()
+        {
+            var source = @"
+using System.Collections;
+
+int x = 42;
+int y = 43;
+var r = new R() { ref x, ref y };
+
+struct R : IEnumerable
+{
+    public void Add(ref int x) => throw null;
+    public IEnumerator GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5),
+                // (5,5): warning CS0219: The variable 'y' is assigned but its value is never used
+                // int y = 43;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(5, 5),
+                // (6,19): error CS1073: Unexpected token 'ref'
+                // var r = new R() { ref x, ref y };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 19),
+                // (6,26): error CS1073: Unexpected token 'ref'
+                // var r = new R() { ref x, ref y };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x }; // 1
+
+R r2 = default;
+r2.field = ref x; // 2
+
+ref struct R
+{
+    public int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefProperty()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { Property = ref x }; // 1
+
+R r2 = default;
+r2.Property = ref x; // 2
+
+ref struct R
+{
+    public int Property { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { Property = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.Property = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.Property").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefIndexer()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { [0] = ref x }; // 1
+
+R r2 = default;
+r2[0] = ref x; // 2
+
+ref struct R
+{
+    public int this[int i] { get => throw null; set => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnArray()
+        {
+            var source = @"
+public ref struct C
+{
+    C M()
+    {
+        int x = 0;
+        var c = new C { array = { [0] = ref x } }; // 1
+        return c;
+    }
+
+    void M2()
+    {
+        int x = 0;
+        C c2 = new C();
+        c2.array[0] = ref x; // 2
+    }
+
+    public int[] array;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,35): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var c = new C { array = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(7, 35),
+                // (15,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         c2.array[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c2.array[0]").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnPointer()
+        {
+            var source = @"
+public unsafe class C
+{
+    public int* pointer;
+
+    C M()
+    {
+        int x = 0;
+        var c = new C { pointer = { [0] = ref x } }; // 1
+        return c;
+    }
+
+    void M2()
+    {
+        int x = 0;
+        C c2 = new C();
+        c2.pointer[0] = ref x; // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (9,37): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var c = new C { pointer = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(9, 37),
+                // (17,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         c2.pointer[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c2.pointer[0]").WithLocation(17, 9)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnEvent()
+        {
+            var source = @"
+int x = 42;
+var r = new C { a = ref x }; // 1
+
+C c = default;
+c.a = ref x; // 2
+
+class C
+{
+    public event System.Action a;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS0070: The event 'C.a' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                // var r = new C { a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "a").WithArguments("C.a", "C").WithLocation(3, 17),
+                // (6,3): error CS0070: The event 'C.a' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                // c.a = ref x; // 2
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "a").WithArguments("C.a", "C").WithLocation(6, 3)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnEvent_ThisMemberAccess()
+        {
+            var source = @"
+int x = 42;
+var r1 = new C { this.a = ref x }; // 1
+
+class C
+{
+    public event System.Action a;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ this.a = ref x }").WithArguments("C").WithLocation(3, 16),
+                // (3,18): error CS0747: Invalid initializer member declarator
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "this.a = ref x").WithLocation(3, 18),
+                // (3,18): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(3, 18),
+                // (7,32): warning CS0067: The event 'C.a' is never used
+                //     public event System.Action a;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a").WithArguments("C.a").WithLocation(7, 32)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnMethodGroup()
+        {
+            var source = @"
+int x = 42;
+var r = new C { F = ref x }; // 1
+
+C c = default;
+c.F = ref x; // 2
+
+class C
+{
+    public void F() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS1913: Member 'F' cannot be initialized. It is not a field or property.
+                // var r = new C { F = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "F").WithArguments("F").WithLocation(3, 17),
+                // (6,1): error CS1656: Cannot assign to 'F' because it is a 'method group'
+                // c.F = ref x; // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.F").WithArguments("F", "method group").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Nested()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        var r = new Container { item = { field = ref x } };
+        System.Console.Write(r.item.field);
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (int V_0, //x
+                Container V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""Container""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldflda     ""Item Container.item""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  stfld      ""ref int Item.field""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""Item Container.item""
+  IL_001f:  ldfld      ""ref int Item.field""
+  IL_0024:  ldind.i4
+  IL_0025:  call       ""void System.Console.Write(int)""
+  IL_002a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefInitializer_Nullability()
+        {
+            var source = @"
+#nullable enable
+
+S<object> x1 = default;
+S<object?> x2 = default;
+
+_ = new R<object> { field = ref x1 };
+_ = new R<object> { field = ref x2 }; // 1
+_ = new R<object?> { field = ref x1 }; // 2
+_ = new R<object?> { field = ref x2 };
+
+_ = new R<object>() with { field = ref x1 };
+_ = new R<object>() with { field = ref x2 }; // 3
+_ = new R<object?>() with { field = ref x1 }; // 4
+_ = new R<object?>() with { field = ref x2 };
+
+struct S<T> { }
+ref struct R<T>
+{
+    public ref S<T> field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,33): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                // _ = new R<object> { field = ref x2 }; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("S<object?>", "S<object>").WithLocation(8, 33),
+                // (9,34): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                // _ = new R<object?> { field = ref x1 }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("S<object>", "S<object?>").WithLocation(9, 34),
+                // (13,40): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                // _ = new R<object>() with { field = ref x2 }; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("S<object?>", "S<object>").WithLocation(13, 40),
+                // (14,41): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                // _ = new R<object?>() with { field = ref x1 }; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("S<object>", "S<object?>").WithLocation(14, 41)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefOnNestedInitializer()
+        {
+            var source = @"
+int x = 42;
+var r = new R { field = ref { item = 42 } }; // 1
+
+struct S
+{
+    public int item;
+}
+ref struct R
+{
+    public ref S field;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 5),
+                // (3,29): error CS1525: Invalid expression term '{'
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(3, 29),
+                // (3,29): error CS1003: Syntax error, ',' expected
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 29),
+                // (3,29): error CS0747: Invalid initializer member declarator
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ item = 42 }").WithLocation(3, 29),
+                // (3,31): error CS0103: The name 'item' does not exist in the current context
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "item").WithArguments("item").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_FieldOnDynamic()
+        {
+            var source = @"
+int x = 42;
+var r = new S { D = { field = ref x } }; // 1
+
+S s = default;
+s.D.field = ref x; // 2
+
+struct S
+{
+    public dynamic D;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new S { D = { field = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // s.D.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicField()
+        {
+            var source = @"
+int i = 42;
+var r = new R<dynamic> { F = ref i }; // 1
+
+ref struct R<T>
+{
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,34): error CS8173: The expression must be of type 'dynamic' because it is being assigned by reference
+                // var r = new R<dynamic> { F = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "i").WithArguments("dynamic").WithLocation(3, 34)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicField_DynamicValue()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic i = 42;
+        var r = new R<dynamic> { F = ref i };
+        System.Console.Write(r.F);
+
+        var r2 = new R<dynamic>(ref i);
+        System.Console.Write(r2.F);
+    }
+}
+
+ref struct R<T>
+{
+    public R(ref T f) { F = ref f; }
+    public ref T F;
+}
+";
+            var references = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreAppAndCSharp, additionalReferences: null);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(source, references: CopyWithoutSharingCachedSymbols(references), options: TestOptions.DebugExe, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsByRefFields = true;
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
+            verifier.VerifyIL("C.Main", """
+{
+  // Code size      257 (0x101)
+  .maxstack  9
+  .locals init (object V_0, //i
+                R<dynamic> V_1, //r
+                R<dynamic> V_2, //r2
+                R<dynamic> V_3)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  box        "int"
+  IL_0008:  stloc.0
+  IL_0009:  ldloca.s   V_3
+  IL_000b:  initobj    "R<dynamic>"
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  stfld      "ref dynamic R<dynamic>.F"
+  IL_001a:  ldloc.3
+  IL_001b:  stloc.1
+  IL_001c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0021:  brfalse.s  IL_0025
+  IL_0023:  br.s       IL_0064
+  IL_0025:  ldc.i4     0x100
+  IL_002a:  ldstr      "Write"
+  IL_002f:  ldnull
+  IL_0030:  ldtoken    "C"
+  IL_0035:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_003a:  ldc.i4.2
+  IL_003b:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_0040:  dup
+  IL_0041:  ldc.i4.0
+  IL_0042:  ldc.i4.s   33
+  IL_0044:  ldnull
+  IL_0045:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_004a:  stelem.ref
+  IL_004b:  dup
+  IL_004c:  ldc.i4.1
+  IL_004d:  ldc.i4.0
+  IL_004e:  ldnull
+  IL_004f:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_0054:  stelem.ref
+  IL_0055:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_005a:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_005f:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0064:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0069:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_006e:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0073:  ldtoken    "System.Console"
+  IL_0078:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_007d:  ldloc.1
+  IL_007e:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_0083:  ldind.ref
+  IL_0084:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_0089:  nop
+  IL_008a:  ldloca.s   V_0
+  IL_008c:  newobj     "R<dynamic>..ctor(ref dynamic)"
+  IL_0091:  stloc.2
+  IL_0092:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_0097:  brfalse.s  IL_009b
+  IL_0099:  br.s       IL_00da
+  IL_009b:  ldc.i4     0x100
+  IL_00a0:  ldstr      "Write"
+  IL_00a5:  ldnull
+  IL_00a6:  ldtoken    "C"
+  IL_00ab:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00b0:  ldc.i4.2
+  IL_00b1:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_00b6:  dup
+  IL_00b7:  ldc.i4.0
+  IL_00b8:  ldc.i4.s   33
+  IL_00ba:  ldnull
+  IL_00bb:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00c0:  stelem.ref
+  IL_00c1:  dup
+  IL_00c2:  ldc.i4.1
+  IL_00c3:  ldc.i4.0
+  IL_00c4:  ldnull
+  IL_00c5:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00ca:  stelem.ref
+  IL_00cb:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_00d0:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_00d5:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00da:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00df:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_00e4:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00e9:  ldtoken    "System.Console"
+  IL_00ee:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00f3:  ldloc.2
+  IL_00f4:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_00f9:  ldind.ref
+  IL_00fa:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_00ff:  nop
+  IL_0100:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_SubstitutedObjectField()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        object i = 42;
+        var r = new R<object> { F = ref i };
+        System.Console.Write(r.F);
+
+        var r2 = new R<object>(ref i);
+        System.Console.Write(r2.F);
+    }
+}
+
+ref struct R<T>
+{
+    public R(ref T f) { F = ref f; }
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
+            verifier.VerifyIL("C.Main", """
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (object V_0, //i
+                R<object> V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  box        "int"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  initobj    "R<object>"
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  stfld      "ref object R<object>.F"
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      "ref object R<object>.F"
+  IL_001f:  ldind.ref
+  IL_0020:  call       "void System.Console.Write(object)"
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  newobj     "R<object>..ctor(ref object)"
+  IL_002c:  ldfld      "ref object R<object>.F"
+  IL_0031:  ldind.ref
+  IL_0032:  call       "void System.Console.Write(object)"
+  IL_0037:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicInstance()
+        {
+            var source = @"
+int x = 42;
+var r = new dynamic { field = ref x }; // 1
+
+dynamic r2 = null;
+r2.field = ref x; // 2
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,13): error CS8386: Invalid object creation
+                // var r = new dynamic { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(3, 13),
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new dynamic { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicIndexer()
+        {
+            var source = @"
+int x = 42;
+var r = new S { D = { [0] = ref x } }; // 1
+
+S s = default;
+s.D[0] = ref x; // 2
+
+struct S
+{
+    public dynamic D;
+}
+ref struct R
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new S { D = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // s.D[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D[0]").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicIndexer_Nested()
+        {
+            var source = @"
+dynamic x = 1;
+int i = 42;
+var a = new A() { [y: x, x: x] = { X = ref i } }; // 1
+
+A a2 = null;
+a2[y: x, x: x].X = ref i; // 2
+
+public class A
+{
+    public dynamic this[int x, int y] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,36): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var a = new A() { [y: x, x: x] = { X = ref i } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(4, 36),
+                // (7,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // a2[y: x, x: x].X = ref i; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a2[y: x, x: x].X").WithLocation(7, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Escape()
+        {
+            var source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R { field = ref x };
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R { field = ref x };
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R { field = ref x }; // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R { field = ref x }; // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R { field = ref x }; // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,25): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(20, 25),
+                // (29,25): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(29, 25),
+                // (36,21): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R { field = ref x }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 21)
+                );
+
+            // Initializer values behave like constructor parameters for purpose of escape analysis
+            source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R(ref x);
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R(ref x);
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R(ref x); // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R(ref x); // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R(ref x); // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+    public R(ref int i) { }
+}
+";
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,17): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r = new R(ref x); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(20, 17),
+                // (20,27): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R(ref x); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(20, 27),
+                // (29,17): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r = new R(ref x); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(29, 17),
+                // (29,27): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R(ref x); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(29, 27),
+                // (36,13): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(ref x); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(36, 13),
+                // (36,23): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R(ref x); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(36, 23)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Escape_Nested()
+        {
+            var source = @"
+class C
+{
+    public static Container M3()
+    {
+        Container r = default;
+        {
+            int x = 42;
+            var r = new Container { item = { field = ref x } }; // 1
+        }
+        return r;
+    }
+    public static Container M4()
+    {
+        Container r = default;
+        int x = 42;
+        {
+            r = new Container { item = { field = ref x } }; // 2
+        }
+        return r;
+    }
+    public static void M5(ref Container r)
+    {
+        int x = 42;
+        r = new Container { item = { field = ref x } }; // 3
+    }
+    public static Container M6()
+    {
+        int x = 42;
+        var r = new Container { item = { field = ref x } };
+        return r; // 4
+    }
+ }
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0136: A local or parameter named 'r' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             var r = new Container { item = { field = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "r").WithArguments("r").WithLocation(9, 17),
+                // (18,42): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new Container { item = { field = ref x } }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(18, 42),
+                // (25,38): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container { item = { field = ref x } }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(25, 38),
+                // (31,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(31, 16)
+                );
+        }
+
+        [Fact]
+        public void RefWith()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x = 42;
+        var r = new R() with { field = ref x };
+        System.Console.Write(r.ToString());
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main",
+"""
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R V_1, //r
+                R V_2)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    "R"
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  stfld      "ref int R.field"
+  IL_0014:  ldloc.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  constrained. "R"
+  IL_001e:  callvirt   "string object.ToString()"
+  IL_0023:  call       "void System.Console.Write(string)"
+  IL_0028:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefWith_Escape()
+        {
+            var source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R() with { field = ref x };
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R() with { field = ref x };
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R() with { field = ref x }; // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R() with { field = ref x }; // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R() with { field = ref x }; // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,32): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R() with { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(20, 32),
+                // (29,32): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R() with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(29, 32),
+                // (36,28): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R() with { field = ref x }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 28)
+                );
+        }
+
+        [Fact]
+        public void RefScoped()
+        {
+            var source =
+@"ref struct R
+{
+    ref scoped R field;
+}";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R").WithLocation(3, 5),
+                // (3,9): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 9),
+                // (3,18): error CS0523: Struct member 'R.field' of type 'R' causes a cycle in the struct layout
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("R.field", "R").WithLocation(3, 18),
+                // (3,18): warning CS0169: The field 'R.field' is never used
+                //     ref scoped R field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("R.field").WithLocation(3, 18)
+                );
+
+            source =
+@"ref struct R
+{
+    ref scoped R Property { get => throw null; }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //     ref scoped R Property { get => throw null; }
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 9)
+                );
+
+            source =
+@"ref struct R
+{
+    void M(ref scoped R parameter) 
+    { 
+    }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     void M(ref scoped R parameter) 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(3, 16)
+                );
+
+            source =
+@"ref struct R
+{
+    void M(in scoped R parameter) 
+    { 
+    }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,15): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
+                //     void M(in scoped R parameter) 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "in").WithLocation(3, 15)
+                );
+
+            source =
+@"ref struct R
+{
+    void M(out scoped R parameter) 
+    { 
+    }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
+                //     void M(out scoped R parameter) 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "out").WithLocation(3, 16)
+                );
+
+            source =
+@"ref struct R
+{
+    void M(ref scoped scoped R parameter) 
+    { 
+    }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     void M(ref scoped scoped R parameter) 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(3, 16),
+                // (3,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     void M(ref scoped scoped R parameter) 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(3, 23)
+                );
+
+            source =
+@"ref struct R
+{
+    void M() 
+    { 
+        ref scoped R local;
+    }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //         ref scoped R local;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 13),
+                // (5,22): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         ref scoped R local;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "local").WithLocation(5, 22),
+                // (5,22): warning CS0168: The variable 'local' is declared but never used
+                //         ref scoped R local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 22)
+                );
+
+            source =
+@"ref struct R
+{
+    void M() 
+    { 
+        scoped ref scoped R local;
+    }
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //         scoped ref scoped R local;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 20),
+                // (5,29): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         scoped ref scoped R local;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "local").WithLocation(5, 29),
+                // (5,29): warning CS0168: The variable 'local' is declared but never used
+                //         scoped ref scoped R local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 29)
+                );
+
+            source =
+@"ref struct R
+{
+    ref scoped R M() => throw null;
+}";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //     ref scoped R M() => throw null;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 9)
+                );
+
+            source = @"
+delegate void M(ref scoped R parameter);
+ref struct R { }
+";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                // delegate void M(ref scoped R parameter);
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(2, 21)
+                );
+
+            source = @"
+ref struct R
+{
+    void M()
+    {
+        _ = void (ref scoped R parameter) => throw null;
+    }
+}
+";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = void (ref scoped R parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9),
+                // (6,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //         _ = void (ref scoped R parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(6, 23)
+                );
+        }
+
+        [Theory, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("record")]
+        public void ScopedReserved_Type(string typeKind)
+        {
+            var source = $$"""
+{{typeKind}} scoped { }
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped")
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
+                // struct scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped")
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Type_Escaped()
+        {
+            var source = """
+class @scoped { }
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_TypeParameter()
+        {
+            var source = """
+class C<scoped> { } // 1
+class C2<@scoped> { }
+
+class D
+{
+    void M()
+    {
+        local<object>();
+        void local<scoped>() { } // 2
+    }
+
+    void M2()
+    {
+        local<object>();
+        void local<@scoped>() { }
+    }
+}
+
+class D2
+{
+    void M<scoped>() { } // 3
+    void M2<@scoped>() { }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,9): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class C<scoped> { } // 1
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 9),
+                // (9,20): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         void local<scoped>() { } // 2
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(9, 20),
+                // (21,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     void M<scoped>() { } // 3
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(21, 12)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS9062: Types and aliases cannot be named 'scoped'.
+                // class C<scoped> { } // 1
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 9),
+                // (9,20): error CS9062: Types and aliases cannot be named 'scoped'.
+                //         void local<scoped>() { } // 2
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(9, 20),
+                // (21,12): error CS9062: Types and aliases cannot be named 'scoped'.
+                //     void M<scoped>() { } // 3
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(21, 12)
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Alias()
+        {
+            var source = """
+using scoped = System.Int32;
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using scoped = System.Int32;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using scoped = System.Int32;").WithLocation(1, 1),
+                // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7)
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Alias_Escaped()
+        {
+            var source = """
+using @scoped = System.Int32;
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
+                );
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        public void UnscopedRefAttribute_Method_01(string type)
+        {
+            var source =
+$@"using System.Diagnostics.CodeAnalysis;
+{type} S1
+{{
+    private int _field;
+    public ref int GetField1() => ref _field; // 1
+    [UnscopedRef] public ref int GetField2() => ref _field;
+}}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (5,39): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public ref int GetField1() => ref _field; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "_field").WithLocation(5, 39));
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        public void UnscopedRefAttribute_Method_02(string type)
+        {
+            var source =
+$@"using System.Diagnostics.CodeAnalysis;
+{type} S
+{{
+    ref S F1()
+    {{
+        ref S s1 = ref this;
+        return ref s1;
+    }}
+    [UnscopedRef] ref S F2()
+    {{
+        ref S s2 = ref this;
+        return ref s2;
+    }}
+}}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8157: Cannot return 's1' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref s1;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void UnscopedRefAttribute_Method_03(bool useCompilationReference)
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public struct S<T>
+{
+    private T _t;
+    public ref T F1() => throw null;
+    [UnscopedRef] public ref T F2() => ref _t;
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1()
+    {
+        var s = new S<int>();
+        return ref s.F1();
+    }
+    static ref int F2()
+    {
+        var s = new S<int>();
+        return ref s.F2(); // 1
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                //         return ref s.F2(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Property_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+struct S1
+{
+    private int _field;
+    public ref int Property1 => ref _field; // 1
+    [UnscopedRef] public ref int Property2 => ref _field;
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (5,37): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public ref int Property1 => ref _field; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "_field").WithLocation(5, 37));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void UnscopedRefAttribute_Property_02(bool useCompilationReference)
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public struct S<T>
+{
+    private T _t;
+    public ref T P1 => throw null;
+    [UnscopedRef] public ref T P2 => ref _t;
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1()
+    {
+        var s = new S<int>();
+        return ref s.P1;
+    }
+    static ref int F2()
+    {
+        var s = new S<int>();
+        return ref s.P2; // 1
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                //         return ref s.P2; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Property_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    [UnscopedRef] object P1 { get; }
+    [UnscopedRef] object P2 { get; set; }
+    [UnscopedRef] object P3 { get; init; } // 1
+    object P5
+    {
+        [UnscopedRef] get;
+        [UnscopedRef] set;
+    }
+    object P6
+    {
+        [UnscopedRef] get;
+        [UnscopedRef] init; // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef] object P3 { get; init; } // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6),
+                // (15,10): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //         [UnscopedRef] init; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(15, 10));
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        public void UnscopedRefAttribute_Accessor_01(string type)
+        {
+            var source =
+$@"using System.Diagnostics.CodeAnalysis;
+{type} S<T>
+{{
+    private T _t;
+    ref T P1
+    {{
+        get => ref _t; // 1
+    }}
+    ref T P2
+    {{
+        [UnscopedRef]
+        get => ref _t;
+    }}
+}}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         get => ref _t; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "_t").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Accessor_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+    public ref T F;
+}
+struct A
+{
+    R<A> this[int i]
+    {
+        get { return default; }
+        set { value.F = ref this; } // 1
+    }
+}
+struct B
+{
+    R<B> this[int i]
+    {
+        get { return default; }
+        [UnscopedRef]
+        set { value.F = ref this; }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         set { value.F = ref this; } // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 15));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Accessor_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+    public ref T F;
+}
+struct A
+{
+    R<A> this[int i]
+    {
+        get { return default; }
+        init { value.F = ref this; } // 1
+    }
+}
+struct B
+{
+    R<B> this[int i]
+    {
+        get { return default; }
+        [UnscopedRef]
+        init { value.F = ref this; } // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         init { value.F = ref this; } // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 16),
+                // (19,10): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //         [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(19, 10),
+                // (20,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         init { value.F = ref this; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefAttribute_SubstitutedMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R1<T>
+{
+    private T _t;
+    public R1(T t) { _t = t; }
+    public ref T Get() => ref this[0];
+    public ref T this[int index] => throw null;
+}
+public ref struct R2<T>
+{
+    private T _t;
+    public R2(T t) { _t = t; }
+    [UnscopedRef] public ref T Get() => ref this[0];
+    [UnscopedRef] public ref T this[int index] => ref _t;
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics();
+
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1(bool b)
+    {
+        R1<int> r1 = new R1<int>(1);
+        if (b) return ref r1.Get();
+        return ref r1[0];
+    }
+    static ref int F2(bool b)
+    {
+        R2<int> r2 = new R2<int>(2);
+        if (b) return ref r2.Get(); // 1
+        return ref r2[0]; // 2
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics(
+                // (12,27): error CS8168: Cannot return local 'r2' by reference because it is not a ref local
+                //         if (b) return ref r2.Get(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r2").WithArguments("r2").WithLocation(12, 27),
+                // (13,20): error CS8168: Cannot return local 'r2' by reference because it is not a ref local
+                //         return ref r2[0]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r2").WithArguments("r2").WithLocation(13, 20));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text is "r1" or "r2").ToArray();
+            var types = decls.Select(d => (NamedTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).ToArray();
+
+            var type = types[0];
+            Assert.Equal("R1<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+
+            type = types[1];
+            Assert.Equal("R2<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_RetargetingMembers()
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R1<T>
+{
+    private readonly T _t;
+    public R1(T t) { _t = t; }
+    public ref readonly T Get() => ref this[0];
+    public ref readonly T this[int index] => ref _t; // 1
+}
+public ref struct R2<T>
+{
+    private readonly T _t;
+    public R2(T t) { _t = t; }
+    [UnscopedRef] public ref readonly T Get() => ref this[0];
+    [UnscopedRef] public ref readonly T this[int index] => ref _t;
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics(
+                // (7,50): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public ref readonly T this[int index] => ref _t; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "_t").WithLocation(7, 50));
+
+            var refA = comp.ToMetadataReference();
+
+            var sourceB =
+@"class Program
+{
+    static ref readonly int F1(bool b)
+    {
+        R1<int> r1 = new R1<int>(1);
+        if (b) return ref r1.Get();
+        return ref r1[0];
+    }
+    static ref readonly int F2(bool b)
+    {
+        R2<int> r2 = new R2<int>(2);
+        if (b) return ref r2.Get(); // 1
+        return ref r2[0]; // 2
+    }
+}";
+            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyEmitDiagnostics(
+                // (12,27): error CS8168: Cannot return local 'r2' by reference because it is not a ref local
+                //         if (b) return ref r2.Get(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r2").WithArguments("r2").WithLocation(12, 27),
+                // (13,20): error CS8168: Cannot return local 'r2' by reference because it is not a ref local
+                //         return ref r2[0]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r2").WithArguments("r2").WithLocation(13, 20));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text is "r1" or "r2").ToArray();
+            var types = decls.Select(d => (NamedTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).ToArray();
+
+            var type = types[0];
+            var underlyingType = (RetargetingNamedTypeSymbol)type.OriginalDefinition;
+            Assert.Equal("R1<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+
+            type = types[1];
+            underlyingType = (RetargetingNamedTypeSymbol)type.OriginalDefinition;
+            Assert.Equal("R2<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Constructor()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+    public ref T F;
+}
+struct A
+{
+    A(R<A> r)
+    {
+        r.F = ref this; // 1
+    }
+}
+struct B
+{
+    [UnscopedRef]
+    B(R<B> r)
+    {
+        r.F = ref this; // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         r.F = ref this; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(10, 9),
+                // (15,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(15, 6),
+                // (18,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         r.F = ref this; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(18, 9));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_StaticMembers()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    [UnscopedRef] static S() { } // 1
+    [UnscopedRef] static object F() => null; // 2
+    [UnscopedRef] static object P => null; // 3
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef] static S() { } // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 6),
+                // (5,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef] static object F() => null; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 6),
+                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef] static object P => null; // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_OtherTypes()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+class C
+{
+    [UnscopedRef] object F1() => null; // 1
+}
+record R
+{
+    [UnscopedRef] object F2() => null; // 2
+}
+record struct S
+{
+    [UnscopedRef] object F3() => null;
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef] object F1() => null; // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 6),
+                // (8,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     [UnscopedRef] object F2() => null; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 6));
+        }
+
+        [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
+        [Fact]
+        public void UnscopedRefAttribute_RefRefStructParameter_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R { }
+class Program
+{
+    static ref R ReturnRefStructRef(bool b, ref R x, [UnscopedRef] ref R y)
+    {
+        if (b)
+            return ref x; // 1
+        else
+            return ref y;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (8,24): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //             return ref x; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(8, 24));
+
+            var parameters = comp.GetMember<MethodSymbol>("Program.ReturnRefStructRef").Parameters;
+            VerifyParameterSymbol(parameters[1], "ref R x", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(parameters[2], "ref R y", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [CombinatorialData]
+        [Theory, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
+        public void UnscopedRefAttribute_RefRefStructParameter_02(bool useCompilationReference)
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+public class A<T>
+{
+    public ref T F1A(ref R<T> r1)
+    {
+        return ref r1.F;
+    }
+    public ref T F2A(scoped ref R<T> r2)
+    {
+        return ref r2.F;
+    }
+    public ref T F3A([UnscopedRef] ref R<T> r3)
+    {
+        return ref r3.F;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB1 =
+@"class B1 : A<int>
+{
+    ref int F1B()
+    {
+        int i = 1;
+        var r = new R<int>(ref i);
+        return ref F1A(ref r); // 1
+    }
+    ref int F2B()
+    {
+        int i = 2;
+        var r = new R<int>(ref i);
+        return ref F2A(ref r); // 2
+    }
+    ref int F3B()
+    {
+        int i = 3;
+        var r = new R<int>(ref i);
+        return ref F3A(ref r); // 3
+    }
+}";
+            comp = CreateCompilation(sourceB1, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
+                //         return ref F1A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref r)").WithArguments("A<int>.F1A(ref R<int>)", "r1").WithLocation(7, 20),
+                // (7,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref F1A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(7, 28),
+                // (13,20): error CS8347: Cannot use a result of 'A<int>.F2A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r2' outside of their declaration scope
+                //         return ref F2A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F2A(ref r)").WithArguments("A<int>.F2A(ref R<int>)", "r2").WithLocation(13, 20),
+                // (13,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref F2A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 28),
+                // (19,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                //         return ref F3A(ref r); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(19, 20),
+                // (19,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref F3A(ref r); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 28));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.Unscoped);
+
+            var sourceB2 =
+@"class B2 : A<int>
+{
+    ref int F1B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F1A(ref r);
+    }
+    ref int F2B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F2A(ref r);
+    }
+    ref int F3B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F3A(ref r); // 1
+    }
+}";
+            comp = CreateCompilation(sourceB2, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (16,20): error CS8350: This combination of arguments to 'A<int>.F3A(ref R<int>)' is disallowed because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                //         return ref F3A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
+                // (16,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                //         return ref F3A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28));
+        }
+
+        [Fact, WorkItem(63057, "https://github.com/dotnet/roslyn/issues/63057")]
+        public void UnscopedScoped_Source()
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+public class A<T>
+{
+    public ref T F1([UnscopedRef] scoped ref R<T> r1) // 1
+    {
+        return ref r1.F;
+    }
+    public ref T F2([UnscopedRef] scoped out T t2) // 2
+    {
+        t2 = default;
+        return ref t2;
+    }
+    public ref T F3([UnscopedRef] scoped in R<T> t3) // 3
+    {
+        throw null;
+    }
+    public ref T F4([UnscopedRef] scoped R<T> t4) // 4
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F1([UnscopedRef] scoped ref R<T> r1) // 1
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(9, 22),
+                // (13,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F2([UnscopedRef] scoped out T t2) // 2
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(13, 22),
+                // (18,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F3([UnscopedRef] scoped in R<T> t3) // 3
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(18, 22),
+                // (22,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F4([UnscopedRef] scoped R<T> t4) // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(22, 22));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            VerifyParameterSymbol(type.GetMethod("F1").Parameters[0], "ref R<T> r1", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F2").Parameters[0], "out T t2", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F3").Parameters[0], "in R<T> t3", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F4").Parameters[0], "R<T> t4", RefKind.None, DeclarationScope.Unscoped);
+        }
+
+        [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
+        public void UnscopedScoped_Metadata()
+        {
+            // Equivalent to:
+            // public class A<T>
+            // {
+            //      public ref T F4([UnscopedRef] scoped R<T> t4) { throw null; }
+            // }
+            var ilSource = """
+.class public sequential ansi sealed beforefieldinit R`1<T>
+	extends [mscorlib]System.ValueType
+{
+	.method public hidebysig specialname rtspecialname instance void .ctor ( !T& t ) cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class public auto ansi beforefieldinit A`1<T>
+	extends [mscorlib]System.Object
+{
+    // [UnscopedRef] scoped parameter
+	.method public hidebysig instance !T& F4A ( valuetype R`1<!T>& r4 ) cil managed
+	{
+		.param [1]
+			.custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+			.custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+	.method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ScopedRefAttribute
+	extends [mscorlib]System.Attribute
+{
+	.method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute
+	extends [mscorlib]System.Attribute
+{
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+""";
+            var refA = CompileIL(ilSource);
+
+            var sourceB =
+@"class B : A<int>
+{
+    ref int F4B()
+    {
+        int i = 4;
+        var r = new R<int>(ref i);
+        return ref F4A(ref r); // 1
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS0570: 'A<T>.F4A(ref R<T>)' is not supported by the language
+                //         return ref F4A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F4A").WithArguments("A<T>.F4A(ref R<T>)").WithLocation(7, 20));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_OutParameter_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static ref int ReturnOut(bool b, out int x, [UnscopedRef] out int y)
+    {
+        x = 1;
+        y = 2;
+        if (b)
+            return ref x; // 1
+        else
+            return ref y;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (9,24): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //             return ref x; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(9, 24));
+
+            var parameters = comp.GetMember<MethodSymbol>("Program.ReturnOut").Parameters;
+            VerifyParameterSymbol(parameters[1], "out System.Int32 x", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(parameters[2], "out System.Int32 y", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void UnscopedRefAttribute_OutParameter_02(bool useCompilationReference)
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public class A<T>
+{
+    public ref T F1A(out T t1)
+    {
+        throw null;
+    }
+    public ref T F2A(scoped out T t2)
+    {
+        throw null;
+    }
+    public ref T F3A([UnscopedRef] out T t3)
+    {
+        t3 = default;
+        return ref t3;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A<int>
+{
+    ref int F1B()
+    {
+        int i = 1;
+        return ref F1A(out i);
+    }
+    ref int F2B()
+    {
+        int i = 2;
+        return ref F2A(out i);
+    }
+    ref int F3B()
+    {
+        int i = 3;
+        return ref F3A(out i); // 1
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (16,20): error CS8347: Cannot use a result of 'A<int>.F3A(out int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
+                //         return ref F3A(out i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(out i)").WithArguments("A<int>.F3A(out int)", "t3").WithLocation(16, 20),
+                // (16,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F3A(out i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "out System.Int32 t1", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "out System.Int32 t2", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "out System.Int32 t3", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_RefParameter()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class A<T>
+{
+    public ref T F1A(ref T t1) => ref t1;
+    public ref T F2A(scoped ref T t2) => throw null;
+    public ref T F3A([UnscopedRef] ref T t3) => ref t3;
+    public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
+}
+class B : A<int>
+{
+    ref int F1B()
+    {
+        int i = 1;
+        return ref F1A(ref i); // 1
+    }
+    ref int F2B()
+    {
+        int i = 2;
+        return ref F2A(ref i);
+    }
+    ref int F3B()
+    {
+        int i = 3;
+        return ref F3A(ref i); // 2
+    }
+    ref int F4B()
+    {
+        int i = 4;
+        return ref F4A(ref i); // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F3A([UnscopedRef] ref T t3) => ref t3;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 23),
+                // (7,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(7, 23),
+                // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
+                //         return ref F1A(ref i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref i)").WithArguments("A<int>.F1A(ref int)", "t1").WithLocation(14, 20),
+                // (14,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F1A(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(14, 28),
+                // (24,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
+                //         return ref F3A(ref i); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref i)").WithArguments("A<int>.F3A(ref int)", "t3").WithLocation(24, 20),
+                // (24,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F3A(ref i); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(24, 28),
+                // (29,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
+                //         return ref F4A(ref i); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref i)").WithArguments("A<int>.F4A(ref int)", "t4").WithLocation(29, 20),
+                // (29,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F4A(ref i); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 28));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref System.Int32 t1", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref System.Int32 t2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref System.Int32 t3", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref System.Int32 t4", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InParameter()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class A<T>
+{
+    public ref readonly T F1A(in T t1) => ref t1;
+    public ref readonly T F2A(scoped in T t2) => throw null;
+    public ref readonly T F3A([UnscopedRef] in T t3) => ref t3;
+    public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
+}
+class B : A<int>
+{
+    ref readonly int F1B()
+    {
+        int i = 1;
+        return ref F1A(in i); // 1
+    }
+    ref readonly int F2B()
+    {
+        int i = 2;
+        return ref F2A(in i);
+    }
+    ref readonly int F3B()
+    {
+        int i = 3;
+        return ref F3A(in i); // 2
+    }
+    ref readonly int F4B()
+    {
+        int i = 4;
+        return ref F4A(in i); // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (6,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref readonly T F3A([UnscopedRef] in T t3) => ref t3;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 32),
+                // (7,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(7, 32),
+                // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(in int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
+                //         return ref F1A(in i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(in i)").WithArguments("A<int>.F1A(in int)", "t1").WithLocation(14, 20),
+                // (14,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F1A(in i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(14, 27),
+                // (24,20): error CS8347: Cannot use a result of 'A<int>.F3A(in int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
+                //         return ref F3A(in i); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(in i)").WithArguments("A<int>.F3A(in int)", "t3").WithLocation(24, 20),
+                // (24,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F3A(in i); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(24, 27),
+                // (29,20): error CS8347: Cannot use a result of 'A<int>.F4A(in int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
+                //         return ref F4A(in i); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(in i)").WithArguments("A<int>.F4A(in int)", "t4").WithLocation(29, 20),
+                // (29,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F4A(in i); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 27));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "in System.Int32 t1", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped in System.Int32 t2", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "in System.Int32 t3", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "in System.Int32 t4", RefKind.In, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_RefStructParameter_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+public class A<T>
+{
+    public ref T F1A(R<T> r1)
+    {
+        return ref r1.F;
+    }
+    public ref T F2A(scoped R<T> r2)
+    {
+        throw null;
+    }
+    public ref T F3A([UnscopedRef] R<T> r3)
+    {
+        return ref r3.F;
+    }
+    public ref T F4A([UnscopedRef] scoped R<T> r4)
+    {
+        return ref r4.F;
+    }
+}
+class B : A<int>
+{
+    ref int F1B()
+    {
+        int i = 1;
+        var r = new R<int>(ref i);
+        return ref F1A(r); // 1
+    }
+    ref int F2B()
+    {
+        int i = 2;
+        var r = new R<int>(ref i);
+        return ref F2A(r);
+    }
+    ref int F3B()
+    {
+        int i = 3;
+        var r = new R<int>(ref i);
+        return ref F3A(r); // 2
+    }
+    ref int F4B()
+    {
+        int i = 4;
+        var r = new R<int>(ref i);
+        return ref F4A(r); // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (17,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F3A([UnscopedRef] R<T> r3)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(17, 23),
+                // (21,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F4A([UnscopedRef] scoped R<T> r4)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(21, 23),
+                // (32,20): error CS8347: Cannot use a result of 'A<int>.F1A(R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
+                //         return ref F1A(r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(r)").WithArguments("A<int>.F1A(R<int>)", "r1").WithLocation(32, 20),
+                // (32,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref F1A(r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(32, 24),
+                // (44,20): error CS8347: Cannot use a result of 'A<int>.F3A(R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                //         return ref F3A(r); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(r)").WithArguments("A<int>.F3A(R<int>)", "r3").WithLocation(44, 20),
+                // (44,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref F3A(r); // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(44, 24),
+                // (50,20): error CS8347: Cannot use a result of 'A<int>.F4A(R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
+                //         return ref F4A(r); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(r)").WithArguments("A<int>.F4A(R<int>)", "r4").WithLocation(50, 20),
+                // (50,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref F4A(r); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(50, 24));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "R<System.Int32> r1", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped R<System.Int32> r2", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "R<System.Int32> r3", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "R<System.Int32> r4", RefKind.None, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_RefStructParameter_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+}
+class Program
+{
+    static void F1<T>([UnscopedRef] R<T> r1) { }
+    static void F2<T>([UnscopedRef] ref R<T> r2) { }
+    static void F3<T>([UnscopedRef] in R<T> r3) { }
+    static void F4<T>([UnscopedRef] out R<T> r4) { r4 = default; }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (8,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static void F1<T>([UnscopedRef] R<T> r1) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 24));
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "R<T> r1", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "ref R<T> r2", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "in R<T> r3", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "out R<T> r4", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Overrides_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+abstract class A<T>
+{
+    internal abstract void F1(out T t);
+    internal abstract void F2([UnscopedRef] out T t);
+}
+class B1 : A<int>
+{
+    internal override void F1(out int i) { i = 0; }
+    internal override void F2([UnscopedRef] out int i) { i = 0; }
+}
+class B2 : A<int>
+{
+    internal override void F1([UnscopedRef] out int i) { i = 0; } // 1
+    internal override void F2(out int i) { i = 0; } // 2
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2.
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (14,28): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                //     internal override void F1([UnscopedRef] out int i) { i = 0; } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(14, 28),
+                // (15,28): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                //     internal override void F2(out int i) { i = 0; } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("i").WithLocation(15, 28)*/);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Overrides_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+abstract class A<T>
+{
+    internal abstract void F1(ref T t);
+    internal abstract void F2([UnscopedRef] ref T t);
+}
+class B1 : A<int>
+{
+    internal override void F1(ref int i) { }
+    internal override void F2([UnscopedRef] ref int i) { }
+}
+class B2 : A<int>
+{
+    internal override void F1([UnscopedRef] ref int i) { }
+    internal override void F2(ref int i) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (5,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     internal abstract void F2([UnscopedRef] ref T t);
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 32),
+                // (10,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     internal override void F2([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 32),
+                // (14,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     internal override void F1([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 32));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Overrides_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+}
+abstract class A<T>
+{
+    internal abstract void F1(ref R<T> r);
+    internal abstract void F2([UnscopedRef] ref R<T> r);
+}
+class B1 : A<int>
+{
+    internal override void F1(ref R<int> r) { }
+    internal override void F2([UnscopedRef] ref R<int> r) { }
+}
+class B2 : A<int>
+{
+    internal override void F1([UnscopedRef] ref R<int> r) { } // 1
+    internal override void F2(ref R<int> r) { } // 2
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (17,28): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     internal override void F1([UnscopedRef] ref R<int> r) { } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(17, 28),
+                // (18,28): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     internal override void F2(ref R<int> r) { } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(18, 28)*/);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Implementations_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+interface I<T>
+{
+    void F1(out T t);
+    void F2([UnscopedRef] out T t);
+}
+class C1 : I<int>
+{
+    public void F1(out int i) { i = 0; }
+    public void F2([UnscopedRef] out int i) { i = 0; }
+}
+class C2 : I<int>
+{
+    public void F1([UnscopedRef] out int i) { i = 0; } // 1
+    public void F2(out int i) { i = 0; } // 2
+}
+class C3 : I<object>
+{
+    void I<object>.F1(out object o) { o = null; }
+    void I<object>.F2([UnscopedRef] out object o) { o = null; }
+}
+class C4 : I<object>
+{
+    void I<object>.F1([UnscopedRef] out object o) { o = null; } // 3
+    void I<object>.F2(out object o) { o = null; } // 4
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2 and 4.
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (14,17): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                //     public void F1([UnscopedRef] out int i) { i = 0; } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(14, 17),
+                // (15,17): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
+                //     public void F2(out int i) { i = 0; } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("i").WithLocation(15, 17),
+                // (24,20): error CS8987: The 'scoped' modifier of parameter 'o' doesn't match overridden or implemented member.
+                //     void I<object>.F1([UnscopedRef] out object o) { o = null; } // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("o").WithLocation(24, 20),
+                // (25,20): error CS8987: The 'scoped' modifier of parameter 'o' doesn't match overridden or implemented member.
+                //     void I<object>.F2(out object o) { o = null; } // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("o").WithLocation(25, 20)*/);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Implementations_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+interface I<T>
+{
+    void F1(ref T t);
+    void F2([UnscopedRef] ref T t);
+}
+class C1 : I<int>
+{
+    public void F1(ref int i) { }
+    public void F2([UnscopedRef] ref int i) { }
+}
+class C2 : I<int>
+{
+    public void F1([UnscopedRef] ref int i) { }
+    public void F2(ref int i) { }
+}
+class C3 : I<object>
+{
+    void I<object>.F1(ref object o) { }
+    void I<object>.F2([UnscopedRef] ref object o) { }
+}
+class C4 : I<object>
+{
+    void I<object>.F1([UnscopedRef] ref object o) { }
+    void I<object>.F2(ref object o) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (5,14): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     void F2([UnscopedRef] ref T t);
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 14),
+                // (10,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public void F2([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 21),
+                // (14,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public void F1([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 21),
+                // (20,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     void I<object>.F2([UnscopedRef] ref object o) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(20, 24),
+                // (24,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     void I<object>.F1([UnscopedRef] ref object o) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(24, 24));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Implementations_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+}
+interface I<T>
+{
+    void F1(ref R<T> r);
+    void F2([UnscopedRef] ref R<T> r);
+}
+class C1 : I<int>
+{
+    public void F1(ref R<int> r) { }
+    public void F2([UnscopedRef] ref R<int> r) { }
+}
+class C2 : I<int>
+{
+    public void F1([UnscopedRef] ref R<int> r) { } // 1
+    public void F2(ref R<int> r) { } // 2
+}
+class C3 : I<object>
+{
+    void I<object>.F1(ref R<object> r) { }
+    void I<object>.F2([UnscopedRef] ref R<object> r) { }
+}
+class C4 : I<object>
+{
+    void I<object>.F1([UnscopedRef] ref R<object> r) { } // 3
+    void I<object>.F2(ref R<object> r) { } // 4
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (17,17): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public void F1([UnscopedRef] ref R<int> r) { } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(17, 17),
+                // (18,17): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public void F2(ref R<int> r) { } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(18, 17),
+                // (27,20): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     void I<object>.F1([UnscopedRef] ref R<object> r) { } // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(27, 20),
+                // (28,20): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     void I<object>.F2(ref R<object> r) { } // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(28, 20)*/);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Delegates_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+delegate void D1<T>(out T t);
+delegate void D2<T>([UnscopedRef] out T t);
+class Program
+{
+    static void Main()
+    {
+        D1<int> d1;
+        d1 = (out int i1) => { i1 = 1; };
+        d1 = ([UnscopedRef] out int i2) => { i2 = 2; }; // 1
+        D2<object> d2;
+        d2 = (out object o1) => { o1 = 1; }; // 2
+        d2 = ([UnscopedRef] out object o2) => { o2 = 2; };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2.
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (10,14): error CS8986: The 'scoped' modifier of parameter 'i2' doesn't match target 'D1<int>'.
+                //         d1 = ([UnscopedRef] out int i2) => { i2 = 2; }; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "([UnscopedRef] out int i2) => { i2 = 2; }").WithArguments("i2", "D1<int>").WithLocation(10, 14),
+                // (12,14): error CS8986: The 'scoped' modifier of parameter 'o1' doesn't match target 'D2<object>'.
+                //         d2 = (out object o1) => { o1 = 1; }; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(out object o1) => { o1 = 1; }").WithArguments("o1", "D2<object>").WithLocation(12, 14)*/);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "out System.Int32 i1", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "out System.Int32 i2", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(lambdas[2].Parameters[0], "out System.Object o1", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[3].Parameters[0], "out System.Object o2", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Delegates_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+delegate void D1<T>(ref T t);
+delegate void D2<T>([UnscopedRef] ref T t);
+class Program
+{
+    static void Main()
+    {
+        D1<int> d1;
+        d1 = (ref int i1) => { };
+        d1 = ([UnscopedRef] ref int i2) => { };
+        D2<object> d2;
+        d2 = (ref object o1) => { };
+        d2 = ([UnscopedRef] ref object o2) => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (3,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                // delegate void D2<T>([UnscopedRef] ref T t);
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(3, 22),
+                // (10,16): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //         d1 = ([UnscopedRef] ref int i2) => { };
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 16),
+                // (13,16): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //         d2 = ([UnscopedRef] ref object o2) => { };
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(13, 16));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Delegates_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T> { }
+delegate void D1<T>(ref R<T> r);
+delegate void D2<T>([UnscopedRef] ref R<T> r);
+class Program
+{
+    static void Main()
+    {
+        D1<int> d1;
+        d1 = (ref R<int> r1) => { };
+        d1 = ([UnscopedRef] ref R<int> r2) => { }; // 1
+        D2<object> d2;
+        d2 = (ref R<object> r1) => { }; // 2
+        d2 = ([UnscopedRef] ref R<object> r2) => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // delegate conversions until variance is supported.
+            comp.VerifyDiagnostics(/*
+                // (11,14): error CS8986: The 'scoped' modifier of parameter 'r2' doesn't match target 'D1<int>'.
+                //         d1 = ([UnscopedRef] ref R<int> r2) => { }; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "([UnscopedRef] ref R<int> r2) => { }").WithArguments("r2", "D1<int>").WithLocation(11, 14),
+                // (13,14): error CS8986: The 'scoped' modifier of parameter 'r1' doesn't match target 'D2<object>'.
+                //         d2 = (ref R<object> r1) => { }; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R<object> r1) => { }").WithArguments("r1", "D2<object>").WithLocation(13, 14)*/);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Cycle()
+        {
+            var source =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+        public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,38): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
+                //         public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("i", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(out int)").WithLocation(5, 38));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_UnexpectedConstructorArgument()
+        {
+            var sourceA =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+        public UnscopedRefAttribute(bool b) { }
+    }
+}";
+            var sourceB =
+@"using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static ref int F1([UnscopedRef] out int i1)
+    {
+        i1 = 0;
+        return ref i1;
+    }
+    static ref int F2([UnscopedRef(true)] out int i2)
+    {
+        i2 = 0;
+        return ref i2;
+    }
+    static ref int F3()
+    {
+        int i3;
+        return ref F1(out i3);
+    }
+    static ref int F4()
+    {
+        int i4;
+        return ref F2(out i4);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (4,24): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
+                //     static ref int F1([UnscopedRef] out int i1)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("b", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(bool)").WithLocation(4, 24),
+                // (12,20): error CS8166: Cannot return a parameter by reference 'i2' because it is not a ref parameter
+                //         return ref i2;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i2").WithArguments("i2").WithLocation(12, 20),
+                // (17,20): error CS8347: Cannot use a result of 'Program.F1(out int)' in this context because it may expose variables referenced by parameter 'i1' outside of their declaration scope
+                //         return ref F1(out i3);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out i3)").WithArguments("Program.F1(out int)", "i1").WithLocation(17, 20),
+                // (17,27): error CS8168: Cannot return local 'i3' by reference because it is not a ref local
+                //         return ref F1(out i3);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i3").WithArguments("i3").WithLocation(17, 27));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_InvalidConstructorArgument()
+        {
+            var sourceA =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+        public UnscopedRefAttribute(bool b) { }
+    }
+}";
+            var sourceB =
+@"using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static bool F1()
+    {
+        return true;
+    }
+    static ref int F2([UnscopedRef(F1())] out int i)
+    {
+        i = 0;
+        return ref i;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (8,36): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static ref int F2([UnscopedRef(F1())] out int i)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F1()").WithLocation(8, 36),
+                // (11,20): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_ScopeRefAttribute()
+        {
+            var sourceA =
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public A
+{
+  .method public static int32& NoAttributes([out] int32& i)
+  {
+    ldnull
+    throw
+  }
+  .method public static int32& ScopedRefOnly([out] int32& i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+  .method public static int32& UnscopedRefOnly([out] int32& i)
+  {
+    .param [1]
+    .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public static int32& ScopedRefAndUnscopedRef([out] int32& i)
+  {
+    .param [1]
+    .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 ) 
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+}
+";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1()
+    {
+        int i;
+        return ref A.NoAttributes(out i);
+    }
+    static ref int F2()
+    {
+        int i;
+        return ref A.ScopedRefOnly(out i);
+    }
+    static ref int F3()
+    {
+        int i;
+        return ref A.UnscopedRefOnly(out i); // 1
+    }
+    static ref int F4()
+    {
+        int i;
+        return ref A.ScopedRefAndUnscopedRef(out i); // 2
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (16,20): error CS8347: Cannot use a result of 'A.UnscopedRefOnly(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref A.UnscopedRefOnly(out i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "A.UnscopedRefOnly(out i)").WithArguments("A.UnscopedRefOnly(out int)", "i").WithLocation(16, 20),
+                // (16,42): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref A.UnscopedRefOnly(out i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 42),
+                // (21,22): error CS0570: 'A.ScopedRefAndUnscopedRef(out int)' is not supported by the language
+                //         return ref A.ScopedRefAndUnscopedRef(out i); // 2
+                Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(out int)").WithLocation(21, 22));
+
+            var typeA = comp.GetMember<NamedTypeSymbol>("A");
+            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
+        public void CallUnscopedRefMethodFromScopedOne()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+
+ref struct A
+{
+    void Test()
+    {
+        this.GetSpan();
+    }
+
+    [UnscopedRef]
+    Span<byte> GetSpan() => default;
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         this.GetSpan();
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
+                );
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefSafetyRulesAttribute_01(LanguageVersion languageVersion)
+        {
+            var source =
+@"ref struct R
+{
+}
+struct S1
+{
+    void F1() { }
+}
+readonly struct S2
+{
+    void F2() { }
+}
+class A
+{
+    static void F3(out int i3) { i3 = 0; }
+    static void F4(ref R r4) { }
+    static void F5(in R r5) { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics();
+
+            bool useUpdatedRules = languageVersion == LanguageVersion.CSharp11;
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "out System.Int32 i3", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "ref R r4", RefKind.Ref, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[0], "in R r5", RefKind.In, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_02(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R
+{
+}
+public struct S1
+{
+    public void F1() { }
+}
+public readonly struct S2
+{
+    public void F2() { }
+}
+public class A
+{
+    public static void F3(out int i3) { i3 = 0; }
+    public static void F4(ref R r4) { }
+    public static void F5(in R r5) { }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp.VerifyDiagnostics();
+
+            bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "in S2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "out System.Int32 i3", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "ref R r4", RefKind.Ref, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[0], "in R r5", RefKind.In, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefSafetyRulesAttribute_03(LanguageVersion languageVersion)
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        var f1 = (out int i1) => { i1 = 0; };
+        var f2 = (R r2) => { };
+        var f3 = (ref R r3) => { };
+        var f4 = (in R r4) => { };
+        var f5 = (out R r5) => { r5 = default; };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var delegateTypesAndLambdas = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => getDelegateTypeAndLambda(model, d)).ToArray();
+
+            bool useUpdatedRules = languageVersion == LanguageVersion.CSharp11;
+
+            verifyParameter(delegateTypesAndLambdas[0], 0, "out System.Int32", "i1", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            verifyParameter(delegateTypesAndLambdas[1], 0, "R", "r2", RefKind.None, DeclarationScope.Unscoped);
+            verifyParameter(delegateTypesAndLambdas[2], 0, "ref R", "r3", RefKind.Ref, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            verifyParameter(delegateTypesAndLambdas[3], 0, "in R", "r4", RefKind.In, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            verifyParameter(delegateTypesAndLambdas[4], 0, "out R", "r5", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+
+            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
+            {
+                var (delegateType, lambda) = delegateTypeAndLambda;
+                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], expectedDisplayType, expectedRefKind, expectedScope);
+                VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope);
+            }
+
+            static (NamedTypeSymbol, LambdaSymbol) getDelegateTypeAndLambda(SemanticModel model, VariableDeclaratorSyntax decl)
+            {
+                var delegateType = (NamedTypeSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>().Type;
+                var value = decl.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+                var lambda = model.GetSymbolInfo(value).Symbol.GetSymbol<LambdaSymbol>();
+                return (delegateType, lambda);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_04(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R { }
+unsafe public class A
+{
+    public delegate*<out int, void> F1 = null;
+    public delegate*<R, void> F2 = null;
+    public delegate*<ref R, void> F3 = null;
+    public delegate*<in R, void> F4 = null;
+    public delegate*<out R, void> F5 = null;
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA), options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            comp.VerifyDiagnostics();
+
+            bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
+
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F1").Parameters[0], "out System.Int32", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F2").Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F3").Parameters[0], "ref R", RefKind.Ref, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in R", RefKind.In, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F5").Parameters[0], "out R", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+
+            static MethodSymbol getFunctionPointerMethod(CSharpCompilation comp, string qualifiedName) =>
+                ((FunctionPointerTypeSymbol)comp.GetMember<FieldSymbol>(qualifiedName).Type).Signature;
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefSafetyRulesAttribute_05(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R { }
+struct S
+{
+    [UnscopedRef] ref int F() => throw null;
+}
+class Program
+{
+    static void F1([UnscopedRef] out int i1) { i1 = 0; }
+    static void F2([UnscopedRef] R r2) { }
+    static void F3([UnscopedRef] ref R r3) { }
+    static void F4([UnscopedRef] in R r4) { }
+    static void F5([UnscopedRef] out R r5) { }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            if (languageVersion == LanguageVersion.CSharp11)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static void F2([UnscopedRef] R r2) { }
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 21));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static void F1([UnscopedRef] out int i1) { i1 = 0; }
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(9, 21),
+                    // (10,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static void F2([UnscopedRef] R r2) { }
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 21),
+                    // (11,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static void F3([UnscopedRef] ref R r3) { }
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(11, 21),
+                    // (12,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static void F4([UnscopedRef] in R r4) { }
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(12, 21),
+                    // (13,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static void F5([UnscopedRef] out R r5) { }
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(13, 21));
+            }
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "out System.Int32 i1", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "R r2", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref R r3", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F4").Parameters[0], "in R r4", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F5").Parameters[0], "out R r5", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_06(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+}
+public abstract class A<T>
+{
+    public abstract void F1(out T t1);
+    public abstract void F2(R<T> r2);
+    public abstract void F3(ref R<T> r3);
+    public abstract void F4(in R<T> r4);
+    public abstract void F5(out R<T> r5);
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A<int>
+{
+    public override void F1(out int i1) { i1 = 0; } // 1
+    public override void F2(R<int> r2) { }
+    public override void F3(ref R<int> r3) { } // 2
+    public override void F4(in R<int> r4) { } // 3
+    public override void F5(out R<int> r5) { r5 = default; } // 4
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            if (languageVersionA == languageVersionB)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+                // overrides or interface implementations until variance is supported.
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafetyRulesAttribute_07(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T>
+{
+}
+public interface I<T>
+{
+    void F1(out T t1);
+    void F2(R<T> r2);
+    void F3(ref R<T> r3);
+    void F4(in R<T> r4);
+    void F5(out R<T> r5);
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B1 : I<int>
+{
+    public void F1(out int i1) { i1 = 0; } // 1
+    public void F2(R<int> r2) { }
+    public void F3(ref R<int> r3) { } // 2
+    public void F4(in R<int> r4) { } // 3
+    public void F5(out R<int> r5) { r5 = default; } // 4
+}
+class B2 : I<object>
+{
+    void I<object>.F1(out object o1) { o1 = null; } // 5
+    void I<object>.F2(R<object> r2) { }
+    void I<object>.F3(ref R<object> r3) { } // 6
+    void I<object>.F4(in R<object> r4) { } // 7
+    void I<object>.F5(out R<object> r5) { r5 = default; } // 8
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            if (languageVersionA == languageVersionB)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+                // overrides or interface implementations until variance is supported.
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(11)]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
+        public void RefSafetyRulesAttribute_Version(int version)
+        {
+            var sourceA =
+$@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }}
+.assembly '<<GeneratedFileName>>' {{ }}
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = {{ int32({version}) }}
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed {{ ret }}
+  .field public int32 Version
+}}
+.class public A
+{{
+  .method public static int32& F1([out] int32& i)
+  {{
+    ldnull
+    throw
+  }}
+}}
+";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB =
+@"class B
+{
+    static ref int F2(out int i) => ref A.F1(out i);
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics();
+
+            var method = comp.GetMember<MethodSymbol>("A.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
+
+            Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DetectUpdatedEscapeRulesFromCorlib(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            [CombinatorialValues(6, 7, 8)] int majorVersion)
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyIdentity = new AssemblyIdentity("System.Runtime", new System.Version(majorVersion, 0, 0, 0));
+            var comp = CreateCompilation(assemblyIdentity, new[] { source0 }, references: null);
+            var ref0 = comp.EmitToImageReference(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
+
+            var source1 =
+@"public class A<T>
+{
+    public static void F() { }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class B : A<int>
+{
+    static void Main() { }
+}";
+            comp = CreateEmptyCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+
+            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
+
+            bool useUpdatedEscapeRules = majorVersion == 7;
+            Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+
+            module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            [CombinatorialValues(7, 8)] int higherVersion)
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyIdentityLowerVersion = new AssemblyIdentity("System.Runtime", new System.Version(6, 0, 0, 0));
+            var comp = CreateCompilation(assemblyIdentityLowerVersion, new[] { source0 }, references: null);
+            var refLowerVersion = comp.EmitToImageReference();
+
+            var assemblyIdentityHigherVersion = new AssemblyIdentity("System.Runtime", new System.Version(higherVersion, 0, 0, 0));
+            comp = CreateCompilation(assemblyIdentityHigherVersion, new[] { source0 }, references: null);
+            var refHigherVersion = comp.EmitToImageReference();
+
+            var source1 =
+@"public class A<T>
+{
+    public static void F() { }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { refLowerVersion }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            var ref1 = comp.EmitToImageReference();
+            var module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.False(module.UseUpdatedEscapeRules);
+
+            // With languageVersion == 11, UseUpdatedEscapeRules will be true for the source module,
+            // but since there are no 'out' parameters or 'ref struct' parameters, we won't emit a
+            // [RefSafetyRules], so UseUpdatedEscapeRules will be false when this is a metadata module.
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
+            Assert.False(((SourceModuleSymbol)module).RequiresRefSafetyRulesAttribute());
+
+            var source2 =
+@"class B : A<int>
+{
+    static void Main() { }
+}";
+            comp = CreateEmptyCompilation(source2, references: new[] { refHigherVersion, ref1 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentityLowerVersion, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentityHigherVersion, module.ContainingAssembly.CorLibrary.Identity);
+            Assert.False(module.UseUpdatedEscapeRules);
+
+            module = module.ContainingAssembly.CorLibrary.Modules[0];
+            bool useUpdatedEscapeRules = higherVersion == 7;
+            Assert.Equal(useUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Theory]
+        [InlineData("System.Runtime", 7, 0, true)]
+        [InlineData("System.Runtime", 7, 1, false)]
+        [InlineData("System.Runtime", 8, 0, false)]
+        [InlineData("mscorlib", 7, 0, false)]
+        [InlineData("System.Core", 7, 0, false)]
+        public void DetectUpdatedEscapeRulesFromCorlib_SystemRuntime70Only(string assemblyName, int majorVersion, int minorVersion, bool expectedUseUpdatedEscapeRules)
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyIdentity = new AssemblyIdentity(assemblyName, new System.Version(majorVersion, minorVersion, 0, 0));
+            var comp = CreateCompilation(assemblyIdentity, new[] { source0 }, references: null);
+            var ref0 = comp.EmitToImageReference(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
+
+            var source1 =
+@"public class A<T>
+{
+    public static void F() { }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 });
+            comp.VerifyEmitDiagnostics();
+            var ref1 = comp.EmitToImageReference();
+            var module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+
+            // With languageVersion == 11, UseUpdatedEscapeRules will be true for the source module,
+            // but since there are no 'out' parameters or 'ref struct' parameters, we won't emit a
+            // [RefSafetyRules], so UseUpdatedEscapeRules will be false when this is a metadata module.
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.True(module.UseUpdatedEscapeRules);
+            Assert.False(((SourceModuleSymbol)module).RequiresRefSafetyRulesAttribute());
+
+            var source2 =
+@"class B : A<int>
+{
+    static void Main() { }
+}";
+            comp = CreateEmptyCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+
+            module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
+            Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
+
+            Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+
+            module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
+            Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_01()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    var a = ([UnscopedRef] ref RefStruct s) => { };
+    var b = ([UnscopedRef] out RegularStruct s) => { };
+    var c = ([UnscopedRef] out RefStruct s) => { };
+
+    D1 x = ([UnscopedRef] ref RefStruct s) => { };
+    D2 y = ([UnscopedRef] out RegularStruct s) => { };
+    D3 z = ([UnscopedRef] out RefStruct s) => { };
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    void localA([UnscopedRef] ref RefStruct s) { };
+    void localB([UnscopedRef] out RegularStruct s) { };
+    void localC([UnscopedRef] out RefStruct s) { };
+
+    var a = localA;
+    var b = localB;
+    var c = localC;
+
+    D1 x = localA;
+    D2 y = localB;
+    D3 z = localC;
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_03()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C1
+{
+  public void M()
+  {
+    var a = A;
+    var b = B;
+    var c = C;
+
+    D1 x = A;
+    D2 y = B;
+    D3 z = C;
+  }
+
+  void A([UnscopedRef] ref RefStruct s) { }
+  void B([UnscopedRef] out RegularStruct s) { }
+  void C([UnscopedRef] out RefStruct s) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
         }
     }
 }

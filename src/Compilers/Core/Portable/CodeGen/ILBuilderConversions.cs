@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     switch (fromPredefTypeKind)
                     {
                         case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
+                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr when !@checked:
                             break; // NOP
                         case Microsoft.Cci.PrimitiveTypeCode.Int8:
                         case Microsoft.Cci.PrimitiveTypeCode.Int16:
@@ -166,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     switch (fromPredefTypeKind)
                     {
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
+                        case Microsoft.Cci.PrimitiveTypeCode.IntPtr when !@checked:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
                         case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             break; // NOP

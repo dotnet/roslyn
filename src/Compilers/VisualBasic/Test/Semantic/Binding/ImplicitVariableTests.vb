@@ -937,7 +937,7 @@ done
             expression:="x + 1",
             expectedTypeName:="System.Int32",
             symbolKind:=SymbolKind.Method,
-            expectedSymbol:="Function System.Int32.op_Addition(left As System.Int32, right As System.Int32) As System.Int32")
+            expectedSymbol:="Function System.Int32.op_CheckedAddition(left As System.Int32, right As System.Int32) As System.Int32")
         End Sub
 
 #End Region

@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -107,8 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var workspace = document.Project.Solution.Workspace;
 
                 foreach (var parameter in unspecifiedParameters)
                 {

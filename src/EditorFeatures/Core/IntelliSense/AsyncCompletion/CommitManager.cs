@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            var provider = completionService.GetProvider(roslynItem);
+            var provider = completionService.GetProvider(roslynItem, document.Project);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+            _recentItemsManager.MakeMostRecentItem(roslynItem);
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,12 +34,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // cases that won't work because the refactoring may try to add a document. There's non-trivial
             // work to support a user interaction that makes sense for those cases. 
             // See: https://github.com/dotnet/roslyn/issues/50868
-            if (!context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+            var solution = context.Document.Project.Solution;
+            if (!solution.CanApplyChange(ApplyChangesKind.AddDocument))
             {
                 return;
             }
 
-            var optionsService = _optionsService ?? context.Document.Project.Solution.Workspace.Services.GetService<IExtractClassOptionsService>();
+            var optionsService = _optionsService ?? solution.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {
                 return;
@@ -99,7 +100,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclarationNode = selectedMemberNodes.First().FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
-            Contract.ThrowIfNull(containingTypeDeclarationNode);
+            if (containingTypeDeclarationNode is null)
+            {
+                // If the containing type node isn't found exit. This could be malformed code that we don't know
+                // how to correctly handle
+                return null;
+            }
+
             if (selectedMemberNodes.Any(m => m.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration) != containingTypeDeclarationNode))
             {
                 return null;

@@ -1713,7 +1713,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1754,7 +1754,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1829,7 +1829,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,31): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 31),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1919,7 +1919,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1969,7 +1969,7 @@ class C
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
-                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,34): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
 
@@ -7142,7 +7142,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
@@ -7172,7 +7172,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,20): error CS8081: Expression does not have a name.
                 //         [My(nameof(nameof(TParameter)))] // 1
@@ -7200,7 +7200,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
@@ -7229,7 +7229,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext;
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
             var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees.Single();
@@ -7303,7 +7303,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext;
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
             var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'a' does not exist in the current context
@@ -7399,7 +7399,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
 
             // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'a' does not exist in the current context
                 //         [My(a)]
@@ -7448,7 +7448,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext;
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
             var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'positionA' does not exist in the current context
@@ -7508,7 +7508,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (13,20): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //         [My(nameof(TParameter.Constant))] // 1
@@ -8406,7 +8406,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8426,7 +8426,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8560,7 +8560,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
@@ -8617,7 +8617,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local(int parameter) { }
@@ -8656,7 +8656,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0103: The name 'nameof' does not exist in the current context
                 //         [My(nameof())]
@@ -8697,7 +8697,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (9,36): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //         void local<@parameter>(int parameter) => throw null;
@@ -8739,7 +8739,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (13,30): error CS1061: 'int' does not contain a definition for 'Constant' and no accessible extension method 'Constant' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         [My(nameof(parameter.Constant))] // 1
@@ -8773,7 +8773,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
@@ -8803,7 +8803,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext;
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
             var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'positionA' does not exist in the current context
@@ -8872,7 +8872,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { get; }");
@@ -8893,7 +8893,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { set; }");
@@ -8917,7 +8917,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter].get");
@@ -8941,7 +8941,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void C.this[System.Int32 parameter].set");
@@ -8965,7 +8965,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.this[System.Int32 parameter].init");
@@ -8988,7 +8988,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "lambda expression");
@@ -9042,7 +9042,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 MyDelegate.Invoke(System.Int32 parameter)");
@@ -9059,7 +9059,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 MyDelegate<TParameter>.Invoke(System.Int32 TParameter)", parameterName: "TParameter");
@@ -9079,7 +9079,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C..ctor(System.Int32 parameter)");
@@ -9248,7 +9248,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
@@ -9276,7 +9276,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,61): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //         void local<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
@@ -9311,7 +9311,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext;
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
             var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,24): error CS0103: The name 'positionA' does not exist in the current context
@@ -9355,7 +9355,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { get; }");
@@ -9375,7 +9375,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { set; }");
@@ -9467,7 +9467,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C..ctor(System.Int32 parameter)");
@@ -9484,7 +9484,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void MyDelegate.Invoke(System.Int32 parameter)");
@@ -9504,7 +9504,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C C.op_Implicit(System.Int32 parameter)");
@@ -9524,7 +9524,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C C.op_Addition(System.Int32 parameter, C other)");
@@ -9547,7 +9547,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "lambda expression");
@@ -9601,7 +9601,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local<T>(System.Int32 parameter)");
@@ -9629,7 +9629,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext;
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
             var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,24): error CS0103: The name 'positionA' does not exist in the current context
@@ -9670,7 +9670,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 MyDelegate<T>.Invoke(System.Int32 parameter)");

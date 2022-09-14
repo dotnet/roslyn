@@ -374,8 +374,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         switch (nts, other)
                         {
-                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileTypeInSeparateFileFrom(left, right) || isFileTypeInSeparateFileFrom(right, left):
+                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
                                 // no error
+                                break;
+                            case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
                                 break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
                                 diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
@@ -400,14 +403,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static bool isFileTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileType, SourceNamedTypeSymbol otherSymbol)
+            static bool isFileLocalTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileLocalType, SourceNamedTypeSymbol otherSymbol)
             {
-                if (!possibleFileType.IsFile)
+                if (!possibleFileLocalType.IsFileLocal)
                 {
                     return false;
                 }
 
-                var leftTree = possibleFileType.MergedDeclaration.Declarations[0].Location.SourceTree;
+                var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
                 if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
                 {
                     return false;
@@ -506,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private struct NameToSymbolMapBuilder
+        private readonly struct NameToSymbolMapBuilder
         {
             private readonly Dictionary<string, object> _dictionary;
 

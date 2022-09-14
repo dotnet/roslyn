@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 
 #if DEBUG
 using System.Collections.Immutable;
@@ -140,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModelService = workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
+            var semanticModelService = document.Project.Solution.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
 
             return semanticModelService.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
         }
