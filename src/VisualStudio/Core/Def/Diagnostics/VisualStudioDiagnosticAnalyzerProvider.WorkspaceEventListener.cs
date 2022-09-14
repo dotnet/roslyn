@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -55,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 try
                 {
-                    var provider = await _providerFactory.GetOrCreateProviderAsync().ConfigureAwait(false);
+                    var provider = await _providerFactory.GetOrCreateProviderAsync(CancellationToken.None).ConfigureAwait(false);
 
                     var references = provider.GetAnalyzerReferencesInExtensions();
                     LogWorkspaceAnalyzerCount(references.Length);

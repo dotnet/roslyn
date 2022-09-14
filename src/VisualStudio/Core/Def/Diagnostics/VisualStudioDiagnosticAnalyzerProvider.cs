@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly object _extensionManager;
         private readonly Type _typeIExtensionContent;
 
-        private readonly Lazy<ImmutableArray<(AnalyzerFileReference reference, string? extensionId)>> _lazyAnalyzerReferences;
+        private readonly Lazy<ImmutableArray<(AnalyzerFileReference reference, string extensionId)>> _lazyAnalyzerReferences;
 
         // internal for testing
         internal VisualStudioDiagnosticAnalyzerProvider(object extensionManager, Type typeIExtensionContent)
@@ -39,19 +39,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             _extensionManager = extensionManager;
             _typeIExtensionContent = typeIExtensionContent;
-            _lazyAnalyzerReferences = new Lazy<ImmutableArray<(AnalyzerFileReference, string?)>>(GetAnalyzerReferencesImpl);
+            _lazyAnalyzerReferences = new Lazy<ImmutableArray<(AnalyzerFileReference, string)>>(GetAnalyzerReferencesImpl);
         }
 
-        public ImmutableArray<(AnalyzerFileReference reference, string? extensionId)> GetAnalyzerReferencesInExtensions()
+        public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
             => _lazyAnalyzerReferences.Value;
 
-        private ImmutableArray<(AnalyzerFileReference reference, string? extensionId)> GetAnalyzerReferencesImpl()
+        private ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesImpl()
         {
             try
             {
                 // dynamic is weird. it can't see internal type with public interface even if callee is
                 // implementation of the public interface in internal type. so we can't use dynamic here
-                var _ = PooledDictionary<string, string?>.GetInstance(out var analyzePaths);
+                var _ = PooledDictionary<AnalyzerFileReference, string>.GetInstance(out var analyzePaths);
 
                 // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
                 var extensionManagerType = _extensionManager.GetType();
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     var extension_Header = extensionType_HeaderProperty.GetValue(extension);
                     var extension_HeaderType = extension_Header.GetType();
                     var extension_HeaderType_Identifier = extension_HeaderType.GetRuntimeProperty("Identifier");
-                    var identifier = extension_HeaderType_Identifier.GetValue(extension_Header) as string;
+                    var identifier = (string)extension_HeaderType_Identifier.GetValue(extension_Header);
 
                     var extensionType_ContentProperty = extensionType.GetRuntimeProperty("Content");
                     var extension_Content = (IEnumerable<object>)extensionType_ContentProperty.GetValue(extension);
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                             continue;
                         }
 
-                        analyzePaths.Add(assemblyPath, identifier);
+                        analyzePaths.Add(new AnalyzerFileReference(assemblyPath, AnalyzerAssemblyLoader), identifier);
                     }
                 }
 
@@ -92,7 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // so that we can debug it through if mandatory analyzers are missing
                 GC.KeepAlive(enabledExtensions);
 
-                return analyzePaths.SelectAsArray(pathAndId => (new AnalyzerFileReference(pathAndId.Key, AnalyzerAssemblyLoader), pathAndId.Value));
+                // Order for deterministic result.
+                return analyzePaths.OrderBy((x, y) => string.CompareOrdinal(x.Key.FullPath, y.Key.FullPath)).SelectAsArray(entry => (entry.Key, entry.Value));
             }
             catch (TargetInvocationException ex) when (ex.InnerException is InvalidOperationException)
             {
@@ -102,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 //
                 // fortunately, this only happens on disposing at shutdown, so we just catch the exception and silently swallow it. 
                 // we are about to shutdown anyway.
-                return ImmutableArray<(AnalyzerFileReference, string?)>.Empty;
+                return ImmutableArray<(AnalyzerFileReference, string)>.Empty;
             }
         }
 

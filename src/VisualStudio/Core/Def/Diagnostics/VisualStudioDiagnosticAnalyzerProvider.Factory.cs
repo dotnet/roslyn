@@ -10,13 +10,14 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
+using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
     internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
         [Export(typeof(IVisualStudioDiagnosticAnalyzerProviderFactory)), Shared]
-        internal sealed class Factory
+        internal sealed class Factory : IVisualStudioDiagnosticAnalyzerProviderFactory
         {
             private readonly IThreadingContext _threadingContext;
             private readonly IServiceProvider _serviceProvider;
@@ -31,14 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 _serviceProvider = serviceProvider;
             }
 
-            public async Task<VisualStudioDiagnosticAnalyzerProvider> GetOrCreateProviderAsync()
+            public async Task<VisualStudioDiagnosticAnalyzerProvider> GetOrCreateProviderAsync(CancellationToken cancellationToken)
             {
                 // the following code requires UI thread:
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 return GetOrCreateProviderOnMainThread();
             }
 
-            public VisualStudioDiagnosticAnalyzerProvider GetOrCreateProviderOnMainThread()
+            private VisualStudioDiagnosticAnalyzerProvider GetOrCreateProviderOnMainThread()
             {
                 Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
 

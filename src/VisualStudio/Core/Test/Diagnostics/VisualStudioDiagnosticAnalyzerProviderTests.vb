@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub GetAnalyzerReferencesInExtensions_Substitution()
             Dim extensionManager = New VisualStudioDiagnosticAnalyzerProvider(
-                New MockExtensionManager({"$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll"}),
+                New MockExtensionManager({({"$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll"}, "Vsix")}),
                 GetType(MockExtensionManager.MockContent))
 
             Dim references = extensionManager.GetAnalyzerReferencesInExtensions()
@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub GetAnalyzerReferencesInExtensions()
             Dim extensionManager = New VisualStudioDiagnosticAnalyzerProvider(
-                New MockExtensionManager({"installPath1", "installPath2", "installPath3"}),
+                New MockExtensionManager({({"installPath1", "installPath2", "installPath3"}, "Vsix")}),
                 GetType(MockExtensionManager.MockContent))
 
             Dim references = extensionManager.GetAnalyzerReferencesInExtensions()

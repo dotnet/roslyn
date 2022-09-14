@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -882,14 +883,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
+            var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
             using (_gate.DisposableWait())
             {
-                foreach (var mappedFullPath in GetMappedAnalyzerPaths(fullPath))
+                // check all mapped paths first, so that all analyzers are either added or not
+                foreach (var mappedFullPath in mappedPaths)
                 {
                     if (_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
                     {
-                        throw new ArgumentException($"'{mappedFullPath}' has already been added to this project.", nameof(mappedFullPath));
+                        throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                     }
+                }
+
+                foreach (var mappedFullPath in mappedPaths)
+                {
                     // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
                     // it once we apply the batch
                     var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == mappedFullPath);
@@ -929,14 +937,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentException("message", nameof(fullPath));
             }
 
+            var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
             using (_gate.DisposableWait())
             {
-                foreach (var mappedFullPath in GetMappedAnalyzerPaths(fullPath))
+                // check all mapped paths first, so that all analyzers are either removed or not
+                foreach (var mappedFullPath in mappedPaths)
                 {
-                    if (!_analyzerPathsToAnalyzers.TryGetValue(mappedFullPath, out var visualStudioAnalyzer))
+                    if (!_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
                     {
-                        throw new ArgumentException($"'{mappedFullPath}' is not an analyzer of this project.", nameof(mappedFullPath));
+                        throw new ArgumentException($"'{fullPath}' is not an analyzer of this project.", nameof(fullPath));
                     }
+                }
+
+                foreach (var mappedFullPath in mappedPaths)
+                {
+                    var visualStudioAnalyzer = _analyzerPathsToAnalyzers[mappedFullPath];
 
                     _analyzerPathsToAnalyzers.Remove(mappedFullPath);
 
@@ -964,30 +980,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IEnumerable<string> GetMappedAnalyzerPaths(string fullPath)
-        {
-            if (fullPath.Split(s_directorySeparator) is [.., var dir1, var dir2, var dir3, var fileName] &&
-                dir1.Equals("Sdks", StringComparison.OrdinalIgnoreCase) &&
-                dir2.Equals("Microsoft.NET.Sdk.Razor", StringComparison.OrdinalIgnoreCase) &&
-                dir3.Equals("source-generators", StringComparison.OrdinalIgnoreCase))
-            {
-                // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
+        private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
+        private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
+        private static readonly string s_razorSourceGeneratorMainAssemblyRootedFileName = PathUtilities.DirectorySeparatorStr + "Microsoft.NET.Sdk.Razor.SourceGenerators.dll";
 
-                if (fileName.Equals("Microsoft.NET.Sdk.Razor.SourceGenerators.dll", StringComparison.OrdinalIgnoreCase))
-                {
-                    foreach (var (vsixAnalyzer, extensionId) in _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions())
-                    {
-                        if (extensionId == "Microsoft.VisualStudio.RazorExtension")
-                        {
-                            yield return vsixAnalyzer.FullPath;
-                        }
-                    }
-                }
-            }
-            else
+        private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
+        {
+            // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
+            // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
+            if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
+                fullPath.LastIndexOf(Path.DirectorySeparatorChar))
             {
-                yield return fullPath;
+                if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return OneOrMany.Create(_vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+                        predicate: item => item.extensionId == RazorVsixExtensionId,
+                        selector: item => item.reference.FullPath));
+                }
+
+                return OneOrMany.Create(ImmutableArray<string>.Empty);
             }
+
+            return OneOrMany.Create(fullPath);
         }
 
         #endregion

@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? filePath
                 : null;
 
-            var vsixAnalyzerProvider = _vsixAnalyzerProviderFactory.GetOrCreateProviderOnMainThread();
+            var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
 
             // Following can be off the UI thread.
             await TaskScheduler.Default;
