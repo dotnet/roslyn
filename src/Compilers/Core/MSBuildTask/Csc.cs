@@ -388,6 +388,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                                                         "ReferenceOutputAssembly");
 
                         if (reference.GetMetadata("TargetFrameworkIdentifier").Equals(".NETFramework", StringComparison.OrdinalIgnoreCase)
+                            && reference.GetMetadata("ReferenceSourceTarget").Equals(".ProjectReference", StringComparison.OrdinalIgnoreCase)
                             && isReferenceAssembly)
                         {
                             commandLine.AppendFileNamesIfNotNull(new[] { reference.GetMetadata("OriginalItemSpec") }, " ");
