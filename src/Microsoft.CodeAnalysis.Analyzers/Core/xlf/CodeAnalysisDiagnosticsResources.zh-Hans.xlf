@@ -259,17 +259,17 @@
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
         <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
-        <target state="new">A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</target>
+        <target state="translated">包含分析器或源生成器的项目应指定属性“&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;”。</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
         <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
-        <target state="new">'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</target>
+        <target state="translated">“{0}”: 包含分析器或源生成器的项目应指定属性“&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;”</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
         <source>Specify analyzer banned API enforcement setting</source>
-        <target state="new">Specify analyzer banned API enforcement setting</target>
+        <target state="translated">指定分析器禁止的 API 强制设置</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
@@ -369,17 +369,17 @@
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">
         <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</target>
+        <target state="translated">已将该符号标记为禁止在分析器中使用，并应改用备用符号。</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersMessage">
         <source>The symbol '{0}' is banned for use by analyzers{1}</source>
-        <target state="new">The symbol '{0}' is banned for use by analyzers{1}</target>
+        <target state="translated">已禁止分析器 {1} 使用符号“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersTitle">
         <source>Do not use APIs banned for analyzers</source>
-        <target state="new">Do not use APIs banned for analyzers</target>
+        <target state="translated">不要使用禁用于分析器的 API</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
