@@ -2642,21 +2642,21 @@ ref struct R<T> { }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (9,82): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (9,82): error CS8347: Cannot use a result of 'Program.F0<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //     static ref T F00<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "y").WithLocation(9, 82),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "y").WithLocation(9, 82),
                 // (9,96): error CS8168: Cannot return local 'y' by reference because it is not a ref local
                 //     static ref T F00<T>([UnscopedRef] ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(9, 96),
-                // (13,68): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (13,68): error CS8347: Cannot use a result of 'Program.F0<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(13, 68),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(13, 68),
                 // (13,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //     static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(13, 75),
-                // (14,68): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (14,68): error CS8347: Cannot use a result of 'Program.F2<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(14, 68),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(14, 68),
                 // (14,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //     static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(14, 75)
@@ -3154,13 +3154,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (12,9): error CS8350: This combination of arguments to 'Program.F3(ref R)' is disallowed because it may expose variables referenced by parameter 'r3' outside of their declaration scope
-                //         F3(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F3(ref r1)").WithArguments("Program.F3(ref R)", "r3").WithLocation(12, 9),
-                // (12,16): error CS8168: Cannot return local 'r1' by reference because it is not a ref local
-                //         F3(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r1").WithArguments("r1").WithLocation(12, 16));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3186,19 +3180,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (12,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
-                //         F2(ref x1, ref y1); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x1, ref y1)").WithArguments("Program.F2(ref R, ref R)", "y2").WithLocation(12, 9),
-                // (12,24): error CS8168: Cannot return local 'y1' by reference because it is not a ref local
-                //         F2(ref x1, ref y1); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y1").WithArguments("y1").WithLocation(12, 24),
-                // (13,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
-                //         F2(ref y1, ref x1); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y1, ref x1)").WithArguments("Program.F2(ref R, ref R)", "y2").WithLocation(13, 9),
-                // (13,24): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
-                //         F2(ref y1, ref x1); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(13, 24));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3522,10 +3504,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (27,9): error CS8168: Cannot return local 'y2' by reference because it is not a ref local
-                //         y2.F2(ref x2); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y2").WithArguments("y2").WithLocation(27, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7076,13 +7055,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 28));
 
             comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
-                //         var y2 = F1(ref x2);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2)").WithArguments("Program.F1<T>(ref S<T>)", "x1").WithLocation(14, 18),
-                // (14,25): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
-                //         var y2 = F1(ref x2);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7116,13 +7089,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 55));
 
             comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>, ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
-                //         var z1 = F1(ref x2, ref y2);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2, ref y2)").WithArguments("Program.F1<T>(ref S<T>, ref S<T>)", "x1").WithLocation(14, 18),
-                // (14,25): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
-                //         var z1 = F1(ref x2, ref y2);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem(62098, "https://github.com/dotnet/roslyn/issues/62098")]
@@ -15058,11 +15025,11 @@ public class A<T>
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (16,20): error CS8350: This combination of arguments to 'A<int>.F3A(ref R<int>)' is disallowed because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                // (16,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
                 //         return ref F3A(ref r); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
                 // (16,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F3A(ref r); // 2
+                //         return ref F3A(ref r); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28));
         }
 
@@ -16128,9 +16095,6 @@ ref struct A
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //         this.GetSpan();
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
                 );
         }
 
@@ -16813,6 +16777,77 @@ public class C1
             }
 
             Assert.Equal(3, count);
+        }
+
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        public void UnscopedRef_ArgumentsMustMatch_01()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                ref struct RefByteContainer
+                {
+                    public ref byte RB;
+
+                    public RefByteContainer(ref byte rb)
+                    {
+                        RB = ref rb;
+                    }
+                }
+
+                ref struct ByteContainer
+                {
+                    public byte B;
+
+                    [UnscopedRef]
+                    public RefByteContainer ByteRef => new RefByteContainer(ref B);
+
+                    [UnscopedRef]
+                    public RefByteContainer GetByteRef() => new RefByteContainer(ref B);
+                }
+
+                public class Program
+                {
+                    static void M11(ref ByteContainer bc)
+                    {
+                        // ok. because ref-safe-to-escape of 'this' in 'ByteContainer.ByteRef.get' is 'ReturnOnly',
+                        // we know that 'ref bc' will not end up written to a ref field within 'bc'.
+                        _ = bc.ByteRef;
+                    }
+                    static void M12(ref ByteContainer bc)
+                    {
+                        // ok. because ref-safe-to-escape of 'this' in 'ByteContainer.GetByteRef()' is 'ReturnOnly',
+                        // we know that 'ref bc' will not end up written to a ref field within 'bc'.
+                        _ = bc.GetByteRef();
+                    }
+
+                    static void M21([UnscopedRef] ref ByteContainer bc, ref RefByteContainer rbc)
+                    {
+                        // error. ref-safe-to-escape of 'bc' is 'ReturnOnly', therefore 'bc.ByteRef' can't be assigned to a ref parameter.
+                        // this error will be enabled in a future PR before RTM.
+                        // https://github.com/dotnet/csharplang/pull/6450
+                        rbc = bc.ByteRef;
+                    }
+                    static void M22([UnscopedRef] ref ByteContainer bc, ref RefByteContainer rbc)
+                    {
+                        // error. ref-safe-to-escape of 'bc' is 'ReturnOnly', therefore 'bc.ByteRef' can't be assigned to a ref parameter.
+                        // this error will be enabled in a future PR before RTM.
+                        // https://github.com/dotnet/csharplang/pull/6450
+                        rbc = bc.GetByteRef();
+                    }
+
+                    static RefByteContainer M31([UnscopedRef] ref ByteContainer bc)
+                        // ok. ref-safe-to-escape of 'bc' is 'ReturnOnly'.
+                        => bc.ByteRef;
+
+                    static RefByteContainer M32([UnscopedRef] ref ByteContainer bc)
+                        // ok. ref-safe-to-escape of 'bc' is 'ReturnOnly'.
+                        => bc.GetByteRef();
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
         }
     }
 }
