@@ -28,11 +28,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(CompletionContext? completionContext, TSyntaxContext syntaxContext, int position, CompletionOptions options, CancellationToken cancellationToken);
-        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
-
         protected virtual CompletionItemRules GetCompletionItemRules(ImmutableArray<SymbolAndSelectionInfo> symbols)
             => CompletionItemRules.Default;
+            
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
+
+        protected abstract Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
+            CompletionContext? completionContext,
+            TSyntaxContext syntaxContext,
+            int position,
+            CompletionOptions options,
+            CancellationToken cancellationToken);
+
+        protected abstract CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
+            TSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData);
 
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
         /// because we ignore nullability.</param>
@@ -101,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                group symbol by texts into g
                                select g;
 
-            var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var itemListBuilder);
             var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
 
             foreach (var symbolGroup in symbolGroups)
@@ -123,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
+                var supportedPlatformData = ComputeSupportedPlatformData(completionContext, symbolLists, invalidProjectMap, totalProjects);
                 var item = CreateItem(
-                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
-                    symbolList, arbitraryFirstContext, invalidProjectMap, totalProjects);
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolList, arbitraryFirstContext, supportedPlatformData);
 
                 if (includeItemInTargetTypedCompletion)
                 {
@@ -155,21 +170,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return index < symbolList.Length;
         }
 
-        /// <summary>
-        /// Given a Symbol, creates the completion item for it.
-        /// </summary>
-        private CompletionItem CreateItem(
-            CompletionContext completionContext,
-            string displayText,
-            string displayTextSuffix,
-            string insertionText,
-            ImmutableArray<SymbolAndSelectionInfo> symbols,
-            TSyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
-            List<ProjectId>? totalProjects)
+        private static SupportedPlatformData? ComputeSupportedPlatformData(CompletionContext completionContext, ImmutableArray<SymbolAndSelectionInfo> symbols, Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap, List<ProjectId>? totalProjects)
         {
-            Contract.ThrowIfTrue(symbols.IsDefault);
-
             SupportedPlatformData? supportedPlatformData = null;
             if (invalidProjectMap != null)
             {
@@ -184,16 +186,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects, totalProjects);
             }
 
-            return CreateItemCore(
-                completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData);
+            return supportedPlatformData;
         }
 
-        protected virtual CompletionItem CreateItem(
-            CompletionContext completionContext,
+        protected CompletionItem CreateItemDefault(
             string displayText,
             string displayTextSuffix,
             string insertionText,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
             TSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {

@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
 
-            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
+            Dim item = CreateItemDefault(displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
 
             If IsGenericType(symbols(0).Symbol) Then
                 Dim text = symbols(0).Symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)

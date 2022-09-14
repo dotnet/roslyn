@@ -147,5 +147,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static bool IsClassOrStructOrInterfaceOrRecord(SyntaxNode node)
             => node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration or
                 SyntaxKind.InterfaceDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration;
+
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
+            CSharpSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData)
+        {
+            return CreateItemDefault(displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData);
+        }
     }
 }
