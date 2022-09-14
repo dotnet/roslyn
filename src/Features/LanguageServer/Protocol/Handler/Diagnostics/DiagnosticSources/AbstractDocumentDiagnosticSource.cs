@@ -75,9 +75,9 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             projectId: document.Project.Id,
             language: document.Project.Language,
             location: new DiagnosticDataLocation(
+                i.Span,
                 document.Id,
-                originalFileSpan: i.Span,
-                mappedFileSpan: i.MappedSpan.HasMappedPath ? null : i.MappedSpan)));
+                mappedFileSpan: i.MappedSpan)));
     }
 
     private static ImmutableArray<TaskListItemDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)

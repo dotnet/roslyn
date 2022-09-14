@@ -365,9 +365,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId:=projId,
-                location:=New DiagnosticDataLocation(docId, Nothing,
-                                                     New FileLinePositionSpan(originalFile, New LinePosition(originalLine, originalColumn), New LinePosition(originalLine, originalColumn)),
-                                                     If(mappedFile Is Nothing, Nothing, New FileLinePositionSpan(mappedFile, New LinePosition(mappedLine, mappedColumn), New LinePosition(mappedLine, mappedColumn)))),
+                location:=New DiagnosticDataLocation(
+                    New FileLinePositionSpan(originalFile, New LinePosition(originalLine, originalColumn), New LinePosition(originalLine, originalColumn)),
+                    docId, Nothing,
+                    If(mappedFile Is Nothing, Nothing, New FileLinePositionSpan(mappedFile, New LinePosition(mappedLine, mappedColumn), New LinePosition(mappedLine, mappedColumn)))),
                 additionalLocations:=Nothing,
                 language:=LanguageNames.VisualBasic,
                 title:=Nothing)
@@ -382,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       Equals(x.DataLocation?.OriginalFileSpan?.StartLinePosition, y.DataLocation?.OriginalFileSpan?.StartLinePosition)
+                       Equals(x.DataLocation.OriginalFileSpan.StartLinePosition, y.DataLocation.OriginalFileSpan.StartLinePosition)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -390,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(If(obj.DataLocation?.OriginalFileSpan?.StartLinePosition.GetHashCode(), 0), obj.Severity)))))
+                       Hash.Combine(obj.DataLocation.OriginalFileSpan.StartLinePosition.GetHashCode(), obj.Severity)))))
             End Function
         End Class
     End Class

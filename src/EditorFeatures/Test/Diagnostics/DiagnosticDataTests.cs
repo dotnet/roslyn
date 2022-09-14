@@ -125,7 +125,7 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, null, new("originalFile1", new(startLine, startColumn), new(endLine, endColumn))),
+                location: new DiagnosticDataLocation(new("originalFile1", new(startLine, startColumn), new(endLine, endColumn)), document.Id),
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
@@ -140,13 +140,12 @@ namespace B
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
 
             var additionalDocument = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
-                .AddDocument("test.cs", "")
+                .AddDocument("test.cs", "", filePath: "test.cs")
                 .Project.AddAdditionalDocument("AdditionalDocument.txt", "First line in file", filePath: "AdditionalDocument.txt");
             var document = additionalDocument.Project.Documents.Single();
 
             var externalAdditionalLocation = new DiagnosticDataLocation(
-                additionalDocument.Id, sourceSpan: new TextSpan(0, 1), new(additionalDocument.Name,
-                new(0, 0), new(0, 1)));
+                new(additionalDocument.Name, new(0, 0), new(0, 1)), additionalDocument.Id, sourceSpan: new TextSpan(0, 1));
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -159,7 +158,7 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id),
                 additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
                 language: document.Project.Language);
 
@@ -193,8 +192,7 @@ namespace B
 
             await VerifyTextSpanAsync(content, 3, 10, 3, 11, new TextSpan(28, 1));
             var location = new DiagnosticDataLocation(
-                documentId, sourceSpan: new TextSpan(28, 1), new(document.FilePath,
-                new(3, 10), new(3, 11)));
+                new(document.FilePath, new(3, 10), new(3, 11)), documentId, sourceSpan: new TextSpan(28, 1));
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",

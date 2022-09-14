@@ -14,15 +14,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [DataContract]
     internal sealed class DiagnosticDataLocation
     {
+        /// <summary>
+        /// Path to where the diagnostic was originally reported.  May be a path to a document in a project, or the
+        /// project file itself.
+        /// </summary>
         [DataMember(Order = 0)]
+        public readonly FileLinePositionSpan OriginalFileSpan;
+
+        /// <summary>
+        /// Document the diagnostic is associated with.  May be null if this is a project diagnostic.
+        /// </summary>
+        [DataMember(Order = 1)]
         public readonly DocumentId? DocumentId;
 
         // text can be either given or calculated from original line/column
-        [DataMember(Order = 1)]
-        public readonly TextSpan? SourceSpan;
-
         [DataMember(Order = 2)]
-        public readonly FileLinePositionSpan? OriginalFileSpan;
+        public readonly TextSpan? SourceSpan;
 
         /// <summary>
         /// Null if path is not mapped and <see cref="OriginalFileSpan"/> contains the actual path. Note that the value
@@ -33,18 +40,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly FileLinePositionSpan? MappedFileSpan;
 
         public DiagnosticDataLocation(
+            FileLinePositionSpan originalFileSpan,
             DocumentId? documentId = null,
             TextSpan? sourceSpan = null,
-            FileLinePositionSpan? originalFileSpan = null,
             FileLinePositionSpan? mappedFileSpan = null)
         {
-            // If the original source location path is not available then mapped must be as well.
-            Contract.ThrowIfTrue(originalFileSpan == null && mappedFileSpan != null);
+            Contract.ThrowIfNull(originalFileSpan.Path);
 
+            OriginalFileSpan = originalFileSpan;
             DocumentId = documentId;
             SourceSpan = sourceSpan;
-            OriginalFileSpan = originalFileSpan;
             MappedFileSpan = mappedFileSpan;
+
+            if (MappedFileSpan is { HasMappedPath: false })
+                MappedFileSpan = null;
         }
 
         [MemberNotNullWhen(true, nameof(MappedFileSpan))]
@@ -56,29 +65,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var originalLineInfo = tree.GetLineSpan(newSourceSpan);
 
             return new DiagnosticDataLocation(
+                originalLineInfo,
                 DocumentId,
                 newSourceSpan,
-                originalFileSpan: originalLineInfo,
-                mappedFileSpan: mappedLineInfo.GetMappedFilePathIfExist() == null ? null : mappedLineInfo);
+                mappedLineInfo);
         }
 
         internal FileLinePositionSpan GetFileLinePositionSpan()
-        {
-            var filePath = GetFilePath();
-            if (filePath == null)
-            {
-                return default;
-            }
+            => MappedFileSpan ?? OriginalFileSpan;
 
-            return IsMapped
-                ? new(filePath, MappedFileSpan.Value.StartLinePosition, MappedFileSpan.Value.EndLinePosition)
-                : new(filePath, OriginalFileSpan!.Value.StartLinePosition, OriginalFileSpan!.Value.EndLinePosition);
-        }
+        internal string GetFilePath()
+            => MappedFileSpan == null ? OriginalFileSpan.Path : GetFilePath(OriginalFileSpan.Path, MappedFileSpan.Value.Path);
 
-        internal string? GetFilePath()
-            => GetFilePath(OriginalFileSpan?.Path, MappedFileSpan?.Path);
-
-        private static string? GetFilePath(string? original, string? mapped)
+        private static string GetFilePath(string original, string mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;

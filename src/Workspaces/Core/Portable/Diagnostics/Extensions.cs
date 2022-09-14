@@ -37,19 +37,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => locations.SelectAsArrayAsync((location, project, cancellationToken) => location.ConvertLocationAsync(project, cancellationToken), project, cancellationToken);
 
         public static async ValueTask<Location> ConvertLocationAsync(
-            this DiagnosticDataLocation? dataLocation, Project project, CancellationToken cancellationToken)
+            this DiagnosticDataLocation dataLocation, Project project, CancellationToken cancellationToken)
         {
-            if (dataLocation?.DocumentId == null)
-            {
+            if (dataLocation.DocumentId == null)
                 return Location.None;
-            }
 
             var textDocument = project.GetTextDocument(dataLocation.DocumentId)
                 ?? await project.GetSourceGeneratedDocumentAsync(dataLocation.DocumentId, cancellationToken).ConfigureAwait(false);
             if (textDocument == null)
-            {
                 return Location.None;
-            }
 
             if (textDocument is Document document && document.SupportsSyntaxTree)
             {
@@ -70,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (document == null)
             {
-                if (dataLocation.OriginalFileSpan == null || dataLocation.SourceSpan == null)
+                if (dataLocation.SourceSpan == null)
                     return Location.None;
 
                 var span = dataLocation.SourceSpan.Value;
-                return Location.Create(dataLocation.OriginalFileSpan.Value.Path, span, dataLocation.OriginalFileSpan.Value.Span);
+                return Location.Create(dataLocation.OriginalFileSpan.Path, span, dataLocation.OriginalFileSpan.Span);
             }
 
             Contract.ThrowIfFalse(dataLocation.DocumentId == document.Document.Id);

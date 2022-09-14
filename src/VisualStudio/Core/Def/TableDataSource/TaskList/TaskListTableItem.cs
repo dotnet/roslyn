@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override LinePosition GetOriginalPosition()
             => Data.Span.StartLinePosition;
 
-        public override string? GetOriginalFilePath()
+        public override string GetOriginalFilePath()
             => Data.Span.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)

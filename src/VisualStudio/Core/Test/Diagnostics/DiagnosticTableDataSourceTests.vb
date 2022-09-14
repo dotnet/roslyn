@@ -66,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim provider = New TestDiagnosticService(CreateItem(documentId))
+                Dim provider = New TestDiagnosticService(CreateItem(workspace.CurrentSolution, documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
 
-                provider.Items = New DiagnosticData() {CreateItem(documentId)}
+                provider.Items = New DiagnosticData() {CreateItem(workspace.CurrentSolution, documentId)}
                 provider.RaiseDiagnosticsUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
@@ -115,7 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(documentId)
+                Dim item = CreateItem(workspace.CurrentSolution, documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -135,7 +135,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation?.OriginalFileSpan?.Path, filename)
+                Assert.Equal(item.DataLocation.OriginalFileSpan.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -143,11 +143,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Line, 0), line)
+                Assert.Equal(If(item.DataLocation.MappedFileSpan?.StartLinePosition.Line, 0), line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Character, 0), column)
+                Assert.Equal(If(item.DataLocation.MappedFileSpan?.StartLinePosition.Character, 0), column)
             End Using
         End Sub
 
@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(documentId)
+                Dim item = CreateItem(workspace.CurrentSolution, documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation?.OriginalFileSpan?.Path, filename)
+                Assert.Equal(item.DataLocation.OriginalFileSpan.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -193,11 +193,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Line, 0), line)
+                Assert.Equal(If(item.DataLocation.MappedFileSpan?.StartLinePosition.Line, 0), line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(If(item.DataLocation?.MappedFileSpan?.StartLinePosition.Character, 0), column)
+                Assert.Equal(If(item.DataLocation.MappedFileSpan?.StartLinePosition.Character, 0), column)
             End Using
         End Sub
 
@@ -208,7 +208,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(documentId)
+                Dim item = CreateItem(workspace.CurrentSolution, documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -240,8 +240,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(documentId, DiagnosticSeverity.Error)
-                Dim item2 = CreateItem(documentId, DiagnosticSeverity.Hidden)
+                Dim item = CreateItem(workspace.CurrentSolution, documentId, DiagnosticSeverity.Error)
+                Dim item2 = CreateItem(workspace.CurrentSolution, documentId, DiagnosticSeverity.Hidden)
                 Dim provider = New TestDiagnosticService(item, item2)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -269,7 +269,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim projectId = workspace.CurrentSolution.Projects.First().Id
 
-                Dim item = CreateItem(projectId, Nothing, DiagnosticSeverity.Error)
+                Dim item = CreateItem(workspace.CurrentSolution, projectId, Nothing, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -297,7 +297,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim documentId = workspace1.CurrentSolution.Projects.First().DocumentIds.First()
                     Dim projectId = documentId.ProjectId
 
-                    Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
+                    Dim item1 = CreateItem(workspace1.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error)
                     Dim globalOptions = workspace1.GetService(Of IGlobalOptionService)()
                     Dim provider = New TestDiagnosticService(item1)
 
@@ -315,11 +315,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
                     Assert.Equal(1, snapshot.Count)
 
-                    Dim item2 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
+                    Dim item2 = CreateItem(workspace2.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error)
                     provider.RaiseDiagnosticsUpdated(workspace2, item2)
                     Assert.Equal(1, sink.Entries.Count)
 
-                    Dim item3 = CreateItem(projectId, Nothing, DiagnosticSeverity.Error)
+                    Dim item3 = CreateItem(workspace1.CurrentSolution, projectId, Nothing, DiagnosticSeverity.Error)
                     provider.RaiseDiagnosticsUpdated(workspace1, item3)
 
                     Assert.Equal(2, sink.Entries.Count)
@@ -335,7 +335,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -374,7 +374,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link")
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -408,7 +408,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -442,7 +442,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -473,7 +473,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -504,7 +504,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -535,7 +535,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(Nothing, Nothing, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(workspace.CurrentSolution, Nothing, Nothing, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -552,7 +552,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(1, snapshot.Count)
 
                 Dim filename As Object = Nothing
-                Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
 
                 Dim projectname As Object = Nothing
                 Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
@@ -567,7 +567,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(projectId, Nothing, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(workspace.CurrentSolution, projectId, Nothing, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -584,7 +584,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(1, snapshot.Count)
 
                 Dim filename As Object = Nothing
-                Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.Equal(workspace.CurrentSolution.GetProject(projectId).FilePath, filename)
 
                 Dim projectname As Object = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
@@ -673,8 +674,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim document1 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj1").Documents.First()
                     Dim document2 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj2").Documents.First()
 
-                    Dim diagnostic1 = CreateItem(document1.Id)
-                    Dim diagnostic2 = CreateItem(document2.Id)
+                    Dim diagnostic1 = CreateItem(workspace.CurrentSolution, document1.Id)
+                    Dim diagnostic2 = CreateItem(workspace.CurrentSolution, document2.Id)
 
                     updateSource.AddNewErrors(
                         document1.Project.Id,
@@ -690,9 +691,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.Properties,
                             diagnostic1.ProjectId,
                             New DiagnosticDataLocation(
+                                diagnostic1.DataLocation.OriginalFileSpan,
                                 Nothing,
                                 diagnostic1.DataLocation.SourceSpan,
-                                diagnostic1.DataLocation.OriginalFileSpan,
                                 diagnostic1.DataLocation.MappedFileSpan),
                             diagnostic1.AdditionalLocations,
                             diagnostic1.Language,
@@ -715,9 +716,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.Properties,
                             diagnostic2.ProjectId,
                             New DiagnosticDataLocation(
+                                diagnostic2.DataLocation.OriginalFileSpan,
                                 Nothing,
                                 diagnostic2.DataLocation.SourceSpan,
-                                diagnostic2.DataLocation.OriginalFileSpan,
                                 diagnostic2.DataLocation.MappedFileSpan),
                             diagnostic2.AdditionalLocations,
                             diagnostic2.Language,
@@ -759,11 +760,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
         End Sub
 
-        Private Shared Function CreateItem(documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
-            Return CreateItem(documentId.ProjectId, documentId, severity)
+        Private Shared Function CreateItem(solution As Solution, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
+            Return CreateItem(solution, documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Shared Function CreateItem(projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+            Dim location =
+                If(documentId Is Nothing,
+                    If(projectId Is Nothing, New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)), New DiagnosticDataLocation(New FileLinePositionSpan(solution.GetProject(projectId).FilePath, Nothing))),
+                    New DiagnosticDataLocation(New FileLinePositionSpan("test", New LinePosition(20, 20), New LinePosition(20, 20)), documentId, TextSpan.FromBounds(0, 10)))
+
             Return New DiagnosticData(
                 id:="test",
                 category:="test",
@@ -775,8 +781,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
-                location:=If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10),
-                    New FileLinePositionSpan("test", New LinePosition(20, 20), New LinePosition(20, 20)))),
+                location:=location,
                 language:=LanguageNames.VisualBasic,
                 title:="Title",
                 description:="Description",

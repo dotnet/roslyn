@@ -80,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var documentErrorsMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
 
             var errors = new ExternalError[1];
+            var project = _workspace.CurrentSolution.GetProject(_projectId);
             while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
             {
                 var error = errors[0];
@@ -102,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     GetDiagnosticSeverity(error),
                     _language,
                     mappedSpan: null,
-                    originalSpan: null));
+                    originalSpan: new FileLinePositionSpan(project.FilePath ?? "", span: default)));
             }
 
             DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
@@ -261,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             DiagnosticSeverity severity,
             string language,
             FileLinePositionSpan? mappedSpan,
-            FileLinePositionSpan? originalSpan)
+            FileLinePositionSpan originalSpan)
         {
             return new DiagnosticData(
                 id: errorId,
@@ -276,9 +277,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
+                    originalFileSpan: originalSpan,
                     documentId,
                     sourceSpan: null,
-                    originalFileSpan: originalSpan,
                     mappedFileSpan: mappedSpan),
                 language: language);
         }

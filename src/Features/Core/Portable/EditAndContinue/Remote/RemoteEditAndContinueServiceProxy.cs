@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (designTimeDocument != document)
                 {
-                    diagnostics = diagnostics.SelectAsArray(diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(diagnostic, document.Project)));
+                    diagnostics = diagnostics.SelectAsArray(
+                        diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project)));
                 }
 
                 return diagnostics;
