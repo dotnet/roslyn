@@ -152,6 +152,34 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
+        private async Task VerifyCSharpAsync(Action<SourceFileList> addSourcesAction, string? shippedApiText, string? unshippedApiText, string editorConfigText, params DiagnosticResult[] expected)
+        {
+            var test = new CSharpCodeFixVerifier<DeclarePublicApiAnalyzer, DeclarePublicApiFix>.Test
+            {
+                TestState =
+                {
+                    AdditionalFiles = { },
+                    AnalyzerConfigFiles = { ("/.editorconfig", editorConfigText) },
+                },
+            };
+
+            addSourcesAction(test.TestState.Sources);
+
+            if (shippedApiText != null)
+            {
+                test.TestState.AdditionalFiles.Add((ShippedFileName, shippedApiText));
+            }
+
+            if (unshippedApiText != null)
+            {
+                test.TestState.AdditionalFiles.Add((UnshippedFileName, unshippedApiText));
+            }
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
+            await test.RunAsync();
+        }
+
         private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, string shippedApiFilePath, string unshippedApiFilePath, params DiagnosticResult[] expected)
         {
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>
@@ -1775,6 +1803,102 @@ C<T>.field2 -> C<T>.Nested";
             var unshippedText = @"";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task SkippedNamespace_ExactMatches()
+        {
+            var source = $$"""
+                namespace My.Namespace
+                {
+                    {{EnabledModifierCSharp}} class C
+                    {
+                        {{EnabledModifierCSharp}} C() { }
+                    }
+                }
+                namespace Other.Namespace
+                {
+                    {{EnabledModifierCSharp}} class D
+                    {
+                        {{EnabledModifierCSharp}} D() { }
+                    }
+                }
+                """;
+
+            string? shippedText = null;
+            string? unshippedText = null;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace",
+                // /0/Test0.cs(10,18): warning RS0016: Symbol 'D' is not part of the declared public API
+                GetCSharpResultAt(10, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "D"),
+                // /0/Test0.cs(12,16): warning RS0016: Symbol 'D' is not part of the declared public API
+                GetCSharpResultAt(12, 16, DeclareNewApiRule, "D"));
+        }
+
+        [Fact]
+        public async Task SkippedNamespace_ShorterSpecifiedNamespace()
+        {
+            var source = $$"""
+                namespace My.Namespace
+                {
+                    {{EnabledModifierCSharp}} class C
+                    {
+                        {{EnabledModifierCSharp}} C() { }
+                    }
+                }
+                """;
+
+            string? shippedText = null;
+            string? unshippedText = null;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\ndotnet_public_api_analyzer.skip_namespaces = My");
+        }
+
+        [Fact]
+        public async Task SkippedNamespace_MoreDerivedNamespace()
+        {
+            var source = $$"""
+                namespace My.Namespace
+                {
+                    {{EnabledModifierCSharp}} class C
+                    {
+                        {{EnabledModifierCSharp}} C() { }
+                    }
+                }
+                """;
+
+            string? shippedText = null;
+            string? unshippedText = null;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace.Longer",
+                // /0/Test0.cs(3,18): warning RS0016: Symbol 'C' is not part of the declared public API
+                GetCSharpResultAt(line: 3, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"),
+                // /0/Test0.cs(5,16): warning RS0016: Symbol 'C' is not part of the declared public API
+                GetCSharpResultAt(5, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
+        }
+
+        [Fact]
+        public async Task SkippedNamespace_PartialLocations()
+        {
+            var source = $$"""
+                namespace My.Namespace
+                {
+                    {{EnabledModifierCSharp}} partial class C
+                    {
+                    }
+                }
+                """;
+
+            var addSources = (SourceFileList sources) =>
+            {
+                sources.Add((filename: $"/path1/Test1.cs", source));
+                sources.Add((filename: $"/path2/Test2.cs", source));
+            };
+
+            string? shippedText = null;
+            string? unshippedText = null;
+
+            await VerifyCSharpAsync(addSources, shippedText, unshippedText, $"[path1/**.cs]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace");
         }
 
         #endregion

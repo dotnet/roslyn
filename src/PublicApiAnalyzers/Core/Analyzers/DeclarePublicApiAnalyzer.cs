@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         /// <summary>
         /// Boolean option to configure if public API analyzer should bail out silently if public API files are missing.
         /// </summary>
-        private const string BailOnMissingPublicApiFilesEditorConfigOptionName = "dotnet_public_api_analyzer.require_api_files";
+        private const string BaseEditorConfigPath = "dotnet_public_api_analyzer";
+        private const string BailOnMissingPublicApiFilesEditorConfigOptionName = $"{BaseEditorConfigPath}.require_api_files";
+        private const string NamespaceToIgnoreInTrackingEditorConfigOptionName = $"{BaseEditorConfigPath}.skip_namespaces";
 
 
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
@@ -118,8 +120,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             Debug.Assert(errors.Count == 0);
 
-            var publicImpl = new Impl(compilationContext.Compilation, publicShippedData, publicUnshippedData, isPublic: true);
-            var internalImpl = new Impl(compilationContext.Compilation, internalShippedData, internalUnshippedData, isPublic: false);
+            var publicImpl = new Impl(compilationContext.Compilation, publicShippedData, publicUnshippedData, isPublic: true, compilationContext.Options);
+            var internalImpl = new Impl(compilationContext.Compilation, internalShippedData, internalUnshippedData, isPublic: false, compilationContext.Options);
             RegisterImplActions(compilationContext, publicImpl);
             RegisterImplActions(compilationContext, internalImpl);
 
@@ -223,13 +225,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return true;
         }
 
-        private static bool TryGetEditorConfigOptionForMissingFiles(AnalyzerOptions analyzerOptions, Compilation compilation, out bool optionValue)
+        private static bool TryGetEditorConfigOption(AnalyzerOptions analyzerOptions, SyntaxTree tree, string optionName, out string optionValue)
         {
-            optionValue = false;
+            optionValue = "";
             try
             {
                 var provider = analyzerOptions.GetType().GetRuntimeProperty("AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
-                if (provider == null || !compilation.SyntaxTrees.Any())
+                if (provider == null)
                 {
                     return false;
                 }
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
-                var options = getOptionsMethod.Invoke(provider, new object[] { compilation.SyntaxTrees.First() });
+                var options = getOptionsMethod.Invoke(provider, new object[] { tree });
                 var tryGetValueMethod = options.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetValue");
                 if (tryGetValueMethod == null)
                 {
@@ -248,20 +250,19 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 // bool TryGetValue(string key, out string value);
-                var parameters = new object?[] { BailOnMissingPublicApiFilesEditorConfigOptionName, null };
+                var parameters = new object?[] { optionName, null };
                 if (tryGetValueMethod.Invoke(options, parameters) is not bool hasOption ||
                     !hasOption)
                 {
                     return false;
                 }
 
-                if (parameters[1] is not string value ||
-                    !bool.TryParse(value, out var boolValue))
+                if (parameters[1] is not string value)
                 {
                     return false;
                 }
 
-                optionValue = boolValue;
+                optionValue = value;
                 return true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -271,6 +272,33 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 // Gracefully handle any exception from reflection.
                 return false;
             }
+        }
+
+        private static bool TryGetEditorConfigOptionForMissingFiles(AnalyzerOptions analyzerOptions, Compilation compilation, out bool optionValue)
+        {
+            optionValue = false;
+
+            return compilation.SyntaxTrees.FirstOrDefault() is { } tree
+                   && TryGetEditorConfigOption(analyzerOptions, tree, BailOnMissingPublicApiFilesEditorConfigOptionName, out string value)
+                   && bool.TryParse(value, out optionValue);
+        }
+
+        private static bool TryGetEditorConfigOptionForSkippedNamespaces(AnalyzerOptions analyzerOptions, SyntaxTree tree, out ImmutableArray<string> skippedNamespaces)
+        {
+            skippedNamespaces = ImmutableArray<string>.Empty;
+            if (!TryGetEditorConfigOption(analyzerOptions, tree, NamespaceToIgnoreInTrackingEditorConfigOptionName, out var namespacesString) || string.IsNullOrWhiteSpace(namespacesString))
+            {
+                return false;
+            }
+
+            var namespaceStrings = namespacesString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            if (namespaceStrings.Length == 0)
+            {
+                return false;
+            }
+
+            skippedNamespaces = namespaceStrings.ToImmutableArray();
+            return true;
         }
 
         private static bool TryGetApiText(

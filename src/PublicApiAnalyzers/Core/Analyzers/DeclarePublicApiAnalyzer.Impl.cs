@@ -11,6 +11,7 @@ using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Lightup;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -89,15 +90,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private static readonly ImmutableArray<MethodKind> s_ignorableMethodKinds
                 = ImmutableArray.Create(MethodKind.EventAdd, MethodKind.EventRemove);
 
+            private static readonly SymbolDisplayFormat s_namespaceFormat = new(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
             private readonly Compilation _compilation;
             private readonly ApiData _unshippedData;
             private readonly bool _useNullability;
             private readonly bool _isPublic;
             private readonly ConcurrentDictionary<(ITypeSymbol Type, bool IsPublic), bool> _typeCanBeExtendedCache = new();
             private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new(StringComparer.Ordinal);
+            private readonly ConcurrentDictionary<SyntaxTree, ImmutableArray<string>> _skippedNamespacesCache = new();
             private readonly IReadOnlyDictionary<string, ApiLine> _apiMap;
+            private readonly AnalyzerOptions _analyzerOptions;
 
-            internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData, bool isPublic)
+            internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
             {
                 _compilation = compilation;
                 _useNullability = shippedData.NullableRank >= 0 || unshippedData.NullableRank >= 0;
@@ -116,12 +123,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 _apiMap = publicApiMap;
                 _isPublic = isPublic;
+                _analyzerOptions = analyzerOptions;
             }
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
             {
                 var obsoleteAttribute = symbolContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
-                OnSymbolActionCore(symbolContext.Symbol, symbolContext.ReportDiagnostic, obsoleteAttribute);
+                OnSymbolActionCore(symbolContext.Symbol, symbolContext.ReportDiagnostic, obsoleteAttribute, symbolContext.CancellationToken);
             }
 
             internal void OnPropertyAction(SymbolAnalysisContext symbolContext)
@@ -157,28 +165,28 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return;
                 }
 
-                if (!this.IsTrackedAPI(accessor))
+                if (!this.IsTrackedAPI(accessor, symbolContext.CancellationToken))
                 {
                     return;
                 }
 
                 var obsoleteAttribute = symbolContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
-                this.OnSymbolActionCore(accessor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute);
+                this.OnSymbolActionCore(accessor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, symbolContext.CancellationToken);
             }
 
             /// <param name="symbol">The symbol to analyze. Will also analyze implicit constructors too.</param>
             /// <param name="reportDiagnostic">Action called to actually report a diagnostic.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
             /// the location of the symbol will be used.</param>
-            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, Location? explicitLocation = null)
+            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, CancellationToken cancellationToken, Location? explicitLocation = null)
             {
-                if (!IsTrackedAPI(symbol))
+                if (!IsTrackedAPI(symbol, cancellationToken))
                 {
                     return;
                 }
 
                 Debug.Assert(!symbol.IsImplicitlyDeclared);
-                OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, explicitLocation: explicitLocation);
+                OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
 
                 // Handle implicitly declared public constructors.
                 if (symbol.Kind == SymbolKind.NamedType)
@@ -190,7 +198,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
                         if (implicitConstructor != null)
                         {
-                            OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, explicitLocation: explicitLocation);
+                            OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
                         }
                     }
                 }
@@ -206,9 +214,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// <param name="isImplicitlyDeclaredConstructor">If the symbol is an implicitly declared constructor.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
             /// the location of the symbol will be used.</param>
-            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, INamedTypeSymbol? obsoleteAttribute, Location? explicitLocation = null)
+            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, INamedTypeSymbol? obsoleteAttribute, CancellationToken cancellationToken, Location? explicitLocation = null)
             {
-                Debug.Assert(IsTrackedAPI(symbol));
+                Debug.Assert(IsTrackedAPI(symbol, cancellationToken));
 
                 ApiName publicApiName = GetApiName(symbol);
                 _visitedApiList.TryAdd(publicApiName.Name, default);
@@ -295,7 +303,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         method.ContainingType.TypeKind == TypeKind.Class &&
                         !method.ContainingType.IsSealed &&
                         method.ContainingType.BaseType != null &&
-                        IsTrackedApiCore(method.ContainingType.BaseType) &&
+                        IsTrackedApiCore(method.ContainingType.BaseType, cancellationToken) &&
                         !CanTypeBeExtended(method.ContainingType.BaseType))
                     {
                         string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
@@ -393,7 +401,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     // Unshipped public API with no entry in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
                     // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).
-                    var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol);
+                    var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol, cancellationToken);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
                         .Add(ApiNamePropertyBagKey, publicApiName)
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
@@ -462,12 +470,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     symbol.ToDisplayString(ShortSymbolNameFormat);
             }
 
-            private string GetSiblingNamesToRemoveFromUnshippedText(ISymbol symbol)
+            private string GetSiblingNamesToRemoveFromUnshippedText(ISymbol symbol, CancellationToken cancellationToken)
             {
                 // Don't crash the analyzer if we are unable to determine stale entries to remove in public API text.
                 try
                 {
-                    return GetSiblingNamesToRemoveFromUnshippedTextCore(symbol);
+                    return GetSiblingNamesToRemoveFromUnshippedTextCore(symbol, cancellationToken);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types - https://github.com/dotnet/roslyn-analyzers/issues/2181
                 catch (Exception ex)
@@ -478,7 +486,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 #pragma warning restore CA1031 // Do not catch general exception types
             }
 
-            private string GetSiblingNamesToRemoveFromUnshippedTextCore(ISymbol symbol)
+            private string GetSiblingNamesToRemoveFromUnshippedTextCore(ISymbol symbol, CancellationToken cancellationToken)
             {
                 // Compute all sibling names that must be removed from unshipped text, as they are no longer public or have been changed.
                 if (symbol.ContainingSymbol is INamespaceOrTypeSymbol containingSymbol)
@@ -544,7 +552,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                     continue;
                                 }
                             }
-                            else if (!IsTrackedAPI(sibling))
+                            else if (!IsTrackedAPI(sibling, cancellationToken))
                             {
                                 continue;
                             }
@@ -679,7 +687,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private void VisitForwardedTypeRecursively(ISymbol symbol, Action<Diagnostic> reportDiagnostic, INamedTypeSymbol? obsoleteAttribute, Location typeForwardedAttributeLocation, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                OnSymbolActionCore(symbol, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation);
+                OnSymbolActionCore(symbol, reportDiagnostic, obsoleteAttribute, cancellationToken, typeForwardedAttributeLocation);
 
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
@@ -742,7 +750,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
             }
 
-            private bool IsTrackedAPI(ISymbol symbol)
+            private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)
             {
                 if (symbol is IMethodSymbol methodSymbol && s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
                 {
@@ -756,10 +764,63 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
-                return IsTrackedApiCore(symbol);
+                if (IsNamespaceSkipped(symbol, cancellationToken))
+                {
+                    return false;
+                }
+
+                return IsTrackedApiCore(symbol, cancellationToken);
             }
 
-            private bool IsTrackedApiCore(ISymbol symbol)
+            private bool IsNamespaceSkipped(ISymbol symbol, CancellationToken cancellationToken)
+            {
+                var @namespace = symbol as INamespaceSymbol ?? symbol.ContainingNamespace;
+
+                PooledHashSet<string>? skippedNamespaces = null;
+
+                try
+                {
+                    foreach (var location in symbol.Locations)
+                    {
+                        if (!location.IsInSource)
+                        {
+                            continue;
+                        }
+
+                        var syntaxTree = location.SourceTree;
+                        var currentSkippedNamespaces = _skippedNamespacesCache.GetOrAdd(syntaxTree, GetSkippedNamespacesForTree);
+                        if (currentSkippedNamespaces.Length == 0)
+                        {
+                            continue;
+                        }
+                        (skippedNamespaces ??= PooledHashSet<string>.GetInstance()).AddRange(currentSkippedNamespaces);
+                    }
+
+                    if (skippedNamespaces == null)
+                    {
+                        return false;
+                    }
+
+                    var namespaceString = @namespace.ToDisplayString(s_namespaceFormat);
+                    return skippedNamespaces.Any(n => namespaceString.StartsWith(n, StringComparison.Ordinal));
+                }
+                finally
+                {
+                    skippedNamespaces?.Free(cancellationToken);
+                }
+            }
+
+            private ImmutableArray<string> GetSkippedNamespacesForTree(SyntaxTree tree)
+            {
+                if (TryGetEditorConfigOptionForSkippedNamespaces(_analyzerOptions, tree, out var skippedNamespaces))
+                {
+                    return skippedNamespaces;
+                }
+
+                return ImmutableArray<string>.Empty;
+            }
+
+            private bool IsTrackedApiCore(ISymbol symbol, CancellationToken cancellationToken)
             {
                 var resultantVisibility = symbol.GetResultantVisibility();
 
@@ -770,6 +831,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 #pragma warning restore IDE0047 // Remove unnecessary parentheses
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 for (var current = symbol; current != null; current = current.ContainingType)
                 {
