@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -32,20 +30,22 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
-        private readonly TimeSpan _expirationTime;
 
-        public ProjectCacheService(Workspace? workspace)
+        public ProjectCacheService(Workspace? workspace, bool createImplicitCache = false)
         {
             _workspace = workspace;
             _configurationService = workspace?.Services.GetService<IWorkspaceConfigurationService>();
-        }
+            _implicitCache = createImplicitCache ? new SimpleMRUCache() : null;
 
-        public ProjectCacheService(Workspace? workspace, TimeSpan expirationTime)
-            : this(workspace)
-        {
-            _implicitCache = new SimpleMRUCache();
-            _expirationTime = expirationTime;
-            Task.Run(ClearExpiredItemsLoopAsync);
+            // Also clear the cache when the solution is cleared or removed.
+            if (workspace != null)
+            {
+                workspace.WorkspaceChanged += (s, e) =>
+                {
+                    if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
+                        this.ClearImplicitCache();
+                };
+            }
         }
 
         /// <summary>
@@ -70,23 +70,6 @@ namespace Microsoft.CodeAnalysis.Host
             lock (_gate)
             {
                 _implicitCache?.Clear();
-            }
-        }
-
-        public void ClearExpiredImplicitCache(DateTime expirationTime)
-        {
-            lock (_gate)
-            {
-                _implicitCache?.ClearExpiredItems(expirationTime);
-            }
-        }
-
-        private async Task ClearExpiredItemsLoopAsync()
-        {
-            while (true)
-            {
-                this.ClearExpiredImplicitCache(DateTime.UtcNow - _expirationTime);
-                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
             }
         }
 
