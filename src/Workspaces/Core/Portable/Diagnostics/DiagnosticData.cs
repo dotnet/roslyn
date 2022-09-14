@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public TextSpan GetTextSpan()
         {
-            RoslynDebug.AssertNotNull(DataLocation.SourceSpan);
+            Contract.ThrowIfFalse(DataLocation.SourceSpan.HasValue);
             return DataLocation.SourceSpan.Value;
         }
 
