@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -111,7 +112,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
 
             // it should not reach here
-            Assert.True(false, "asset not cleaned up");
+            AssertEx.Fail("asset not cleaned up");
         }
     }
 }
