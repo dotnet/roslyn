@@ -20,15 +20,15 @@ jobs:
   - checkout: none
   - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
     displayName: Set pipeline name
-  - task: NuGetAuthenticate@1
-    displayName: Authenticate NuGet feeds
-    inputs:
-      forceReinstallCredentialProvider: true
   - task: UseDotNet@2
     displayName: Install .NET SDK
     inputs:
       packageType: sdk
       version: 6.x
+  - task: NuGetAuthenticate@1
+    displayName: Authenticate NuGet feeds
+    inputs:
+      forceReinstallCredentialProvider: true
   - template: release-deployment-prep.yml
   - download: CI
     artifact: VSInsertion-Windows
