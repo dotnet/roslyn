@@ -4,12 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
     internal interface ICrossLanguageSymbolNavigationService
     {
-        Task<DefinitionItem?> TryGetDefinitionItemAsync(string documentationCommentId, CancellationToken cancellationToken);
+        Task<INavigableLocation?> TryGetNavigableLocationAsync(string documentationCommentId, CancellationToken cancellationToken);
     }
 }
