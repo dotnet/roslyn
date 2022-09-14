@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
-            var result = new Dictionary<SymbolAndSelectionInfo, TSyntaxContext>(CompletionLinkedFilesSymbolEquivalenceComparer.Instance);
+            var result = new Dictionary<SymbolAndSelectionInfo, TSyntaxContext>();
 
             // We don't care about assembly identity when creating the union.
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, CompletionLinkedFilesSymbolEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols);
                 foreach (var (symbol, _) in symbolsMissingInLinkedContext)
                     missingSymbols.GetOrAdd(symbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
             }
