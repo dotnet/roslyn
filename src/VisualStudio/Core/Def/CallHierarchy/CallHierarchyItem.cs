@@ -12,8 +12,11 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
+using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 
@@ -21,9 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {
     internal class CallHierarchyItem : ICallHierarchyMemberItem
     {
+        private readonly Workspace _workspace;
         private readonly string _containingNamespaceName;
         private readonly string _containingTypeName;
-        private readonly DefinitionItem _definitionItem;
+        private readonly INavigableLocation _navigableLocation;
         private readonly IEnumerable<CallHierarchyDetail> _callsites;
         private readonly IEnumerable<AbstractCallFinder> _finders;
         private readonly Func<ImageSource> _glyphCreator;
@@ -34,15 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public CallHierarchyItem(
             CallHierarchyProvider provider,
             ISymbol symbol,
+            INavigableLocation navigableLocation,
             IEnumerable<AbstractCallFinder> finders,
             Func<ImageSource> glyphCreator,
             ImmutableArray<Location> callsites,
-            Solution solution)
+            Workspace workspace)
         {
-            var workspace = solution.Workspace;
-
             _provider = provider;
-            _definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            _navigableLocation = navigableLocation;
             _finders = finders;
             _containingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
             _containingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
@@ -79,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
            new(
                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-        private readonly Workspace _workspace;
 
         public string ContainingNamespaceName => _containingNamespaceName;
 
@@ -141,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         {
             using var context = _provider.ThreadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
-            await _provider.NavigateToAsync(_workspace, _definitionItem, context.UserCancellationToken).ConfigureAwait(false);
+            await _navigableLocation.NavigateToAsync(
+                Microsoft.CodeAnalysis.Navigation.NavigationOptions.Default, context.UserCancellationToken).ConfigureAwait(false);
         }
 
         public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)

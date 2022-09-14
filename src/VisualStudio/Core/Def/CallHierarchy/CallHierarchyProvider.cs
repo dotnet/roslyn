@@ -11,11 +11,13 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     {
         public readonly IAsynchronousOperationListener AsyncListener;
         public readonly IUIThreadOperationExecutor ThreadOperationExecutor;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         public IThreadingContext ThreadingContext { get; }
         public IGlyphService GlyphService { get; }
@@ -43,12 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor threadOperationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IGlyphService glyphService)
+            IGlyphService glyphService,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             AsyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
             ThreadingContext = threadingContext;
             ThreadOperationExecutor = threadOperationExecutor;
             this.GlyphService = glyphService;
+            _streamingPresenter = streamingPresenter;
         }
 
         public async Task<ICallHierarchyMemberItem> CreateItemAsync(
@@ -62,14 +67,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 symbol = GetTargetSymbol(symbol);
 
                 var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
-
+                var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
+                    symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
                 ICallHierarchyMemberItem item = new CallHierarchyItem(
                     this,
                     symbol,
+                    location,
                     finders,
                     () => symbol.GetGlyph().GetImageSource(GlyphService),
                     callsites,
-                    project.Solution);
+                    project.Solution.Workspace);
 
                 return item;
             }
