@@ -390,8 +390,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         if (reference.GetMetadata("TargetFrameworkIdentifier").Equals(".NETFramework", StringComparison.OrdinalIgnoreCase)
                             && isReferenceAssembly)
                         {
-                            commandLine.AppendFileNamesIfNotNull(reference.GetMetadata("OriginalItemSpec"), " ");
-                            commandLine.AppendFileNamesIfNotNull(reference.GetMetadata("CopyUpToDateMarker"), " ");
+                            commandLine.AppendFileNamesIfNotNull(new[] { reference.GetMetadata("OriginalItemSpec") }, " ");
+                            commandLine.AppendFileNamesIfNotNull(new[] { reference.GetMetadata("CopyUpToDateMarker") }, " ");
                         }
                     }
                 }
