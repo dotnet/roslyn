@@ -1,9 +1,10 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -36,10 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
                 options As CompletionOptions,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndSelectionInfo))
 
             Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
-            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+            Return symbols.SelectAsArray(Function(s) New SymbolAndSelectionInfo(s, Preselect:=False))
         End Function
 
         Private Overloads Shared Function GetSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))

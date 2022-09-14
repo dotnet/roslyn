@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -65,14 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
+        protected override Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, CSharpSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var targetToken = context.TargetToken;
 
             // Don't want to offer this after "async" (even though the compiler may parse that as a type).
             if (SyntaxFacts.GetContextualKeywordKind(targetToken.ValueText) == SyntaxKind.AsyncKeyword)
-                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
+                return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
             var typeNode = targetToken.Parent as TypeSyntax;
 
@@ -89,17 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             if (typeNode == null)
-                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
+                return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
             // We weren't after something that looked like a type.
             var tokenBeforeType = typeNode.GetFirstToken().GetPreviousToken();
 
             if (!IsPreviousTokenValid(tokenBeforeType))
-                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
+                return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
             var typeDeclaration = typeNode.GetAncestor<TypeDeclarationSyntax>();
             if (typeDeclaration == null)
-                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
+                return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
             // Looks syntactically good.  See what interfaces our containing class/struct/interface has
             Debug.Assert(IsClassOrStructOrInterfaceOrRecord(typeDeclaration));
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 interfaceSet.AddRange(directInterface.AllInterfaces);
             }
 
-            return Task.FromResult(interfaceSet.SelectAsArray(t => (t, preselect: false)));
+            return Task.FromResult(interfaceSet.SelectAsArray(t => new SymbolAndSelectionInfo(Symbol: t, Preselect: false)));
         }
 
         private static bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)

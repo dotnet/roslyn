@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -178,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
-        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, CSharpSyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<SymbolAndSelectionInfo> symbols, CSharpSyntaxContext context)
         {
-            var preselect = symbols.Any(static t => t.preselect);
+            var preselect = symbols.Any(static t => t.Preselect);
             s_cachedRules.TryGetValue(ValueTuple.Create(context.IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             string displayText,
             string displayTextSuffix,
             string insertionText,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
             CSharpSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
@@ -204,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context,
                 supportedPlatformData);
 
-            var symbol = symbols[0].symbol;
+            var symbol = symbols[0].Symbol;
             // If it is a method symbol, also consider appending parenthesis when later, it is committed by using special characters.
             // 2 cases are excluded.
             // 1. If it is invoked under Nameof Context.
