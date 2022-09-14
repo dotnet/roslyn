@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _text = text;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
         }
 
