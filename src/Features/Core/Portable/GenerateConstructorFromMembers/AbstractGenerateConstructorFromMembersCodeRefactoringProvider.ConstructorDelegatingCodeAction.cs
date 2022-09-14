@@ -57,21 +57,24 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 Contract.ThrowIfNull(_state.DelegatedConstructor);
                 var thisConstructor = _state.DelegatedConstructor.ContainingType == _state.ContainingType;
-                var delegatedParameterNames = _state.DelegatedConstructor.Parameters.Select(p => p.Name).ToImmutableHashSet();
-                var delegatedConstructorArguments = factory.CreateArguments(
-                    _state.Parameters.WhereAsArray(p => delegatedParameterNames.Contains(p.Name)));
 
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
                 using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
+                using var _3 = ArrayBuilder<IParameterSymbol>.GetInstance(out var delegatedConstructorParameters);
 
                 var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
+                // Construct field assignments from constructor parameters.
                 for (var i = 0; i < _state.Parameters.Length; i++)
                 {
                     var parameter = _state.Parameters[i];
 
-                    if (delegatedParameterNames.Contains(parameter.Name))
+                    // Exclude parameters that will be delegated to another constructor.
+                    if (_state.DelegatedConstructor.Parameters.Any(p => p.Name == parameter.Name))
+                    {
+                        delegatedConstructorParameters.Add(parameter);
                         continue;
+                    }
 
                     var symbolName = _state.SelectedMembers[i].Name;
 
@@ -96,6 +99,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     : null;
 
                 var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
+                var delegatedConstructorArguments = factory.CreateArguments(delegatedConstructorParameters.ToImmutable());
                 var result = await codeGenerationService.AddMethodAsync(
                     new CodeGenerationSolutionContext(
                         _document.Project.Solution,
