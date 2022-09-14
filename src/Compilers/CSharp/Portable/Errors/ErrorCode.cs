@@ -2121,6 +2121,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
 
+        // TODO2: pack
+        ERR_RefReturnScopedParameter = 9080,
+        ERR_RefReturnScopedParameter2 = 9081
+
         #endregion
 
         // Note: you will need to do the following after adding any code:
