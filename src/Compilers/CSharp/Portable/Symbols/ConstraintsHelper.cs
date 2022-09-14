@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.Kind == SymbolKind.PointerType)
             {
-                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, warnForManaged: false, args.Location, args.Diagnostics);
             }
             return false; // continue walking types
         }

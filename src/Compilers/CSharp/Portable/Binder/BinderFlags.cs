@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InExpressionTree = 1 << 30,
 
+        /// <summary>
+        /// The current context allows pointer types to managed types.
+        /// </summary>
+        AllowManagedPointer = 1u << 31,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,
