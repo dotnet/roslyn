@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,15 +14,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [DataContract]
     internal sealed class DiagnosticDataLocation
     {
+        /// <summary>
+        /// Path to where the diagnostic was originally reported.  May be a path to a document in a project, or the
+        /// project file itself.
+        /// </summary>
         [DataMember(Order = 0)]
+        public readonly string OriginalFilePath;
+
+        /// <summary>
+        /// Document the diagnostic is associated with.  May be null if this is a project diagnostic.
+        /// </summary>
+        [DataMember(Order = 1)]
         public readonly DocumentId? DocumentId;
 
         // text can be either given or calculated from original line/column
-        [DataMember(Order = 1)]
-        public readonly TextSpan? SourceSpan;
-
         [DataMember(Order = 2)]
-        public readonly string? OriginalFilePath;
+        public readonly TextSpan? SourceSpan;
 
         [DataMember(Order = 3)]
         public readonly int OriginalStartLine;
@@ -56,9 +64,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int MappedEndColumn;
 
         public DiagnosticDataLocation(
+            string originalFilePath,
             DocumentId? documentId = null,
             TextSpan? sourceSpan = null,
-            string? originalFilePath = null,
             int originalStartLine = 0,
             int originalStartColumn = 0,
             int originalEndLine = 0,
@@ -69,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             int mappedEndLine = 0,
             int mappedEndColumn = 0)
         {
-            // If the original source location path is not available then mapped must be as well.
-            Contract.ThrowIfFalse(originalFilePath != null || mappedFilePath == null);
+            Contract.ThrowIfNull(originalFilePath);
 
+            OriginalFilePath = originalFilePath;
             DocumentId = documentId;
             SourceSpan = sourceSpan;
             MappedFilePath = mappedFilePath;
@@ -79,13 +87,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             MappedStartColumn = mappedStartColumn;
             MappedEndLine = mappedEndLine;
             MappedEndColumn = mappedEndColumn;
-            OriginalFilePath = originalFilePath;
             OriginalStartLine = originalStartLine;
             OriginalStartColumn = originalStartColumn;
             OriginalEndLine = originalEndLine;
             OriginalEndColumn = originalEndColumn;
         }
 
+        [MemberNotNullWhen(true, nameof(MappedFilePath))]
         public bool IsMapped => MappedFilePath != null;
 
         internal DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
@@ -94,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var originalLineInfo = tree.GetLineSpan(newSourceSpan);
 
             return new DiagnosticDataLocation(
+                originalLineInfo.Path,
                 DocumentId,
                 newSourceSpan,
-                originalFilePath: originalLineInfo.Path,
                 originalStartLine: originalLineInfo.StartLinePosition.Line,
                 originalStartColumn: originalLineInfo.StartLinePosition.Character,
                 originalEndLine: originalLineInfo.EndLinePosition.Line,
@@ -111,20 +119,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal FileLinePositionSpan GetFileLinePositionSpan()
         {
             var filePath = GetFilePath();
-            if (filePath == null)
-            {
-                return default;
-            }
 
-            return IsMapped ?
-                new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn)) :
-                new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
+            return IsMapped
+                ? new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn))
+                : new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
         }
 
-        internal string? GetFilePath()
-            => GetFilePath(OriginalFilePath, MappedFilePath);
+        internal string GetFilePath()
+            => IsMapped ? GetFilePath(OriginalFilePath, MappedFilePath) : OriginalFilePath;
 
-        private static string? GetFilePath(string? original, string? mapped)
+        private static string GetFilePath(string original, string mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;

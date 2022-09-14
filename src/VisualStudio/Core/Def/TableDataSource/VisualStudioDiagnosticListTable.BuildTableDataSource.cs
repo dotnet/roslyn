@@ -180,13 +180,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Message;
                                 return content != null;
                             case StandardTableKeyNames.DocumentName:
-                                content = data.DataLocation?.GetFilePath();
-                                return content != null;
+                                content = data.DataLocation.GetFilePath();
+                                return true;
                             case StandardTableKeyNames.Line:
-                                content = data.DataLocation?.MappedStartLine ?? 0;
+                                content = data.DataLocation.MappedStartLine;
                                 return true;
                             case StandardTableKeyNames.Column:
-                                content = data.DataLocation?.MappedStartColumn ?? 0;
+                                content = data.DataLocation.MappedStartColumn;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
                                 content = item.ProjectName;
@@ -259,11 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         // okay, documentId no longer exist in current solution, find it by file path.
                         var filePath = item.GetOriginalFilePath();
-                        if (string.IsNullOrWhiteSpace(filePath))
-                        {
-                            return null;
-                        }
-
                         var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
                         foreach (var id in documentIds)
                         {
