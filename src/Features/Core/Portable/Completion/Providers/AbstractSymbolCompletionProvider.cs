@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected virtual CompletionItemRules GetCompletionItemRules(ImmutableArray<SymbolAndSelectionInfo> symbols)
-            => CompletionItemRules.Default;
-            
         protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
 
         protected abstract Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
@@ -206,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 contextPosition: context.Position,
                 symbols: symbols.SelectAsArray(t => t.Symbol),
                 supportedPlatforms: supportedPlatformData,
-                rules: GetCompletionItemRules(symbols)
+                rules: CompletionItemRules.Default
                     .WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default)
                     .WithSelectionBehavior(context.IsRightSideOfNumericType ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
         }

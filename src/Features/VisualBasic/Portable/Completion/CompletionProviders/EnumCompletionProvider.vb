@@ -1,4 +1,4 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -152,9 +152,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 symbols As ImmutableArray(Of SymbolAndSelectionInfo),
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim rules = GetCompletionItemRules(symbols)
+
             Dim preselect = symbols.Any(Function(t) t.Preselect)
-            rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
+            Dim rules = CompletionItemRules.Default.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
 
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
@@ -166,13 +166,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 sortText:=insertionText,
                 supportedPlatforms:=supportedPlatformData,
                 rules:=rules)
-        End Function
-
-        Private Shared ReadOnly s_rules As CompletionItemRules =
-            CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
-
-        Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of SymbolAndSelectionInfo)) As CompletionItemRules
-            Return s_rules
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
