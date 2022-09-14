@@ -4584,6 +4584,8 @@ class C
             var symbol = (ILocalSymbol)semanticInfo.Symbol;
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(2, symbol.ConstantValue);
+            Assert.False(symbol.IsForEach);
+            Assert.False(symbol.IsUsing);
         }
 
         [Fact]
@@ -5551,6 +5553,54 @@ class C
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
             Assert.True(semanticInfo.Symbol.GetSymbol().IsFromCompilation(compilation));
+        }
+
+        [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
+        [Fact]
+        public void LocalForEach()
+        {
+            string sourceCode = @"
+class C
+{
+    void M()
+    {
+        var a = new int[] { 1, 2, 3 };
+        foreach (var x in a)
+        {
+            var y = /*<bind>*/x/*</bind>*/;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
+
+            var symbol = (ILocalSymbol)semanticInfo.Symbol;
+            Assert.True(symbol.IsForEach);
+        }
+
+        [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
+        [Fact]
+        public void LocalUsing()
+        {
+            string sourceCode = @"
+using System.IO;
+class C
+{
+    void M()
+    {
+        using (var x = new StreamReader(""C:\\Temp\\MyFile.txt""))
+        {
+            /*<bind>*/x/*</bind>*/.Read();
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
+
+            var symbol = (ILocalSymbol)semanticInfo.Symbol;
+            Assert.True(symbol.IsUsing);
         }
 
         [WorkItem(540541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540541")]
