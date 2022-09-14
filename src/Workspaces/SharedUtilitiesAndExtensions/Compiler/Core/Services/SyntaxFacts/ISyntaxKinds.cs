@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
         int FieldDeclaration { get; }
+        int PropertyDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }

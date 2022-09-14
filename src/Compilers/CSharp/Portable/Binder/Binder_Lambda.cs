@@ -227,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
-            syntax = syntax.SkipRef(out RefKind refKind);
+            Debug.Assert(syntax is not ScopedTypeSyntax);
+            syntax = syntax.SkipScoped(out _).SkipRef(out RefKind refKind);
             if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
