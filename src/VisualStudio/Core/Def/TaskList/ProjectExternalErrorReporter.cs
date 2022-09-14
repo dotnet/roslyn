@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -151,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
             if (containedDocument != null)
             {
-                var span = new TextSpan
+                var span = new TextManager.Interop.TextSpan
                 {
                     iStartLine = line,
                     iStartIndex = column,
@@ -159,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     iEndIndex = column,
                 };
 
-                var spans = new TextSpan[1];
+                var spans = new TextManager.Interop.TextSpan[1];
                 Marshal.ThrowExceptionForHR(containedDocument.BufferCoordinator.MapPrimaryToSecondarySpan(
                     span,
                     spans));
@@ -179,8 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _language,
                 mappedSpan: null,
                 originalSpan: new FileLinePositionSpan(error.bstrFileName,
-                    new Microsoft.CodeAnalysis.Text.LinePosition(line, column),
-                    new Microsoft.CodeAnalysis.Text.LinePosition(line, column)));
+                    new LinePosition(line, column),
+                    new LinePosition(line, column)));
         }
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -235,8 +236,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 mappedSpan: null,
                 originalSpan: new FileLinePositionSpan(
                     bstrFileName,
-                    new CodeAnalysis.Text.LinePosition(iStartLine, iStartColumn),
-                    new CodeAnalysis.Text.LinePosition(iEndLine, iEndColumn)));
+                    new LinePosition(iStartLine, iStartColumn),
+                    new LinePosition(iEndLine, iEndColumn)));
 
             if (documentId == null)
             {
