@@ -1412,6 +1412,11 @@
         <target state="translated">Modifikátor scoped parametru {0} neodpovídá cílovému objektu {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedNotBeforeType">
+        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
+        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
         <target state="translated">Modifikátor scoped se dá použít jen pro hodnoty refs a ref struct.</target>

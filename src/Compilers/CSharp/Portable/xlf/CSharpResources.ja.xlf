@@ -1412,6 +1412,11 @@
         <target state="translated">パラメーター '{0}' の 'scoped' 修飾子がターゲット '{1}'と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedNotBeforeType">
+        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
+        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
         <target state="translated">'scoped' 修飾子は refs および ref 構造体の値にのみ使用できます。</target>

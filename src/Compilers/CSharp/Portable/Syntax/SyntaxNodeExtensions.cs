@@ -243,6 +243,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
+        internal static TypeSyntax SkipScoped(this TypeSyntax syntax, out bool isScoped)
+        {
+            if (syntax is ScopedTypeSyntax scopedType)
+            {
+                isScoped = true;
+                return scopedType.Type;
+            }
+
+            isScoped = false;
+            return syntax;
+        }
+
         internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
             this ExpressionSyntax? syntax,
             BindingDiagnosticBag diagnostics,
