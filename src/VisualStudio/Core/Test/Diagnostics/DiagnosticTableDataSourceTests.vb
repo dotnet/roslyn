@@ -143,11 +143,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.DataLocation.GetFileLinePositionSpan().StartLinePosition.Line, line)
+                Assert.Equal(item.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.DataLocation.GetFileLinePositionSpan().StartLinePosition.Character, column)
+                Assert.Equal(item.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -193,11 +193,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.DataLocation.GetFileLinePositionSpan().StartLinePosition.Line, line)
+                Assert.Equal(item.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.DataLocation.GetFileLinePositionSpan().StartLinePosition.Character, column)
+                Assert.Equal(item.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Character, column)
             End Using
         End Sub
 

@@ -44,6 +44,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId? documentId = null,
             TextSpan? sourceSpan = null,
             FileLinePositionSpan? mappedFileSpan = null)
+            : this(originalFileSpan, documentId, sourceSpan, mappedFileSpan, checkMappedFileSpan: true)
+        {
+        }
+
+        private DiagnosticDataLocation(
+            FileLinePositionSpan originalFileSpan,
+            DocumentId? documentId,
+            TextSpan? sourceSpan,
+            FileLinePositionSpan? mappedFileSpan,
+            bool checkMappedFileSpan)
         {
             Contract.ThrowIfNull(originalFileSpan.Path);
 
@@ -52,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SourceSpan = sourceSpan;
             MappedFileSpan = mappedFileSpan;
 
-            if (MappedFileSpan is { HasMappedPath: false })
+            if (checkMappedFileSpan && MappedFileSpan is { HasMappedPath: false })
                 MappedFileSpan = null;
         }
 
@@ -71,13 +81,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 mappedLineInfo);
         }
 
-        internal FileLinePositionSpan GetFileLinePositionSpan()
-            => MappedFileSpan ?? OriginalFileSpan;
+        /// <summary>
+        /// Returns the <see cref="FileLinePositionSpan"/> that this diagnostic is located at.  If this is a mapped
+        /// location, the <see cref="FileLinePositionSpan.Path"/> will be normalized to the final full path indicated by
+        /// the mapped span.
+        /// </summary>
+        internal FileLinePositionSpan GetNormalizedFilePathLinePositionSpan()
+            => IsMapped ? new FileLinePositionSpan(GetNormalizedFilePath(), MappedFileSpan.Value.Span) : OriginalFileSpan;
 
-        internal string GetFilePath()
-            => MappedFileSpan == null ? OriginalFileSpan.Path : GetFilePath(OriginalFileSpan.Path, MappedFileSpan.Value.Path);
+        /// <summary>
+        /// Returns the path that this diagnostic is located at.  If this is a mapped location, path will be normalized
+        /// to the final full path indicated by the mapped span.
+        /// </summary>
+        private string GetNormalizedFilePath()
+            => MappedFileSpan == null ? OriginalFileSpan.Path : GetNormalizedFilePath(OriginalFileSpan.Path, MappedFileSpan.Value.Path);
 
-        private static string GetFilePath(string original, string mapped)
+        private static string GetNormalizedFilePath(string original, string mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
@@ -90,6 +109,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             catch
             {
                 return combined;
+            }
+        }
+
+        public static class TestAccessor
+        {
+            public static DiagnosticDataLocation Create(
+                FileLinePositionSpan originalFileSpan,
+                DocumentId? documentId,
+                TextSpan? sourceSpan,
+                FileLinePositionSpan? mappedFileSpan,
+                bool checkMappedFileSpan)
+            {
+                return new DiagnosticDataLocation(originalFileSpan, documentId, sourceSpan, mappedFileSpan, checkMappedFileSpan);
             }
         }
     }

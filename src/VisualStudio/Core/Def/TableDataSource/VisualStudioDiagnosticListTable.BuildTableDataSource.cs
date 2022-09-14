@@ -180,13 +180,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Message;
                                 return content != null;
                             case StandardTableKeyNames.DocumentName:
-                                content = data.DataLocation.GetFilePath();
+                                content = data.DataLocation.GetNormalizedFilePathLinePositionSpan().Path;
                                 return content != null;
                             case StandardTableKeyNames.Line:
-                                content = data.DataLocation.GetFileLinePositionSpan().StartLinePosition.Line;
+                                content = data.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Line;
                                 return true;
                             case StandardTableKeyNames.Column:
-                                content = data.DataLocation.GetFileLinePositionSpan().StartLinePosition.Character;
+                                content = data.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Character;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
                                 content = item.ProjectName;
