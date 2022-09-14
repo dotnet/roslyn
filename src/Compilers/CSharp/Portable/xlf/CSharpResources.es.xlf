@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">El método inicializador de módulos "{0}" debe ser estático, no debe tener parámetros y debe devolver "void".</target>
+        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -2323,7 +2323,7 @@
                              Opciones del compilador de Visual C#
 
                        - ARCHIVOS DE SALIDA -
--out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del
+-out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del 
                               archivo con la clase principal o el primer archivo)
 -target:exe                   Compila un archivo ejecutable de consola (predeterminado) (forma
                               corta: -t:exe)
@@ -2385,7 +2385,7 @@
 -instrument:TestCoverage      Produce un ensamblado instrumentado para recopilar
                               información de cobertura.
 -sourcelink:&lt;archivo&gt;            Información del vínculo de origen para insertar en el PDB.
-
+ 
                        - ERRORES Y ADVERTENCIAS -
 -warnaserror[+|-]             Notifica todas las advertencias como errores.
 -warnaserror[+|-]:&lt;lista de advertencias &gt; Notifica advertencias específicas como errores
@@ -2457,7 +2457,7 @@
 -pdb:&lt;archivo&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado:
                               nombre de archivo de salida con la extensión .pdb).
 -errorendlocation             Línea y columna de salida de la ubicación final de
-                              cada error.
+                              cada error. 
 -preferreduilang              Especifica el nombre del lenguaje de salida preferido.
 -nosdkpath                    Deshabilita la búsqueda de la ruta del SDK predeterminada para los ensamblados de biblioteca estándar.
 -nostdlib[+|-]                No hace referencia a la biblioteca estándar (mscorlib.dll).
