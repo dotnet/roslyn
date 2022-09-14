@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             using var context = _provider.ThreadOperationExecutor.BeginExecute(
                 ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
             await _navigableLocation.NavigateToAsync(
-                Microsoft.CodeAnalysis.Navigation.NavigationOptions.Default, context.UserCancellationToken).ConfigureAwait(false);
+                NavigationOptions.Default with { PreferProvisionalTab = true }, context.UserCancellationToken).ConfigureAwait(false);
         }
 
         public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)

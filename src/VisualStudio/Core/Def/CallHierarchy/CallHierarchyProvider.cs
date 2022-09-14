@@ -151,12 +151,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
             return null;
         }
-
-        public async Task NavigateToAsync(Workspace workspace, DefinitionItem definitionItem, CancellationToken cancellationToken)
-        {
-            var location = await definitionItem.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
-            if (location != null)
-                await location.NavigateToAsync(NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
-        }
     }
 }
