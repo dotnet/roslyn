@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -92,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OriginalEndColumn = originalEndColumn;
         }
 
+        [MemberNotNullWhen(true, nameof(MappedFilePath))]
         public bool IsMapped => MappedFilePath != null;
 
         internal DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
@@ -118,15 +120,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var filePath = GetFilePath();
 
-            return IsMapped ?
-                new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn)) :
-                new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
+            return IsMapped
+                ? new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn))
+                : new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
         }
 
         internal string GetFilePath()
-            => GetFilePath(OriginalFilePath, MappedFilePath);
+            => IsMapped ? GetFilePath(OriginalFilePath, MappedFilePath) : OriginalFilePath;
 
-        private static string GetFilePath(string original, string? mapped)
+        private static string GetFilePath(string original, string mapped)
         {
             if (RoslynString.IsNullOrEmpty(mapped))
                 return original;
