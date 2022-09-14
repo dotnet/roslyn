@@ -11,12 +11,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
-using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 
