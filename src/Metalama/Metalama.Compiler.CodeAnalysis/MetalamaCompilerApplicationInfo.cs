@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Globalization;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Metalama.Backstage.Diagnostics;
@@ -21,12 +21,16 @@ namespace Metalama.Compiler
         public ComponentInfo(ISourceTransformer transformer)
         {
             _transformer = transformer;
+            var transformerType = transformer.GetType();
+            this.Name = transformerType.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ??
+                        transformerType.FullName!;
+
             this._metadataReader = AssemblyMetadataReader.GetInstance(transformer.GetType().Assembly);
         }
 
         public string? Company => this._metadataReader.Company;
 
-        public string Name => _transformer.GetType().FullName!;
+        public string Name { get; }
 
         public string? Version => this._metadataReader.PackageVersion;
 
