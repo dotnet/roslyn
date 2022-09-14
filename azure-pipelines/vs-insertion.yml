@@ -20,7 +20,7 @@ jobs:
   - checkout: none
   - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
     displayName: Set pipeline name
-  - task: NuGetAuthenticate@0
+  - task: NuGetAuthenticate@1
     displayName: Authenticate NuGet feeds
     inputs:
       forceReinstallCredentialProvider: true

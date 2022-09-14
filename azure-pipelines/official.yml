@@ -113,7 +113,7 @@ stages:
 #       inputs:
 #         packageType: sdk
 #         version: 6.x
-#     - task: NuGetAuthenticate@0
+#     - task: NuGetAuthenticate@1
 #       displayName: Authenticate NuGet feeds
 #       inputs:
 #         nuGetServiceConnections: azure-public/vs-impl
