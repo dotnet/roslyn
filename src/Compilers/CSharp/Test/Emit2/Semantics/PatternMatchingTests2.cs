@@ -2093,7 +2093,7 @@ class Point
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (6,23): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Point.Deconstruct(out int, out int)'
+                // (6,23): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Point.Deconstruct(out int, out int)'
                 //         if (p is Point())
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23),
                 // (6,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.

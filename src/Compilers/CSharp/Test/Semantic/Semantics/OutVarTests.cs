@@ -19798,7 +19798,7 @@ public class Cls
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (5,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Program.M(int, out string)'
+                // (5,13): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Program.M(int, out string)'
                 //         if (M(s: out var s))
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("i", "Program.M(int, out string)").WithLocation(5, 13)
                 );
@@ -20031,7 +20031,7 @@ public class Cls
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Cls.Test1(int, ref int)'
                 //         Test1(y: ref x, y: out var y);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9));
 

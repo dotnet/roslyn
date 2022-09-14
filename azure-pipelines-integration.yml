@@ -43,6 +43,28 @@ pr:
       - CONTRIBUTING.md
       - README.md
       - src/Compilers/*
+ 
+parameters:
+- name: poolName
+  displayName: Pool Name
+  type: string
+  default: NetCore-Public
+  values:
+  - NetCore-Public
+  - NetCore-Svc-Public
+- name: queueName
+  displayName: Queue Name
+  type: string
+  default: windows.vs2022preview.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2022.scout.amd64.open
+  - windows.vs2022preview.amd64.open
+  - windows.vs2022preview.scout.amd64.open
+- name: timeout
+  displayName: Timeout in Minutes
+  type: number
+  default: 150
 
 variables:
   - name: queueName
@@ -51,16 +73,16 @@ variables:
 stages:
 - stage: Debug_Integration
   dependsOn: []
+  variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\Debug
   jobs:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - job: VS_Integration_Debug_32
       pool:
-        name: NetCore-Public
-        demands: ImageOverride -equals $(queueName)
-      timeoutInMinutes: 150
-      variables:
-        - name: XUNIT_LOGS
-          value: $(Build.SourcesDirectory)\artifacts\log\Debug
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
       steps:
         - template: eng/pipelines/test-integration-job.yml
           parameters:
@@ -70,12 +92,9 @@ stages:
 
   - job: VS_Integration_Debug_64
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 150
-    variables:
-      - name: XUNIT_LOGS
-        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
     steps:
       - template: eng/pipelines/test-integration-job.yml
         parameters:
@@ -85,15 +104,15 @@ stages:
 
 - stage: Release_Integration
   dependsOn: []
+  variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\Release
   jobs:
   - job: VS_Integration_Release_32
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals $(queueName)
-    timeoutInMinutes: 150
-    variables:
-      - name: XUNIT_LOGS
-        value: $(Build.SourcesDirectory)\artifacts\log\Release
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
     steps:
       - template: eng/pipelines/test-integration-job.yml
         parameters:
@@ -104,12 +123,9 @@ stages:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - job: VS_Integration_Release_64
       pool:
-        name: NetCore-Public
-        demands: ImageOverride -equals $(queueName)
-      timeoutInMinutes: 150
-      variables:
-        - name: XUNIT_LOGS
-          value: $(Build.SourcesDirectory)\artifacts\log\Release
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
       steps:
         - template: eng/pipelines/test-integration-job.yml
           parameters:

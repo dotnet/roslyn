@@ -7,9 +7,10 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_InternalsVisibleTo
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOtherAssembliesOfSolution(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOtherAssemblyIfAttributeSuffixIsPresent(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIsTriggeredWhenDoubleQuoteIsEntered(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIsEmptyUntilDoubleQuotesAreEntered(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -87,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIsTriggeredWhenCharacterIsEnteredAfterOpeningDoubleQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -104,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIsNotTriggeredWhenCharacterIsEnteredThatIsNotRightBesideTheOpeniningDoubleQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -121,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIsNotTriggeredWhenDoubleQuoteIsEnteredAtStartOfFile(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -137,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIsNotTriggeredByArrayElementAccess(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -202,69 +203,69 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_AfterSingleDoubleQuoteAndClosing(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$)]", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_AfterText(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test$$)]", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfCursorIsInSecondParameter(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test"", ""$$", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote1(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test""$$", False, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote2(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""""$$", False, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfNamedParameterIsPresent(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$, AllInternalsVisible = true)]", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfNamedParameterAndNamedPositionalParametersArePresent(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(assemblyName: ""$$, AllInternalsVisible = true)]", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasNoItems_IfNumberIsEntered(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(1$$2)]", False, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasNoItems_IfNotInternalsVisibleToAttribute(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: AssemblyVersion(""$$"")]", False, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent1(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: AssemblyVersion(""1.0.0.0""), InternalsVisibleTo(""$$", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent2(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$""), AssemblyVersion(""1.0.0.0"")]", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreAhead(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("
                 [assembly: AssemblyVersion(""1.0.0.0"")]
                 [assembly: InternalsVisibleTo(""$$", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreFollowing(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("
             [assembly: InternalsVisibleTo(""$$
@@ -272,7 +273,7 @@ using System.Reflection;
             [assembly: AssemblyCompany(""Test"")]", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing(showCompletionInArgumentLists As Boolean) As Task
             Await AssertCompletionListHasItems("
             [assembly: InternalsVisibleTo(""$$
@@ -281,7 +282,7 @@ using System.Reflection;
             }", True, showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -298,7 +299,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionDoesNotContainCurrentAssembly(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -314,7 +315,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionInsertsAssemblyNameOnCommit(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -333,7 +334,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionInsertsPublicKeyOnCommit(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -355,7 +356,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsPublicKeyIfKeyIsSpecifiedByAttribute(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -379,7 +380,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsPublicKeyIfDelayedSigningIsEnabled(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -402,7 +403,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionListIsEmptyIfAttributeIsNotTheBCLAttribute(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -429,7 +430,7 @@ namespace Test
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVT(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -450,7 +451,7 @@ namespace Test
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTIfAssemblyNameIsAConstant(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -481,7 +482,7 @@ namespace A {
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTForDifferentSyntax(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -523,7 +524,7 @@ namespace A {
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithSyntaxError(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -544,7 +545,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithMoreThanOneDocument(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -570,7 +571,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CodeCompletionIgnoresUnsupportedProjectTypes(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -588,7 +589,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -607,7 +608,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -626,7 +627,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -645,7 +646,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_4(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -664,7 +665,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_Verbatim_1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -683,7 +684,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_Verbatim_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -702,7 +703,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_EscapeSequence_1(showCompletionInArgumentLists As Boolean) As Task
             ' Escaped double quotes are not handled properly: The selection is expanded from the cursor position until
@@ -725,7 +726,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEnded(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -744,7 +745,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_AndPublicKey_OpenEnded(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -763,7 +764,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_AndPublicKey_LineBreakExampleFromMSDN(showCompletionInArgumentLists As Boolean) As Task
             ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
@@ -793,7 +794,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEndedStringFollowedByEOF(showCompletionInArgumentLists As Boolean) As Task
             ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
@@ -812,7 +813,7 @@ using System.Reflection;
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEndedStringFollowedByNewLines(showCompletionInArgumentLists As Boolean) As Task
             ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx

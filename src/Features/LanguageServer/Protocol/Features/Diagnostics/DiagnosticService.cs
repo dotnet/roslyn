@@ -303,9 +303,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutable();
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: true, diagnosticMode, cancellationToken);
-
         public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: false, diagnosticMode, cancellationToken);
 

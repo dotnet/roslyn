@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public MakeFieldReadonlyTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new MakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Theory]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("protected")]
@@ -42,7 +43,7 @@ $@"class MyClass
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldIsEvent()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -52,7 +53,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldIsReadonly()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -62,7 +63,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldIsConst()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -72,7 +73,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldNotAssigned()
         {
             await TestInRegularAndScript1Async(
@@ -86,7 +87,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldNotAssigned_Struct()
         {
             await TestInRegularAndScript1Async(
@@ -100,7 +101,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInline()
         {
             await TestInRegularAndScript1Async(
@@ -114,7 +115,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task MultipleFieldsAssignedInline_AllCanBeReadonly()
         {
             await TestInRegularAndScript1Async(
@@ -129,7 +130,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder()
         {
             await TestInRegularAndScript1Async(
@@ -145,7 +146,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task MultipleFieldsAssignedInline_OneIsAssignedInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -169,7 +170,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task MultipleFieldsAssignedInline_NoInitializer()
         {
             await TestInRegularAndScript1Async(
@@ -184,7 +185,7 @@ $@"class MyClass
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Theory]
         [InlineData("")]
         [InlineData("\r\n")]
         [InlineData("\r\n\r\n")]
@@ -204,7 +205,7 @@ $@"class MyClass
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInCtor()
         {
             await TestInRegularAndScript1Async(
@@ -226,7 +227,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInSimpleLambdaInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -242,7 +243,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInLambdaInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -258,7 +259,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInLambdaWithBlockInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -274,7 +275,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInAnonymousFunctionInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -290,7 +291,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInLocalFunctionExpressionBodyInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -304,7 +305,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInLocalFunctionBlockBodyInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -318,7 +319,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInCtor_DifferentInstance()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -333,7 +334,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInCtor_DifferentInstance_ObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -347,7 +348,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInCtor_QualifiedWithThis()
         {
             await TestInRegularAndScript1Async(
@@ -369,7 +370,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldReturnedInProperty()
         {
             await TestInRegularAndScript1Async(
@@ -391,8 +392,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        [Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReturnedInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -416,8 +416,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        [Fact, WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReadInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -441,7 +440,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInProperty()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -456,7 +455,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -470,7 +469,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInNestedTypeConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -488,7 +487,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInNestedTypeMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -506,7 +505,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldInNestedTypeAssignedInConstructor()
         {
             await TestInRegularAndScript1Async(
@@ -536,7 +535,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task VariableAssignedToFieldInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -558,7 +557,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedInMethodWithCompoundOperator()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -572,7 +571,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldUsedWithPostfixIncrement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -586,7 +585,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldUsedWithPrefixDecrement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -600,7 +599,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task NotAssignedInPartialClass1()
         {
             await TestInRegularAndScript1Async(
@@ -614,7 +613,7 @@ $@"class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task NotAssignedInPartialClass2()
         {
             await TestInRegularAndScript1Async(
@@ -634,7 +633,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task NotAssignedInPartialClass3()
         {
             await TestInRegularAndScript1Async(
@@ -674,7 +673,7 @@ partial class MyClass
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task AssignedInPartialClass1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -689,7 +688,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task AssignedInPartialClass2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -706,7 +705,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task AssignedInPartialClass3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -730,7 +729,7 @@ partial class MyClass
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task PassedAsParameter()
         {
             await TestInRegularAndScript1Async(
@@ -758,7 +757,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task PassedAsOutParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -772,7 +771,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task PassedAsRefParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -789,8 +788,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -804,8 +802,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -817,8 +814,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -833,8 +829,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -860,8 +855,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -883,8 +877,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -903,8 +896,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -922,8 +914,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRef8()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -941,8 +932,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly1()
         {
             await TestInRegularAndScript1Async(
@@ -964,8 +954,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly2()
         {
             await TestInRegularAndScript1Async(
@@ -983,8 +972,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly3()
         {
             await TestInRegularAndScript1Async(
@@ -1008,8 +996,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly4()
         {
             await TestInRegularAndScript1Async(
@@ -1053,8 +1040,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly5()
         {
             await TestInRegularAndScript1Async(
@@ -1090,8 +1076,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly6()
         {
             await TestInRegularAndScript1Async(
@@ -1123,8 +1108,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly7()
         {
             await TestInRegularAndScript1Async(
@@ -1154,8 +1138,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ReturnedByRefReadonly8()
         {
             await TestInRegularAndScript1Async(
@@ -1185,8 +1168,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ConditionOfRefConditional1()
         {
             await TestInRegularAndScript1Async(
@@ -1210,8 +1192,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        [Fact, WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
         public async Task ConditionOfRefConditional2()
         {
             await TestInRegularAndScript1Async(
@@ -1231,7 +1212,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task PassedAsOutParameterInCtor()
         {
             await TestInRegularAndScript1Async(
@@ -1253,7 +1234,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task PassedAsRefParameterInCtor()
         {
             await TestInRegularAndScript1Async(
@@ -1281,7 +1262,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task StaticFieldAssignedInStaticCtor()
         {
             await TestInRegularAndScript1Async(
@@ -1303,7 +1284,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task StaticFieldAssignedInNonStaticCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1317,7 +1298,7 @@ partial class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldTypeIsMutableStruct()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1331,7 +1312,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldTypeIsCustomImmutableStruct()
         {
             await TestInRegularAndScript1Async(
@@ -1357,7 +1338,7 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
@@ -1382,7 +1363,6 @@ class MyClass
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FixAll2()
         {
             await TestInRegularAndScript1Async(
@@ -1426,8 +1406,7 @@ class MyClass
     partial struct MyClass { }");
         }
 
-        [WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
         public async Task FieldAssignedInCtor_InParens()
         {
             await TestInRegularAndScript1Async(
@@ -1449,8 +1428,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
         public async Task FieldAssignedInCtor_QualifiedWithThis_InParens()
         {
             await TestInRegularAndScript1Async(
@@ -1472,8 +1450,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldAssignedInMethod_InDeconstruction()
         {
             await TestMissingAsync(
@@ -1489,8 +1466,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldAssignedInMethod_InDeconstruction_InParens()
         {
             await TestMissingAsync(
@@ -1506,8 +1482,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldAssignedInMethod_InDeconstruction_WithThis_InParens()
         {
             await TestMissingAsync(
@@ -1523,8 +1498,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldUsedInTupleExpressionOnRight()
         {
             await TestInRegularAndScript1Async(
@@ -1550,8 +1524,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
         public async Task FieldInTypeWithGeneratedCode()
         {
             await TestInRegularAndScript1Async(
@@ -1579,8 +1552,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
         public async Task FieldIsFixed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1590,8 +1562,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(38995, "https://github.com/dotnet/roslyn/issues/38995")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(38995, "https://github.com/dotnet/roslyn/issues/38995")]
         public async Task FieldAssignedToLocalRef()
         {
             await TestMissingAsync(
@@ -1608,7 +1579,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact]
         public async Task FieldAssignedToLocalReadOnlyRef()
         {
             await TestInRegularAndScript1Async(
@@ -1634,8 +1605,7 @@ class Program
 }");
         }
 
-        [WorkItem(26213, "https://github.com/dotnet/roslyn/issues/26213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(26213, "https://github.com/dotnet/roslyn/issues/26213")]
         public async Task TestFieldAccessesOnLeftOfDot()
         {
             await TestInRegularAndScript1Async(
@@ -1669,8 +1639,7 @@ public class Repro
 }");
         }
 
-        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
         public async Task TestVolatileField1()
         {
             await TestInRegularAndScript1Async(
@@ -1684,8 +1653,7 @@ public class Repro
 }");
         }
 
-        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
         public async Task TestVolatileField2()
         {
             await TestInRegularAndScript1Async(
@@ -1700,8 +1668,7 @@ public class Repro
 }");
         }
 
-        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
         public async Task TestVolatileField3()
         {
             await TestInRegularAndScript1Async(
@@ -1716,8 +1683,7 @@ public class Repro
 }");
         }
 
-        [WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
         public async Task UsedAsRef_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1733,8 +1699,7 @@ public class Repro
 }");
         }
 
-        [WorkItem(57983, "https://github.com/dotnet/roslyn/issues/57983")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(57983, "https://github.com/dotnet/roslyn/issues/57983")]
         public async Task UsedAsRef_NoDiagnostic_02()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1753,8 +1718,7 @@ public class Test
 }");
         }
 
-        [WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")]
         public async Task WithThreadStaticAttribute_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1767,8 +1731,7 @@ class Program
 }");
         }
 
-        [WorkItem(50925, "https://github.com/dotnet/roslyn/issues/50925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(50925, "https://github.com/dotnet/roslyn/issues/50925")]
         public async Task Test_MemberUsedInGeneratedCode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1800,8 +1763,7 @@ public sealed partial class Test
 </Workspace>");
         }
 
-        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldNotWarnForDataMemberFieldsInDataContractClasses()
         {
             await TestMissingAsync(
@@ -1820,8 +1782,7 @@ public class MyClass
 </Workspace>");
         }
 
-        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldWarnForDataMemberFieldsInNonDataContractClasses()
         {
             await TestInRegularAndScript1Async(
@@ -1851,8 +1812,7 @@ public class MyClass
 </Workspace>");
         }
 
-        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses()
         {
             await TestInRegularAndScript1Async(
@@ -1888,8 +1848,7 @@ public class MyClass
 </Workspace>");
         }
 
-        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
         public async Task ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses()
         {
             await TestMissingAsync(

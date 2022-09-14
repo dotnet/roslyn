@@ -6,8 +6,9 @@ Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestReorderMethodParameters_InvokeOnClassName_ShouldFail() As Task
             Dim markup = <Text><![CDATA[
 Class C$$
@@ -18,7 +19,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.IncorrectKind)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestReorderMethodParameters_InvokeOnField_ShouldFail() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -31,7 +32,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.IncorrectKind)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestReorderMethodParameters_NoChangeableParameters() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -43,7 +44,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.IncorrectKind)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_AllowedWithNoParameters() As Task
             Dim markup = <Text><![CDATA[
 Class C

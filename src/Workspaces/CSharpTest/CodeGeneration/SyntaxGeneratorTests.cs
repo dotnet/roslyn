@@ -1196,8 +1196,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
-        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
-        [Fact]
+        [Fact, WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
         public void TestAsPrivateInterfaceImplementationRemovesConstraints()
         {
             var code = @"
@@ -1628,8 +1627,7 @@ public interface IFace
                 "[a]\r\n() =>");
         }
 
-        [Fact]
-        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        [Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
         public void TestAddAttributesToAccessors()
         {
             var prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"));
@@ -1837,8 +1835,7 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
-        [Fact]
+        [Fact, WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
         public void TestUnsafeFieldDeclarationFromSymbol()
         {
             VerifySyntax<MethodDeclarationSyntax>(
@@ -3639,8 +3636,7 @@ public void M()
 }");
         }
 
-        [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
-        [Fact]
+        [Fact, WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IntroduceBaseList()
         {
