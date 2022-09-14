@@ -269,26 +269,32 @@ namespace Microsoft.CodeAnalysis.Completion
                 return caseInsensitiveComparison;
             }
 
-            // Now we have two items match in case-insensitive manner, if we are in a case-insensitive language or
-            // the filter text contains only lowercase letters (therefore we want to relax our filtering standard a bit
-            // to account for the sceanrio that users expect completion to fix the casing), we'd first check if either
-            // one has the MatchPriority set to one of the two special values ("Preselect" and "Deprioritize").
+            // Now we have two items match in case-insensitive manner,
             //
-            // If so and these two items have different MatchPriority, then we'd select the one of "Preselect",
-            // or the one that's not of "Deprioritize". Otherwise we will prefer the one matches case-sensitively.
+            // 1. if we are in a case-insensitive language, we'd first check if either item has the MatchPriority set to one of
+            // the two special values ("Preselect" and "Deprioritize"). If so and these two items have different MatchPriority,
+            // then we'd select the one of "Preselect", or the one that's not of "Deprioritize". Otherwise we will prefer the one
+            // matches case-sensitively. This is to make sure common items in VB like "True" and "False" are prioritized for selection
+            // when user types "t" and "f" (see https://github.com/dotnet/roslyn/issues/4892)
             //
-            // This is to make sure either
-            // 1. common items in VB like "True" and "False" are prioritized for selection when user types "t" and "f"
-            // (see https://github.com/dotnet/roslyn/issues/4892), or
-            // 2. uncommon items like conversion "(short)" are not selected over `Should` when user types `sho`
+            // 2. or similarly, if the filter text contains only lowercase letters, we want to relax our filtering standard a tiny
+            // bit to account for the sceanrio that users expect completion to fix the casing. This only happens if one of the item's
+            // MatchPriority is "Deprioritize". Otherwise we will always prefer the one matches case-sensitively.
+            // This is to make sure uncommon items like conversion "(short)" are not selected over `Should` when user types `sho`
             // (see https://github.com/dotnet/roslyn/issues/55546)
 
-            if (!isCaseSensitive || filterTextIsLowerCaseOnly)
+            var specialMatchPriorityValuesDiff = 0;
+            if (!isCaseSensitive)
             {
-                var specialMatchPriorityValuesDiff = CompareSpecialMatchPriorityValues(item1, item2);
-                if (specialMatchPriorityValuesDiff != 0)
-                    return specialMatchPriorityValuesDiff;
+                specialMatchPriorityValuesDiff = CompareSpecialMatchPriorityValues(item1, item2);
             }
+            else if (filterTextIsLowerCaseOnly)
+            {
+                specialMatchPriorityValuesDiff = CompareDeprioritization(item1, item2);
+            }
+
+            if (specialMatchPriorityValuesDiff != 0)
+                return specialMatchPriorityValuesDiff;
 
             // At this point we have two items which we're matching in a rather similar fashion.
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 

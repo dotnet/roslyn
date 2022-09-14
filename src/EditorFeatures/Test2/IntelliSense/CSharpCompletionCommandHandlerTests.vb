@@ -9394,11 +9394,11 @@ public class AA
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
         <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
-        Public Async Function PreferBestMatchPriorityAndCaseSensitiveWithOnlyLowercaseTyped(uppercaseItemIsPreselect As Boolean) As Task
+        Public Async Function PreferBestMatchPriorityAndCaseSensitiveOverPreselect() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 public class AA
@@ -9417,7 +9417,7 @@ public class AA
                                   ("item1", MatchPriority.Default - 1),
                                   ("item2", MatchPriority.Default + 1),
                                   ("item3", MatchPriority.Default),
-                                  ("Item4", If(uppercaseItemIsPreselect, MatchPriority.Preselect, MatchPriority.Default + 1))})
+                                  ("Item4", MatchPriority.Preselect)})
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9427,13 +9427,8 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                If (uppercaseItemIsPreselect) Then
-                    ' if only lowercase letters are types, and we have a preselect item matches case-insensitively, we prefer it
-                    Await state.AssertSelectedCompletionItem("Item4")
-                Else
-                    ' otherwise, if the item matches case-insensitively has higer MatchPriority but not Preselect, we prefer case-sensitive match with highest priority
-                    Await state.AssertSelectedCompletionItem("item2")
-                End If
+                ' always prefer case-sensitive match of highest priority, even in the presence of item with MatchPriority.Preselect
+                Await state.AssertSelectedCompletionItem("item2")
             End Using
         End Function
 
