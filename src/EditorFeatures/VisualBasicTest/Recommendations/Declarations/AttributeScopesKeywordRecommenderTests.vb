@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class AttributeScopeKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileTest()
             VerifyRecommendationsContain(<File>&lt;|</File>, "Assembly", "Module")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileAfterImportsTest()
             VerifyRecommendationsContain(<File>
 Imports Goo
@@ -21,7 +20,6 @@ Imports Goo
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileBeforeClassTest()
             VerifyRecommendationsContain(<File>
 &lt;|
@@ -30,7 +28,6 @@ End Class</File>, "Assembly", "Module")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileInsideClassTest()
             VerifyRecommendationsAreExactly(<File>
 Class Goo
@@ -38,16 +35,13 @@ Class Goo
 End Class</File>, {"Global"})
         End Sub
 
-        <WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
         Public Sub AttributeScopesInFileAtStartOfMalformedAttributeTest()
             VerifyRecommendationsContain(<File><![CDATA[<|Assembly: AssemblyDelaySignAttribute(True)&gt;]]></File>,
                                          "Assembly", "Module")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesAtEndOfFileTest()
             VerifyRecommendationsContain(<File>
 Class goo
@@ -56,8 +50,7 @@ End Class
 </File>, "Assembly", "Module")
         End Sub
 
-        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AttributeScopesAfterEolTest()
             VerifyRecommendationsContain(<File>
 Class goo

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceDocCommentTextWithTag
+    <Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
     Public Class ReplaceDocCommentTextWithTagTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceDocCommentT
             Return New VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -27,7 +28,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfKeywordCapitalized() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -40,7 +41,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestEndOfKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -53,7 +54,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestEndOfKeyword_NewLineFollowing() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -66,7 +67,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestSelectedKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -79,7 +80,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestInsideKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -92,7 +93,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestNotInsideKeywordIfNonEmptySpan() As Task
             Await TestMissingAsync(
 "
@@ -101,7 +102,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfFullyQualifiedTypeName_Start() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -114,7 +115,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfFullyQualifiedTypeName_Mid1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -127,7 +128,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfFullyQualifiedTypeName_Mid2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -140,7 +141,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfFullyQualifiedTypeName_End() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -153,7 +154,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfFullyQualifiedTypeName_CaseInsensitive() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -166,7 +167,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestStartOfFullyQualifiedTypeName_Selected() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -179,7 +180,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestTypeParameterReference() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -192,7 +193,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestCanSeeInnerMethod() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -209,7 +210,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestNotOnMispelledName() As Task
             Await TestMissingAsync(
 "
@@ -220,7 +221,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestMethodTypeParameterSymbol() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -237,7 +238,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestMethodTypeParameterSymbol_CaseInsensitive() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -254,7 +255,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestMethodTypeParameterSymbol_EmptyBody() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -269,7 +270,7 @@ interface I
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestMethodParameterSymbol() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -286,7 +287,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestMethodParameterSymbol_CaseInsensitive() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -303,7 +304,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact>
         Public Async Function TestMethodParameterSymbol_EmptyBody() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -318,8 +319,7 @@ interface I
 end interface")
         End Function
 
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestNotApplicableKeyword() As Task
             Await TestMissingAsync(
 "
@@ -328,8 +328,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute() As Task
             Await TestMissingAsync(
 "
@@ -340,8 +339,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
         Public Async Function TestInXMLAttribute2() As Task
             Await TestMissingAsync(
 "
@@ -352,8 +350,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyBase() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -366,8 +363,7 @@ class C(Of TKey)
 end class")
         End Function
 
-        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        <Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
         Public Async Function TestMyClass() As Task
             Await TestInRegularAndScriptAsync(
 "

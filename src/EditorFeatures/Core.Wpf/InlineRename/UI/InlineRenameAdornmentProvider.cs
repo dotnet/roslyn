@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
+        private readonly IWpfThemeService? _themeingService;
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         public const string AdornmentLayerName = "RoslynRenameDashboard";
@@ -47,12 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             InlineRenameService renameService,
             IEditorFormatMapService editorFormatMapService,
             [Import(AllowDefault = true)] IInlineRenameColorUpdater? dashboardColorUpdater,
+            [Import(AllowDefault = true)] IWpfThemeService? themeingService,
             IGlobalOptionService globalOptionService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
+            _themeingService = themeingService;
             _globalOptionService = globalOptionService;
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
         }
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             // Create it for the view if we don't already have one
-            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v, _globalOptionService, _asyncQuickInfoBroker));
+            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v, _globalOptionService, _themeingService, _asyncQuickInfoBroker));
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)

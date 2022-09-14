@@ -13848,7 +13848,7 @@ class C1 : IEnumerable<int>
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C1.C1(int)'
+                // file.cs(11,17): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C1.C1(int)'
                 //         c = new C1 { i1 };
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C1").WithArguments("x", "C1.C1(int)").WithLocation(11, 17)
             };

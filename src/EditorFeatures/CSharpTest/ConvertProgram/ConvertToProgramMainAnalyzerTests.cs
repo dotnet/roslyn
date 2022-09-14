@@ -597,8 +597,7 @@ internal class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        [Fact, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
         public async Task TestHasExistingPart()
         {
             await new VerifyCS.Test
@@ -631,8 +630,7 @@ partial class Program
             }.RunAsync();
         }
 
-        [Theory]
-        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        [Theory, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("static")]

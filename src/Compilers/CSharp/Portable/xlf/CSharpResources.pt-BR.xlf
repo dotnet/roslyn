@@ -592,6 +592,11 @@
         <target state="translated">O evento '{0}' semelhante ao de campo não pode ser 'readonly'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileLocalDuplicateNameInNS">
+        <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
+        <target state="new">The namespace '{1}' already contains a definition for '{0}' in this file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
         <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
         <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
@@ -989,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">O método inicializador do módulo '{0}' precisa ser estático, não pode ter parâmetros e precisa retornar 'void'</target>
+        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1405,6 +1410,11 @@
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
         <target state="translated">O modificador 'scoped' do parâmetro '{0}' não corresponde ao parâmetro de '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedNotBeforeType">
+        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
+        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
@@ -2343,7 +2353,7 @@
                               curinga
 -reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
                               especificado usando o alias fornecido (Forma abreviada: -r)
--reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
+-reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly 
                               especificados (Forma abreviada: -r)
 -addmodule:&lt;file list&gt;        Vincular o módulo especificado a este assembly
 -link:&lt;file list&gt;             Inserir os metadados dos arquivos de assembly de
@@ -2371,7 +2381,7 @@
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                               'portable' é um formato multiplataforma,
-                              'embedded' é um formato multiplataforma inserido no
+                              'embedded' é um formato multiplataforma inserido no 
                               .dll ou no .exe de destino)
 -optimize[+|-]                Habilitar as otimizações (Forma abreviada: -o)
 -deterministic                Produzir um assembly determinístico
@@ -2405,7 +2415,7 @@
 -define:&lt;symbol list&gt;         Definir os símbolos de compilação condicional (Forma
                               abreviada: -d)
 -langversion:?                Exibir os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;         Especificar a versão da linguagem, como
+-langversion:&lt;string&gt;         Especificar a versão da linguagem, como 
                               `latest` (última versão, incluindo as versões secundárias),
                               `default` (igual a `latest`),
                               `latestmajor` (última versão, excluindo as versões secundárias),
@@ -2422,7 +2432,7 @@
                               da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar a arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar o contêiner de chave de nome forte
--highentropyva[+|-]           Habilitar a ASLR de alta entropia
+-highentropyva[+|-]           Habilitar a ASLR de alta entropia 
 
                        – DIVERSOS –
 @&lt;file&gt;                       Ler o arquivo de resposta de mais opções
@@ -5107,8 +5117,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Um parâmetro params deve ser o último parâmetro na lista de parâmetros formal</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Um parâmetro params deve ser o último parâmetro na lista de parâmetros formal</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5222,8 +5232,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Um parâmetro __arglist deve ser o último em uma lista formal de parâmetros</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="needs-review-translation">Um parâmetro __arglist deve ser o último em uma lista formal de parâmetros</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -9935,8 +9945,8 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Não há nenhum argumento fornecido que corresponde ao parâmetro formal necessário "{0}" de "{1}"</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="needs-review-translation">Não há nenhum argumento fornecido que corresponde ao parâmetro formal necessário "{0}" de "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

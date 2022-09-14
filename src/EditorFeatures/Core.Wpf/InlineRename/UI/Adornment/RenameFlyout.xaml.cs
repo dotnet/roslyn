@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IWpfTextView _textView;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IAsyncQuickInfoBroker asyncQuickInfoBroker)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IWpfThemeService? themeService, IAsyncQuickInfoBroker asyncQuickInfoBroker)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -47,6 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             InitializeComponent();
             PositionAdornment();
+
+            if (themeService is not null)
+            {
+                Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
+                Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
         }
 
         private async Task DismissToolTipsAsync()

@@ -23,9 +23,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class StructureTaggerTests
     {
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task CSharpOutliningTagger(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -99,7 +100,7 @@ namespace MyNamespace
                 });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task CSharpImportsFileScopedNamespaceTest(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -142,7 +143,7 @@ public class Bar
                 });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task CSharpCommentsFileScopedNamespace(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -188,7 +189,7 @@ public class Bar
                 });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task CSharpImportsNormalNamespaceTest(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -238,7 +239,7 @@ namespace Foo
                 });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfTheory]
         [CombinatorialData]
         public async Task VisualBasicOutliningTagger(
             bool collapseRegionsWhenCollapsingToDefinitions,
@@ -308,7 +309,7 @@ End Namespace";
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact]
         public async Task OutliningTaggerTooltipText()
         {
             var code = @"Module Module1

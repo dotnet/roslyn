@@ -8638,7 +8638,7 @@ readonly scoped record struct C();
         }
 
         [Fact]
-        public void FieldTypeScope()
+        public void FieldTypeScope_01()
         {
             var source =
 @"#pragma warning disable 169
@@ -8669,6 +8669,40 @@ ref struct R2
                 // (6,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int F3;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void FieldTypeScope_02()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct R1 { }
+ref struct R2
+{
+    scoped private R1 F1;
+    scoped private ref int F3;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private R1 F1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 23),
+                // (6,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(6, 20),
+                // (6,28): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 28));
+
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private R1 F1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 23),
+                // (6,28): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped private ref int F3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 28));
         }
 
         [Theory]
@@ -8835,6 +8869,15 @@ class Program
                 VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
                 VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
                 VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type;
+                    Assert.Null(model.GetTypeInfo(type).Type);
+                    Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                }
             }
         }
 
@@ -9009,13 +9052,110 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "r1").WithArguments("r1").WithLocation(6, 20)
                 );
 
+            verifyModel(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            verifyModel(comp);
+
+            static void verifyModel(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                foreach (SourceLocalSymbol local in locals)
+                {
+                    Assert.True(local.IsVar);
+                    Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
+                }
+
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type.SkipScoped(out _).SkipRef(out _);
+                    Assert.Equal("R<System.Int32>", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("R<System.Int32>", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_07()
+        {
+            var source =
+@"
+class Program
+{
+    static void Test(ref int x)
+    {
+        ref int a = ref x;
+        scoped extern ref int b = ref x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS9072: Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.
+                //         scoped extern ref int b = ref x;
+                Diagnostic(ErrorCode.ERR_ScopedNotBeforeType, "scoped").WithLocation(7, 9),
+                // (7,16): error CS0106: The modifier 'extern' is not valid for this item
+                //         scoped extern ref int b = ref x;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(7, 16)
+                );
+
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+            Assert.Equal(2, locals.Length);
+            VerifyLocalSymbol(locals[0], "ref System.Int32 a", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyLocalSymbol(locals[1], "ref System.Int32 b", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void LocalScope_08()
+        {
+            var source =
+@"
+class Program
+{
+    static void Test(ref int x)
+    {
+        scoped ref int[M(out var b)] a;
+        b++;
+    }
+
+    static int M(out int x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 9),
+                // (6,16): error CS1001: Identifier expected
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(6, 16),
+                // (6,16): error CS1002: ; expected
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(6, 16),
+                // (6,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M(out var b)]").WithLocation(6, 23),
+                // (6,38): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "a").WithLocation(6, 38),
+                // (6,38): warning CS0168: The variable 'a' is declared but never used
+                //         scoped ref int[M(out var b)] a;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 38),
+                // (7,9): error CS0165: Use of unassigned local variable 'b'
+                //         b++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -15917,7 +16057,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
+                // (5,38): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'UnscopedRefAttribute.UnscopedRefAttribute(out int)'
                 //         public UnscopedRefAttribute([UnscopedRef] out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("i", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(out int)").WithLocation(5, 38));
         }
@@ -15960,7 +16100,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
+                // (4,24): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
                 //     static ref int F1([UnscopedRef] out int i1)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("b", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(bool)").WithLocation(4, 24),
                 // (12,20): error CS8166: Cannot return a parameter by reference 'i2' because it is not a ref parameter
@@ -16105,6 +16245,33 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        [WorkItem(63529, "https://github.com/dotnet/roslyn/issues/63529")]
+        public void CallUnscopedRefMethodFromScopedOne()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+
+ref struct A
+{
+    void Test()
+    {
+        this.GetSpan();
+    }
+
+    [UnscopedRef]
+    Span<byte> GetSpan() => default;
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         this.GetSpan();
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 9)
+                );
         }
 
         [Theory]
@@ -16634,6 +16801,158 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
 
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
             Assert.Equal(expectedUseUpdatedEscapeRules, module.UseUpdatedEscapeRules);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_01()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    var a = ([UnscopedRef] ref RefStruct s) => { };
+    var b = ([UnscopedRef] out RegularStruct s) => { };
+    var c = ([UnscopedRef] out RefStruct s) => { };
+
+    D1 x = ([UnscopedRef] ref RefStruct s) => { };
+    D2 y = ([UnscopedRef] out RegularStruct s) => { };
+    D3 z = ([UnscopedRef] out RefStruct s) => { };
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C
+{
+  public void M()
+  {
+    void localA([UnscopedRef] ref RefStruct s) { };
+    void localB([UnscopedRef] out RegularStruct s) { };
+    void localC([UnscopedRef] out RefStruct s) { };
+
+    var a = localA;
+    var b = localB;
+    var c = localC;
+
+    D1 x = localA;
+    D2 y = localB;
+    D3 z = localC;
+  }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
+        }
+
+        [Fact]
+        [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
+        public void UnscopedRefInInferredDelegateType_03()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public ref struct RefStruct { }
+public struct RegularStruct { }
+
+delegate void D1([UnscopedRef] ref RefStruct s);
+delegate void D2([UnscopedRef] out RegularStruct s);
+delegate void D3([UnscopedRef] out RefStruct s);
+
+public class C1
+{
+  public void M()
+  {
+    var a = A;
+    var b = B;
+    var c = C;
+
+    D1 x = A;
+    D2 y = B;
+    D3 z = C;
+  }
+
+  void A([UnscopedRef] ref RefStruct s) { }
+  void B([UnscopedRef] out RegularStruct s) { }
+  void C([UnscopedRef] out RefStruct s) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            int count = 0;
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText is "a" or "b" or "c"))
+            {
+                count++;
+                var type = (NamedTypeSymbol)model.GetDeclaredSymbol(node).GetSymbol<LocalSymbol>().Type;
+                Assert.True(type.IsImplicitlyDeclared);
+                Assert.True(type.IsAnonymousType);
+                Assert.Equal(DeclarationScope.Unscoped, type.DelegateInvokeMethod.Parameters.Single().EffectiveScope);
+            }
+
+            Assert.Equal(3, count);
         }
     }
 }
