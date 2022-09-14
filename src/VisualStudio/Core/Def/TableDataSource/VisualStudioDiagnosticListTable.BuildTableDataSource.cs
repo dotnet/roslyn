@@ -259,11 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         // okay, documentId no longer exist in current solution, find it by file path.
                         var filePath = item.GetOriginalFilePath();
-                        if (string.IsNullOrWhiteSpace(filePath))
-                        {
-                            return null;
-                        }
-
                         var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
                         foreach (var id in documentIds)
                         {
