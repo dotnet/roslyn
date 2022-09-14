@@ -41,12 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
 
             foreach (var inline in newList)
             {
-                if (inline is Run run && !string.IsNullOrEmpty(run.Text))
-                {
-                    automationTextBuilder.Append(run.Text);
-                }
-
                 textBlock.Inlines.Add(inline);
+                automationTextBuilder.Append(inline.GetText());
             }
 
             AutomationProperties.SetName(textBlock, automationTextBuilder.ToString());
