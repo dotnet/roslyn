@@ -572,11 +572,12 @@ function GetCommonDotnetTestArgs()
   # Determine a common set of parameters that we'll pass to dotnet test based on the input options.
   $dotnetTestAdditionalArgs = " --arch $testArch"
 
-  $blameTimeoutArg = "15minutes"
-  if ($testVsi)
-  {
-    $blameTimeoutArg = "25minutes"
-  }
+  # The blame collector in dotnet test relies on tests completing events to reset the timeout timer.
+  # There are a couple scenarios where we can hit pretty long periods of time between tests, for example
+  #   1.  Installing vsix's and launching VS on integration test machines
+  #   2.  When running single machine tests with assembly parallelism we can end up saturating the CI machine CPU
+  #       and long running unit tests like NumericIntPtrTests.BinaryOperators will sometimes take 20 minutes to complete.
+  $blameTimeoutArg = "25minutes"
 
   $dotnetTestAdditionalArgs += " --blame-hang-dump-type full --blame-hang-timeout $blameTimeoutArg"
   if ($lspEditor)

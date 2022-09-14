@@ -335,10 +335,7 @@ if [[ "$test_core_clr" == true ]]; then
       logArgs="$logArgs --logger html;LogFilePath=${log_dir}/TestResults.html"
     fi
 
-    # Tell vstestconsole to parallelize assemblies when running tests.
-    parallelismArgs="-- RunConfiguration.MaxCpuCount=0"
-
-    dotnet test $assemblyArgs $logArgs $parallelismArgs
+    dotnet test --blame-hang-dump-type full --blame-hang-timeout 25minutes $assemblyArgs $logArgs -- RunConfiguration.MaxCpuCount=0
   fi
 fi
 ExitWithExitCode 0
