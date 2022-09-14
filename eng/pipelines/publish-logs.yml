@@ -23,6 +23,14 @@ steps:
     continueOnError: true
     condition: not(succeeded())
 
+  - task: CopyFiles@2
+    displayName: Copy Blame Collector Artifacts to Logs
+    inputs:
+      contents: '$(Build.SourcesDirectory)/TestResults/**'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+    continueOnError: true
+    condition: not(succeeded())
+
   - task: PublishPipelineArtifact@1
     displayName: Publish Logs
     inputs:
