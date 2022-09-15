@@ -2121,6 +2121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
         ERR_ScopedNotBeforeType = 9072,
+        WRN_ScopedMismatchInParameterOfTarget = 9073,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
 
         #endregion
 
