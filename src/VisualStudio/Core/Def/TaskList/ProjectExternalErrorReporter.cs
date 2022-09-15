@@ -103,8 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     error.bstrText,
                     GetDiagnosticSeverity(error),
                     _language,
-                    mappedSpan: null,
-                    originalSpan: new FileLinePositionSpan(project.FilePath ?? "", span: default)));
+                    new FileLinePositionSpan(project.FilePath ?? "", span: default)));
             }
 
             DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
@@ -175,11 +174,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 documentId,
                 _projectId,
                 GetErrorId(error),
-                message: error.bstrText,
+                error.bstrText,
                 GetDiagnosticSeverity(error),
                 _language,
-                mappedSpan: null,
-                originalSpan: new FileLinePositionSpan(error.bstrFileName,
+                new FileLinePositionSpan(error.bstrFileName,
                     new LinePosition(line, column),
                     new LinePosition(line, column)));
         }
@@ -232,9 +230,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 bstrErrorId,
                 bstrErrorMessage,
                 severity,
-                language: _language,
-                mappedSpan: null,
-                originalSpan: new FileLinePositionSpan(
+                _language,
+                new FileLinePositionSpan(
                     bstrFileName,
                     new LinePosition(iStartLine, iStartColumn),
                     new LinePosition(iEndLine, iEndColumn)));
@@ -262,8 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             string message,
             DiagnosticSeverity severity,
             string language,
-            FileLinePositionSpan? mappedSpan,
-            FileLinePositionSpan originalSpan)
+            FileLinePositionSpan unmappedSpan)
         {
             return new DiagnosticData(
                 id: errorId,
@@ -278,10 +274,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
-                    originalFileSpan: originalSpan,
+                    unmappedSpan,
                     documentId,
                     sourceSpan: null,
-                    mappedFileSpan: mappedSpan),
+                    mappedFileSpan: null),
                 language: language);
         }
 
