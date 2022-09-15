@@ -292,9 +292,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
-            var result = new Dictionary<SymbolAndSelectionInfo, TSyntaxContext>();
-
             // We don't care about assembly identity when creating the union.
+            var result = new Dictionary<SymbolAndSelectionInfo, TSyntaxContext>();
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.

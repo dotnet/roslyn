@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
 
-        protected virtual string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context)
-            => GetFilterTextDefault(symbol, displayText, context);
+        protected abstract string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context);
 
         protected sealed override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                     // inferred we're assigning to a string or vice versa we'll still count those as the same.
                     var preselect = inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !IsInstrinsic(symbol);
-                    result.Add(new(symbol, preselect));
+                    result.Add(new SymbolAndSelectionInfo(symbol, preselect));
                 }
 
                 return result.ToImmutable();

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
-            return (displayString, "", displayString);
+            return (displayString, suffix: "", displayString);
         }
 
         private static readonly CompletionItemRules s_arrayRules =

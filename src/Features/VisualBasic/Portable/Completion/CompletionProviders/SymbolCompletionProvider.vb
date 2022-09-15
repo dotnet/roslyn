@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return "New"
             End If
 
-            Return MyBase.GetFilterText(symbol, displayText, context)
+            Return GetFilterTextDefault(symbol, displayText, context)
         End Function
 
         Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of SymbolAndSelectionInfo), context As VisualBasicSyntaxContext) As CompletionItemRules

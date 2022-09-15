@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
 
+        protected override string GetFilterText(ISymbol symbol, string displayText, CSharpSyntaxContext context)
+            => GetFilterTextDefault(symbol, displayText, context);
+
         protected override async Task<bool> ShouldPreselectInferredTypesAsync(
             CompletionContext? context,
             int position,
