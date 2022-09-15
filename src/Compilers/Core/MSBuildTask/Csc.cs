@@ -391,8 +391,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             && reference.GetMetadata("ReferenceSourceTarget").Equals("ProjectReference", StringComparison.OrdinalIgnoreCase)
                             && isReferenceAssembly)
                         {
-                            commandLine.AppendFileNamesIfNotNull(new[] { reference.GetMetadata("OriginalItemSpec") }, " ");
-                            commandLine.AppendFileNamesIfNotNull(new[] { reference.GetMetadata("CopyUpToDateMarker") }, " ");
+                            commandLine.AppendTextUnquoted(reference.GetMetadata("OriginalItemSpec"));
+                            commandLine.AppendTextUnquoted(reference.GetMetadata("CopyUpToDateMarker"));
                         }
                     }
                 }
