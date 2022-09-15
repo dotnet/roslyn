@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId? documentId = null,
             TextSpan? sourceSpan = null,
             FileLinePositionSpan? mappedFileSpan = null)
-            : this(unmappedFileSpan, documentId, sourceSpan, mappedFileSpan, checkMappedFileSpan: true)
+            : this(unmappedFileSpan, documentId, sourceSpan, mappedFileSpan, forceMappedPath: false)
         {
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId? documentId,
             TextSpan? sourceSpan,
             FileLinePositionSpan? mappedFileSpan,
-            bool checkMappedFileSpan)
+            bool forceMappedPath)
         {
             Contract.ThrowIfNull(unmappedFileSpan.Path);
 
@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SourceSpan = sourceSpan;
 
             // If we were passed in a mapped span use it with the original span to determine the true final mapped
-            // location. If checkMappedFileSpan is false, then this is a test which is explicitly making a mapped span
-            // that it wants us to not mess with.  In that case, just hold onto that value directly.
-            if (checkMappedFileSpan && mappedFileSpan is { HasMappedPath: true } mappedSpan)
+            // location. If forceMappedSpan is true, then this is a test which is explicitly making a mapped span that
+            // it wants us to not mess with.  In that case, just hold onto that value directly.
+            if (mappedFileSpan is { } mappedSpan &&
+                (mappedSpan.HasMappedPath || forceMappedPath))
             {
                 MappedFileSpan = new FileLinePositionSpan(GetNormalizedFilePath(unmappedFileSpan.Path, mappedSpan.Path), mappedSpan.Span);
             }
@@ -106,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 FileLinePositionSpan originalFileSpan,
                 DocumentId? documentId,
                 TextSpan? sourceSpan,
-                FileLinePositionSpan? mappedFileSpan,
-                bool checkMappedFileSpan)
+                FileLinePositionSpan mappedFileSpan,
+                bool forceMappedPath)
             {
-                return new DiagnosticDataLocation(originalFileSpan, documentId, sourceSpan, mappedFileSpan, checkMappedFileSpan);
+                return new DiagnosticDataLocation(originalFileSpan, documentId, sourceSpan, mappedFileSpan, forceMappedPath);
             }
         }
     }
