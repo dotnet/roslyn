@@ -276,7 +276,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 location: new DiagnosticDataLocation(
                     unmappedSpan,
                     documentId,
-                    sourceSpan: null,
                     mappedFileSpan: null),
                 language: language);
         }
