@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // to be merged from separate projects if they have the same code, filepath, range, and message.
                 //
                 // Note: LSP pull diagnostics only operates on unmapped locations.  So the code here and below only accesses OriginalFilePath
-                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.OriginalFileSpan1.Path, diagnostic.Range, diagnostic.Message)
+                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
                     .GetHashCode().ToString();
 
                 if (capabilities.HasVisualStudioLspCapability())
@@ -373,13 +373,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     Start = new Position
                     {
-                        Character = dataLocation.OriginalFileSpan1.StartLinePosition.Character,
-                        Line = dataLocation.OriginalFileSpan1.StartLinePosition.Line,
+                        Character = dataLocation.UnmappedFileSpan.StartLinePosition.Character,
+                        Line = dataLocation.UnmappedFileSpan.StartLinePosition.Line,
                     },
                     End = new Position
                     {
-                        Character = dataLocation.OriginalFileSpan1.EndLinePosition.Character,
-                        Line = dataLocation.OriginalFileSpan1.EndLinePosition.Line,
+                        Character = dataLocation.UnmappedFileSpan.EndLinePosition.Character,
+                        Line = dataLocation.UnmappedFileSpan.EndLinePosition.Line,
                     }
                 };
             }

@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var span = dataLocation.SourceSpan.Value;
                 // TODO: is OriginalFileSpan correct here?  Presumably so as we don't have an actual document, so there
                 // could not be any remapping going on.
-                Debug.Assert(dataLocation.OriginalFileSpan1 == dataLocation.MappedFileSpan);
-                return Location.Create(dataLocation.OriginalFileSpan1.Path, span, dataLocation.OriginalFileSpan1.Span);
+                Debug.Assert(dataLocation.UnmappedFileSpan == dataLocation.MappedFileSpan);
+                return Location.Create(dataLocation.UnmappedFileSpan.Path, span, dataLocation.UnmappedFileSpan.Span);
             }
 
             Contract.ThrowIfFalse(dataLocation.DocumentId == document.Document.Id);

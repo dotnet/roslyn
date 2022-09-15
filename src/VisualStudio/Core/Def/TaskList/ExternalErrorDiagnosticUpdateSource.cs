@@ -806,9 +806,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
                     return
-                        !string.IsNullOrEmpty(diagnosticData.DataLocation.OriginalFileSpan1.Path) &&
-                        (diagnosticData.DataLocation.OriginalFileSpan1.StartLinePosition.Line > 0 ||
-                         diagnosticData.DataLocation.OriginalFileSpan1.StartLinePosition.Character > 0);
+                        !string.IsNullOrEmpty(diagnosticData.DataLocation.UnmappedFileSpan.Path) &&
+                        (diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Line > 0 ||
+                         diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Character > 0);
                 }
             }
 
@@ -933,7 +933,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     item1.Severity != item2.Severity ||
                     item1.Message != item2.Message ||
                     item1.DataLocation.MappedFileSpan.Span != item2.DataLocation.MappedFileSpan.Span ||
-                    item2.DataLocation.OriginalFileSpan1.Span != item2.DataLocation.OriginalFileSpan1.Span)
+                    item2.DataLocation.UnmappedFileSpan.Span != item2.DataLocation.UnmappedFileSpan.Span)
                 {
                     return false;
                 }
@@ -943,7 +943,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // to be considering.
                 return (item1.DocumentId != null)
                     ? item1.DocumentId == item2.DocumentId
-                    : item1.DataLocation.OriginalFileSpan1.Path == item2.DataLocation.OriginalFileSpan1.Path;
+                    : item1.DataLocation.UnmappedFileSpan.Path == item2.DataLocation.UnmappedFileSpan.Path;
             }
 
             public int GetHashCode(DiagnosticData obj)
@@ -955,14 +955,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,
                     Hash.Combine(obj.DataLocation.MappedFileSpan.Span.Start.GetHashCode(),
-                    Hash.Combine(obj.DataLocation.OriginalFileSpan1.Span.Start.GetHashCode(), (int)obj.Severity)))));
+                    Hash.Combine(obj.DataLocation.UnmappedFileSpan.Span.Start.GetHashCode(), (int)obj.Severity)))));
 
                 // TODO: unclear why we are hashing the original path, and not the normalized path.   This may
                 // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
                 // to be considering.
                 return obj.DocumentId != null
                     ? Hash.Combine(obj.DocumentId, result)
-                    : Hash.Combine(obj.DataLocation.OriginalFileSpan1.Path, result);
+                    : Hash.Combine(obj.DataLocation.UnmappedFileSpan.Path, result);
             }
         }
     }

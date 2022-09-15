@@ -47,10 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         // navigate to the remapped position. (Unless navigation already handles that?  Unclear what the
         // invariants/expectations are between these two components).
         public override LinePosition GetOriginalPosition()
-            => Data.DataLocation.OriginalFileSpan1.StartLinePosition;
+            => Data.DataLocation.UnmappedFileSpan.StartLinePosition;
 
         public override string GetOriginalFilePath()
-            => Data.DataLocation.OriginalFileSpan1.Path;
+            => Data.DataLocation.UnmappedFileSpan.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return left.Equals(right);
 
                 return
-                    leftLocation.OriginalFileSpan1 == rightLocation.OriginalFileSpan1 &&
+                    leftLocation.UnmappedFileSpan == rightLocation.UnmappedFileSpan &&
                     left.Severity == right.Severity &&
                     left.IsSuppressed == right.IsSuppressed &&
                     left.Id == right.Id &&
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return data.GetHashCode();
 
                 return
-                    Hash.Combine(location.OriginalFileSpan1.GetHashCode(),
+                    Hash.Combine(location.UnmappedFileSpan.GetHashCode(),
                     Hash.Combine(data.IsSuppressed,
                     Hash.Combine(data.Id, data.Severity.GetHashCode())));
             }

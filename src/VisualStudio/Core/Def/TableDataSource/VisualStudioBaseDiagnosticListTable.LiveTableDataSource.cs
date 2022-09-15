@@ -275,10 +275,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // TODO: unclear why we are comparing OriginalFileSpan and not the final normalized span.  This may
                 // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
                 // to be considering.
-                return groupedItems.OrderBy(d => d.Data.DataLocation.OriginalFileSpan1.StartLinePosition)
+                return groupedItems.OrderBy(d => d.Data.DataLocation.UnmappedFileSpan.StartLinePosition)
                                    .ThenBy(d => d.Data.Id)
                                    .ThenBy(d => d.Data.Message)
-                                   .ThenBy(d => d.Data.DataLocation.OriginalFileSpan1.EndLinePosition);
+                                   .ThenBy(d => d.Data.DataLocation.UnmappedFileSpan.EndLinePosition);
             }
 
             private class TableEntriesSource : DiagnosticTableEntriesSource

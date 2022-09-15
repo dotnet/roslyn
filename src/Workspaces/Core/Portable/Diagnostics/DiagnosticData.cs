@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // TODO: unclear why we're only looking at the OriginalFileSpan of the location, and only the start point of it.
             return
-               DataLocation.OriginalFileSpan1.StartLinePosition == other.DataLocation.OriginalFileSpan1.StartLinePosition &&
+               DataLocation.UnmappedFileSpan.StartLinePosition == other.DataLocation.UnmappedFileSpan.StartLinePosition &&
                Id == other.Id &&
                Category == other.Category &&
                Severity == other.Severity &&
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // TODO: unclear why we're only looking at the OriginalFileSpan of the location, and only the start point of it.
         public override int GetHashCode()
-            => Hash.Combine(DataLocation.OriginalFileSpan1.StartLinePosition.GetHashCode(),
+            => Hash.Combine(DataLocation.UnmappedFileSpan.StartLinePosition.GetHashCode(),
                Hash.Combine(Id,
                Hash.Combine(Category,
                Hash.Combine((int)Severity,
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                Hash.Combine(DocumentId, Message.GetHashCode()))))))));
 
         public override string ToString()
-            => $"{Id} {Severity} {Message} {ProjectId} {DataLocation.MappedFileSpan} [original: {DataLocation.OriginalFileSpan1}]";
+            => $"{Id} {Severity} {Message} {ProjectId} {DataLocation.MappedFileSpan} [original: {DataLocation.UnmappedFileSpan}]";
 
         public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation diagnosticLocation, SourceText text)
         {
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (lines.Count == 0)
                 return default;
 
-            var fileSpan = useMapped ? dataLocation.MappedFileSpan : dataLocation.OriginalFileSpan1;
+            var fileSpan = useMapped ? dataLocation.MappedFileSpan : dataLocation.UnmappedFileSpan;
 
             var startLine = fileSpan.StartLinePosition.Line;
             var endLine = fileSpan.EndLinePosition.Line;

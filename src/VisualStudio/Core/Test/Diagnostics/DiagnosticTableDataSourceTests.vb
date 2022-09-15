@@ -135,7 +135,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation.OriginalFileSpan1.Path, filename)
+                Assert.Equal(item.DataLocation.UnmappedFileSpan.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation.OriginalFileSpan1.Path, filename)
+                Assert.Equal(item.DataLocation.UnmappedFileSpan.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -691,7 +691,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.Properties,
                             diagnostic1.ProjectId,
                             New DiagnosticDataLocation(
-                                diagnostic1.DataLocation.OriginalFileSpan1,
+                                diagnostic1.DataLocation.UnmappedFileSpan,
                                 Nothing,
                                 diagnostic1.DataLocation.SourceSpan,
                                 diagnostic1.DataLocation.MappedFileSpan),
@@ -716,7 +716,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.Properties,
                             diagnostic2.ProjectId,
                             New DiagnosticDataLocation(
-                                diagnostic2.DataLocation.OriginalFileSpan1,
+                                diagnostic2.DataLocation.UnmappedFileSpan,
                                 Nothing,
                                 diagnostic2.DataLocation.SourceSpan,
                                 diagnostic2.DataLocation.MappedFileSpan),
