@@ -1832,7 +1832,7 @@ C<T>.field2 -> C<T>.Nested";
                 // /0/Test0.cs(10,18): warning RS0016: Symbol 'D' is not part of the declared public API
                 GetCSharpResultAt(10, 12 + EnabledModifierCSharp.Length, DeclareNewApiRule, "D"),
                 // /0/Test0.cs(12,16): warning RS0016: Symbol 'D' is not part of the declared public API
-                GetCSharpResultAt(12, 16, DeclareNewApiRule, "D"));
+                GetCSharpResultAt(12, 10 + EnabledModifierCSharp.Length, DeclareNewApiRule, "D"));
         }
 
         [Fact]
