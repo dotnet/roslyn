@@ -168,8 +168,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal ImmutableArray<UnmappedActiveStatement> GetOldActiveStatements(IEditAndContinueAnalyzer analyzer, SyntaxTree oldSyntaxTree, SourceText oldText, SyntaxNode oldRoot, CancellationToken cancellationToken)
         {
-            Debug.Assert(oldText == oldSyntaxTree.GetText(cancellationToken));
-            Debug.Assert(oldRoot == oldSyntaxTree.GetRoot(cancellationToken));
+            Debug.Assert(oldRoot.SyntaxTree == oldSyntaxTree);
 
             return ImmutableInterlocked.GetOrAdd(
                 ref _lazyOldDocumentActiveStatements,
