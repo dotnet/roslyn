@@ -62,16 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        protected override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
+        protected override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, CSharpSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var result = await base.GetSymbolsAsync(completionContext, context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
             {
-                var type = (ITypeSymbol)result.Single().symbol;
+                var type = (ITypeSymbol)result.Single().Symbol;
                 var alias = await type.FindApplicableAliasAsync(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
-                    return ImmutableArray.Create((alias, result.Single().preselect));
+                    return ImmutableArray.Create(new SymbolAndSelectionInfo(alias, result.Single().Preselect));
             }
 
             return result;
@@ -84,18 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (symbol.Name, "", symbol.Name);
             }
 
+            // typeSymbol may be a symbol that is nullable if the place we are assigning to is null, for example
+            //
+            //     object? o = new |
+            //
+            // We strip the top-level nullability so we don't end up suggesting "new object?" here. Nested nullability would still
+            // be generated.
             if (symbol is ITypeSymbol typeSymbol)
             {
-                // typeSymbol may be a symbol that is nullable if the place we are assigning to is null, for example
-                //
-                //     object? o = new |
-                //
-                // We strip the top-level nullability so we don't end up suggesting "new object?" here. Nested nullability would still
-                // be generated.
-                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated), context);
+                symbol = typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
             }
 
-            return base.GetDisplayAndSuffixAndInsertionText(symbol, context);
+            var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
+            return (displayString, suffix: "", displayString);
         }
 
         private static readonly CompletionItemRules s_arrayRules =
@@ -116,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols)
+        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<SymbolAndSelectionInfo> symbols)
         {
-            var preselect = symbols.Any(static t => t.preselect);
+            var preselect = symbols.Any(static t => t.Preselect);
             if (!preselect)
                 return s_arrayRules;
 
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
             // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
             // properties, the user never really wants to commit 'new object {' anyway.
-            var namedTypeSymbol = symbols.Length > 0 ? symbols[0].symbol as INamedTypeSymbol : null;
+            var namedTypeSymbol = symbols.Length > 0 ? symbols[0].Symbol as INamedTypeSymbol : null;
             if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
                 return s_objectRules;
 
