@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             return prefix + " " + text.Substring(prefixLength).Trim() + " " + Ellipsis;
         }
 
-        internal static string GetCommentBannerText(SyntaxTrivia comment)
+        public static string GetCommentBannerText(SyntaxTrivia comment)
         {
             Contract.ThrowIfFalse(comment.IsSingleLineComment() || comment.IsMultiLineComment());
 
