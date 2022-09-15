@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             && isReferenceAssembly)
                         {
                             commandLine.AppendSwitchIfNotNull("/reference:", reference.GetMetadata("OriginalItemSpec"));
-                            commandLine.AppendSwitchIfNotNull("/reference:", reference.GetMetadata("CopyUpToDateMarker"));
+                            commandLine.AppendArgumentIfNotNull(reference.GetMetadata("CopyUpToDateMarker"));
                         }
                     }
                 }
