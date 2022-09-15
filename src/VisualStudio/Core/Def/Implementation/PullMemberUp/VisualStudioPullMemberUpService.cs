@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -24,14 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
     {
         private readonly IGlyphService _glyphService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioPullMemberUpService(IGlyphService glyphService, IWaitIndicator waitIndicator)
+        public VisualStudioPullMemberUpService(IGlyphService glyphService, IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _glyphService = glyphService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedMember)
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 selectedMember.ContainingType,
                 cancellationTokenSource.Token);
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
-            var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
+            var viewModel = new PullMemberUpDialogViewModel(_uiThreadOperationExecutor, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
             var dialog = new PullMemberUpDialog(viewModel);
             var result = dialog.ShowModal();
 

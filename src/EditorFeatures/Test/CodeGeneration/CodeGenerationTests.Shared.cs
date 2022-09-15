@@ -705,7 +705,7 @@ namespace [|N|]
             public static abstract string Property1 { get; }
             public virtual string Property { get; }
 
-            public abstract static void Method2();
+            public static abstract void Method2();
             public virtual void Method1();
         }
 

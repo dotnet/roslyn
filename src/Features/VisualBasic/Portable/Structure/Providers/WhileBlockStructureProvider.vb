@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class WhileBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of WhileBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As WhileBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As WhileBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

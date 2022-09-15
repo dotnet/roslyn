@@ -67,6 +67,7 @@ namespace RunTests
                 }
             }
 
+            builder.Append($@" --arch {assemblyInfo.Architecture}");
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
             builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
@@ -80,7 +81,7 @@ namespace RunTests
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Architecture}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -109,7 +110,7 @@ namespace RunTests
                 ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
-                Directory.CreateDirectory(resultsDir);
+                Directory.CreateDirectory(resultsDir!);
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
@@ -123,7 +124,7 @@ namespace RunTests
                         var doc = XDocument.Load(resultsFilePath);
                         foreach (var test in doc.XPathSelectElements("/assemblies/assembly/collection/test[@result='Fail']"))
                         {
-                            ConsoleUtil.WriteLine($"  {test.Attribute("name").Value}: {test.Attribute("result").Value}");
+                            ConsoleUtil.WriteLine($"  {test.Attribute("name")!.Value}: {test.Attribute("result")!.Value}");
                         }
                     }
                     catch

@@ -84,12 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 var symbol = semanticModel.GetSymbolInfo(_assignmentTargetOpt).Symbol;
-                if (!(symbol is { Kind: SymbolKind.Local, DeclaringSyntaxReferences: { Length: 1 } syntaxRefs }))
+                if (symbol is not
+                    { Kind: SymbolKind.Local, DeclaringSyntaxReferences: { Length: 1 } syntaxRefs })
                 {
                     return null;
                 }
 
-                if (!(syntaxRefs[0].GetSyntax() is VariableDeclaratorSyntax declarator))
+                if (syntaxRefs[0].GetSyntax() is not VariableDeclaratorSyntax declarator)
                 {
                     return null;
                 }
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 // also can't convert a switch statement with ref-returns to a switch-expression
                 // (currently). Until the language supports ref-switch-expressions, we just disable
                 // things.
-                return node.Expression is null || node.Expression is RefExpressionSyntax
+                return node.Expression is null or RefExpressionSyntax
                     ? default
                     : SyntaxKind.ReturnStatement;
             }

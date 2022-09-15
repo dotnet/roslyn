@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis.Extensions
             => IsFloatingPoint(typeInfo.Type) || IsFloatingPoint(typeInfo.ConvertedType);
 
         private static bool IsFloatingPoint([NotNullWhen(returnValue: true)] ITypeSymbol? type)
-            => type?.SpecialType == SpecialType.System_Single || type?.SpecialType == SpecialType.System_Double;
+            => type?.SpecialType is SpecialType.System_Single or SpecialType.System_Double;
     }
 }

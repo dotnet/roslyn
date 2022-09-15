@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var syntaxTree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
+            var syntaxTree = await context.Document.GetRequiredSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
             var syntaxNode = Location.Create(syntaxTree, context.Span).FindNode(context.CancellationToken);
 
             if (_syntaxFacts.GetModifiers(syntaxNode) != default)
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {

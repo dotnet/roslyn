@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right);
+            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: false);
             switch (comparison)
             {
                 case BoundLiteral _:
@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundBinaryOperator binary:
                     PrepareBoolConversionAndTruthOperator(binary.Type, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
-                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.MethodOpt, conversionIntoBoolOperator, boolOperator);
+                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, diagnostics);
+
+                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.Method, binary.ConstrainedToType, conversionIntoBoolOperator, boolOperator);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(comparison);
@@ -130,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsImplicit)
             {
                 ReportDiagnosticsIfObsolete(diagnostics, conversion, node, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, conversion, diagnostics);
                 conversionForBool = conversion;
                 boolOperator = default;
                 return;
@@ -189,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We'll want to dynamically invoke operators op_true (/op_false) for equality (/inequality) comparison, but we don't need
             // to prepare either a conversion or a truth operator. Those can just be synthesized during lowering.
             return new TupleBinaryOperatorInfo.Single(dynamicType, dynamicType, elementOperatorKind,
-                methodSymbolOpt: null, conversionForBool: Conversion.Identity, boolOperator: default);
+                methodSymbolOpt: null, constrainedToTypeOpt: null, conversionForBool: Conversion.Identity, boolOperator: default);
         }
 
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,

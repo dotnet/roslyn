@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
             CancellationToken cancellationToken);
 
+        protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
+
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
+            var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
             var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
 
@@ -60,14 +63,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 if (buffer.Count > 0)
                 {
-                    AddHintsIfAppropriate();
+                    AddHintsIfAppropriate(node);
                     buffer.Clear();
                 }
             }
 
             return result.ToImmutable();
 
-            void AddHintsIfAppropriate()
+            void AddHintsIfAppropriate(SyntaxNode node)
             {
                 if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
                     return;
@@ -79,6 +82,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                     if (suppressForParametersThatMatchMethodIntent && MatchesMethodIntent(parameter))
                         continue;
+
+                    if (!indexerParameters && IsIndexer(node, parameter))
+                    {
+                        continue;
+                    }
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
@@ -179,13 +187,15 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         private static bool HintMatches(HintKind kind, bool literalParameters, bool objectCreationParameters, bool otherParameters)
-            => kind switch
+        {
+            return kind switch
             {
                 HintKind.Literal => literalParameters,
                 HintKind.ObjectCreation => objectCreationParameters,
                 HintKind.Other => otherParameters,
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
+        }
 
         protected static bool MatchesMethodIntent(IParameterSymbol? parameter)
         {

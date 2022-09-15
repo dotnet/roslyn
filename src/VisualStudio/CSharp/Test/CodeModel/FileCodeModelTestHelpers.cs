@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
                 var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-                var notificationService = workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
                 var state = new CodeModelState(
@@ -53,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                         visualStudioWorkspaceMock,
                         serviceProvider,
                         threadingContext,
-                        notificationService,
                         listenerProvider));
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         private static async Task<bool> PossibleTypeArgumentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
             // type argument can be easily ambiguous with normal < operations
-            if (!(token.Parent is BinaryExpressionSyntax node) || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
+            if (token.Parent is not BinaryExpressionSyntax node || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
             {
                 return false;
             }

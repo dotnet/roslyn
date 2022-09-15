@@ -59,7 +59,9 @@ jobs:
   - checkout: self
     clean: true
 
-  - template: /eng/common/templates/post-build/setup-maestro-vars.yml
+  # If the template caller didn't provide an AzDO parameter, set them all up as Maestro vars.
+  - ${{ if not(and(parameters.AzDOProjectName, parameters.AzDOPipelineId, parameters.AzDOBuildId)) }}:
+    - template: /eng/common/templates/post-build/setup-maestro-vars.yml
 
   - ${{ if ne(parameters.downloadArtifacts, 'false')}}:
     - ${{ if ne(parameters.artifactNames, '') }}:

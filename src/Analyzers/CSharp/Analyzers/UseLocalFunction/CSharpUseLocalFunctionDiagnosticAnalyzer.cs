@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -57,14 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
+                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
 
                 context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionTypeOpt),
                     SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             });
         }
 
-        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol expressionTypeOpt)
+        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionTypeOpt)
         {
             var options = syntaxContext.Options;
             var syntaxTree = syntaxContext.Node.SyntaxTree;
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!(localDeclaration.Parent is BlockSyntax block))
+            if (localDeclaration.Parent is not BlockSyntax block)
             {
                 return;
             }
@@ -126,9 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
-            {
                 return;
-            }
 
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
@@ -159,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     properties: null));
 
                 var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
-                if (localDeclaration != anonymousFunctionStatement)
+                if (anonymousFunctionStatement != null && localDeclaration != anonymousFunctionStatement)
                 {
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
@@ -172,7 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CheckForPattern(
-            AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
+            AnonymousFunctionExpressionSyntax anonymousFunction,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclaration)
         {
             // Look for:
             //
@@ -187,7 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CheckForSimpleLocalDeclarationPattern(
-            AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
+            AnonymousFunctionExpressionSyntax anonymousFunction,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclaration)
         {
             // Type t = <anonymous function>
             if (anonymousFunction.IsParentKind(SyntaxKind.EqualsValueClause) &&
@@ -206,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CanReplaceAnonymousWithLocalFunction(
-            SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
+            SemanticModel semanticModel, INamedTypeSymbol? expressionTypeOpt, ISymbol local, BlockSyntax block,
             AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> referenceLocations, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
@@ -224,12 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     continue;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
                 {
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
                     {
-                        if (identifierName.IsWrittenTo())
+                        if (identifierName.IsWrittenTo(semanticModel, cancellationToken))
                         {
                             // Can't change this to a local function if it is assigned to.
                             return false;
@@ -290,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CheckForCastedLocalDeclarationPattern(
-            AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
+            AnonymousFunctionExpressionSyntax anonymousFunction,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclaration)
         {
             // var t = (Type)(<anonymous function>)
             var containingStatement = anonymousFunction.GetAncestor<StatementSyntax>();
@@ -316,13 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CheckForLocalDeclarationAndAssignment(
-            AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
+            AnonymousFunctionExpressionSyntax anonymousFunction,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclaration)
         {
             // Type t = null;
             // t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment) &&
-                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax expressionStatement) &&
-                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block))
+            if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
+                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? expressionStatement) &&
+                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax? block))
             {
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {

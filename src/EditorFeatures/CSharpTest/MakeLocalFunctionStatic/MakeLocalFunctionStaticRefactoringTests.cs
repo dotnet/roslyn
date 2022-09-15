@@ -546,6 +546,29 @@ parseOptions: CSharp8ParseOptions);
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
+        public async Task TestLocalFunctionAsTopLevelStatement()
+        {
+            await TestAsync(@"
+int y = 10;
+return AddLocal();
+
+int[||] AddLocal()
+{
+    return y;
+}
+", @"
+int y = 10;
+return AddLocal(y);
+
+static int AddLocal(int y)
+{
+    return y;
+}
+", parseOptions: CSharp8ParseOptions);
+        }
     }
 }
 

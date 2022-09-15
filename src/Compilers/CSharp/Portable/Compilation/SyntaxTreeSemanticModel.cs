@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetOrAddModel(memberDecl);
 
                     case SyntaxKind.CompilationUnit:
-                        if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)memberDecl, fallbackToMainEntryPoint: false) is object)
+                        if (SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)memberDecl, fallbackToMainEntryPoint: false) is object)
                         {
                             return GetOrAddModel(memberDecl);
                         }
@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    return createMethodBodySemanticModel(node, SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)node, fallbackToMainEntryPoint: false));
+                    return createMethodBodySemanticModel(node, SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)node, fallbackToMainEntryPoint: false));
 
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
@@ -1330,13 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region "GetDeclaredSymbol overloads for MemberDeclarationSyntax and its subtypes"
 
-        /// <summary>
-        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for the declaration
-        /// assembly.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a namespace.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The namespace symbol that was declared by the namespace declaration.</returns>
+        /// <inheritdoc/>
         public override INamespaceSymbol GetDeclaredSymbol(NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
@@ -1344,7 +1338,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredNamespace(declarationSyntax).GetPublicSymbol();
         }
 
-        private NamespaceSymbol GetDeclaredNamespace(NamespaceDeclarationSyntax declarationSyntax)
+        /// <inheritdoc/>
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            return GetDeclaredNamespace(declarationSyntax).GetPublicSymbol();
+        }
+
+        private NamespaceSymbol GetDeclaredNamespace(BaseNamespaceDeclarationSyntax declarationSyntax)
         {
             Debug.Assert(declarationSyntax != null);
 
@@ -1429,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamespaceOrTypeSymbol GetDeclaredNamespaceOrType(CSharpSyntaxNode declarationSyntax)
         {
-            var namespaceDeclarationSyntax = declarationSyntax as NamespaceDeclarationSyntax;
+            var namespaceDeclarationSyntax = declarationSyntax as BaseNamespaceDeclarationSyntax;
             if (namespaceDeclarationSyntax != null)
             {
                 return GetDeclaredNamespace(namespaceDeclarationSyntax);
@@ -1493,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            return SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, declarationSyntax, fallbackToMainEntryPoint: false).GetPublicSymbol();
+            return SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, declarationSyntax, fallbackToMainEntryPoint: false).GetPublicSymbol();
         }
 
         /// <summary>
@@ -1703,18 +1705,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.OperatorDeclaration:
-                    var operatorDecl = (OperatorDeclarationSyntax)declaration;
-
-                    return OperatorFacts.OperatorNameFromDeclaration(operatorDecl);
+                    {
+                        var operatorDecl = (OperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                    }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ExplicitKeyword)
                     {
-                        return WellKnownMemberNames.ExplicitConversionName;
-                    }
-                    else
-                    {
-                        return WellKnownMemberNames.ImplicitConversionName;
+                        var operatorDecl = (ConversionOperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.EventFieldDeclaration:
@@ -2229,7 +2228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("statements not within tree");
             }
 
-            if (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent)
+            // Global statements don't have their parent in common, but should belong to the same compilation unit
+            bool isGlobalStatement = firstStatement.Parent is GlobalStatementSyntax;
+            if (isGlobalStatement && (lastStatement.Parent is not GlobalStatementSyntax || firstStatement.Parent.Parent != lastStatement.Parent.Parent))
+            {
+                throw new ArgumentException("global statements not within the same compilation unit");
+            }
+
+            // Non-global statements, the parents should be the same
+            if (!isGlobalStatement && (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent))
             {
                 throw new ArgumentException("statements not within the same statement list");
             }
@@ -2276,7 +2283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (memberDeclaration.Parent.Kind() == SyntaxKind.CompilationUnit)
             {
                 // top-level namespace:
-                if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration)
+                if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration)
                 {
                     return _compilation.Assembly.GlobalNamespace;
                 }
@@ -2307,7 +2314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // a namespace or a type in an explicitly declared namespace:
-            if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
+            if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration
+                || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
             {
                 return container;
             }
@@ -2381,7 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (declaredNode)
             {
-                case CompilationUnitSyntax unit when SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                case CompilationUnitSyntax unit when SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
                     switch (declaredSymbol.Kind)
                     {
                         case SymbolKind.Namespace:

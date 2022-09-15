@@ -711,6 +711,22 @@ class a
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FileScopedNamespaceDeclaration_Unqualified()
+        {
+            var markup = @"namespace $$;";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FileScopedNamespaceDeclaration_Qualified()
+        {
+            var markup = @"namespace A.$$;";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PartialClassName()
         {
             var markup = @"partial class $$";

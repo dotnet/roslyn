@@ -315,6 +315,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            If expression Is Nothing Then
+                Return False
+            End If
+
             If IsOnlyWrittenTo(expression) Then
                 Return True
             End If
@@ -337,6 +341,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
                     Return True
+                End If
+
+                ' Extension method with a 'ref' parameter can write to the value it is called on.
+                If TypeOf expression.Parent Is MemberAccessExpressionSyntax Then
+                    Dim memberAccess = DirectCast(expression.Parent, MemberAccessExpressionSyntax)
+                    If memberAccess.Expression Is expression Then
+                        Dim method = TryCast(semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol, IMethodSymbol)
+                        If method IsNot Nothing Then
+                            If method.MethodKind = MethodKind.ReducedExtension AndAlso
+                               method.ReducedFrom.Parameters.Length > 0 AndAlso
+                               method.ReducedFrom.Parameters.First().RefKind = RefKind.Ref Then
+
+                                Return True
+                            End If
+                        End If
+                    End If
                 End If
 
                 Return False

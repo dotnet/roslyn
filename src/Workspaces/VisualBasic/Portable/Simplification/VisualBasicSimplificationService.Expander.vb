@@ -365,6 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             ' No duplicate names allowed
                             Return False
                         End If
+
                         found = True
                     End If
                 Next

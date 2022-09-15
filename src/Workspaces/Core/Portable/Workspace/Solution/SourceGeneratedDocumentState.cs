@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 Identity,
                 sourceText,
-                ParseOptions,
+                parseOptions,
                 this.LanguageServices,
                 this.solutionServices);
         }

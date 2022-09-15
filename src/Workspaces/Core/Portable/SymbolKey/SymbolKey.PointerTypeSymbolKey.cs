@@ -21,11 +21,15 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
+                if (reader.Compilation.Language == LanguageNames.VisualBasic)
+                {
+                    failureReason = $"({nameof(PointerTypeSymbolKey)} is not supported in {LanguageNames.VisualBasic})";
+                    return default;
+                }
+
                 using var result = PooledArrayBuilder<IPointerTypeSymbol>.GetInstance(pointedAtTypeResolution.SymbolCount);
                 foreach (var typeSymbol in pointedAtTypeResolution.OfType<ITypeSymbol>())
-                {
                     result.AddIfNotNull(reader.Compilation.CreatePointerTypeSymbol(typeSymbol));
-                }
 
                 return CreateResolution(result, $"({nameof(PointerTypeSymbolKey)} could not resolve)", out failureReason);
             }

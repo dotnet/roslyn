@@ -22,14 +22,14 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.MSLSPMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.VSInternalMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
 
-        public override string Method => LSP.MSLSPMethods.OnAutoInsertName;
+        public override string Method => LSP.VSInternalMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(
-            LSP.DocumentOnAutoInsertParams request,
+        public override async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+            LSP.VSInternalDocumentOnAutoInsertParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return null;
         }
 
-        private static async Task<LSP.DocumentOnAutoInsertResponseItem?> GetDocumentationCommentResponseAsync(
-            LSP.DocumentOnAutoInsertParams autoInsertParams,
+        private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetDocumentationCommentResponseAsync(
+            LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
             IDocumentationCommentSnippetService service,
             DocumentOptionSet documentOptions,
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            return new LSP.DocumentOnAutoInsertResponseItem
+            return new LSP.VSInternalDocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = LSP.InsertTextFormat.Snippet,
                 TextEdit = new LSP.TextEdit
@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
         }
 
-        private async Task<LSP.DocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
-            LSP.DocumentOnAutoInsertParams autoInsertParams,
+        private async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
+            LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var textChange = await GetCollapsedChangeAsync(textChanges, document, cancellationToken).ConfigureAwait(false);
             var newText = GetTextChangeTextWithCaretAtLocation(newSourceText, textChange, desiredCaretLinePosition);
-            var autoInsertChange = new LSP.DocumentOnAutoInsertResponseItem
+            var autoInsertChange = new LSP.VSInternalDocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = LSP.InsertTextFormat.Snippet,
                 TextEdit = new LSP.TextEdit

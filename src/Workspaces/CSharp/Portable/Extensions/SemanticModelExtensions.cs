@@ -8,15 +8,27 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Humanizer;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
-using Humanizer;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    internal static class SemanticModelExtensions
+    {
+        public static INamespaceSymbol GetDeclaredSymbol(this SemanticModel semanticModel, BaseNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
+            return declarationSyntax is NamespaceDeclarationSyntax namespaceDeclaration
+                ? semanticModel.GetDeclaredSymbol(namespaceDeclaration, cancellationToken)
+                : semanticModel.GetDeclaredSymbol((FileScopedNamespaceDeclarationSyntax)declarationSyntax, cancellationToken);
+        }
+    }
+}
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -149,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else if (current is DeclarationExpressionSyntax decl)
                 {
-                    if (!(decl.Designation is SingleVariableDesignationSyntax name))
+                    if (decl.Designation is not SingleVariableDesignationSyntax name)
                     {
                         break;
                     }

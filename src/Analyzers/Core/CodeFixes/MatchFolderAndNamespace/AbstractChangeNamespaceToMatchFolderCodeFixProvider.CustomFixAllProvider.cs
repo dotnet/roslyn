@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 if (diagnostics.IsDefaultOrEmpty)
                     return null;
 
+                var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
                 return new MyCodeAction(
-                    FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext),
+                    title,
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
                     foreach (var project in fixAllContext.Solution.Projects)
                     {
-                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
+                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                         diagnostics.AddRange(projectDiagnostics);
                     }
 

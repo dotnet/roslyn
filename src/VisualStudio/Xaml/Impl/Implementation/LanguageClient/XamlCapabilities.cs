@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// <summary>
         /// The currently supported set of XAML LSP Server capabilities
         /// </summary>
-        public static VSServerCapabilities Current => new()
+        public static VSInternalServerCapabilities Current => new()
         {
             CompletionProvider = new CompletionOptions
             {
@@ -27,16 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             FoldingRangeProvider = new FoldingRangeOptions { },
             DocumentFormattingProvider = true,
             DocumentRangeFormattingProvider = true,
-            DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
-            OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
+            DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">" },
+            OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/" } },
             TextDocumentSync = new TextDocumentSyncOptions
             {
                 Change = TextDocumentSyncKind.None,
                 OpenClose = false
             },
             SupportsDiagnosticRequests = true,
-            OnTypeRenameProvider = new DocumentOnTypeRenameOptions { WordPattern = OnTypeRenameHandler.NamePattern },
+            LinkedEditingRangeProvider = new LinkedEditingRangeOptions { },
             ExecuteCommandProvider = new ExecuteCommandOptions { Commands = new[] { StringConstants.CreateEventHandlerCommand } },
+            DefinitionProvider = true,
         };
 
         /// <summary>

@@ -46,7 +46,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         // The body statements need to be equivalent. In the second case, control flow must quit from inside the body.
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText)
-            => new MyCodeAction(createChangedDocument, direction, ifKeywordText);
+        {
+            var resourceText = direction == MergeDirection.Up ? FeaturesResources.Merge_with_previous_0_statement : FeaturesResources.Merge_with_next_0_statement;
+            return new MyCodeAction(string.Format(resourceText, ifKeywordText), createChangedDocument);
+        }
 
         protected sealed override Task<bool> CanBeMergedUpAsync(
             Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode firstIfOrElseIf)
@@ -243,13 +246,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText)
-                : base(string.Format(GetResourceText(direction), ifKeywordText), createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
-
-            private static string GetResourceText(MergeDirection direction)
-                => direction == MergeDirection.Up ? FeaturesResources.Merge_with_previous_0_statement : FeaturesResources.Merge_with_next_0_statement;
         }
     }
 }

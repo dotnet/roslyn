@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))
             {
                 // Don't have a database to search.  
                 return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             for (var current = symbol; current.IsValid; current = current.Parent())
             {
-                if (current.Type == SymbolType.Package || current.Type == SymbolType.Version)
+                if (current.Type is SymbolType.Package or SymbolType.Version)
                 {
                     return TryGetRankingSymbolForPackage(current, out rankingSymbol);
                 }

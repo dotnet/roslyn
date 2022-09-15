@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
         private readonly Action<ICacheService> _disposeCacheService;
 
         public MockCloudCachePersistentStorageService(
-            IPersistentStorageLocationService locationService,
+            IPersistentStorageConfiguration configuration,
             string relativePathBase,
             Action<ICacheService> disposeCacheService)
-            : base(locationService)
+            : base(configuration)
         {
             _relativePathBase = relativePathBase;
             _disposeCacheService = disposeCacheService;

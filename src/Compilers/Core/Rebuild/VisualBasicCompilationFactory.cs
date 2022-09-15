@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 var diagnostic = diagnostics?.FirstOrDefault(x => x.IsUnsuppressedError);
                 if (diagnostic is object)
                 {
-                    throw new Exception($"Cannot create compilation options: {diagnostic}");
+                    throw new Exception(string.Format(RebuildResources.Cannot_create_compilation_options_0, diagnostic));
                 }
             }
 

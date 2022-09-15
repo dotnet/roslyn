@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -13,11 +15,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute
     {
-        public string? LanguageName { get; }
+        /// <summary>
+        /// The document languages that this handler supports.
+        /// </summary>
+        public string[] LanguageNames { get; }
 
-        public ExportLspRequestHandlerProviderAttribute(string? languageName = null) : base(typeof(AbstractRequestHandlerProvider))
+        public ExportLspRequestHandlerProviderAttribute(params string[] languageNames) : base(typeof(AbstractRequestHandlerProvider))
         {
-            LanguageName = languageName;
+            LanguageNames = languageNames;
+        }
+    }
+
+    /// <summary>
+    /// Defines an easy to use subclass for ExportLspRequestHandlerProviderAttribute that contains
+    /// all the language names that the default Roslyn servers support.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
+    {
+        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute() : base(ProtocolConstants.RoslynLspLanguages.ToArray())
+        {
         }
     }
 }

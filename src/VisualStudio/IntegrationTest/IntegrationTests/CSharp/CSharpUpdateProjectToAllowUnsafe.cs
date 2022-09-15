@@ -77,7 +77,7 @@ unsafe class C
     <OutputType>Library</OutputType>
     <RootNamespace>{ProjectName}</RootNamespace>
     <AssemblyName>{ProjectName}</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x86'"">
     <OutputPath>bin\x86\Debug\</OutputPath>

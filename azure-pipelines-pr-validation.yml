@@ -13,6 +13,15 @@ parameters:
   type: number
 - name: CommitSHA
   type: string
+- name: VisualStudioBranchName
+  type: string
+  default: default
+- name: OptionalTitlePrefix
+  type: string
+  default: '[PR Validation]'
+- name: InsertToolset
+  type: boolean
+  default: true
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -21,6 +30,7 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - group: DotNet-Roslyn-Insertion-Variables
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -40,7 +50,7 @@ stages:
     timeoutInMinutes: 360
     # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
-      name: VSEngSS-MicroBuild2019-1ES
+      name: VSEngSS-MicroBuild2022-1ES
       demands:
       - msbuild
       - visualstudio
@@ -123,7 +133,9 @@ stages:
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=false
+                   /p:IgnoreIbcMergeErrors=true
                    /p:PreReleaseVersionLabel=pr-validation
+                   /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
 
     # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
@@ -194,3 +206,33 @@ stages:
     - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
       displayName: Perform Cleanup Tasks
       condition: succeededOrFailed()
+
+- stage: insert
+  displayName: Create Insertion
+  dependsOn:
+    - build
+
+  jobs:
+  - job: insert
+    displayName: Insert to VS
+    pool:
+      vmImage: windows-2019
+    steps:
+    - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+      displayName: Setting SourceBranchName variable
+      condition: succeeded()
+
+    - template: eng/pipelines/insert.yml
+      parameters:
+        createDraftPR: true
+        autoComplete: false
+        insertToolset: ${{ parameters.InsertToolset }}
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+        vsBranchName: ${{ parameters.VisualStudioBranchName }}
+        titlePrefix: ${{ parameters.OptionalTitlePrefix }}
+        sourceBranch: $(SourceBranchName)
+        publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+

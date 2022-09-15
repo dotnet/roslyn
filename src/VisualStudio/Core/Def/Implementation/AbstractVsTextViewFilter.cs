@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
@@ -89,19 +90,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var result = VSConstants.E_FAIL;
                 string pbstrTextInternal = null;
 
-                var waitIndicator = ComponentModel.GetService<IWaitIndicator>();
-
-                waitIndicator.Wait(
+                var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+                uiThreadOperationExecutor.Execute(
                     title: ServicesVSResources.Debugger,
-                    message: ServicesVSResources.Getting_DataTip_text,
-                    allowCancel: true,
-                    action: waitContext =>
+                    defaultDescription: ServicesVSResources.Getting_DataTip_text,
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: context =>
                 {
                     IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
                     var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
                     var debugMode = new DBGMODE[1];
 
-                    var cancellationToken = waitContext.CancellationToken;
+                    var cancellationToken = context.UserCancellationToken;
                     if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
                     {
                         var textSpan = pSpan[0];
@@ -142,10 +143,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             try
             {
                 var result = VSConstants.S_OK;
-                ComponentModel.GetService<IWaitIndicator>().Wait(
+                ComponentModel.GetService<IUIThreadOperationExecutor>().Execute(
                     "Intellisense",
-                    allowCancel: true,
-                    action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
+                    defaultDescription: "",
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.UserCancellationToken));
 
                 return result;
             }

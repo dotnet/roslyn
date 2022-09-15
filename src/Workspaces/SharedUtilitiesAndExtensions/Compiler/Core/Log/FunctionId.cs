@@ -504,7 +504,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CommandHandler_Paste_ImportsOnPaste = 470,
 
-        FindDocumentInWorkspace = 480,
+        // Superseded by LSP_FindDocumentInWorkspace
+        // obsolete: FindDocumentInWorkspace = 480,
         RegisterWorkspace = 481,
 
         LSP_RequestCounter = 482,
@@ -521,5 +522,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
 
         UnusedReferences_GetUnusedReferences = 490,
+
+        ValueTracking_Command = 491,
+        ValueTracking_TrackValueSource = 492,
+
+        InheritanceMargin_GetInheritanceMemberItems = 493,
+
+        LSP_FindDocumentInWorkspace = 494,
+
+        SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        AssetService_Perf = 520,
     }
 }

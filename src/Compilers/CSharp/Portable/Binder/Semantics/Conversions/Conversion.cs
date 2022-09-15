@@ -9,7 +9,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -147,8 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we use this method to patch up the conversion method only in two cases - 
             // 1) when rewriting MethodGroup conversions and the method gets substituted.
             // 2) when lowering IntPtr conversion (a compat-related conversion which becomes a kind of a user-defined conversion)
+            // 3) when rewriting user-defined conversions and the method gets substituted
             // in those cases it is ok to ignore existing _uncommonData.
-            Debug.Assert(_kind == ConversionKind.MethodGroup || _kind == ConversionKind.IntPtr);
+            Debug.Assert(_kind is ConversionKind.MethodGroup or ConversionKind.IntPtr or ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined);
 
             return new Conversion(this.Kind, conversionMethod, isExtensionMethod: IsExtensionMethod);
         }
@@ -199,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.InterpolatedString:
+                case ConversionKind.InterpolatedStringHandler:
                     isTrivial = true;
                     break;
 
@@ -242,9 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitDynamic => new Conversion(ConversionKind.ImplicitDynamic);
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
+        internal static Conversion InterpolatedStringHandler => new Conversion(ConversionKind.InterpolatedStringHandler);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
         internal static Conversion ImplicitPointer => new Conversion(ConversionKind.ImplicitPointer);
+        internal static Conversion FunctionType => new Conversion(ConversionKind.FunctionType);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -375,6 +378,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && deconstruction.DeconstructMethodInfo.Invocation is BoundCall call)
                     {
                         return call.Method;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        internal TypeParameterSymbol? ConstrainedToTypeOpt
+        {
+            get
+            {
+                var uncommonData = _uncommonData;
+                if (uncommonData != null && uncommonData._conversionMethod is null)
+                {
+                    var conversionResult = uncommonData._conversionResult;
+                    if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                    {
+                        UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
+                        return analysis.ConstrainedToTypeOpt;
                     }
                 }
 
@@ -576,6 +598,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.InterpolatedString;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an interpolated string builder conversion.
+        /// </summary>
+        public bool IsInterpolatedStringHandler
+        {
+            get
+            {
+                return Kind == ConversionKind.InterpolatedStringHandler;
             }
         }
 

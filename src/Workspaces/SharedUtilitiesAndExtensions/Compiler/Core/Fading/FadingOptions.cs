@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Fading
     {
         public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
             nameof(FadingOptions), nameof(FadeOutUnusedImports), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnusedImports)}"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnusedImports)}"));
 
         public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
             nameof(FadingOptions), nameof(FadeOutUnreachableCode), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnreachableCode)}"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnreachableCode)}"));
 
         public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
             FadeOutUnusedImports,

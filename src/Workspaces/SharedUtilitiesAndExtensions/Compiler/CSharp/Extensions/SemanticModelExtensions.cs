@@ -326,9 +326,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var symbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
 
-                if (symbol.DeclaredAccessibility == Accessibility.Private ||
-                    symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
-                    symbol.DeclaredAccessibility == Accessibility.Internal)
+                if (symbol.DeclaredAccessibility is Accessibility.Private or
+                    Accessibility.ProtectedAndInternal or
+                    Accessibility.Internal)
                 {
                     return false;
                 }

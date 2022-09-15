@@ -281,7 +281,7 @@ $@"        if (F({i}))
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 420,
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1100,
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 180,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 480,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 400,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 

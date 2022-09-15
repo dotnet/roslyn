@@ -52,6 +52,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleGetterFromField_FileScopedNamespace()
+        {
+            await TestInRegularAndScript1Async(
+@"
+namespace N;
+
+class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"
+namespace N;
+
+class Class
+{
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromField_InRecord()
         {
             await TestInRegularAndScript1Async(
@@ -2505,6 +2533,21 @@ class Class
     public readonly int P => i;
 }",
 @"struct S
+{
+    public readonly int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyInRecordStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"record struct S
+{
+    [|int i|];
+    public readonly int P => i;
+}",
+@"record struct S
 {
     public readonly int P { get; }
 }");

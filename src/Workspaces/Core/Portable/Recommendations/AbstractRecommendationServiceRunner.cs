@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
-        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility)
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable)
         {
             var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position);
             return symbols.IsDefault
-                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility)
+                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable)
                 : symbols;
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
             var lambdaSyntax = owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
-            if (!(syntaxFactsService.IsAnonymousFunction(lambdaSyntax) &&
+            if (!(syntaxFactsService.IsAnonymousFunctionExpression(lambdaSyntax) &&
                   syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
                   syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
                 .Concat(parameter.Type)
-                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
+                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false))
                 .ToImmutableArray();
         }
 
@@ -254,11 +254,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             where TNamespaceDeclarationSyntax : SyntaxNode
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
-
             if (declarationSyntax == null)
-            {
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
@@ -299,15 +296,21 @@ namespace Microsoft.CodeAnalysis.Recommendations
             ISymbol container,
             int position,
             bool excludeInstance,
-            bool useBaseReferenceAccessibility)
+            bool useBaseReferenceAccessibility,
+            bool unwrapNullable)
         {
             // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
             // information that the compiler may fail to give.
             if (container is IParameterSymbol parameter)
-                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility);
+                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility, unwrapNullable);
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
                 return ImmutableArray<ISymbol>.Empty;
+
+            if (unwrapNullable && namespaceOrType is ITypeSymbol typeSymbol)
+            {
+                namespaceOrType = typeSymbol.RemoveNullableIfPresent();
+            }
 
             return useBaseReferenceAccessibility
                 ? _context.SemanticModel.LookupBaseMembers(position)
