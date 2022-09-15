@@ -90,6 +90,7 @@ namespace Microsoft.Cci
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata && !suppressNewCustomDebugInfo;
 
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitStateMachineInfo: emitAllDebugInfo, emitEncInfo, emitDynamicAndTupleInfo, out bool emitExternNamespaces);
+            Debug.Assert(emitAllDebugInfo || !emitExternNamespaces);
 
             if (!emitAllDebugInfo && blob.Length == 0)
             {

@@ -66,12 +66,12 @@
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
-        <target state="new">Generator</target>
+        <target state="translated">생성기</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorTotalExecutionTime">
         <source>Total generator execution time: {0} seconds.</source>
-        <target state="new">Total generator execution time: {0} seconds.</target>
+        <target state="translated">총 생성기 실행 시간: {0} 초</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">

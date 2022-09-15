@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, span),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id, span),
                 language: document.Project.Language);
         }
 

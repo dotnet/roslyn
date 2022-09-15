@@ -65,12 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
             const string code = @"
 {|hint1:$$class C{|textspan1:
 {
-    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} /* now everything is commented ();
-}";
+    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
+}|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true));
         }
     }
 }

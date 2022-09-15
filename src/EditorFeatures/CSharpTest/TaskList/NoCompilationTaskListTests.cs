@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -11,9 +12,10 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -48,18 +50,21 @@ $@"<Workspace>
     }
 
     [PartNotDiscoverable]
-    [ExportLanguageService(typeof(ITodoCommentService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTaskListService : ITodoCommentService
+    [ExportLanguageService(typeof(ITaskListService), language: NoCompilationConstants.LanguageName), Shared]
+    internal class NoCompilationTaskListService : ITaskListService
     {
         [ImportingConstructor]
-        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NoCompilationTaskListService()
         {
         }
 
-        public Task<ImmutableArray<CodeAnalysis.TodoComments.TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray.Create(new CodeAnalysis.TodoComments.TodoComment(commentDescriptors.First(), "Message", 3)));
-        }
+        public Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
+            => Task.FromResult(ImmutableArray.Create(new TaskListItem(
+                descriptors.First().Priority,
+                "Message",
+                document.Id,
+                span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
+                mappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
     }
 }

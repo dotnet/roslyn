@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, diagnosticSource, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
+                        context, diagnosticSource, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -302,18 +303,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
                 };
-                if (diagnosticData.DataLocation != null)
-                {
-                    diagnostic.Range = GetRange(diagnosticData.DataLocation);
-                }
+
+                diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
                 // Defines an identifier used by the client for merging diagnostics across projects.
                 // We want diagnostics to be merged from separate projects if they have the same code, filepath, range, and message.
-                var filePath = diagnosticData.DataLocation?.GetFilePath();
-                if (filePath != null)
-                {
-                    diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
-                }
+                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.OriginalFileSpan.Path, diagnostic.Range, diagnostic.Message)
+                    .GetHashCode().ToString();
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
@@ -345,13 +341,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     Start = new Position
                     {
-                        Character = dataLocation.OriginalStartColumn,
-                        Line = dataLocation.OriginalStartLine,
+                        Character = dataLocation.OriginalFileSpan.StartLinePosition.Character,
+                        Line = dataLocation.OriginalFileSpan.StartLinePosition.Line,
                     },
                     End = new Position
                     {
-                        Character = dataLocation.OriginalEndColumn,
-                        Line = dataLocation.OriginalEndLine,
+                        Character = dataLocation.OriginalFileSpan.EndLinePosition.Character,
+                        Line = dataLocation.OriginalFileSpan.EndLinePosition.Line,
                     }
                 };
             }

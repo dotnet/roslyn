@@ -5,9 +5,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
+namespace Microsoft.CodeAnalysis.TaskList
 {
     internal sealed class InProcTaskListIncrementalAnalyzer : AbstractTaskListIncrementalAnalyzer
     {

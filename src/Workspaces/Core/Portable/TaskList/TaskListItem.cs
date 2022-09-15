@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TaskList
@@ -25,81 +24,35 @@ namespace Microsoft.CodeAnalysis.TaskList
         public readonly DocumentId DocumentId;
 
         [DataMember(Order = 3)]
-        public readonly string? MappedFilePath;
+        public readonly FileLinePositionSpan Span;
 
         [DataMember(Order = 4)]
-        public readonly string? OriginalFilePath;
+        public readonly FileLinePositionSpan MappedSpan;
 
-        [DataMember(Order = 5)]
-        public readonly int MappedLine;
-
-        [DataMember(Order = 6)]
-        public readonly int MappedColumn;
-
-        [DataMember(Order = 7)]
-        public readonly int OriginalLine;
-
-        [DataMember(Order = 8)]
-        public readonly int OriginalColumn;
-
-        public TaskListItem(int priority, string message, DocumentId documentId, string? mappedFilePath, string? originalFilePath, int mappedLine, int mappedColumn, int originalLine, int originalColumn)
+        public TaskListItem(int priority, string message, DocumentId documentId, FileLinePositionSpan span, FileLinePositionSpan mappedSpan)
         {
             Priority = priority;
             Message = message;
             DocumentId = documentId;
-            MappedFilePath = mappedFilePath;
-            OriginalFilePath = originalFilePath;
-            MappedLine = mappedLine;
-            MappedColumn = mappedColumn;
-            OriginalLine = originalLine;
-            OriginalColumn = originalColumn;
+            Span = span;
+            MappedSpan = mappedSpan;
         }
 
         public override bool Equals(object? obj)
             => obj is TaskListItem other && Equals(other);
 
         public override int GetHashCode()
-            => GetHashCode(this);
+            => Hash.Combine(this.DocumentId,
+               Hash.Combine(this.Priority,
+               Hash.Combine(this.Message, this.Span.Span.GetHashCode())));
 
         public override string ToString()
-            => $"{Priority} {Message} {MappedFilePath ?? ""} ({MappedLine}, {MappedColumn}) [original: {OriginalFilePath ?? ""} ({OriginalLine}, {OriginalColumn})";
+            => $"{Priority} {Message} {MappedSpan.Path ?? ""} ({MappedSpan.StartLinePosition.Line}, {MappedSpan.StartLinePosition.Character}) [original: {Span.Path ?? ""} ({Span.StartLinePosition.Line}, {Span.StartLinePosition.Character})";
 
         public bool Equals(TaskListItem right)
             => DocumentId == right.DocumentId &&
                Priority == right.Priority &&
                Message == right.Message &&
-               OriginalLine == right.OriginalLine &&
-               OriginalColumn == right.OriginalColumn;
-
-        public static int GetHashCode(TaskListItem item)
-            => Hash.Combine(item.DocumentId,
-               Hash.Combine(item.Priority,
-               Hash.Combine(item.Message,
-               Hash.Combine(item.OriginalLine,
-               Hash.Combine(item.OriginalColumn, 0)))));
-
-        internal void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteInt32(Priority);
-            writer.WriteString(Message);
-            DocumentId.WriteTo(writer);
-            writer.WriteString(MappedFilePath);
-            writer.WriteString(OriginalFilePath);
-            writer.WriteInt32(MappedLine);
-            writer.WriteInt32(MappedColumn);
-            writer.WriteInt32(OriginalLine);
-            writer.WriteInt32(OriginalColumn);
-        }
-
-        internal static TaskListItem ReadFrom(ObjectReader reader)
-            => new(priority: reader.ReadInt32(),
-                   message: reader.ReadString(),
-                   documentId: DocumentId.ReadFrom(reader),
-                   mappedFilePath: reader.ReadString(),
-                   originalFilePath: reader.ReadString(),
-                   mappedLine: reader.ReadInt32(),
-                   mappedColumn: reader.ReadInt32(),
-                   originalLine: reader.ReadInt32(),
-                   originalColumn: reader.ReadInt32());
+               Span.Span == right.Span.Span;
     }
 }

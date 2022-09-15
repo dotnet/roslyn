@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadParameterModifiersOrder">
         <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
+        <target state="translated">参数修饰符 "{0}" 不能后跟 "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
+        <target state="translated">无法对 "{0}" 使用数值常量或关系模式，因为它继承自或扩展了 "INumberBase&lt;T&gt;"。请考虑使用类型模式缩小到具体的数值类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -484,7 +484,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitScopedRef">
         <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <target state="translated">请勿使用 "System.Runtime.CompilerServices.ScopedRefAttribute"。请改用 "scoped" 关键字。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <target state="translated">功能“{0}”在 C# 11.0 中不可用。请使用 {1} 或更高的语言版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -614,27 +614,27 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
         <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <target state="translated">文件本地类型 "{0}" 不能用作非文件本地类型 "{1}" 的基类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
         <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <target state="translated">文件本地类型 "{0}" 不能在非文件本地类型 "{1}" 的成员签名中使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
         <source>Types and aliases cannot be named 'file'.</source>
-        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <target state="translated">类型和别名不能为 "file"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
         <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <target state="translated">文件本地类型 "{0}" 必须在顶级类型中定义; "{0}" 是嵌套类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
         <source>File-local type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <target state="translated">文件本地类型 "{0}" 无法使用辅助功能修饰符。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNonUniquePath">
@@ -689,7 +689,7 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
         <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
+        <target state="translated">文件本地类型 "{0}" 不能在 "global using static" 指令中使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -949,7 +949,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedScoped">
         <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <target state="translated">意外的上下文关键字 "scoped"。你的意思是 "scoped ref" 还是 "@scoped"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">模块初始值设定项方法“{0}”必须是静态的，不能有任何参数，并且必须返回 "void"</target>
+        <target state="translated">模块初始化表达式方法 "{0}" 必须是静态且非虚拟的，不能有任何参数，必须返回 "void"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1304,7 +1304,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldInNonRefStruct">
         <source>A ref field can only be declared in a ref struct.</source>
-        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <target state="translated">ref 字段只能在 ref 结构中声明。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
@@ -1379,7 +1379,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
         <source>Target runtime doesn't support ref fields.</source>
-        <target state="new">Target runtime doesn't support ref fields.</target>
+        <target state="translated">目标运行时不支持 ref 字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
@@ -1412,6 +1412,11 @@
         <target state="translated">参数 "{0}" 的 "scoped" 修饰符与目标 "{1}" 不匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedNotBeforeType">
+        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
+        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
         <target state="translated">"scoped" 修饰符只能用于 refs 和 ref 结构值。</target>
@@ -1419,7 +1424,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'scoped'.</source>
-        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <target state="translated">类型和别名不能为 "scoped"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1604,12 +1609,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <target state="translated">UnscopedRefAttribute 只能应用于 "out" 参数、引用 "ref struct" 类型的 "ref" 和 "in" 参数，以及除构造函数和 "init" 访问器之外的 "struct" 类型的实例方法和属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
         <source>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</target>
+        <target state="translated">UnscopedRefAttribute 不能应用于具有 "scoped" 修饰符的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -1664,7 +1669,7 @@
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
-        <target state="new">array access</target>
+        <target state="translated">数组访问</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
@@ -1709,7 +1714,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFileTypes">
         <source>file types</source>
-        <target state="new">file types</target>
+        <target state="translated">文件类型</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -1834,7 +1839,7 @@
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
-        <target state="new">pointer element access</target>
+        <target state="translated">指针元素访问</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -2060,6 +2065,26 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">由于参数为非 null，因此返回值必须为非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
+        <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
+        <source>The 'scoped' modifier of parameter doesn't match target.</source>
+        <target state="new">The 'scoped' modifier of parameter doesn't match target.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -2338,12 +2363,12 @@
                               (短格式: - t:winmdobj)
 -doc:&lt;file&gt;                   要生成的 XML 文档文件
 -refout:&lt;file&gt;                要生成的引用程序集输出
-
+ 
 -platform:&lt;string&gt;            限制可以运行此代码的平台: x86、
                               Itanium、x64、arm、arm64、 anycpu32bitpreferred 或
                               anycpu。默认值是 anycpu。
 
-                       - 输入文件 -
+                       - 输入文件 - 
 -recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
                               子目录中的
                                所有文件
@@ -2357,7 +2382,7 @@
 -analyzer:&lt;file list&gt;         从此程序集运行分析器
                                (短格式: -a)
 -additionalfile:&lt;file list&gt;   不直接影响代码生成
-                              但由分析器用于生成错误或警报
+                              但由分析器用于生成错误或警报 
                               的其他文件。
 -embed                        在 PDB 中嵌入所有源文件。
 -embed:&lt;file list&gt;             在 PDB 中嵌入特定文件。
@@ -2370,7 +2395,7 @@
 -resource:&lt;resinfo&gt;           嵌入指定的资源(短格式: -res)
 - linkresource:&lt;resinfo&gt;       将指定资源关联到此程序集
                               (短格式: -linkres)，其中 resinfo 格式
-
+ 
                               是 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - 代码生成 -
@@ -2387,16 +2412,16 @@
 -instrument:TestCoverage      生成 已检测的程序集以收集
                                覆盖范围信息
 -sourcelink:&lt;file&gt;           要嵌入 PDB 的源链接信息。
-
+ 
                        - 错误和警报  -
 -warnaserror[+|-]             将所有警报报告为错误
 -warnaserror[+|-]:&lt;warn list&gt; 将特定警报报告为错误
                                (将 "nullable" 用于所有可为 null 的警报)
 -warn:&lt;n&gt;                     设置警报级别(0 或更高) (短格式: -w)
-
+ 
 -nowarn:&lt;warn list&gt;           禁用特定警报消息
                               (将 "nullable" 用于所有可为 null 的警报)
-
+ 
 -ruleset:&lt;file&gt;               指定禁用特定诊断的规则集
                               文件。
 -errorlog:&lt;file&gt; [,version=&lt;sarif_version&gt;]
@@ -2405,7 +2430,7 @@
                               sarif_version:{1|2|2.1} 默认值是 1. 2 和 2.1
                               这两者 都是指 SARIF 版本 2.1.0。
 -reportanalyzer               报告其他分析器信息，例如
-                              执行时间。
+                              执行时间。 
 -skipanalyzers[+|-]           跳过诊断分析器的执行。
 
                      - 语言 -
@@ -2446,7 +2471,7 @@
 -checksumalgorithm:&lt;alg&gt;      指定算法以计算存储在  PDB 中的源文件
                               校验和。支持的值是:
                               SHA1 或 SHA256 (默认)。
-
+ 
 -codepage:&lt;n&gt;                 指定打开源文件时使用的
                               代码页
 -utf8output                    采用 UTF-8 编码的输出编译器消息
