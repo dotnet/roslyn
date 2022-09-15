@@ -388,11 +388,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                                                         "ReferenceOutputAssembly");
 
                         if (reference.GetMetadata("TargetFrameworkIdentifier").Equals(".NETFramework", StringComparison.OrdinalIgnoreCase)
-                            && reference.GetMetadata("ReferenceSourceTarget").Equals("ProjectReference", StringComparison.OrdinalIgnoreCase)
                             && isReferenceAssembly)
                         {
-                            commandLine.AppendTextUnquoted(reference.GetMetadata("OriginalItemSpec"));
-                            commandLine.AppendTextUnquoted(reference.GetMetadata("CopyUpToDateMarker"));
+                            commandLine.AppendSwitchIfNotNull("reference:/", reference.GetMetadata("OriginalItemSpec"));
+                            commandLine.AppendSwitchIfNotNull("link:/", reference.GetMetadata("CopyUpToDateMarker"));
                         }
                     }
                 }
