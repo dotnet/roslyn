@@ -698,7 +698,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 foreach (var additionalDoc in project.AdditionalDocuments)
                 {
                     var applicableDiagnostics = diagnostics.Where(
-                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFileSpan.Path == additionalDoc.FilePath);
+                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
 
                     if (analysisScope is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None)
                     {
