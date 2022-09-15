@@ -127,19 +127,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Language, Title, Description, HelpLink, IsSuppressed);
 
         public DocumentId? DocumentId => DataLocation.DocumentId;
-        public bool HasTextSpan => DataLocation.SourceSpan.HasValue;
-
-        /// <summary>
-        /// Get <see cref="TextSpan"/> if it exists, throws otherwise.
-        /// 
-        /// Some diagnostic data such as those created from build have original line/column but not <see cref="TextSpan"/>.
-        /// In those cases use <see cref="GetTextSpan(DiagnosticDataLocation, SourceText)"/> method instead to calculate span from original line/column.
-        /// </summary>
-        public TextSpan GetTextSpan()
-        {
-            Contract.ThrowIfFalse(DataLocation.SourceSpan.HasValue);
-            return DataLocation.SourceSpan.Value;
-        }
 
         public override bool Equals(object? obj)
             => obj is DiagnosticData data && Equals(data);
@@ -184,51 +171,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override string ToString()
             => $"{Id} {Severity} {Message} {ProjectId} {DataLocation.MappedFileSpan} [original: {DataLocation.UnmappedFileSpan}]";
 
-        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation diagnosticLocation, SourceText text)
-        {
-            if (diagnosticLocation.SourceSpan != null)
-            {
-                return EnsureInBounds(diagnosticLocation.SourceSpan.Value, text);
-            }
-            else
-            {
-                return GetTextSpan(diagnosticLocation, text);
-            }
-        }
-
         private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
             => TextSpan.FromBounds(
                 Math.Min(textSpan.Start, text.Length),
                 Math.Min(textSpan.End, text.Length));
-
-        public DiagnosticData WithSpan(SourceText text, SyntaxTree tree)
-        {
-            Contract.ThrowIfNull(DocumentId);
-            Contract.ThrowIfNull(DataLocation);
-            Contract.ThrowIfTrue(HasTextSpan);
-
-            var span = GetTextSpan(DataLocation, text);
-            var newLocation = DataLocation.WithSpan(span, tree);
-
-            return new DiagnosticData(
-                id: Id,
-                category: Category,
-                message: Message,
-                severity: Severity,
-                defaultSeverity: DefaultSeverity,
-                isEnabledByDefault: IsEnabledByDefault,
-                warningLevel: WarningLevel,
-                customTags: CustomTags,
-                properties: Properties,
-                projectId: ProjectId,
-                location: newLocation,
-                additionalLocations: AdditionalLocations,
-                language: Language,
-                title: Title,
-                description: Description,
-                helpLink: HelpLink,
-                isSuppressed: IsSuppressed);
-        }
 
         public async Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
         {
@@ -311,24 +257,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static DiagnosticDataLocation CreateLocation(TextDocument? document, Location location)
         {
-            GetLocationInfo(out var sourceSpan, out var originalLineInfo, out var mappedLineInfo);
+            GetLocationInfo(out var originalLineInfo, out var mappedLineInfo);
 
             if (!originalLineInfo.IsValid)
                 originalLineInfo = new FileLinePositionSpan(document?.FilePath ?? "", span: default);
 
-            return new DiagnosticDataLocation(
-                originalLineInfo, document?.Id, sourceSpan, mappedLineInfo);
+            return new DiagnosticDataLocation(originalLineInfo, document?.Id, mappedLineInfo);
 
-            void GetLocationInfo(out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
+            void GetLocationInfo(out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
             {
                 var diagnosticSpanMappingService = document?.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
                 if (document != null && diagnosticSpanMappingService != null)
                 {
-                    diagnosticSpanMappingService.GetAdjustedDiagnosticSpan(document.Id, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);
+                    diagnosticSpanMappingService.GetAdjustedDiagnosticSpan(document.Id, location, out _, out originalLineInfo, out mappedLineInfo);
                 }
                 else
                 {
-                    sourceSpan = location.SourceSpan;
                     originalLineInfo = location.GetLineSpan();
                     mappedLineInfo = location.GetMappedLineSpan();
                 }
