@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If we were passed in a mapped span use it with the original span to determine the true final mapped
             // location. If checkMappedFileSpan is false, then this is a test which is explicitly making a mapped span
             // that it wants us to not mess with.  In that case, just hold onto that value directly.
-            if (checkMappedFileSpan && mappedFileSpan is { HasMappedPath: false } mappedSpan)
+            if (checkMappedFileSpan && mappedFileSpan is { HasMappedPath: true } mappedSpan)
             {
                 MappedFileSpan = new FileLinePositionSpan(GetNormalizedFilePath(unmappedFileSpan.Path, mappedSpan.Path), mappedSpan.Span);
             }
