@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 return false;
 
             Contract.ThrowIfNull(document);
-            var caretPos= args.TextView.GetCaretPoint(subjectBuffer);
+            var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
             if (!caretPos.HasValue)
                 return false;
 
