@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
                 documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
                     filterSpan is null
-                        ? dxs
-                        : dxs.Where(d => d.DataLocation.GetUnmappedTextSpan(text).IntersectsWith(filterSpan.Value)),
+                        ? dxs.Where(d => d.DataLocation.DocumentId != null)
+                        : dxs.Where(d => d.DataLocation.DocumentId != null && d.DataLocation.GetUnmappedTextSpan(text).IntersectsWith(filterSpan.Value)),
                     project,
                     CancellationToken.None);
             }
