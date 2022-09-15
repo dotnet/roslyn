@@ -10878,6 +10878,31 @@ class A<T>
                 // [A<(int A, int B)>.B]
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(4, 2));
         }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType03()
+        {
+            var source = @"
+using System;
+
+[A<(int A, int B)>.B]
+class C
+{
+}
+
+class A<T>
+{  
+    public class BAttribute : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
         #endregion
     }
 }
