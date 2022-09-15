@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     {
         private static string Inspect(DiagnosticData d)
             => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
-                (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
+                (!string.IsNullOrWhiteSpace(d.DataLocation.OriginalFilePath) ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
                 $" {d.Message}";
 
         [Theory, CombinatorialData]
