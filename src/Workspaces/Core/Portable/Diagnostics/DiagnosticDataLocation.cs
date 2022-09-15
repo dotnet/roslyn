@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -87,10 +88,78 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
-            => new DiagnosticDataLocation(
+            => new(
                 tree.GetLineSpan(newSourceSpan),
                 DocumentId,
                 tree.GetMappedLineSpan(newSourceSpan));
+
+        public TextSpan GetUnmappedTextSpan(SourceText text)
+        {
+            var linePositionSpan = this.GetClampedLinePositionSpan(text, useMapped: false);
+
+            var span = text.Lines.GetTextSpan(linePositionSpan);
+            return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
+        }
+
+        private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
+            => TextSpan.FromBounds(
+                Math.Min(textSpan.Start, text.Length),
+                Math.Min(textSpan.End, text.Length));
+
+        public LinePositionSpan GetClampedLinePositionSpan(SourceText text, bool useMapped)
+        {
+            var lines = text.Lines;
+            if (lines.Count == 0)
+                return default;
+
+            var fileSpan = useMapped ? this.MappedFileSpan : this.UnmappedFileSpan;
+
+            var startLine = fileSpan.StartLinePosition.Line;
+            var endLine = fileSpan.EndLinePosition.Line;
+
+            // Make sure the starting columns are never negative.
+            var startColumn = Math.Max(fileSpan.StartLinePosition.Character, 0);
+            var endColumn = Math.Max(fileSpan.EndLinePosition.Character, 0);
+
+            if (startLine < 0)
+            {
+                // If the start line is negative (e.g. before the start of the actual document) then move the start to the 0,0 position.
+                startLine = 0;
+                startColumn = 0;
+            }
+            else if (startLine >= lines.Count)
+            {
+                // if the start line is after the end of the document, move the start to the last location in the document.
+                startLine = lines.Count - 1;
+                startColumn = lines[startLine].SpanIncludingLineBreak.Length;
+            }
+
+            if (endLine < 0)
+            {
+                // if the end is before the start of the document, then move the end to wherever the start position was determined to be.
+                endLine = startLine;
+                endColumn = startColumn;
+            }
+            else if (endLine >= lines.Count)
+            {
+                // if the end line is after the end of the document, move the end to the last location in the document.
+                endLine = lines.Count - 1;
+                endColumn = lines[endLine].SpanIncludingLineBreak.Length;
+            }
+
+            // now, ensure that the column of the start/end positions is within the length of its line.
+            startColumn = Math.Min(startColumn, lines[startLine].SpanIncludingLineBreak.Length);
+            endColumn = Math.Min(endColumn, lines[endLine].SpanIncludingLineBreak.Length);
+
+            var start = new LinePosition(startLine, startColumn);
+            var end = new LinePosition(endLine, endColumn);
+
+            // swap if necessary
+            if (end < start)
+                (start, end) = (end, start);
+
+            return new LinePositionSpan(start, end);
+        }
 
         public static class TestAccessor
         {

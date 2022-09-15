@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             static SnapshotSpan GetDiagnosticSnapshotSpan(DiagnosticDataLocation diagnosticDataLocation, ITextSnapshot editorSnapshot, SourceText sourceText)
-                => DiagnosticData.GetExistingOrCalculatedTextSpan(diagnosticDataLocation, sourceText).ToSnapshotSpan(editorSnapshot);
+                => diagnosticDataLocation.GetUnmappedTextSpan(sourceText).ToSnapshotSpan(editorSnapshot);
         }
 
         private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)

@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
                 : null;
 
-            var span = DiagnosticData.GetTextSpan(dataLocation, text);
+            // Intentionally get the unmapped text span (the span in the original document).  If there is any mapping it
+            // will be reapplied with tree.GetLocation below.
+            var span = dataLocation.GetUnmappedTextSpan(text);
 
             // Defer to the tree if we have one.  This will make sure that remapping is properly supported.
             if (tree != null)

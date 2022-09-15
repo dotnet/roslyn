@@ -30,6 +30,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => _data.CustomTags;
 
         public LinePositionSpan GetLinePositionSpan(SourceText sourceText, bool useMapped)
-            => DiagnosticData.GetLinePositionSpan(_data.DataLocation, sourceText, useMapped);
+            => _data.DataLocation.GetClampedLinePositionSpan(sourceText, useMapped);
     }
 }
