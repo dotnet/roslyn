@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             return prefix + " " + text.Substring(prefixLength).Trim() + " " + Ellipsis;
         }
 
-        private static string GetCommentBannerText(SyntaxTrivia comment)
+        public static string GetCommentBannerText(SyntaxTrivia comment)
         {
             Contract.ThrowIfFalse(comment.IsSingleLineComment() || comment.IsMultiLineComment());
 
@@ -224,10 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     }
                     else if (trivia.IsMultiLineComment())
                     {
-                        completeSingleLineCommentGroup(ref spans);
-
-                        var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
-                        spans.Add(multilineCommentRegion);
+                        // Multiline comments are handled by the MultilineCommentBlockStructureProvider.
+                        continue;
                     }
                     else if (trivia is not SyntaxTrivia(
                         SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia or SyntaxKind.EndOfFileToken))
