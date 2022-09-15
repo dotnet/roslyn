@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // want to fade out multiple locations which are encoded as
                 // additional location indices in the diagnostic's property bag
                 // without the 'Unnecessary' custom tag. 
-                Debug.Assert(!data.TryGetUnnecessaryLocationIndices(out _));
+                // Debug.Assert(!data.TryGetUnnecessaryLocationIndices(out _));
 
                 return false;
             }
