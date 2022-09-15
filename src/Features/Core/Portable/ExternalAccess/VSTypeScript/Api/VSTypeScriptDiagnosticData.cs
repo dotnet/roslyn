@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
@@ -30,6 +31,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => _data.CustomTags;
 
         public LinePositionSpan GetLinePositionSpan(SourceText sourceText, bool useMapped)
-            => DiagnosticData.GetLinePositionSpan(_data.DataLocation, sourceText, useMapped);
+        {
+            // TypeScript has no concept of mapped spans, so this should never be passed 'true'.
+            Contract.ThrowIfTrue(useMapped);
+            return DiagnosticData.GetUnmappedLinePositionSpan(_data.DataLocation, sourceText);
+        }
     }
 }
