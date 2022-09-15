@@ -65,7 +65,7 @@ stages:
         TeamEmail: $(TeamEmail)
         InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch))
         InsertionDescription: |
-          This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**. Expect the Required 'Public VS SDK test' to fail because validation builds do not push binaries to the Azure Artifact feeds on `azure-public`.
+          This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.
         CustomScriptExecutionCommand: src/VSSDK/NuGet/AllowUnstablePackages.ps1
         InsertionBuildPolicy: Request Perf DDRITs
         AutoCompletePR: false
@@ -74,7 +74,7 @@ stages:
         $Markdown = @"
         Validation insertion pull request created: !$insertionPRId
         Please check status there before proceeding to merge this PR.
-        Remember to Abandon and Delete Source Branch on that insertion PR when validation is complete.
+        Remember to Abandon and (if allowed) to Delete Source Branch on that insertion PR when validation is complete.
         "@
         azure-pipelines/PostPRMessage.ps1 -AccessToken '$(System.AccessToken)' -Markdown $Markdown -Verbose
       displayName: Comment on pull request
