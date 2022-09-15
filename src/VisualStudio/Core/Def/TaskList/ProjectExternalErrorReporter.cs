@@ -297,9 +297,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
-                    documentId,
-                    sourceSpan: null,
                     originalFilePath: originalFilePath,
+                    documentId: documentId,
+                    sourceSpan: null,
                     originalStartLine: originalStartLine,
                     originalStartColumn: originalStartColumn,
                     originalEndLine: originalEndLine,

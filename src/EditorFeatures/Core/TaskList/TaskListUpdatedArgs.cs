@@ -4,8 +4,9 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.TaskList
+namespace Microsoft.CodeAnalysis.Editor.TaskList
 {
     internal sealed class TaskListUpdatedArgs : UpdatedEventArgs
     {

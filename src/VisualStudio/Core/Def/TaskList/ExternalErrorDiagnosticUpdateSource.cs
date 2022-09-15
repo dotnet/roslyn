@@ -805,7 +805,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // 
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
-                    return diagnosticData.DataLocation != null &&
+                    return
                         !string.IsNullOrEmpty(diagnosticData.DataLocation.OriginalFilePath) &&
                         (diagnosticData.DataLocation.OriginalStartLine > 0 ||
                          diagnosticData.DataLocation.OriginalStartColumn > 0);
@@ -932,17 +932,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     item1.ProjectId != item2.ProjectId ||
                     item1.Severity != item2.Severity ||
                     item1.Message != item2.Message ||
-                    (item1.DataLocation?.MappedStartLine ?? 0) != (item2.DataLocation?.MappedStartLine ?? 0) ||
-                    (item1.DataLocation?.MappedStartColumn ?? 0) != (item2.DataLocation?.MappedStartColumn ?? 0) ||
-                    (item1.DataLocation?.OriginalStartLine ?? 0) != (item2.DataLocation?.OriginalStartLine ?? 0) ||
-                    (item1.DataLocation?.OriginalStartColumn ?? 0) != (item2.DataLocation?.OriginalStartColumn ?? 0))
+                    item1.DataLocation.MappedStartLine != item2.DataLocation.MappedStartLine ||
+                    item1.DataLocation.MappedStartColumn != item2.DataLocation.MappedStartColumn ||
+                    item1.DataLocation.OriginalStartLine != item2.DataLocation.OriginalStartLine ||
+                    item1.DataLocation.OriginalStartColumn != item2.DataLocation.OriginalStartColumn)
                 {
                     return false;
                 }
 
                 return (item1.DocumentId != null) ?
                     item1.DocumentId == item2.DocumentId :
-                    item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath;
+                    item1.DataLocation.OriginalFilePath == item2.DataLocation.OriginalFilePath;
             }
 
             public int GetHashCode(DiagnosticData obj)
@@ -951,14 +951,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,
-                    Hash.Combine(obj.DataLocation?.MappedStartLine ?? 0,
-                    Hash.Combine(obj.DataLocation?.MappedStartColumn ?? 0,
-                    Hash.Combine(obj.DataLocation?.OriginalStartLine ?? 0,
-                    Hash.Combine(obj.DataLocation?.OriginalStartColumn ?? 0, (int)obj.Severity)))))));
+                    Hash.Combine(obj.DataLocation.MappedStartLine,
+                    Hash.Combine(obj.DataLocation.MappedStartColumn,
+                    Hash.Combine(obj.DataLocation.OriginalStartLine,
+                    Hash.Combine(obj.DataLocation.OriginalStartColumn, (int)obj.Severity)))))));
 
-                return obj.DocumentId != null ?
-                    Hash.Combine(obj.DocumentId, result) :
-                    Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0, result);
+                return obj.DocumentId != null
+                    ? Hash.Combine(obj.DocumentId, result)
+                    : Hash.Combine(obj.DataLocation.OriginalFilePath.GetHashCode(), result);
             }
         }
     }
