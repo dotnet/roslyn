@@ -168,7 +168,7 @@ namespace B
             var roundTripAdditionalLocation = Assert.Single(roundTripDiagnosticData.AdditionalLocations);
             Assert.Equal(externalAdditionalLocation.DocumentId, roundTripAdditionalLocation.DocumentId);
             Assert.Equal(externalAdditionalLocation.SourceSpan, roundTripAdditionalLocation.SourceSpan);
-            Assert.Equal(externalAdditionalLocation.OriginalFileSpan, roundTripAdditionalLocation.OriginalFileSpan);
+            Assert.Equal(externalAdditionalLocation.OriginalFileSpan1, roundTripAdditionalLocation.OriginalFileSpan1);
         }
 
         [Fact]
@@ -216,7 +216,7 @@ namespace B
             Assert.NotNull(roundTripDiagnosticData.DataLocation);
             Assert.Equal(location.DocumentId, roundTripLocation.DocumentId);
             Assert.Equal(location.SourceSpan, roundTripLocation.SourceSpan);
-            Assert.Equal(location.OriginalFileSpan, roundTripLocation.OriginalFileSpan);
+            Assert.Equal(location.OriginalFileSpan1, roundTripLocation.OriginalFileSpan1);
         }
     }
 }

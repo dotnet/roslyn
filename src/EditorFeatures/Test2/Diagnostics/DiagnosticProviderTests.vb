@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       Equals(x.DataLocation.OriginalFileSpan.StartLinePosition, y.DataLocation.OriginalFileSpan.StartLinePosition)
+                       Equals(x.DataLocation.OriginalFileSpan1.StartLinePosition, y.DataLocation.OriginalFileSpan1.StartLinePosition)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(obj.DataLocation.OriginalFileSpan.StartLinePosition.GetHashCode(), obj.Severity)))))
+                       Hash.Combine(obj.DataLocation.OriginalFileSpan1.StartLinePosition.GetHashCode(), obj.Severity)))))
             End Function
         End Class
     End Class

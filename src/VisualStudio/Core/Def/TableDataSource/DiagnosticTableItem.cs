@@ -43,11 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override ProjectId? ProjectId
             => Data.ProjectId;
 
+        // TODO: use of OriginalFileSpan seems very suspect here.  It is used for navigation.  But we should likely
+        // navigate to the remapped position. (Unless navigation already handles that?  Unclear what the
+        // invariants/expectations are between these two components).
         public override LinePosition GetOriginalPosition()
-            => Data.DataLocation.OriginalFileSpan.StartLinePosition;
+            => Data.DataLocation.OriginalFileSpan1.StartLinePosition;
 
         public override string GetOriginalFilePath()
-            => Data.DataLocation.OriginalFileSpan.Path;
+            => Data.DataLocation.OriginalFileSpan1.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -96,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return left.Equals(right);
 
                 return
-                    leftLocation.OriginalFileSpan == rightLocation.OriginalFileSpan &&
+                    leftLocation.OriginalFileSpan1 == rightLocation.OriginalFileSpan1 &&
                     left.Severity == right.Severity &&
                     left.IsSuppressed == right.IsSuppressed &&
                     left.Id == right.Id &&
@@ -112,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return data.GetHashCode();
 
                 return
-                    Hash.Combine(location.OriginalFileSpan.GetHashCode(),
+                    Hash.Combine(location.OriginalFileSpan1.GetHashCode(),
                     Hash.Combine(data.IsSuppressed,
                     Hash.Combine(data.Id, data.Severity.GetHashCode())));
             }

@@ -806,9 +806,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
                     return
-                        !string.IsNullOrEmpty(diagnosticData.DataLocation.OriginalFileSpan.Path) &&
-                        (diagnosticData.DataLocation.OriginalFileSpan.StartLinePosition.Line > 0 ||
-                         diagnosticData.DataLocation.OriginalFileSpan.StartLinePosition.Character > 0);
+                        !string.IsNullOrEmpty(diagnosticData.DataLocation.OriginalFileSpan1.Path) &&
+                        (diagnosticData.DataLocation.OriginalFileSpan1.StartLinePosition.Line > 0 ||
+                         diagnosticData.DataLocation.OriginalFileSpan1.StartLinePosition.Character > 0);
                 }
             }
 
@@ -932,29 +932,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     item1.ProjectId != item2.ProjectId ||
                     item1.Severity != item2.Severity ||
                     item1.Message != item2.Message ||
-                    item1.DataLocation.MappedFileSpan?.Span != item2.DataLocation.MappedFileSpan?.Span ||
-                    item2.DataLocation.OriginalFileSpan.Span != item2.DataLocation.OriginalFileSpan.Span)
+                    item1.DataLocation.MappedFileSpan.Span != item2.DataLocation.MappedFileSpan.Span ||
+                    item2.DataLocation.OriginalFileSpan1.Span != item2.DataLocation.OriginalFileSpan1.Span)
                 {
                     return false;
                 }
 
+                // TODO: unclear why we are comparing the original paths, and not the normalized paths.   This may
+                // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
+                // to be considering.
                 return (item1.DocumentId != null)
                     ? item1.DocumentId == item2.DocumentId
-                    : item1.DataLocation.OriginalFileSpan.Path == item2.DataLocation.OriginalFileSpan.Path;
+                    : item1.DataLocation.OriginalFileSpan1.Path == item2.DataLocation.OriginalFileSpan1.Path;
             }
 
             public int GetHashCode(DiagnosticData obj)
             {
+                // TODO: unclear on why we're hashing the start of the data location, whereas .Equals above checks the
+                // full span.
                 var result =
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,
-                    Hash.Combine(obj.DataLocation.MappedFileSpan?.Span.Start.GetHashCode() ?? 0,
-                    Hash.Combine(obj.DataLocation.OriginalFileSpan.Span.Start.GetHashCode(), (int)obj.Severity)))));
+                    Hash.Combine(obj.DataLocation.MappedFileSpan.Span.Start.GetHashCode(),
+                    Hash.Combine(obj.DataLocation.OriginalFileSpan1.Span.Start.GetHashCode(), (int)obj.Severity)))));
 
+                // TODO: unclear why we are hashing the original path, and not the normalized path.   This may
+                // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
+                // to be considering.
                 return obj.DocumentId != null
                     ? Hash.Combine(obj.DocumentId, result)
-                    : Hash.Combine(obj.DataLocation.OriginalFileSpan.Path, result);
+                    : Hash.Combine(obj.DataLocation.OriginalFileSpan1.Path, result);
             }
         }
     }
