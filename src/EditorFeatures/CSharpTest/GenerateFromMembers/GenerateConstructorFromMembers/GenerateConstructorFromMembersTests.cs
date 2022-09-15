@@ -1880,5 +1880,137 @@ class Employee : Person
 }",
 chosenSymbols: null);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(63273, "https://github.com/dotnet/roslyn/issues/63273")]
+        public async Task TestBaseClass_PrivateBaseCtor()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class A
+{
+    public int A1 { get; }
+
+    private A(int a1)
+    {
+        A1 = a1;
+    }
+}
+class [||]B : A
+{
+    public int B1 { get; set; }
+}",
+@"
+class A
+{
+    public int A1 { get; }
+
+    private A(int a1)
+    {
+        A1 = a1;
+    }
+}
+class B : A
+{
+    public B(int b1{|Navigation:)|}
+    {
+        B1 = b1;
+    }
+
+    public int B1 { get; set; }
+}",
+chosenSymbols: null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(63273, "https://github.com/dotnet/roslyn/issues/63273")]
+        public async Task TestBaseClass_MoreBaseMembers()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class A
+{
+    public int A1 { get; set; }
+    public int A2 { get; set; }
+
+    public A(int a1)
+    {
+        A1 = a1;
+    }
+}
+class [||]B : A
+{
+    public int B1 { get; set; }
+}",
+@"
+class A
+{
+    public int A1 { get; set; }
+    public int A2 { get; set; }
+
+    public A(int a1)
+    {
+        A1 = a1;
+    }
+}
+class B : A
+{
+    public B(int a1, int a2, int b1{|Navigation:)|} : base(a1)
+    {
+        A2 = a2;
+        B1 = b1;
+    }
+
+    public int B1 { get; set; }
+}",
+chosenSymbols: null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(63273, "https://github.com/dotnet/roslyn/issues/63273")]
+        public async Task TestBaseClass_UnaccessibleBaseMembers()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class A
+{
+    public int A1 { get; set; }
+    public int A2 { get; }
+    private int A3 { get; set; }
+    public int A4 { get; private set; }
+
+    public A(int a1)
+    {
+        A1 = a1;
+    }
+}
+class [||]B : A
+{
+    public int B1 { get; set; }
+}",
+@"
+class A
+{
+    public int A1 { get; set; }
+    public int A2 { get; }
+    private int A3 { get; set; }
+    public int A4 { get; private set; }
+
+    public A(int a1)
+    {
+        A1 = a1;
+    }
+}
+class B : A
+{
+    public B(int a1, int b1{|Navigation:)|} : base(a1)
+    {
+        B1 = b1;
+    }
+
+    public int B1 { get; set; }
+}",
+chosenSymbols: null);
+        }
     }
 }
