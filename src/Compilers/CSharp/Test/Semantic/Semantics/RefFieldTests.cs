@@ -9115,6 +9115,40 @@ class Program
                 );
         }
 
+        [WorkItem(64009, "https://github.com/dotnet/roslyn/issues/64009")]
+        [Fact]
+        public void LocalScope_09()
+        {
+            var source =
+@"{
+    scoped s1 = default;
+    scoped ref @scoped s2 = ref s1;
+}
+ref struct @scoped { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(64009, "https://github.com/dotnet/roslyn/issues/64009")]
+        [Fact]
+        public void LocalScope_10()
+        {
+            var source =
+@"{
+    int i = 0;
+    S s1 = new S(ref i);
+    scoped S s2 = s1;
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void LocalScopeAndInitializer_01()
         {

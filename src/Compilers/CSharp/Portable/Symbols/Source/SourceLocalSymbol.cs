@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly LocalDeclarationKind _declarationKind;
         private readonly DeclarationScope _scope;
+        private readonly uint _localScopeDepth;
 
         private TypeWithAnnotations.Boxed _type;
 
@@ -89,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
 
+            _localScopeDepth = scopeBinder.LocalScopeDepth;
+
             _refEscapeScope = this._refKind == RefKind.None ?
                                         scopeBinder.LocalScopeDepth :
                                         Binder.ExternalScope; // default to returnable, unless there is initializer
@@ -129,7 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return _refEscapeScope;
                 }
-                return Binder.TopLevelScope;
+                return _scope == DeclarationScope.RefScoped ?
+                    _localScopeDepth :
+                    Binder.TopLevelScope;
             }
         }
 
@@ -143,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _valEscapeScope;
                 }
                 return _scope == DeclarationScope.ValueScoped ?
-                    Binder.TopLevelScope :
+                    _localScopeDepth :
                     Binder.ExternalScope;
             }
         }
