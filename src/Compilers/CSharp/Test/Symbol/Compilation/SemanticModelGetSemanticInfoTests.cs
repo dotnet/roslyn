@@ -5581,6 +5581,30 @@ class C
 
         [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
         [Fact]
+        public void LocalForEachAwait()
+        {
+            string sourceCode = @"
+class C
+{
+    void M()
+    {
+        var a = new int[] { 1, 2, 3 };
+        await foreach (var x in a)
+        {
+            var y = /*<bind>*/x/*</bind>*/;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
+
+            var symbol = (ILocalSymbol)semanticInfo.Symbol;
+            Assert.True(symbol.IsForEach);
+        }
+
+        [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
+        [Fact]
         public void LocalUsing()
         {
             string sourceCode = @"
@@ -5589,10 +5613,56 @@ class C
 {
     void M()
     {
-        using (var x = new StreamReader(""C:\\Temp\\MyFile.txt""))
+        using (var x = new StreamReader(""""))
         {
             /*<bind>*/x/*</bind>*/.Read();
         }
+    }
+}
+";
+            var compilation = CreateCompilation(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
+
+            var symbol = (ILocalSymbol)semanticInfo.Symbol;
+            Assert.True(symbol.IsUsing);
+        }
+
+        [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
+        [Fact]
+        public void LocalUsingAwait()
+        {
+            string sourceCode = @"
+using System.IO;
+class C
+{
+    void M()
+    {
+        await using (var x = new StreamReader(""""))
+        {
+            /*<bind>*/x/*</bind>*/.Read();
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
+
+            var symbol = (ILocalSymbol)semanticInfo.Symbol;
+            Assert.True(symbol.IsUsing);
+        }
+
+        [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
+        [Fact]
+        public void LocalUsingDeclaration()
+        {
+            string sourceCode = @"
+using System.IO;
+class C
+{
+    void M()
+    {
+        using var x = new StreamReader("""");
+        /*<bind>*/x/*</bind>*/.Read();
     }
 }
 ";
