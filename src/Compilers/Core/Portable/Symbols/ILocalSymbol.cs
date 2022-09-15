@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <example>
         /// <code>
-        ///     using (var localVariable = new StreamReader("C:\\Temp\\MyFile.txt")) { ... } 
+        ///     using (var localVariable = new StreamReader(path)) { ... } 
         /// </code>
         /// </example>
         bool IsUsing { get; }
