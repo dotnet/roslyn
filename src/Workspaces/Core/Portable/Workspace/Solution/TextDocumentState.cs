@@ -108,11 +108,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, SolutionServices services)
-        {
-            return new RecoverableTextAndVersion(
-                new AsyncLazy<TextAndVersion>(loader.LoadTextAsync, loader.LoadTextSynchronously, cacheResult: false),
-                services.SolutionServices);
-        }
+            => new RecoverableTextAndVersion(new AsyncLazy<TextAndVersion>(loader.LoadTextAsync, loader.LoadTextSynchronously, cacheResult: false), services);
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
