@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.TaskList;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.TaskList;
@@ -34,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private sealed class MiscellaneousTaskListTable : VisualStudioBaseTaskListTable
         {
-            public MiscellaneousTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, ITableManagerProvider provider)
-                : base(workspace, threadingContext, todoListProvider, IdentifierString, provider)
+            public MiscellaneousTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider taskProvider, ITableManagerProvider provider)
+                : base(workspace, threadingContext, taskProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
             }

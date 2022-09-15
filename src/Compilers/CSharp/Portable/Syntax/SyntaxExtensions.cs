@@ -456,6 +456,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var refTypeSyntax = (RefTypeSyntax)type;
                         stack.Push(refTypeSyntax.Type);
                         break;
+                    case SyntaxKind.ScopedType:
+                        var scopedTypeSyntax = (ScopedTypeSyntax)type;
+                        stack.Push(scopedTypeSyntax.Type);
+                        break;
                     case SyntaxKind.GenericName:
                         var genericNameSyntax = (GenericNameSyntax)type;
                         for (int i = genericNameSyntax.TypeArgumentList.Arguments.Count - 1; i >= 0; i--)

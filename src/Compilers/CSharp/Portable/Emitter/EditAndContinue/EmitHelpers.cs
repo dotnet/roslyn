@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
-            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();

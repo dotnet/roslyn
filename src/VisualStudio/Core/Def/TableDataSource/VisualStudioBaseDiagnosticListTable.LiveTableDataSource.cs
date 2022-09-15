@@ -268,12 +268,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 // this should make order of result always deterministic. we only need these 6 values since data with 
                 // all these same will merged to one.
-                return groupedItems.OrderBy(d => d.Data.DataLocation?.OriginalStartLine ?? 0)
-                                   .ThenBy(d => d.Data.DataLocation?.OriginalStartColumn ?? 0)
+                return groupedItems.OrderBy(d => d.Data.DataLocation.OriginalFileSpan.StartLinePosition)
                                    .ThenBy(d => d.Data.Id)
                                    .ThenBy(d => d.Data.Message)
-                                   .ThenBy(d => d.Data.DataLocation?.OriginalEndLine ?? 0)
-                                   .ThenBy(d => d.Data.DataLocation?.OriginalEndColumn ?? 0);
+                                   .ThenBy(d => d.Data.DataLocation.OriginalFileSpan.EndLinePosition);
             }
 
             private class TableEntriesSource : DiagnosticTableEntriesSource
@@ -377,13 +375,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = data.DataLocation?.GetFilePath();
+                            content = data.DataLocation.GetNormalizedFilePathLinePositionSpan().Path;
                             return content != null;
                         case StandardTableKeyNames.Line:
-                            content = data.DataLocation?.MappedStartLine ?? 0;
+                            content = data.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Line;
                             return true;
                         case StandardTableKeyNames.Column:
-                            content = data.DataLocation?.MappedStartColumn ?? 0;
+                            content = data.DataLocation.GetNormalizedFilePathLinePositionSpan().StartLinePosition.Character;
                             return true;
                         case StandardTableKeyNames.ProjectName:
                             content = item.ProjectName;

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.TaskList
     {
         private readonly object _gate = new();
         private ImmutableArray<string> _lastTokenList = ImmutableArray<string>.Empty;
-        private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = ImmutableArray<TodoCommentDescriptor>.Empty;
+        private ImmutableArray<TaskListItemDescriptor> _lastDescriptors = ImmutableArray<TaskListItemDescriptor>.Empty;
 
         /// <summary>
         /// Set of documents that we have reported an non-empty set of todo comments for.  Used so that we don't bother
@@ -48,13 +47,13 @@ namespace Microsoft.CodeAnalysis.TaskList
             return ReportTaskListItemsAsync(documentId, ImmutableArray<TaskListItem>.Empty, cancellationToken).AsTask();
         }
 
-        private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(ImmutableArray<string> tokenList)
+        private ImmutableArray<TaskListItemDescriptor> GetDescriptors(ImmutableArray<string> tokenList)
         {
             lock (_gate)
             {
                 if (!tokenList.SequenceEqual(_lastTokenList))
                 {
-                    _lastDescriptors = TodoCommentDescriptor.Parse(tokenList);
+                    _lastDescriptors = TaskListItemDescriptor.Parse(tokenList);
                     _lastTokenList = tokenList;
                 }
 
@@ -62,26 +61,34 @@ namespace Microsoft.CodeAnalysis.TaskList
             }
         }
 
+        private static ITaskListService? GetTaskListService(Document document)
+        {
+            // Legacy compat until TypeScript moves to EA pattern.
+            var todoService = document.GetLanguageService<ITodoCommentService>();
+            if (todoService != null)
+                return new TodoCommentServiceWrapper(todoService);
+
+            var todoDataService = document.GetLanguageService<ITaskListService>();
+            if (todoDataService != null)
+                return todoDataService;
+
+            return null;
+        }
+
         public override async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            var todoCommentService = document.GetLanguageService<ITodoCommentService>();
-            if (todoCommentService == null)
+            var service = GetTaskListService(document);
+            if (service == null)
                 return;
 
             var options = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var descriptors = GetTodoCommentDescriptors(options.Descriptors);
+            var descriptors = GetDescriptors(options.Descriptors);
 
             // We're out of date.  Recompute this info.
-            var todoComments = await todoCommentService.GetTodoCommentsAsync(
+            var items = await service.GetTaskListItemsAsync(
                 document, descriptors, cancellationToken).ConfigureAwait(false);
 
-            // Convert the roslyn-level results to the more VS oriented line/col data.
-            using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
-            await TodoComment.ConvertAsync(
-                document, todoComments, converted, cancellationToken).ConfigureAwait(false);
-
-            var data = converted.ToImmutable();
-            if (data.IsEmpty)
+            if (items.IsEmpty)
             {
                 // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
                 // had todo comments in it, then fall through and notify the host so it can clear them out.
@@ -96,7 +103,25 @@ namespace Microsoft.CodeAnalysis.TaskList
             }
 
             // Now inform VS about this new information
-            await ReportTaskListItemsAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
+            await ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
+        }
+
+        private sealed class TodoCommentServiceWrapper : ITaskListService
+        {
+            private readonly ITodoCommentService _todoService;
+
+            public TodoCommentServiceWrapper(ITodoCommentService todoService)
+            {
+                _todoService = todoService;
+            }
+
+            public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(
+                Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
+            {
+                var comments = await _todoService.GetTodoCommentsAsync(
+                    document, descriptors.SelectAsArray(d => new TodoCommentDescriptor(d.Text, d.Priority)), cancellationToken).ConfigureAwait(false);
+                return await TodoComment.ConvertAsync(document, comments, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
