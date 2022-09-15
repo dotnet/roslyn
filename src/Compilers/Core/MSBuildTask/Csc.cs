@@ -11,6 +11,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -391,7 +392,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             && isReferenceAssembly)
                         {
                             commandLine.AppendSwitchIfNotNull("/reference:", reference.GetMetadata("OriginalItemSpec"));
-                            //commandLine.AppendArgumentIfNotNull(reference.GetMetadata("CopyUpToDateMarker"));
+                            var copyUpToDateMarkerPath = reference.GetMetadata("CopyUpToDateMarker");
+                            if (File.Exists(copyUpToDateMarkerPath))
+                            {
+                                commandLine.AppendSwitchIfNotNull("@", copyUpToDateMarkerPath);
+                            }
                         }
                     }
                 }
