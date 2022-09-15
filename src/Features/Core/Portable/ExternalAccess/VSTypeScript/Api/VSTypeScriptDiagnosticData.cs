@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public ImmutableArray<string> CustomTags
             => _data.CustomTags;
 
+        /// <summary>
+        /// Note: the <paramref name="useMapped"/> parameter is ignored.
+        /// </summary>
         public LinePositionSpan GetLinePositionSpan(SourceText sourceText, bool useMapped)
         {
             // TypeScript has no concept of mapped spans, so this should never be passed 'true'.
