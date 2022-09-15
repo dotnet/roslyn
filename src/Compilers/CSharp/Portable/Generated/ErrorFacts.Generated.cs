@@ -290,6 +290,8 @@
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return true;
                 default:
                     return false;

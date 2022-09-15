@@ -2067,6 +2067,26 @@
         <target state="translated">因為參數不是 null，所以傳回值必須非 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
+        <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
+        <source>The 'scoped' modifier of parameter doesn't match target.</source>
+        <target state="new">The 'scoped' modifier of parameter doesn't match target.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
         <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
         <target state="translated">遇到未命名的列舉值時，switch 運算式不會處理其輸入類型的某些值 (未徹底處理)。例如，未涵蓋模式 '{0}'。</target>
