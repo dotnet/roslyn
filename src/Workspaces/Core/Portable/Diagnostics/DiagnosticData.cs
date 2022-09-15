@@ -305,6 +305,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new LinePositionSpan(start, end);
         }
 
+        /// <summary>
+        /// Gets the <see cref="TextSpan"/> of <see cref="DiagnosticDataLocation.UnmappedFileSpan"/> clamped so that it
+        /// is entirely contained within the bounds of <paramref name="text"/>.
+        /// </summary>
         public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
             var linePositionSpan = GetUnmappedLinePositionSpan(dataLocation, text);
