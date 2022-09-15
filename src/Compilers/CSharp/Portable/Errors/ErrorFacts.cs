@@ -2222,6 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
+                case ErrorCode.ERR_ScopedNotBeforeType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

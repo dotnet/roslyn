@@ -606,6 +606,51 @@ namespace M
             compilation.VerifyEmitDiagnostics();
         }
 
+        [WorkItem(63927, "https://github.com/dotnet/roslyn/issues/63927")]
+        [Fact]
+        public void ExternAliases5()
+        {
+            string sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "A1");
+            var refA = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+
+            string sourceB =
+@"#nullable enable
+extern alias A2;
+class B
+{
+    static void F(A2::A? a) { }
+}
+";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""B"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""29"" endLine=""5"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""31"" endLine=""5"" endColumn=""32"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""A2"" />
+        <externinfo alias=""A2"" assembly=""A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestExternAliases_ExplicitAndGlobal()
         {

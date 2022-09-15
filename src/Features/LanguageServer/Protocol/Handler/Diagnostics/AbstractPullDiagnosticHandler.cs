@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, diagnosticSource, newResultId, context.ClientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(
+                        context, diagnosticSource, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -246,11 +247,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             IDiagnosticSource diagnosticSource,
             string resultId,
             ClientCapabilities clientCapabilities,
-            DiagnosticMode diagnosticMode,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-            var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
             context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetUri()}");
 
             foreach (var diagnostic in diagnostics)
@@ -333,18 +333,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
                 };
-                if (diagnosticData.DataLocation != null)
-                {
-                    diagnostic.Range = GetRange(diagnosticData.DataLocation);
-                }
+
+                diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
                 // Defines an identifier used by the client for merging diagnostics across projects.
                 // We want diagnostics to be merged from separate projects if they have the same code, filepath, range, and message.
-                var filePath = diagnosticData.DataLocation?.GetFilePath();
-                if (filePath != null)
-                {
-                    diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
-                }
+                var filePath = diagnosticData.DataLocation.GetFilePath();
+                diagnostic.Identifier = (diagnostic.Code, filePath, diagnostic.Range, diagnostic.Message).GetHashCode().ToString();
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
