@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FileLinePositionSpan? mappedFileSpan,
             bool checkMappedFileSpan)
         {
-            Contract.ThrowIfNull(originalFileSpan.Path);
+            Contract.ThrowIfNull(unmappedFileSpan.Path);
 
             UnmappedFileSpan = unmappedFileSpan;
             DocumentId = documentId;

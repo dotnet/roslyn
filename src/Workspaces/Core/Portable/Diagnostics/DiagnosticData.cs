@@ -178,7 +178,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                Hash.Combine(WarningLevel,
                Hash.Combine(IsSuppressed,
                Hash.Combine(ProjectId,
-               Hash.Combine(DocumentId, Message.GetHashCode()))))))));
+               Hash.Combine(DocumentId,
+               Hash.Combine(Message, 0)))))))));
 
         public override string ToString()
             => $"{Id} {Severity} {Message} {ProjectId} {DataLocation.MappedFileSpan} [original: {DataLocation.UnmappedFileSpan}]";
