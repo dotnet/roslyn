@@ -2128,6 +2128,59 @@ End Module
                 Diagnostic(ERRID.ERR_IllegalChar, "$"))
         End Sub
 
+        <WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")>
+        <Fact>
+        Public Sub LocalUsing()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Module M1
+    Class C
+        Sub S() As Object
+            Using writer As System.IO.TextWriter = System.IO.File.CreateText("log.txt")
+                writer.WriteLine("")    'BIND:"writer"
+            End Using
+        End Sub
+    End Class
+End Module
+    </file>
+</compilation>)
+
+            Dim model = GetSemanticModel(compilation, "a.vb")
+            Dim expressionSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 0)
+            Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, LocalSymbol)
+            Assert.False(local.IsConst)
+            Assert.False(local.IsForEach)
+            Assert.True(local.IsUsing)
+        End Sub
+
+        <WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")>
+        <Fact>
+        Public Sub LocalForEach()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Module M1
+    Class C
+        Sub S() As Object
+            Dim a() As Integer = {1, 2, 3}
+            For Each x As Integer In a
+                Dim y = x   'BIND:"x"
+            Next
+        End Sub
+    End Class
+End Module
+    </file>
+</compilation>)
+
+            Dim model = GetSemanticModel(compilation, "a.vb")
+            Dim expressionSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 0)
+            Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, LocalSymbol)
+            Assert.False(local.IsConst)
+            Assert.True(local.IsForEach)
+            Assert.False(local.IsUsing)
+        End Sub
+
         <Fact()>
         Public Sub TestGetDeclaredSymbolArrayField()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2870,12 +2923,14 @@ End Module
             Dim sym = semanticModel.GetDeclaredSymbol(node)
             Assert.NotNull(sym)
             Assert.Equal(SymbolKind.Local, sym.Kind)
+            Assert.False(DirectCast(sym, ILocalSymbol).IsForEach)
             ' y
             node = nodes.Last()
             Assert.Equal("y", node.ToString())
             sym = semanticModel.GetDeclaredSymbol(node)
             Assert.NotNull(sym)
             Assert.Equal(SymbolKind.Local, sym.Kind)
+            Assert.True(DirectCast(sym, ILocalSymbol).IsForEach)
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
