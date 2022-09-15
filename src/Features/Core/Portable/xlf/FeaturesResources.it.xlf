@@ -670,6 +670,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Abilita tutte le funzionalità dell'editor JSON</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="new">Enum members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>

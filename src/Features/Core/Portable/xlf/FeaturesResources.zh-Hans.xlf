@@ -670,6 +670,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">启用所有 JSON 编辑器功能</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="new">Enum members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">读取文件“{0}”时出错: {1}</target>
