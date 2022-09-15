@@ -44,10 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
+            => new(Data.DataLocation.OriginalStartLine, Data.DataLocation.OriginalStartColumn);
 
-        public override string? GetOriginalFilePath()
-            => Data.DataLocation?.OriginalFilePath;
+        public override string GetOriginalFilePath()
+            => Data.DataLocation.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -96,11 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var rightLocation = right.DataLocation;
 
                 // location-less or project level diagnostic:
-                if (leftLocation == null ||
-                    rightLocation == null ||
-                    leftLocation.OriginalFilePath == null ||
-                    rightLocation.OriginalFilePath == null ||
-                    left.DocumentId == null ||
+                if (left.DocumentId == null ||
                     right.DocumentId == null)
                 {
                     return left.Equals(right);
@@ -123,9 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var location = data.DataLocation;
 
                 // location-less or project level diagnostic:
-                if (location == null ||
-                    location.OriginalFilePath == null ||
-                    data.DocumentId == null)
+                if (data.DocumentId == null)
                 {
                     return data.GetHashCode();
                 }
