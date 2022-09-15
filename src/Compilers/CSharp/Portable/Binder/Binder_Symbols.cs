@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
                 if (unconstructedType.IsGenericType
-                    && (options.IsAttributeTypeLookup() || ContainsAttributeType(node)))
+                    && (options.IsAttributeTypeLookup() || containsAttributeType(node)))
                 {
                     foreach (var typeArgument in boundTypeArguments)
                     {
@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Determines whether node represents containing type of an attribute.
             // For example, returns true for "A<T>" node in "[A<T>.B]".
-            static bool ContainsAttributeType(NameSyntax node)
+            static bool containsAttributeType(NameSyntax node)
             {
                 var parent = node.Parent;
                 if (parent is null)
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parent.Kind() == SyntaxKind.QualifiedName)
                 {
                     var qn = (QualifiedNameSyntax)parent;
-                    return SyntaxFacts.IsAttributeName(qn.Right) || ContainsAttributeType(qn);
+                    return SyntaxFacts.IsAttributeName(qn.Right) || containsAttributeType(qn);
                 }
 
                 return false;
