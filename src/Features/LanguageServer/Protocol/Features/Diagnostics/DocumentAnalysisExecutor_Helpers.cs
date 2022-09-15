@@ -121,11 +121,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 severity: DiagnosticSeverity.Warning,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
-                description: description,
                 warningLevel: 0,
-                projectId: projectId,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string?>.Empty,
+                projectId: projectId,
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),
+                description: description,
                 language: language);
         }
 
