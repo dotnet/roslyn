@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,6 +34,32 @@ class C
         var symbol = (ILocalSymbol)semanticInfo.Symbol;
         Assert.False(symbol.IsUsing);
         Assert.True(symbol.IsForEach);
+        Assert.False(symbol.IsForEach()); // VB extension method works only for VB locals
+    }
+
+    [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]
+    [Fact]
+    public void ForEachVisualBasic()
+    {
+        var sourceCode = @"
+Module M1
+    Class C
+        Sub S() As Object
+            Dim a() As Integer = {1, 2, 3}
+            For Each x As Integer In a
+                Dim y = x   'BIND:""x""
+            Next
+        End Sub
+    End Class
+End Module
+";
+        var compilation = CreateVisualBasicCompilation(sourceCode);
+        var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+        var semanticInfo = VisualBasic.UnitTests.CompilationUtils.FindBindingText<VisualBasic.Syntax.IdentifierNameSyntax>(compilation);
+        var local = (ILocalSymbol)model.GetSymbolInfo(semanticInfo).Symbol!;
+        Assert.False(local.IsUsing);
+        Assert.True(local.IsForEach);
+        Assert.True(local.IsForEach());
     }
 
     [WorkItem(59709, "https://github.com/dotnet/roslyn/issues/59709")]

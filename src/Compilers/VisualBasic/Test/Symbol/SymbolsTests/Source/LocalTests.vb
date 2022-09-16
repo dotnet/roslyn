@@ -61,6 +61,8 @@ End Module
             Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, ILocalSymbol)
             Assert.False(local.IsConst)
             Assert.True(local.IsForEach)
+            Assert.True(VisualBasicExtensions.IsForEach(local))
+            Assert.True(local.IsForEach()) ' calls the property, not the extension method
             Assert.False(local.IsUsing)
         End Sub
 
