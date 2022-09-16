@@ -1739,5 +1739,16 @@ class C
                 }
                 """, "required");
         }
+
+        [Fact]
+        public async Task TestScoped()
+        {
+            await Test_KeywordAsync("""
+                sc[||]oped var r = new R();
+                ref struct R
+                {
+                }
+                """, "scoped");
+        }
     }
 }
