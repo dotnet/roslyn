@@ -243,4 +243,5 @@ stages:
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+        queueSpeedometerValidation: true
 

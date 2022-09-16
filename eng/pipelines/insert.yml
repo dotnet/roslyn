@@ -11,6 +11,9 @@ parameters:
   - name: insertToolset
     type: string
     default: ''
+  - name: queueSpeedometerValidation
+    type: string
+    default: 'false'
 
   - name: buildUserName
     type: string
@@ -204,6 +207,7 @@ steps:
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt"
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
