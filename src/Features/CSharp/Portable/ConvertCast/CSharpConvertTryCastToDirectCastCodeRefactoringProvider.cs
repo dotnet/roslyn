@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
 
             // Make sure we make type nullable when converting expressions like `null as string` -> `(string?)null`
             if (expression.IsKind(SyntaxKind.NullLiteralExpression) && nullableContext.HasFlag(NullableContext.AnnotationsEnabled))
-                typeNode = NullableType(typeNode, Token(SyntaxKind.QuestionToken));
+                typeNode = NullableType(typeNode, Token(SyntaxTriviaList.Empty, SyntaxKind.QuestionToken, SyntaxTriviaList.Empty));
 
             var castExpression = CastExpression(openParen, typeNode, closeParen, expression.WithoutTrailingTrivia())
                 .WithLeadingTrivia(newLeadingTrivia)
