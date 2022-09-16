@@ -1195,10 +1195,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For example, returns true for "A<T>" node in "[A<T>.B]".
             static bool containsAttributeType(NameSyntax node)
             {
-                while (node.Parent is QualifiedNameSyntax qn)
+                while (true)
                 {
-                    if (SyntaxFacts.IsAttributeName(qn.Right)) return true;
-                    node = qn;
+                    if (node.Parent is QualifiedNameSyntax qn)
+                    {
+                        if (SyntaxFacts.IsAttributeName(qn.Right)) return true;
+                        node = qn;
+                    }
+                    else if (node.Parent is AliasQualifiedNameSyntax aqn)
+                    {
+                        if (SyntaxFacts.IsAttributeName(aqn.Name)) return true;
+                        node = aqn;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 return false;
