@@ -206,7 +206,7 @@ steps:
         -updateAssemblyVersions "(default)" `
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
-        -writePullRequest "prid.txt"
+        -writePullRequest "prid.txt" `
         -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
     displayName: 'Run OneOffInsertion.ps1'
 
