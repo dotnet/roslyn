@@ -246,13 +246,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation dataLocation, SourceText text, bool useMapped)
+        /// <summary>
+        /// Gets the <see cref="LinePositionSpan"/> of <see cref="DiagnosticDataLocation.UnmappedFileSpan"/> clamped so
+        /// that it is entirely contained within the bounds of <paramref name="text"/>.
+        /// </summary>
+        public static LinePositionSpan GetUnmappedLinePositionSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
                 return default;
 
-            var fileSpan = useMapped ? dataLocation.MappedFileSpan : dataLocation.UnmappedFileSpan;
+            var fileSpan = dataLocation.UnmappedFileSpan;
 
             var startLine = fileSpan.StartLinePosition.Line;
             var endLine = fileSpan.EndLinePosition.Line;
@@ -301,9 +305,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new LinePositionSpan(start, end);
         }
 
+        /// <summary>
+        /// Gets the <see cref="TextSpan"/> of <see cref="DiagnosticDataLocation.UnmappedFileSpan"/> clamped so that it
+        /// is entirely contained within the bounds of <paramref name="text"/>.
+        /// </summary>
         public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
-            var linePositionSpan = GetLinePositionSpan(dataLocation, text, useMapped: false);
+            var linePositionSpan = GetUnmappedLinePositionSpan(dataLocation, text);
 
             var span = text.Lines.GetTextSpan(linePositionSpan);
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
