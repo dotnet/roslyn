@@ -55,8 +55,8 @@ End Module
 ";
         var compilation = CreateVisualBasicCompilation(sourceCode);
         var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
-        var semanticInfo = VisualBasic.UnitTests.CompilationUtils.FindBindingText<VisualBasic.Syntax.IdentifierNameSyntax>(compilation);
-        var local = (ILocalSymbol)model.GetSymbolInfo(semanticInfo).Symbol!;
+        var expressionSyntax = VisualBasic.UnitTests.CompilationUtils.FindBindingText<VisualBasic.Syntax.IdentifierNameSyntax>(compilation);
+        var local = (ILocalSymbol)model.GetSymbolInfo(expressionSyntax).Symbol!;
         Assert.False(local.IsUsing);
         Assert.True(local.IsForEach);
         Assert.True(local.IsForEach());
