@@ -40,6 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-            => Hash.Combine(IdeOptions.GetHashCode(), base.GetHashCode()));
+            => Hash.Combine(IdeOptions.GetHashCode(), base.GetHashCode());
     }
 }
