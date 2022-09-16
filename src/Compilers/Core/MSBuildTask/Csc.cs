@@ -391,7 +391,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         if (reference.GetMetadata("TargetFrameworkIdentifier").Equals(".NETFramework", StringComparison.OrdinalIgnoreCase)
                             && isReferenceAssembly)
                         {
-                            commandLine.AppendSwitchIfNotNull("/reference:", reference.GetMetadata("OriginalItemSpec"));
+                            var originalItemSpec = reference.GetMetadata("OriginalItemSpec");
+                            if (!string.Equals(originalItemSpec, reference.ItemSpec, StringComparison.OrdinalIgnoreCase))
+                            {
+                                commandLine.AppendSwitchIfNotNull("@", reference.GetMetadata("OriginalItemSpec"));
+                            }
                             var copyUpToDateMarkerPath = reference.GetMetadata("CopyUpToDateMarker");
                             if (File.Exists(copyUpToDateMarkerPath))
                             {
