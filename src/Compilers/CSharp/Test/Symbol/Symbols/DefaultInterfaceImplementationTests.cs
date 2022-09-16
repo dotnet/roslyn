@@ -49469,7 +49469,8 @@ namespace System
 
         private static void AssertRuntimeFeatureTrue(string source)
         {
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll,
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation1 = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -49477,7 +49478,7 @@ namespace System
 
             foreach (var reference in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
             {
-                var compilation2 = CreateCompilation("", options: TestOptions.DebugDll,
+                var compilation2 = CreateCompilation("", parseOptions: parseOptions, options: TestOptions.DebugDll,
                                                      references: new[] { reference },
                                                      targetFramework: TargetFramework.Empty);
 
@@ -49584,7 +49585,8 @@ namespace System
 
         private static void AssertRuntimeFeatureFalse(string source)
         {
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll,
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation1 = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -49592,7 +49594,7 @@ namespace System
 
             foreach (var reference in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
             {
-                var compilation2 = CreateCompilation("", options: TestOptions.DebugDll,
+                var compilation2 = CreateCompilation("", parseOptions: parseOptions, options: TestOptions.DebugDll,
                                                      references: new[] { reference },
                                                      targetFramework: TargetFramework.Empty);
 

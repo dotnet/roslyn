@@ -2606,7 +2606,7 @@ public class C
     public static extern void M();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2722,7 +2722,7 @@ public class C
     public extern static event System.Action G;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3196,7 +3196,7 @@ abstract class C
     public extern static void f21();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
@@ -3374,7 +3374,7 @@ abstract class C
 }
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4620,7 +4620,7 @@ enum En
 [SpecialName]
 struct S { }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4729,7 +4729,7 @@ enum E
 [Serializable]
 delegate void D();
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -5050,7 +5050,8 @@ namespace System
         }
     }
 }";
-            var syntaxTree = Parse(source, filename: "test.cs");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var syntaxTree = Parse(source, filename: "test.cs", options: parseOptions);
             var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
@@ -5082,7 +5083,7 @@ namespace System
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
+            CompileAndVerify(source, parseOptions: parseOptions, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
         [WorkItem(546102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
@@ -5112,7 +5113,7 @@ namespace System
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 class A: Attribute {}
 ";
-            CompileAndVerify(source);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         }
 
         [WorkItem(546056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546056")]
