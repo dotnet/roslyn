@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {

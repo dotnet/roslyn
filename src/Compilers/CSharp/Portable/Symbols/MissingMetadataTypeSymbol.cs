@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override SyntaxTree? AssociatedSyntaxTree => null;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
         /// <summary>
         /// Get the arity of the missing type.

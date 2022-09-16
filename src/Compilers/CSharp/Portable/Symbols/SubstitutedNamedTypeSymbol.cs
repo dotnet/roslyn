@@ -428,6 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;

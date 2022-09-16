@@ -1041,7 +1041,7 @@ class C
                 // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
+                // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
@@ -1052,7 +1052,7 @@ class C
                 // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
+                // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'

@@ -4680,7 +4680,7 @@ tryAgain:
 
 #nullable disable
 
-        private static bool IsParameterModifier(SyntaxToken token, bool isFunctionPointerParameter = false)
+        private static bool IsParameterModifier(SyntaxToken token)
         {
             switch (token.Kind)
             {
@@ -4689,7 +4689,8 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
-                case SyntaxKind.ReadOnlyKeyword when isFunctionPointerParameter:
+                // For error tolerance
+                case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.IdentifierToken when token.ContextualKind == SyntaxKind.ScopedKeyword:
                     return true;
             }
@@ -4699,7 +4700,7 @@ tryAgain:
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter = false)
         {
-            while (IsParameterModifier(this.CurrentToken, isFunctionPointerParameter))
+            while (IsParameterModifier(this.CurrentToken))
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
@@ -4711,43 +4712,7 @@ tryAgain:
                     continue;
                 }
 
-                var modifier = this.EatToken();
-
-                switch (modifier.Kind)
-                {
-                    case SyntaxKind.ThisKeyword:
-                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
-                        if (this.CurrentToken.Kind == SyntaxKind.RefKeyword ||
-                            this.CurrentToken.Kind == SyntaxKind.InKeyword)
-                        {
-                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                        }
-                        break;
-
-                    case SyntaxKind.RefKeyword:
-                        {
-                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                            }
-
-                            break;
-                        }
-
-                    case SyntaxKind.InKeyword:
-                        {
-                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
-
-                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                            }
-
-                            break;
-                        }
-                }
-
-                modifiers.Add(modifier);
+                modifiers.Add(this.EatToken());
             }
 
             bool shouldTreatAsModifier()
@@ -4757,7 +4722,7 @@ tryAgain:
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
                 this.EatToken();
 
-                bool validAsModifier = IsParameterModifier(this.CurrentToken, isFunctionPointerParameter) ||
+                bool validAsModifier = IsParameterModifier(this.CurrentToken) ||
                     (ScanType() != ScanTypeFlags.NotType &&
                         isFunctionPointerParameter ?
                             this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken :
@@ -4947,6 +4912,13 @@ tryAgain:
             try
             {
                 this.ParseVariableDeclarators(type, flags: 0, variables: variables, parentKind: parentKind);
+
+                // Make 'scoped' part of the type when it is the last token in the modifiers list
+                if (modifiers.Count != 0 && modifiers[modifiers.Count - 1] is SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword)
+                {
+                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
+                    modifiers.RemoveLast();
+                }
 
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.FieldDeclaration(
@@ -7302,17 +7274,7 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                SyntaxToken misplacedScoped = null;
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
-                {
-                    misplacedScoped = this.AddError(this.EatContextualToken(SyntaxKind.ScopedKeyword), ErrorCode.ERR_MisplacedScoped);
-                }
-
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
-                if (misplacedScoped is not null)
-                {
-                    type = AddLeadingSkippedSyntax(type, misplacedScoped);
-                }
 
                 return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
@@ -9898,8 +9860,30 @@ tryAgain:
                     {
                         mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                     }
+                    else if (mod.Kind == SyntaxKind.ScopedKeyword)
+                    {
+                        // Make 'scoped' part of the type when it is the last token in the modifiers list
+                        if (i == mods.Count - 1)
+                        {
+                            type = _syntaxFactory.ScopedType(mod, type);
+                            mods.RemoveLast();
+                        }
+                        // ParseDeclarationModifiers already reports "type expected" error at duplicate modifier.
+                        // If duplicates follow each other, reporting ERR_ScopedNotBeforeType simply adds more noise,
+                        // basically saying the same thing - type should follow me.
+                        else if (((SyntaxToken)mods[i + 1]).Kind != SyntaxKind.ScopedKeyword)
+                        {
+                            mods[i] = this.AddError(mod, ErrorCode.ERR_ScopedNotBeforeType);
+                        }
+                        else
+                        {
+                            Debug.Assert(mods[i + 1].ContainsDiagnostics);
+                        }
+                    }
                 }
+
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+
                 return _syntaxFactory.LocalDeclarationStatement(
                     attributes,
                     awaitKeyword,
@@ -13332,8 +13316,9 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ParamsKeyword:
-                // params is not actually legal in a lambda, but we allow it for error
-                // recovery purposes and then give an error during semantic analysis.
+                case SyntaxKind.ReadOnlyKeyword:
+                // 'params' and 'readonly' are is not actually legal in a lambda, but we allow it for error recovery
+                // purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:

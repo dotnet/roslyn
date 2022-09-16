@@ -40,13 +40,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             _implementationAssemblyLookupService = implementationAssemblyLookupService;
         }
 
-        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
+        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
+            MetadataAsSourceWorkspace metadataWorkspace,
+            Workspace sourceWorkspace,
+            Project sourceProject,
+            ISymbol symbol,
+            bool signaturesOnly,
+            MetadataAsSourceOptions options,
+            string tempPath,
+            CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location? navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await sourceProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // If we've been asked for signatures only, then we never want to use the decompiler
             var useDecompiler = !signaturesOnly && options.NavigateToDecompiledSources;
@@ -68,8 +76,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 useDecompiler = !refInfo.isReferenceAssembly;
             }
 
-            var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly: !useDecompiler, cancellationToken).ConfigureAwait(false);
-            fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(tempPath, project, topLevelNamedType, signaturesOnly: !useDecompiler));
+            var infoKey = await GetUniqueDocumentKeyAsync(sourceProject, topLevelNamedType, signaturesOnly: !useDecompiler, cancellationToken).ConfigureAwait(false);
+            fileInfo = _keyToInformation.GetOrAdd(infoKey,
+                _ => new MetadataAsSourceGeneratedFileInfo(tempPath, sourceWorkspace, sourceProject, topLevelNamedType, signaturesOnly: !useDecompiler));
 
             _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
@@ -77,9 +86,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 // We need to generate this. First, we'll need a temporary project to do the generation into. We
                 // avoid loading the actual file from disk since it doesn't exist yet.
-                var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: false);
-                var temporaryDocument = workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                                                                 .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
+                var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(metadataWorkspace, loadFileFromDisk: false);
+                var temporaryDocument = metadataWorkspace.CurrentSolution
+                    .AddProject(temporaryProjectInfoAndDocumentId.Item1)
+                    .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
 
                 if (useDecompiler)
                 {
@@ -154,7 +164,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // If we don't have a location yet, then that means we're re-using an existing file. In this case, we'll want to relocate the symbol.
             if (navigateLocation == null)
             {
-                navigateLocation = await RelocateSymbol_NoLockAsync(workspace, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
+                navigateLocation = await RelocateSymbol_NoLockAsync(metadataWorkspace, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
             }
 
             var documentName = string.Format(

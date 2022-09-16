@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        private static ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
+        private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
             ImmutableArray.Create(
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
                 (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),

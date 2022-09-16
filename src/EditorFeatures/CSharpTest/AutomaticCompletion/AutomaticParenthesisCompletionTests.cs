@@ -14,16 +14,17 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class AutomaticParenthesisCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Creation()
         {
             using var session = CreateSession("$$");
             Assert.NotNull(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String1()
         {
             var code = @"class C
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String2()
         {
             var code = @"class C
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ParameterList_OpenParenthesis()
         {
             var code = @"class C
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ParameterList_OpenParenthesis_Delete()
         {
             var code = @"class C
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckBackspace(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ParameterList_OpenParenthesis_Tab()
         {
             var code = @"class C
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckTab(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ParameterList_OpenParenthesis_CloseParenthesis()
         {
             var code = @"class C
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckOverType(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Argument()
         {
             var code = @"class C 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Argument_Invalid()
         {
             var code = @"class C 
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Array_Nested()
         {
             var code = @"class C
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WorkItem(546337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546337")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void OpenParenthesisWithExistingCloseParen()
         {
             var code = @"class A

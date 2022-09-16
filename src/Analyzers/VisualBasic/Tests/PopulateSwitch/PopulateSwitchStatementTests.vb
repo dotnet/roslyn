@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
+    <Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
     Partial Public Class PopulateSwitchStatementTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Popula
             Return (New VisualBasicPopulateSwitchStatementDiagnosticAnalyzer(), New VisualBasicPopulateSwitchStatementCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function OnlyOnFirstToken() As Task
             Dim markup =
 <File>
@@ -43,7 +44,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function AllMembersAndElseExist() As Task
             Dim markup =
 <File>
@@ -72,7 +73,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function AllMembersExist_NotElse() As Task
             Dim markup =
 <File>
@@ -123,7 +124,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_NotElse() As Task
             Dim markup =
 <File>
@@ -172,7 +173,7 @@ End Class
             Await TestAsync(markup, expected, index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_WithElse() As Task
             Dim markup =
 <File>
@@ -223,7 +224,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_NotElse_EnumHasExplicitType() As Task
             Dim markup =
 <File>
@@ -272,7 +273,7 @@ End Class
             Await TestAsync(markup, expected, index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_WithMembersAndElseInBlock_NewValuesAboveElseBlock() As Task
             Dim markup =
 <File>
@@ -321,7 +322,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NoMembersExist() As Task
             Dim markup =
 <File>
@@ -366,7 +367,7 @@ End Class
             Await TestAsync(markup, expected, index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function ImportsEnum_AllMembersExist() As Task
             Dim markup =
 <File>
@@ -402,7 +403,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function ImportsEnum_AllMembersExist_OutOfDefaultOrder() As Task
             Dim markup =
 <File>
@@ -438,7 +439,7 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function ImportsEnum_NotAllMembersExist() As Task
             Dim markup =
 <File>
@@ -499,7 +500,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function ImportsEnum_NoMembersExist() As Task
             Dim markup =
 <File>
@@ -553,7 +554,7 @@ End Class
             Await TestAsync(markup, expected, index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_EnumHasNonFlagsAttribute() As Task
             Dim markup =
 <File>
@@ -604,7 +605,7 @@ End Class
             Await TestAsync(markup, expected, index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_EnumIsNested() As Task
             Dim markup =
 <File>
@@ -653,7 +654,7 @@ End Class
             Await TestAsync(markup, expected, index:=2)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <Fact>
         Public Async Function NotAllMembersExist_SwitchIsNotEnum() As Task
             Dim markup =
 <File>
@@ -689,8 +690,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
-        <WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")>
+        <Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")>
         Public Async Function TestAddMissingCasesForNullableEnum As Task
             Dim markup =
 <File>

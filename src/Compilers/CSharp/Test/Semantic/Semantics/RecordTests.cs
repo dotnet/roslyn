@@ -11190,7 +11190,7 @@ End Class
                 // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
@@ -21942,7 +21942,7 @@ class C : Base(X)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (11,7): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Base.Base(int)'
+                // (11,7): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Base.Base(int)'
                 // class C : Base(X)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("X", "Base.Base(int)").WithLocation(11, 7),
                 // (11,15): error CS8861: Unexpected argument list.
@@ -27843,7 +27843,7 @@ class Program
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.C(int)'
+                // (8,17): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.C(int)'
                 //         _ = new C();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "C.C(int)").WithLocation(8, 17)
                 );

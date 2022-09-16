@@ -354,7 +354,7 @@ IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid) (Syntax: 'new C(d)
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'C.C(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'j' of 'C.C(int, int)'
                 //         var x = /*<bind>*/new C(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("j", "C.C(int, int)").WithLocation(14, 31)
             };
