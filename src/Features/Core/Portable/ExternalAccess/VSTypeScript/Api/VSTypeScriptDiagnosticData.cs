@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         {
             // TypeScript has no concept of mapped spans, so this should never be passed 'true'.
             Contract.ThrowIfTrue(useMapped);
-            return DiagnosticData.GetUnmappedLinePositionSpan(_data.DataLocation, sourceText);
+            return _data.DataLocation.GetClampedLinePositionSpan(sourceText);
         }
 
         public LinePositionSpan GetLinePositionSpan(SourceText sourceText)
-            => DiagnosticData.GetUnmappedLinePositionSpan(_data.DataLocation, sourceText);
+            => _data.DataLocation.GetClampedLinePositionSpan(sourceText);
     }
 }
