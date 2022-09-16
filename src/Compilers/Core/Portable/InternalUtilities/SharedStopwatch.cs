@@ -2,15 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
     internal readonly struct SharedStopwatch
     {
+        static SharedStopwatch()
+        {
+            // CRITICAL: The size of this struct is the size of a TimeSpan (which itself is the size of a long).  This
+            // allows stopwatches to be atomically overwritten, without a concern for torn writes, as long as we're
+            // running on 64bit machines.
+            Contract.ThrowIfFalse(Marshal.SizeOf(typeof(SharedStopwatch)) == 8);
+        }
+
         private static readonly Stopwatch s_stopwatch = Stopwatch.StartNew();
 
         private readonly TimeSpan _started;

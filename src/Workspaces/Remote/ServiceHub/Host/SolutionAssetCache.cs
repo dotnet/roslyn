@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void Update(Entry entry)
         {
+            // Stopwatch wraps a TimeSpan (which is only 64bits) so this assignment can be done safely without a concern
+            // for torn writes.
             entry.Stopwatch = SharedStopwatch.StartNew();
         }
 
@@ -219,7 +221,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private sealed class Entry
         {
-            // mutable field
             public SharedStopwatch Stopwatch = SharedStopwatch.StartNew();
 
             // This can't change for same checksum
