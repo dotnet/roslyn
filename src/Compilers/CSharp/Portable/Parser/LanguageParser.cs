@@ -13367,6 +13367,10 @@ tryAgain:
             if (hasModifier)
             {
                 ParseParameterModifiers(modifiers);
+                if (modifiers.Count == 0)
+                {
+                    hasModifier = false;
+                }
             }
 
             TypeSyntax paramType = null;
