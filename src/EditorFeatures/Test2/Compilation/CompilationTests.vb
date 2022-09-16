@@ -13,8 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
-        <Fact>
-        <WorkItem(1107492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107492")>
+        <Fact, WorkItem(1107492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107492")>
         Public Async Function TestProjectThatDoesntSupportCompilations() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>

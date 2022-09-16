@@ -102,11 +102,12 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs, options: parseOptions) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs, options: parseOptions) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
 
             var source =
@@ -119,7 +120,7 @@ namespace System
     }
 }
 ";
-            var app = CreateEmptyCompilation(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var app = CreateEmptyCompilation(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, parseOptions: parseOptions, options: TestOptions.DebugDll);
             app.VerifyDiagnostics();
 
             // Create EE context with app assembly (including ValueTuple) and a more recent corlib (also including ValueTuple)
@@ -287,8 +288,7 @@ class C
             });
         }
 
-        [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
-        [Fact]
+        [Fact, WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
         public void LongTupleLocalElement_NoNames()
         {
             var source =

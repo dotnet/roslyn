@@ -11190,7 +11190,7 @@ End Class
                 // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
@@ -16337,7 +16337,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -16346,7 +16346,7 @@ namespace System.Text
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.Equals(object?)': return type must be 'int' to match overridden member 'object.Equals(object)'
                 // public record A {
@@ -17286,7 +17286,7 @@ public class Something
 {
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17296,7 +17296,7 @@ public record A {
     public override Something GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override Something GetHashCode() => default;
@@ -17382,7 +17382,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17392,7 +17392,7 @@ public record A {
     public override bool GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override bool GetHashCode() => default;
@@ -17478,7 +17478,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17487,7 +17487,7 @@ namespace System.Text
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.GetHashCode()': return type must be 'bool' to match overridden member 'object.GetHashCode()'
                 // public record A {
@@ -21942,7 +21942,7 @@ class C : Base(X)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (11,7): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Base.Base(int)'
+                // (11,7): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Base.Base(int)'
                 // class C : Base(X)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("X", "Base.Base(int)").WithLocation(11, 7),
                 // (11,15): error CS8861: Unexpected argument list.
@@ -24298,7 +24298,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24306,7 +24306,7 @@ namespace System.Text
 @"record A<T>;
 record B : A<int>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
@@ -24363,7 +24363,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24371,7 +24371,7 @@ namespace System.Text
 @"record A<T> : System.IEquatable<A<T>>;
 record B : A<int>, System.IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
@@ -24433,7 +24433,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24442,7 +24442,7 @@ namespace System.Text
 record A<T> : IEquatable<A<T>>;
 record B : A<int>, IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
@@ -24512,7 +24512,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24526,7 +24526,7 @@ class Program
         _ = a.Equals(null);
     }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A;
@@ -27843,7 +27843,7 @@ class Program
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.C(int)'
+                // (8,17): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.C(int)'
                 //         _ = new C();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "C.C(int)").WithLocation(8, 17)
                 );

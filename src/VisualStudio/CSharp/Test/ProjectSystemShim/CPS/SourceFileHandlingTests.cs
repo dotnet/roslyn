@@ -19,10 +19,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     using static CSharpHelpers;
 
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class SourceFileHandlingTests
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task AddRemoveSourceFile_CPS()
         {
             using var environment = new TestEnvironment();
@@ -42,7 +42,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task AddRemoveAdditionalFile_CPS()
         {
             using var environment = new TestEnvironment();
@@ -61,7 +60,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFiles_CPS()
         {
             using var environment = new TestEnvironment();
@@ -112,7 +110,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesBatch_CPS()
         {
             using var environment = new TestEnvironment();
@@ -154,7 +151,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesBatchWithReAdding_CPS()
         {
             using var environment = new TestEnvironment();
@@ -208,7 +204,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesBatchAddAfterReorder_CPS()
         {
             using var environment = new TestEnvironment();
@@ -248,7 +243,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesBatchRemoveAfterReorder_CPS()
         {
             using var environment = new TestEnvironment();
@@ -288,7 +282,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesExceptions_CPS()
         {
             using var environment = new TestEnvironment();
@@ -325,7 +318,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesBatchExceptions_CPS()
         {
             using var environment = new TestEnvironment();
@@ -375,7 +367,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task ReorderSourceFilesBatchExceptionRemoveFile_CPS()
         {
             using var environment = new TestEnvironment();

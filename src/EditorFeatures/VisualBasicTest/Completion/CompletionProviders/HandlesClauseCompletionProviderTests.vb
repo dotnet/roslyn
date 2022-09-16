@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class HandlesClauseCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(HandlesClauseCompletionProvider)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestSuggestMeEvent() As Task
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -28,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
+        <Fact, WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
         Public Async Function TestSuggestMeEventInDerived() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -44,8 +44,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
+        <Fact, WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
         Public Async Function TestSuggestMeEventInIndirectDerived() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -63,7 +62,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestSuggestMyBaseEvent() As Task
             Dim text = <text>Public Class BaseClass
     Public Event Event1()
@@ -77,7 +76,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Event1")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestSuggestMyClassEventEvent() As Task
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -93,7 +92,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestSuggestField() As Task
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -113,7 +112,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "handlee")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestSuggestFieldEvent() As Task
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -133,8 +132,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546508")>
+        <Fact, WorkItem(546508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546508")>
         Public Async Function TestSuggestGenericFieldEvent() As Task
             Dim text = <text>Class A
     Event Ev_Event()
@@ -150,8 +148,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <WorkItem(546494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem(546494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
         Public Async Function TestSuggestFieldDerivedEvent() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -168,8 +165,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <WorkItem(546513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem(546513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
         Public Async Function TestInheritedFieldOfNestedType() As Task
             Dim text = <text>Class container
     'Delegate Sub MyDele(x As Integer)
@@ -186,8 +182,7 @@ End Class
             Await VerifyItemExistsAsync(text, "obj")
         End Function
 
-        <WorkItem(546511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem(546511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
         Public Async Function TestDoNotShowMeShadowedEvents() As Task
             Dim text = <text>Public Class Base
     Protected Event B()
@@ -204,7 +199,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "B", "Event Base.B()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotInTrivia() As Task
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -224,8 +219,7 @@ End Class</text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WorkItem(8307, "https://github.com/dotnet/roslyn/issues/8307")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem(8307, "https://github.com/dotnet/roslyn/issues/8307")>
         Public Async Function DontCrashOnDotAfterCompleteHandlesClause() As Task
             Dim text = "
 Imports System

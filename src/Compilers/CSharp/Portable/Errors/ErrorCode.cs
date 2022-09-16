@@ -2109,12 +2109,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion11 = 9058,
         ERR_RefFieldInNonRefStruct = 9059,
         ERR_CannotMatchOnINumberBase = 9060,
-        ERR_MisplacedScoped = 9061,
+        // Available 9061,
         ERR_ScopedTypeNameDisallowed = 9062,
         ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
         ERR_RuntimeDoesNotSupportRefFields = 9064,
         ERR_ExplicitScopedRef = 9065,
         ERR_UnscopedScoped = 9066,
+        WRN_DuplicateAnalyzerReference = 9067,
+        ERR_FileTypeNonUniquePath = 9068,
+        ERR_FilePathCannotBeConvertedToUtf8 = 9069,
+        ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
+        ERR_FileLocalDuplicateNameInNS = 9071,
+        ERR_ScopedNotBeforeType = 9072,
+        WRN_ScopedMismatchInParameterOfTarget = 9073,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
 
         #endregion
 

@@ -13,9 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ProjectExtensions
     {
-        public static bool IsFromPrimaryBranch(this Project project)
-            => project.Solution.IsFromPrimaryBranch;
-
         internal static Project WithSolutionOptions(this Project project, OptionSet options)
             => project.Solution.WithOptions(options).GetProject(project.Id)!;
 
@@ -36,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static Document GetRequiredDocument(this Project project, DocumentId documentId)
             => project.GetDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+        public static Document GetRequiredDocument(this Project project, SyntaxTree tree)
+            => project.GetDocument(tree) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
         public static TextDocument GetRequiredAdditionalDocument(this Project project, DocumentId documentId)
             => project.GetAdditionalDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);

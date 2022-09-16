@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnumMember
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
     public class GenerateEnumMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public GenerateEnumMemberTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateEnumMemberCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestEmptyEnum()
         {
             await TestInRegularAndScriptAsync(
@@ -54,7 +55,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithSingleMember()
         {
             await TestInRegularAndScriptAsync(
@@ -85,7 +86,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithExistingComma()
         {
             await TestInRegularAndScriptAsync(
@@ -116,7 +117,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithMultipleMembers()
         {
             await TestInRegularAndScriptAsync(
@@ -149,7 +150,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithZero()
         {
             await TestInRegularAndScriptAsync(
@@ -180,7 +181,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithIntegralValue()
         {
             await TestInRegularAndScriptAsync(
@@ -211,7 +212,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithSingleBitIntegral()
         {
             await TestInRegularAndScriptAsync(
@@ -242,7 +243,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateIntoGeometricSequence()
         {
             await TestInRegularAndScriptAsync(
@@ -277,7 +278,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithSimpleSequence1()
         {
             await TestInRegularAndScriptAsync(
@@ -310,7 +311,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithSimpleSequence2()
         {
             await TestInRegularAndScriptAsync(
@@ -345,7 +346,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithNonZeroInteger()
         {
             await TestInRegularAndScriptAsync(
@@ -376,7 +377,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithLeftShift0()
         {
             await TestInRegularAndScriptAsync(
@@ -407,7 +408,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithLeftShift5()
         {
             await TestInRegularAndScriptAsync(
@@ -438,7 +439,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestWithDifferentStyles()
         {
             await TestInRegularAndScriptAsync(
@@ -471,7 +472,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestBinary()
         {
             await TestInRegularAndScriptAsync(
@@ -502,7 +503,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestHex1()
         {
             await TestInRegularAndScriptAsync(
@@ -533,7 +534,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestHex9()
         {
             await TestInRegularAndScriptAsync(
@@ -564,7 +565,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestHexF()
         {
             await TestInRegularAndScriptAsync(
@@ -595,7 +596,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithIntegerMaxValue()
         {
             await TestInRegularAndScriptAsync(
@@ -626,7 +627,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestUnsigned16BitEnums()
         {
             await TestInRegularAndScriptAsync(
@@ -657,7 +658,7 @@ enum Color : ushort
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateEnumMemberOfTypeLong()
         {
             await TestInRegularAndScriptAsync(
@@ -688,7 +689,7 @@ enum Color : long
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithLongMaxValueInBinary()
         {
             await TestInRegularAndScriptAsync(
@@ -719,7 +720,7 @@ enum Color : long
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithLongMaxValueInHex()
         {
             await TestInRegularAndScriptAsync(
@@ -750,8 +751,7 @@ enum Color : long
 }");
         }
 
-        [WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
         public async Task TestGenerateAfterEnumWithLongMinValueInHex()
         {
             await TestInRegularAndScriptAsync(
@@ -782,8 +782,7 @@ enum Color : long
 }");
         }
 
-        [WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
         public async Task TestGenerateAfterPositiveLongInHex()
         {
             await TestInRegularAndScriptAsync(
@@ -816,7 +815,7 @@ enum Color : long
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterPositiveLongExprInHex()
         {
             await TestInRegularAndScriptAsync(
@@ -847,7 +846,7 @@ enum Color : long
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithULongMaxValue()
         {
             await TestInRegularAndScriptAsync(
@@ -878,7 +877,7 @@ enum Color : ulong
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestNegativeRangeIn64BitSignedEnums()
         {
             await TestInRegularAndScriptAsync(
@@ -909,7 +908,7 @@ enum Color : long
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateWithImplicitValues()
         {
             await TestInRegularAndScriptAsync(
@@ -944,7 +943,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateWithImplicitValues2()
         {
             await TestInRegularAndScriptAsync(
@@ -979,7 +978,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestNoExtraneousStatementTerminatorBeforeCommentedMember()
         {
             await TestInRegularAndScriptAsync(
@@ -1012,7 +1011,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestNoExtraneousStatementTerminatorBeforeCommentedMember2()
         {
             await TestInRegularAndScriptAsync(
@@ -1045,7 +1044,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithMinValue()
         {
             await TestInRegularAndScriptAsync(
@@ -1076,7 +1075,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithMinValuePlusConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -1107,7 +1106,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateAfterEnumWithByteMaxValue()
         {
             await TestInRegularAndScriptAsync(
@@ -1138,7 +1137,7 @@ enum Color : byte
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateIntoBitshiftEnum1()
         {
             await TestInRegularAndScriptAsync(
@@ -1171,7 +1170,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateIntoBitshiftEnum2()
         {
             await TestInRegularAndScriptAsync(
@@ -1202,7 +1201,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestStandaloneReference()
         {
             await TestInRegularAndScriptAsync(
@@ -1235,7 +1234,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestCircularEnumsForErrorTolerance()
         {
             await TestInRegularAndScriptAsync(
@@ -1268,7 +1267,7 @@ enum Circular
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestEnumWithIncorrectValueForErrorTolerance()
         {
             await TestInRegularAndScriptAsync(
@@ -1299,7 +1298,7 @@ enum Circular : byte
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateIntoNewEnum()
         {
             await TestInRegularAndScriptAsync(
@@ -1348,7 +1347,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateIntoDerivedEnumMissingNewKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -1397,7 +1396,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerateIntoBaseEnum()
         {
             await TestInRegularAndScriptAsync(
@@ -1436,7 +1435,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestGenerationWhenMembersShareValues()
         {
             await TestInRegularAndScriptAsync(
@@ -1471,7 +1470,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestInvokeFromAddAssignmentStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1508,7 +1507,7 @@ enum Color
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestFormatting()
         {
             await TestInRegularAndScriptAsync(
@@ -1537,8 +1536,7 @@ enum Weekday
 }");
         }
 
-        [WorkItem(540919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540919")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(540919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540919")]
         public async Task TestKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -1569,8 +1567,7 @@ enum Color
 }");
         }
 
-        [WorkItem(544333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544333")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(544333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544333")]
         public async Task TestNotAfterPointer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1590,7 +1587,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestMissingOnHiddenEnum()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1611,7 +1608,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact]
         public async Task TestMissingOnPartiallyHiddenEnum()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1635,8 +1632,7 @@ class Program
 }");
         }
 
-        [WorkItem(545903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545903")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(545903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545903")]
         public async Task TestNoOctal()
         {
             await TestInRegularAndScriptAsync(
@@ -1661,8 +1657,7 @@ class C
 }");
         }
 
-        [WorkItem(546654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546654")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(546654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546654")]
         public async Task TestLastValueDoesNotHaveInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -1693,8 +1688,7 @@ class Program
 }");
         }
 
-        [WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
         public async Task TestWithLeftShift_Long()
         {
             await TestInRegularAndScriptAsync(
@@ -1725,8 +1719,7 @@ enum Color : long
 }");
         }
 
-        [WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
         public async Task TestWithLeftShift_UInt()
         {
             await TestInRegularAndScriptAsync(
@@ -1757,8 +1750,7 @@ enum Color : uint
 }");
         }
 
-        [WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
         public async Task TestWithLeftShift_ULong()
         {
             await TestInRegularAndScriptAsync(

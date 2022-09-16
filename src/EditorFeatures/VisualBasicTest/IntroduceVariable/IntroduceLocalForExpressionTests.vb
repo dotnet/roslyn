@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IntroduceVariable
+    <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
     Partial Public Class IntroduceLocalForExpressionTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IntroduceVariable
             Return New VisualBasicIntroduceLocalForExpressionCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function IntroduceLocal() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -41,7 +42,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function IntroduceLocal_TrailingBlankLine() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -70,7 +71,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function IntroduceLocal_Selection() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -97,7 +98,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function IntroduceLocal_Space() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -124,7 +125,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function IntroduceLocal_LeadingTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -153,7 +154,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function MissingOnVoidCall() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -166,7 +167,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)>
+        <Fact>
         Public Async Function MissingOnDeclaration() As Task
             Await TestMissingInRegularAndScriptAsync(
 "

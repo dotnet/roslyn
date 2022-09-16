@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
             private CodeCleanupOptionsProvider FallbackOptions => _renameLocationSet.FallbackOptions;
 
-            private struct ConflictLocationInfo
+            private readonly struct ConflictLocationInfo
             {
                 // The span of the Node that needs to be complexified 
                 public readonly TextSpan ComplexifiedSpan;
@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #endif
 
                     // Step 5: Rename declaration files
-                    if (RenameOptions.RenameFile)
+                    if (_replacementTextValid && RenameOptions.RenameFile)
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
                         var definitionDocuments = definitionLocations
                             .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree!))
                             .Distinct();
 
-                        if (definitionDocuments.Count() == 1 && _replacementTextValid)
+                        if (definitionDocuments.Count() == 1)
                         {
                             // At the moment, only single document renaming is allowed
                             conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());

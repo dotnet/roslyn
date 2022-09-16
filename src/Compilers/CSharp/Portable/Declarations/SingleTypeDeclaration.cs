@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // identity that is used when collecting all declarations 
         // of same type across multiple containers
-        internal struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
+        internal readonly struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
         {
             private readonly SingleTypeDeclaration _decl;
 

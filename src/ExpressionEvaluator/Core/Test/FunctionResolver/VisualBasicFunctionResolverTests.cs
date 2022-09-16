@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         /// Should only handle requests with expected language id or
         /// default language id or causality breakpoints.
         /// </summary>
-        [WorkItem(15119, "https://github.com/dotnet/roslyn/issues/15119")]
-        [Fact]
+        [Fact, WorkItem(15119, "https://github.com/dotnet/roslyn/issues/15119")]
         public void LanguageId()
         {
             var source =

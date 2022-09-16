@@ -41,8 +41,7 @@ End Class
 ", parseOptions:=s_parseOptions)
         End Function
 
-        <Fact>
-        <WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")>
+        <Fact, WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")>
         Public Async Function TestInferredTupleName_WithAmbiguity() As Task
             Await TestMissingAsync(
 "
@@ -56,8 +55,7 @@ End Class
 ", parameters:=New TestParameters(s_parseOptions))
         End Function
 
-        <Fact>
-        <WorkItem(23659, "https://github.com/dotnet/roslyn/issues/23659")>
+        <Fact, WorkItem(23659, "https://github.com/dotnet/roslyn/issues/23659")>
         Public Async Function TestMissingForObjectCreation() As Task
             Await TestMissingAsync(
 "
@@ -136,8 +134,7 @@ End Class
 ", parseOptions:=s_parseOptions)
         End Function
 
-        <Fact>
-        <WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")>
+        <Fact, WorkItem(24480, "https://github.com/dotnet/roslyn/issues/24480")>
         Public Async Function TestInferredAnonymousTypeMemberName_WithAmbiguity() As Task
             Await TestMissingAsync("
 Class C

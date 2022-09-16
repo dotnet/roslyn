@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -1168,7 +1169,8 @@ class Program
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (20,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x[0] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(20, 32),
@@ -1187,7 +1189,15 @@ class Program
                 // (28,38): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(28, 38)
-            );
+            };
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                expectedDiagnostics = expectedDiagnostics.Append(
+                    // (43,38): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //         public ref S1 ReturnsRefArg([System.Diagnostics.CodeAnalysis.UnscopedRef] ref S1 arg) => throw null;
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "System.Diagnostics.CodeAnalysis.UnscopedRef").WithLocation(43, 38));
+            }
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory]
@@ -4113,6 +4123,46 @@ class D
     """);
 
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(63446, "https://github.com/dotnet/roslyn/issues/63446")]
+        public void RefDiscardAssignment()
+        {
+            var source = @"
+class Program
+{
+    static int dummy;
+
+    static ref int F()
+    {
+        return ref dummy;
+    }
+
+    static void Main()
+    {
+        Test();
+        System.Console.WriteLine(""Done"");
+    }
+
+    static void Test()
+    {
+        _ = ref F();
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "Done").VerifyDiagnostics().
+                VerifyIL("Program.Test",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  call       ""ref int Program.F()""
+  IL_0005:  pop
+  IL_0006:  ret
+}
+");
         }
     }
 }
