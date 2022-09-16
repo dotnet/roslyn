@@ -339,22 +339,22 @@ namespace Microsoft.CodeAnalysis
                     return StructuredAnalyzerConfigOptions.Empty;
                 }
 
-                var workspace = _projectState._solutionServices.Workspace;
+                var services = _projectState._solutionServices;
 
-                var legacyDocumentOptionsProvider = workspace.Services.GetService<ILegacyDocumentOptionsProvider>();
+                var legacyDocumentOptionsProvider = services.GetService<ILegacyDocumentOptionsProvider>();
                 if (legacyDocumentOptionsProvider != null)
                 {
                     return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(_projectState.Id, filePath));
                 }
 
                 var options = GetOptionsForSourcePath(cache, filePath);
-                var legacyIndentationService = workspace.Services.GetService<ILegacyIndentationManagerWorkspaceService>();
+                var legacyIndentationService = services.GetService<ILegacyIndentationManagerWorkspaceService>();
                 if (legacyIndentationService == null)
                 {
                     return options;
                 }
 
-                return new AnalyzerConfigWithInferredIndentationOptions(options, workspace, legacyIndentationService, documentState.Id);
+                return new AnalyzerConfigWithInferredIndentationOptions(documentState, options, legacyIndentationService);
             }
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
@@ -453,16 +453,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class AnalyzerConfigWithInferredIndentationOptions : StructuredAnalyzerConfigOptions
         {
-            private readonly Workspace _workspace;
+            private readonly DocumentState _documentState;
             private readonly ILegacyIndentationManagerWorkspaceService _service;
-            private readonly DocumentId _documentId;
             private readonly StructuredAnalyzerConfigOptions _options;
 
-            public AnalyzerConfigWithInferredIndentationOptions(StructuredAnalyzerConfigOptions options, Workspace workspace, ILegacyIndentationManagerWorkspaceService service, DocumentId documentId)
+            public AnalyzerConfigWithInferredIndentationOptions(DocumentState documentState, StructuredAnalyzerConfigOptions options, ILegacyIndentationManagerWorkspaceService service)
             {
-                _workspace = workspace;
+                _documentState = documentState;
                 _service = service;
-                _documentId = documentId;
                 _options = options;
             }
 
@@ -475,23 +473,25 @@ namespace Microsoft.CodeAnalysis
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
                 // For open documents override indentation option values with values inferred by the editor:
-                if (key is "indent_style" or "tab_width" or "indent_size" &&
-                    _workspace.IsDocumentOpen(_documentId))
+                if (key is "indent_style" or "tab_width" or "indent_size")
                 {
-                    var currentDocument = _workspace.CurrentSolution.GetDocument(_documentId);
-                    if (currentDocument != null && currentDocument.TryGetText(out var text))
+                    if (_documentState.TryGetText(out var text))
                     {
                         try
                         {
                             value = key switch
                             {
-                                "indent_style" => _service.UseSpacesForWhitespace(text) ? "space" : "tab",
-                                "tab_width" => _service.GetTabSize(text).ToString(),
-                                "indent_size" => _service.GetIndentSize(text).ToString(),
+                                "indent_style" => _service.UseSpacesForWhitespace(text) switch { true => "space", false => "tab", null => null },
+                                "tab_width" => _service.GetTabSize(text)?.ToString(),
+                                "indent_size" => _service.GetIndentSize(text)?.ToString(),
                                 _ => throw ExceptionUtilities.UnexpectedValue(key)
                             };
 
-                            return true;
+                            // Value is null if the document is not currently open (does not have a text buffer)
+                            if (value != null)
+                            {
+                                return true;
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportAndCatch(e))
                         {

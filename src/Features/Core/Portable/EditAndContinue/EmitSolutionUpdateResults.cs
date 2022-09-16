@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var fileSpan = data.DataLocation.GetFileLinePositionSpan();
+                var fileSpan = data.DataLocation.MappedFileSpan;
 
                 builder.Add(new ManagedHotReloadDiagnostic(
                     data.Id,
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(syntaxError.DataLocation != null);
                 Debug.Assert(syntaxError.Message != null);
 
-                var fileSpan = syntaxError.DataLocation.GetFileLinePositionSpan();
+                var fileSpan = syntaxError.DataLocation.MappedFileSpan;
 
                 builder.Add(new ManagedHotReloadDiagnostic(
                     syntaxError.Id,

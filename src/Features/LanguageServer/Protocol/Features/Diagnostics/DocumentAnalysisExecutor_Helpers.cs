@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string?>.Empty,
                 projectId: projectId,
-                location: new DiagnosticDataLocation(fullPath),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),
                 description: description,
                 language: language);
         }
