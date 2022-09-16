@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // TODO: Unclear if using the unmapped span here is correct.  It feels appropriate as the caller should
                 // be askign about diagnostics in an actual document, and not where they were remapped to.
-                diagnostics = diagnostics.WhereAsArray(d => span.Value.IntersectsWith(d.DataLocation.GetUnmappedTextSpan(sourceText)));
+                diagnostics = diagnostics.WhereAsArray(d => d.DocumentId is null || span.Value.IntersectsWith(d.DataLocation.GetUnmappedTextSpan(sourceText)));
             }
 
 #if DEBUG
