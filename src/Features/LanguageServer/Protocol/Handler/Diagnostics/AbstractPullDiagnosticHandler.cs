@@ -336,9 +336,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
-                // Defines an identifier used by the client for merging diagnostics across projects.
-                // We want diagnostics to be merged from separate projects if they have the same code, filepath, range, and message.
-                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.OriginalFileSpan.Path, diagnostic.Range, diagnostic.Message)
+                // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
+                // to be merged from separate projects if they have the same code, filepath, range, and message.
+                //
+                // Note: LSP pull diagnostics only operates on unmapped locations.  So the code here and below only accesses OriginalFilePath
+                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
                     .GetHashCode().ToString();
 
                 if (capabilities.HasVisualStudioLspCapability())
@@ -371,13 +373,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     Start = new Position
                     {
-                        Character = dataLocation.OriginalFileSpan.StartLinePosition.Character,
-                        Line = dataLocation.OriginalFileSpan.StartLinePosition.Line,
+                        Character = dataLocation.UnmappedFileSpan.StartLinePosition.Character,
+                        Line = dataLocation.UnmappedFileSpan.StartLinePosition.Line,
                     },
                     End = new Position
                     {
-                        Character = dataLocation.OriginalFileSpan.EndLinePosition.Character,
-                        Line = dataLocation.OriginalFileSpan.EndLinePosition.Line,
+                        Character = dataLocation.UnmappedFileSpan.EndLinePosition.Character,
+                        Line = dataLocation.UnmappedFileSpan.EndLinePosition.Line,
                     }
                 };
             }
