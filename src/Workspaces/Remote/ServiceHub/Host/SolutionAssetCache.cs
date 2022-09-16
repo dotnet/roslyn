@@ -106,9 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void Update(Entry entry)
         {
-            // entry is reference type. we update it directly. 
-            // we don't care about race.
-            entry.LastAccessed = DateTime.UtcNow;
+            entry.Stopwatch = SharedStopwatch.StartNew();
         }
 
         private async Task CleanAssetsAsync()
@@ -162,7 +160,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            var current = DateTime.UtcNow;
             using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, cancellationToken))
             {
                 // Ensure that if our remote workspace has a current solution, that we don't purge any items associated
@@ -173,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var (checksum, entry) in _assets)
                     {
                         // If not enough time has passed, keep in the cache.
-                        if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
+                        if (entry.Stopwatch.Elapsed <= _purgeAfterTimeSpan)
                             continue;
 
                         // If this is a checksum we want to pin, do not remove it.
@@ -223,9 +220,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private sealed class Entry
         {
             // mutable field
-            public DateTime LastAccessed = DateTime.UtcNow;
+            public SharedStopwatch Stopwatch = SharedStopwatch.StartNew();
 
-            // this can't change for same checksum
+            // This can't change for same checksum
             public readonly object Object;
 
             public Entry(object @object)
