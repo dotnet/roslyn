@@ -2226,6 +2226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ScopedNotBeforeType:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.ERR_RefReturnScopedParameter:
+                case ErrorCode.ERR_RefReturnScopedParameter2:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

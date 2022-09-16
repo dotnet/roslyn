@@ -1973,12 +1973,12 @@ partial class C
     partial void M(S s = new B()) { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,18): error CS0721: 'S': static types cannot be used as parameters
+                // (4,20): error CS0721: 'S': static types cannot be used as parameters
                 //     partial void M(S s = new A());
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S").WithLocation(4, 18),
-                // (5,18): error CS0721: 'S': static types cannot be used as parameters
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(4, 20),
+                // (5,20): error CS0721: 'S': static types cannot be used as parameters
                 //     partial void M(S s = new B()) { }
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S").WithLocation(5, 18),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "S").WithArguments("S").WithLocation(5, 20),
                 // (5,30): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial void M(S s = new B()) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(5, 30),

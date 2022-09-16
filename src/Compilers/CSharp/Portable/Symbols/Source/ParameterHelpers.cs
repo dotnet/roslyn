@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0721: '{0}': static types cannot be used as parameters
                 diagnostics.Add(
                     ErrorFacts.GetStaticClassParameterCode(parameter.ContainingSymbol.ContainingType?.IsInterfaceType() ?? false),
-                    owner.Locations.IsEmpty ? parameterSyntax.GetLocation() : owner.Locations[0],
+                    parameterSyntax.Type?.Location ?? parameterSyntax.GetLocation(),
                     parameter.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)

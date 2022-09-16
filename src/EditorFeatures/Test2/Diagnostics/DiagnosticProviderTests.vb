@@ -367,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 projectId:=projId,
                 location:=New DiagnosticDataLocation(
                     New FileLinePositionSpan(originalFile, New LinePosition(originalLine, originalColumn), New LinePosition(originalLine, originalColumn)),
-                    docId, Nothing,
+                    docId,
                     If(mappedFile Is Nothing, Nothing, New FileLinePositionSpan(mappedFile, New LinePosition(mappedLine, mappedColumn), New LinePosition(mappedLine, mappedColumn)))),
                 additionalLocations:=Nothing,
                 language:=LanguageNames.VisualBasic,
