@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             Assert.Empty(_generations);
 
-            var compilation = CSharpTestBase.CreateCompilation(source, options: _options, targetFramework: _targetFramework);
+            var compilation = CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: _options, targetFramework: _targetFramework);
 
             var bytes = compilation.EmitToArray();
             var md = ModuleMetadata.CreateFromImage(bytes);

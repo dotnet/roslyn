@@ -693,7 +693,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             New DiagnosticDataLocation(
                                 diagnostic1.DataLocation.UnmappedFileSpan,
                                 Nothing,
-                                diagnostic1.DataLocation.SourceSpan,
                                 diagnostic1.DataLocation.MappedFileSpan),
                             diagnostic1.AdditionalLocations,
                             diagnostic1.Language,
@@ -718,7 +717,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             New DiagnosticDataLocation(
                                 diagnostic2.DataLocation.UnmappedFileSpan,
                                 Nothing,
-                                diagnostic2.DataLocation.SourceSpan,
                                 diagnostic2.DataLocation.MappedFileSpan),
                             diagnostic2.AdditionalLocations,
                             diagnostic2.Language,
@@ -768,7 +766,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim location =
                 If(documentId Is Nothing,
                     If(projectId Is Nothing, New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)), New DiagnosticDataLocation(New FileLinePositionSpan(solution.GetProject(projectId).FilePath, Nothing))),
-                    New DiagnosticDataLocation(New FileLinePositionSpan("test", New LinePosition(20, 20), New LinePosition(20, 20)), documentId, TextSpan.FromBounds(0, 10)))
+                    New DiagnosticDataLocation(New FileLinePositionSpan("test", New LinePosition(20, 20), New LinePosition(20, 20)), documentId))
 
             Return New DiagnosticData(
                 id:="test",

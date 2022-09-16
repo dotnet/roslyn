@@ -1207,9 +1207,9 @@ class C
         } // end of method C::.ctor
 } // end of class C
 ";
-
-            CompileAndVerify(source1).VerifyTypeIL("C", expectedIL);
-            CompileAndVerify(source2).VerifyTypeIL("C", expectedIL);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CompileAndVerify(source1, parseOptions: parseOptions).VerifyTypeIL("C", expectedIL);
+            CompileAndVerify(source2, parseOptions: parseOptions).VerifyTypeIL("C", expectedIL);
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]

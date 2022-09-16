@@ -2796,7 +2796,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2832,7 +2832,7 @@ class Program
         d = (int* p) => p;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2857,15 +2857,6 @@ class Program
     public struct Boolean { }
     public struct Int32 { }
     public struct IntPtr { }
-    public class Attribute { }
-    public class AttributeUsageAttribute : Attribute
-    {
-        public AttributeUsageAttribute(AttributeTargets t) { }
-        public bool AllowMultiple { get; set; }
-        public bool Inherited { get; set; }
-    }
-    public struct Enum { }
-    public enum AttributeTargets { }
 }";
             var sourceB =
 @"class Program
@@ -2877,7 +2868,7 @@ class Program
         var d2 = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2910,7 +2901,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),

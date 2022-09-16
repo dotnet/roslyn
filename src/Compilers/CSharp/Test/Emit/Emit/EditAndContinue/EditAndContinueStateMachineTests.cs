@@ -42,8 +42,9 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilation(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(Parse(source1, "a.cs"));
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation0 = CreateCompilation(Parse(source0, "a.cs", parseOptions), options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(Parse(source1, "a.cs", parseOptions));
 
             var g1 = compilation1.GetMember<MethodSymbol>("C.G");
 
@@ -223,7 +224,7 @@ class C
         return 20;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
@@ -340,7 +341,7 @@ class C
         yield return 2;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -442,7 +443,7 @@ class C
         return await Task.FromResult(1);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -515,7 +516,7 @@ class C
         return new int[] { 1, 2, 3 };
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -566,7 +567,7 @@ class C
         return Task.FromResult(1);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -637,7 +638,7 @@ class C
         return await Task.FromResult(4);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -711,7 +712,7 @@ class C
         yield return 2;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -848,7 +849,7 @@ class C
         return 20;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -3303,7 +3304,7 @@ class C
 
     static IAsyncDisposable G() => null; 
 }");
-            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
 
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
@@ -5811,7 +5812,7 @@ class C
     static int F2() => 1;
     static void End() { }
 }");
-            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
 
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
@@ -7148,7 +7149,7 @@ class C
         return 1;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(compilation0, symbolValidator: module =>
             {
@@ -7840,7 +7841,7 @@ public class C
 
             // Rude edit but the compiler should handle it.
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -7923,7 +7924,7 @@ public class C
     public static IEnumerable<int> F()  { yield return 1; }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
