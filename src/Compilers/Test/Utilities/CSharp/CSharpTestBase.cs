@@ -640,6 +640,19 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string RefSafetyRulesAttributeDefinition =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class RefSafetyRulesAttribute : Attribute
+    {
+        public RefSafetyRulesAttribute(int version) { Version = version; }
+        public int Version;
+    }
+}";
+
+        protected static MetadataReference RefSafetyRulesAttributeLib =>
+            CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+
         protected const string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -980,7 +993,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute()),
                 getExpectedBlob,
                 isField);
 

@@ -12,6 +12,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
     public class CSharpMoveToNamespaceDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -23,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyCancellation()
         {
             SetUpEditor(
@@ -55,7 +56,7 @@ namespace A
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyCancellationWithChange()
         {
             SetUpEditor(
@@ -88,7 +89,7 @@ namespace A
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyOkNoChange()
         {
             SetUpEditor(
@@ -120,7 +121,7 @@ namespace A
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyOkWithChange()
         {
             SetUpEditor(

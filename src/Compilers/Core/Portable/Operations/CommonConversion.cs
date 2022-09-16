@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <remarks>
     /// We reserve the right to change this struct in the future.
     /// </remarks>
-    public struct CommonConversion
+    public readonly struct CommonConversion
     {
         [Flags]
         private enum ConversionKind

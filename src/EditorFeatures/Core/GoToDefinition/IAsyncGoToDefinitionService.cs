@@ -6,11 +6,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IAsyncGoToDefinitionService : ILanguageService
     {
-        Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken);
+        /// <summary>
+        /// If the supplied <paramref name="position"/> is on a code construct with a navigable location, then this
+        /// returns that <see cref="INavigableLocation"/>.  The <see cref="TextSpan"/> returned in the span of the
+        /// symbol in the code that references that navigable location.  e.g. the full identifier token that the
+        /// position is within.
+        /// </summary>
+        Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
+            Document document, int position, bool includeType, CancellationToken cancellationToken);
     }
 }

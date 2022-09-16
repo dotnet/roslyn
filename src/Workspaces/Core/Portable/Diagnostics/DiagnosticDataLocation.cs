@@ -4,7 +4,6 @@
 
 using System.IO;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -13,132 +12,101 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [DataContract]
     internal sealed class DiagnosticDataLocation
     {
+        /// <summary>
+        /// Path to where the diagnostic was originally reported.  May be a path to a document in a project, or the
+        /// project file itself. This should only be used by clients that truly need to know the original location a
+        /// diagnostic was reported at, ignoring things like <c>#line</c> directives or other systems that would map the
+        /// diagnostic to a different file or location.  Most clients should instead use <see cref="MappedFileSpan"/>,
+        /// which contains the final location (file and span) that the diagnostic should be considered at.
+        /// </summary>
         [DataMember(Order = 0)]
-        public readonly DocumentId? DocumentId;
-
-        // text can be either given or calculated from original line/column
-        [DataMember(Order = 1)]
-        public readonly TextSpan? SourceSpan;
-
-        [DataMember(Order = 2)]
-        public readonly string? OriginalFilePath;
-
-        [DataMember(Order = 3)]
-        public readonly int OriginalStartLine;
-
-        [DataMember(Order = 4)]
-        public readonly int OriginalStartColumn;
-
-        [DataMember(Order = 5)]
-        public readonly int OriginalEndLine;
-
-        [DataMember(Order = 6)]
-        public readonly int OriginalEndColumn;
+        public readonly FileLinePositionSpan UnmappedFileSpan;
 
         /// <summary>
-        /// Null if path is not mapped and <see cref="OriginalFilePath"/> contains the actual path.
-        /// Note that the value might be a relative path. In that case <see cref="OriginalFilePath"/> should be used
-        /// as a base path for path resolution.
+        /// Document the diagnostic is associated with.  May be null if this is a project diagnostic.
         /// </summary>
-        [DataMember(Order = 7)]
-        public readonly string? MappedFilePath;
+        [DataMember(Order = 1)]
+        public readonly DocumentId? DocumentId;
 
-        [DataMember(Order = 8)]
-        public readonly int MappedStartLine;
-
-        [DataMember(Order = 9)]
-        public readonly int MappedStartColumn;
-
-        [DataMember(Order = 10)]
-        public readonly int MappedEndLine;
-
-        [DataMember(Order = 11)]
-        public readonly int MappedEndColumn;
+        /// <summary>
+        /// Path and span where the diagnostic has been finally mapped to.  If no mapping happened, this will be equal
+        /// to <see cref="UnmappedFileSpan"/>.  The <see cref="FileLinePositionSpan.Path"/> of this value will be the
+        /// fully normalized file path where the diagnostic is located at.
+        /// </summary>
+        [DataMember(Order = 2)]
+        public readonly FileLinePositionSpan MappedFileSpan;
 
         public DiagnosticDataLocation(
+            FileLinePositionSpan unmappedFileSpan,
             DocumentId? documentId = null,
-            TextSpan? sourceSpan = null,
-            string? originalFilePath = null,
-            int originalStartLine = 0,
-            int originalStartColumn = 0,
-            int originalEndLine = 0,
-            int originalEndColumn = 0,
-            string? mappedFilePath = null,
-            int mappedStartLine = 0,
-            int mappedStartColumn = 0,
-            int mappedEndLine = 0,
-            int mappedEndColumn = 0)
+            FileLinePositionSpan? mappedFileSpan = null)
+            : this(unmappedFileSpan, documentId, mappedFileSpan, forceMappedPath: false)
         {
-            // If the original source location path is not available then mapped must be as well.
-            Contract.ThrowIfFalse(originalFilePath != null || mappedFilePath == null);
+        }
 
+        private DiagnosticDataLocation(
+            FileLinePositionSpan unmappedFileSpan,
+            DocumentId? documentId,
+            FileLinePositionSpan? mappedFileSpan,
+            bool forceMappedPath)
+        {
+            Contract.ThrowIfNull(unmappedFileSpan.Path);
+
+            UnmappedFileSpan = unmappedFileSpan;
             DocumentId = documentId;
-            SourceSpan = sourceSpan;
-            MappedFilePath = mappedFilePath;
-            MappedStartLine = mappedStartLine;
-            MappedStartColumn = mappedStartColumn;
-            MappedEndLine = mappedEndLine;
-            MappedEndColumn = mappedEndColumn;
-            OriginalFilePath = originalFilePath;
-            OriginalStartLine = originalStartLine;
-            OriginalStartColumn = originalStartColumn;
-            OriginalEndLine = originalEndLine;
-            OriginalEndColumn = originalEndColumn;
+
+            // If we were passed in a mapped span use it with the original span to determine the true final mapped
+            // location. If forceMappedSpan is true, then this is a test which is explicitly making a mapped span that
+            // it wants us to not mess with.  In that case, just hold onto that value directly.
+            if (mappedFileSpan is { } mappedSpan &&
+                (mappedSpan.HasMappedPath || forceMappedPath))
+            {
+                MappedFileSpan = new FileLinePositionSpan(GetNormalizedFilePath(unmappedFileSpan.Path, mappedSpan.Path), mappedSpan.Span);
+            }
+            else
+            {
+                MappedFileSpan = mappedFileSpan ?? unmappedFileSpan;
+            }
+
+            return;
+
+            static string GetNormalizedFilePath(string original, string mapped)
+            {
+                if (RoslynString.IsNullOrEmpty(mapped))
+                    return original;
+
+                var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), mapped);
+                try
+                {
+                    return Path.GetFullPath(combined);
+                }
+                catch
+                {
+                    return combined;
+                }
+            }
         }
 
-        public bool IsMapped => MappedFilePath != null;
-
-        internal DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
-        {
-            var mappedLineInfo = tree.GetMappedLineSpan(newSourceSpan);
-            var originalLineInfo = tree.GetLineSpan(newSourceSpan);
-
-            return new DiagnosticDataLocation(
+        /// <summary>
+        /// Return a new location with the same <see cref="DocumentId"/> as this, but with updated <see
+        /// cref="UnmappedFileSpan"/> and <see cref="MappedFileSpan"/> corresponding to the respection locations of
+        /// <paramref name="newSourceSpan"/> within <paramref name="tree"/>.
+        /// </summary>
+        public DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
+            => new(
+                tree.GetLineSpan(newSourceSpan),
                 DocumentId,
-                newSourceSpan,
-                originalFilePath: originalLineInfo.Path,
-                originalStartLine: originalLineInfo.StartLinePosition.Line,
-                originalStartColumn: originalLineInfo.StartLinePosition.Character,
-                originalEndLine: originalLineInfo.EndLinePosition.Line,
-                originalEndColumn: originalLineInfo.EndLinePosition.Character,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
-                mappedStartLine: mappedLineInfo.StartLinePosition.Line,
-                mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedEndLine: mappedLineInfo.EndLinePosition.Line,
-                mappedEndColumn: mappedLineInfo.EndLinePosition.Character);
-        }
+                tree.GetMappedLineSpan(newSourceSpan));
 
-        internal FileLinePositionSpan GetFileLinePositionSpan()
+        public static class TestAccessor
         {
-            var filePath = GetFilePath();
-            if (filePath == null)
+            public static DiagnosticDataLocation Create(
+                FileLinePositionSpan originalFileSpan,
+                DocumentId? documentId,
+                FileLinePositionSpan mappedFileSpan,
+                bool forceMappedPath)
             {
-                return default;
-            }
-
-            return IsMapped ?
-                new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn)) :
-                new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
-        }
-
-        internal string? GetFilePath()
-            => GetFilePath(OriginalFilePath, MappedFilePath);
-
-        internal static string? GetFilePath(string? original, string? mapped)
-        {
-            if (RoslynString.IsNullOrEmpty(mapped))
-            {
-                return original;
-            }
-
-            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), mapped);
-            try
-            {
-                return Path.GetFullPath(combined);
-            }
-            catch
-            {
-                return combined;
+                return new DiagnosticDataLocation(originalFileSpan, documentId, mappedFileSpan, forceMappedPath);
             }
         }
     }

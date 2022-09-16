@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
 
     public class ConvertToFileScopedNamespaceAnalyzerTests
     {
-        #region Convert To File Scoped
-
         [Fact]
         public async Task TestNoConvertToFileScopedInCSharp9()
         {
@@ -349,7 +347,6 @@ class C
 ",
                 FixedCode = @"
 namespace $$N;
-
 // comment
 class C
 {
@@ -787,8 +784,8 @@ class C
 [|namespace N|] { class C { } }
 ",
                 FixedCode = @"
-namespace $$N; 
-class C { } ",
+namespace $$N; class C { } 
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -808,8 +805,8 @@ class C { } ",
 ",
                 FixedCode = @"
 namespace $$N;
-
-class C { } ",
+class C { } 
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -818,8 +815,7 @@ class C { } ",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -845,8 +841,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersAndNoNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -865,8 +860,7 @@ namespace $$N;",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -894,8 +888,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
         public async Task TestConvertToFileScopedWithNoMembersPreserveNewlineAtEnd()
         {
             await new VerifyCS.Test
@@ -916,6 +909,109 @@ namespace $$N;
             }.RunAsync();
         }
 
-        #endregion
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedPPDirective1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"[|namespace Goo|]
+{
+#if true
+    class goobar { }
+#endif
+// There must be no CR, LF, or other character after the brace on the following line!
+}",
+                FixedCode = @"namespace $$Goo;
+
+#if true
+class goobar { }
+#endif
+// There must be no CR, LF, or other character after the brace on the following line!",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedPPDirective2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"[|namespace Goo|]
+{
+#if true
+    class goobar { }
+#endif
+// There must be no CR, LF, or other character after the brace on the following line!
+}
+",
+                FixedCode = @"namespace $$Goo;
+
+#if true
+class goobar { }
+#endif
+// There must be no CR, LF, or other character after the brace on the following line!
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedPPDirective3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"[|namespace Goo|]
+{
+#if false
+    class goobar { }
+#endif
+}",
+                FixedCode = @"namespace $$Goo;
+
+#if false
+class goobar { }
+#endif
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedPPDirective4()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"[|namespace Goo|]
+{
+#if false
+    class goobar { }
+#endif
+}
+",
+                FixedCode = @"namespace $$Goo;
+
+#if false
+class goobar { }
+#endif
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
     }
 }

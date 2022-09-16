@@ -832,13 +832,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (GetParameterRefEscape(parameterSymbol) > escapeTo)
             {
+                var isRefScoped = parameterSymbol.EffectiveScope == DeclarationScope.RefScoped;
+                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped);
                 if (checkingReceiver)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
+                    Error(diagnostics, isRefScoped ? ErrorCode.ERR_RefReturnScopedParameter2 : ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
                 }
                 else
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
+                    Error(diagnostics, isRefScoped ? ErrorCode.ERR_RefReturnScopedParameter : ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
                 }
                 return false;
             }
@@ -1458,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(AllParametersConsideredInEscapeAnalysisHaveArguments(argsOpt, parameters, argsToParamsOpt));
 #endif
 
-            if (UseUpdatedEscapeRules)
+            if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
                 return GetInvocationEscapeWithUpdatedRules(symbol, receiver, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
             }
@@ -1557,7 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argRefKindsOpt,
                 argsToParamsOpt,
                 isRefEscape,
-                assumeRefStructReturnType: false,
+                checkingMethodArgumentsMustMatch: false,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)
@@ -1606,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(AllParametersConsideredInEscapeAnalysisHaveArguments(argsOpt, parameters, argsToParamsOpt));
 #endif
 
-            if (UseUpdatedEscapeRules)
+            if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
                 return CheckInvocationEscapeWithUpdatedRules(syntax, symbol, receiver, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape);
             }
@@ -1697,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argRefKindsOpt,
                 argsToParamsOpt,
                 isRefEscape,
-                assumeRefStructReturnType: false,
+                checkingMethodArgumentsMustMatch: false,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)
@@ -1789,7 +1791,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return (null, receiver, RefKind.None);
                 }
-                var containingType = symbol.ContainingType;
                 var method = symbol switch
                 {
                     MethodSymbol m => m,
@@ -1837,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool isRefEscape,
-            bool assumeRefStructReturnType,
+            bool checkingMethodArgumentsMustMatch,
             bool ignoreArglistRefKinds,
             ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)> result)
         {
@@ -1888,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A value resulting from a method invocation `ref e1.M(e2, ...)` is *ref-safe-to-escape* the smallest of the following scopes:
             // 1. ...
             // 2. The *ref-safe-to-escape* contributed by all `ref` arguments
-            if (isRefEscape || assumeRefStructReturnType || hasRefStructType(symbol))
+            if (isRefEscape || checkingMethodArgumentsMustMatch || hasRefStructType(symbol))
             {
                 foreach (var (parameter, argument, effectiveRefKind) in argsAndParams)
                 {
@@ -1899,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // For a given argument `a` that is passed to parameter `p`:
                     // 1. If `p` is `scoped ref` then `a` does not contribute *ref-safe-to-escape* when considering arguments.
                     // 2. ...
-                    if (parameter?.EffectiveScope == DeclarationScope.RefScoped)
+                    if (parameter?.EffectiveScope == DeclarationScope.RefScoped || (checkingMethodArgumentsMustMatch && parameter?.Type.IsRefLikeType == true))
                     {
                         continue;
                     }
@@ -1951,6 +1952,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, syntax, symbol, parameterName);
         }
 
+        private bool UseUpdatedEscapeRulesForInvocation(Symbol symbol)
+        {
+            var method = symbol switch
+            {
+                MethodSymbol m => m,
+                PropertySymbol p => p.GetMethod ?? p.SetMethod,
+                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+            };
+            return method?.UseUpdatedEscapeRules == true;
+        }
+
         /// <summary>
         /// Validates whether the invocation is valid per no-mixing rules.
         /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
@@ -1966,7 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint scopeOfTheContainingExpression,
             BindingDiagnosticBag diagnostics)
         {
-            if (UseUpdatedEscapeRules)
+            if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
                 return CheckInvocationArgMixingWithUpdatedRules(syntax, symbol, receiverOpt, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
             }
@@ -2060,7 +2072,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#rules-method-invocation
             //
             // For any method invocation `e.M(a1, a2, ... aN)`
-            // 1. Calculate the *safe-to-escape* of the method return (for this rule assume it has a `ref struct` return type)
+            // 1. Calculate the *safe-to-escape* of the method return.
+            //     - Ignore the *ref-safe-to-escape* of arguments to `in / ref / out` parameters of `ref struct` types. The corresponding parameters *ref-safe-to-escape* are at most *return only* and hence cannot be returned via `ref` or `out` parameters.
+            //     - Assume the method has a `ref struct` return type.
             // 2. All `ref` or `out` arguments of `ref struct` types must be assignable by a value with that *safe-to-escape*.
             //    This applies even when the `ref` argument matches a `scoped ref` parameter.
 
@@ -2070,7 +2084,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverOpt = null;
             }
 
-            // 1. Calculate the *safe-to-escape* of the method return (for this rule assume it has a `ref struct` return type)
+            // 1. Calculate the *safe-to-escape* of the method return.
+            //     - Ignore the *ref-safe-to-escape* of arguments to `in / ref / out` parameters of `ref struct` types. The corresponding parameters *ref-safe-to-escape* are at most *return only* and hence cannot be returned via `ref` or `out` parameters.
+            //     - Assume the method has a `ref struct` return type.
             uint escapeScope = Binder.ExternalScope;
             (ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)? argAndParamToEscape = null;
             var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
@@ -2082,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argRefKindsOpt,
                 argsToParamsOpt,
                 isRefEscape: false,
-                assumeRefStructReturnType: true,
+                checkingMethodArgumentsMustMatch: true,
                 ignoreArglistRefKinds: false,
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)

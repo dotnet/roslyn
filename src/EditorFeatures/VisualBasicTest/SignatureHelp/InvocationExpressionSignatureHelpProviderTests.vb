@@ -85,8 +85,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(958593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958593")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(958593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958593")>
         Public Async Function TestInvocationInsideStringLiteral() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -243,8 +243,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_ProtectedAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -270,8 +270,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_AbstractBase() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -297,8 +297,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -321,8 +321,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_Overridden() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -347,8 +347,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -371,8 +371,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -397,8 +397,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_ProtectedFriendAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -423,8 +423,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -447,8 +447,8 @@ End Class
             Await TestAsync(markup, Nothing)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_PrivateAccessibility() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -471,8 +471,8 @@ End Class
             Await TestAsync(markup, Nothing)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         Public Async Function TestInvocationOnBaseExpression_Constructor() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -494,8 +494,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188"), WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188"), WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
         Public Async Function TestInvocationOnBaseExpression_Finalizer() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -628,8 +628,8 @@ End Class]]></a>.Value
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(544068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544068")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(544068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544068")>
         Public Async Function TestExtension() As Task
             Dim markup = <a><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -688,8 +688,8 @@ $"List(Of 'a).Add(item As 'a)
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         Public Async Function TestStatic1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -714,8 +714,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         Public Async Function TestStatic2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -741,8 +741,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(539111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539111")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(539111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539111")>
         Public Async Function TestFilteringInOverloadedGenericMethods() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -1061,8 +1061,8 @@ End Class
 
 #Region "EditorBrowsable tests"
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_Method_BrowsableStateAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1091,8 +1091,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_Method_BrowsableStateNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1122,8 +1122,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_Method_BrowsableStateAdvanced() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1162,8 +1162,8 @@ End Class
                                                 hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1202,8 +1202,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_Method_Overloads_BothBrowsableNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1234,8 +1234,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestOverriddenSymbolsFilteredFromSigHelp() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1271,8 +1271,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1302,8 +1302,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1341,8 +1341,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_HidingWithDifferentParameterList() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1377,8 +1377,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_BrowsableStateNeverMethodsInBaseClass() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1408,8 +1408,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1441,8 +1441,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1479,8 +1479,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1516,8 +1516,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1552,8 +1552,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1586,8 +1586,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1623,8 +1623,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1659,8 +1659,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_DefaultProperty_BrowsableStateAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1696,8 +1696,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_DefaultProperty_BrowsableStateNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1733,8 +1733,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_DefaultProperty_BrowsableStateAdvanced() As Task
 
             Dim markup = <Text><![CDATA[
@@ -1781,8 +1781,8 @@ End Class
 
 #End Region
 
-        <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
         Public Async Function TestSignatureHelpWhenALambdaExpressionDeclaredAndInvokedAtTheSameTime() As Task
             Dim markup = <text>
 Class C
@@ -1856,9 +1856,9 @@ class C
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
         <WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericParameters1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -1883,9 +1883,9 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
         <WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericParameters2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -1910,8 +1910,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(3537, "https://github.com/dotnet/roslyn/issues/3537")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(3537, "https://github.com/dotnet/roslyn/issues/3537")>
         Public Async Function TestEscapedIdentifiers() As Task
             Dim markup = "
 Class C
@@ -1924,8 +1924,8 @@ End Class
             Await TestAsync(markup, SpecializedCollections.SingletonEnumerable(New SignatureHelpTestItem("C.Next()", String.Empty)))
         End Function
 
-        <WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")>
         Public Async Function TestSigHelpIsVisibleOnInaccessibleItem() As Task
             Dim markup = "
 Imports System.Collections.Generic
@@ -1946,8 +1946,8 @@ End Class
             Await TestAsync(markup, {New SignatureHelpTestItem("List(Of Integer).Add(item As Integer)")})
         End Function
 
-        <WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")>
         Public Async Function TestInvocationOnMeExpression_Constructor() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -1966,8 +1966,8 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
         Public Async Function TestSigHelpIsVisibleWithDuplicateMethodNames() As Task
             Dim markup = "
 Class C

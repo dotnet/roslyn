@@ -17,6 +17,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public class BasicChangeSignatureDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -43,7 +44,7 @@ End Class");
             VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -64,7 +65,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -87,7 +88,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyReorderAndRemoveParametersAcrossLanguages()
         {
             SetUpEditor(@"
@@ -157,7 +158,7 @@ public class CSharpClass
             Assert.Contains(expectedText, actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyAddParameter()
         {
             SetUpEditor(@"
@@ -227,7 +228,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyAddParameterRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -255,7 +256,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyAddParametersAcrossLanguages()
         {
             SetUpEditor(@"

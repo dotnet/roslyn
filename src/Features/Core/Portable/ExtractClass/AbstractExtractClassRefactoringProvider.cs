@@ -100,7 +100,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclarationNode = selectedMemberNodes.First().FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
-            Contract.ThrowIfNull(containingTypeDeclarationNode);
+            if (containingTypeDeclarationNode is null)
+            {
+                // If the containing type node isn't found exit. This could be malformed code that we don't know
+                // how to correctly handle
+                return null;
+            }
+
             if (selectedMemberNodes.Any(m => m.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration) != containingTypeDeclarationNode))
             {
                 return null;

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         event EventHandler SnapshotAdded;
     }
 
-    internal struct ExpensiveAnalyzerInfo
+    internal readonly struct ExpensiveAnalyzerInfo
     {
         public readonly bool BuiltIn;
         public readonly string AnalyzerId;

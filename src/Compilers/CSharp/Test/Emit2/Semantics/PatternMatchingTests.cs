@@ -5626,6 +5626,15 @@ namespace System
     public struct Int32 { private Int32 m_value; Int32 Use(Int32 b) { m_value = b; return m_value; } }
     public struct Char { }
     public class String { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 namespace System
 {
@@ -11688,6 +11697,92 @@ static class C
   IL_020e:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem(63085, "https://github.com/dotnet/roslyn/issues/63085")]
+        public void RefStructTypeTest_01()
+        {
+            CreateCompilation(@"
+using System;
+
+new G<int>().Test();
+new G<object>().Test();
+new G<int>().TestPattern();
+new G<object>().TestPattern();
+
+ref struct G<T>
+{
+    public void Test()
+    {
+        if (this is G<int>)
+        {
+            Console.WriteLine(""int"");
+        }
+        else if (this is G<object>)
+        {
+            Console.WriteLine(""object"");
+        }
+        else
+        {
+            Console.WriteLine(""unknown"");
+            Console.WriteLine(typeof(T));
+        }
+    }
+
+    public void TestPattern()
+    {
+        var genericTypePattern = this switch
+        {
+            G<int> => ""int"",
+            G<object> => ""object"",
+            _ => ""unknown""
+        };
+
+        Console.WriteLine(genericTypePattern);
+    }
+}
+").VerifyDiagnostics(
+                // (13,13): error CS0019: Operator 'is' cannot be applied to operands of type 'G<T>' and 'G<int>'
+                //         if (this is G<int>)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "this is G<int>").WithArguments("is", "G<T>", "G<int>").WithLocation(13, 13),
+                // (17,18): error CS0019: Operator 'is' cannot be applied to operands of type 'G<T>' and 'G<object>'
+                //         else if (this is G<object>)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "this is G<object>").WithArguments("is", "G<T>", "G<object>").WithLocation(17, 18),
+                // (32,13): error CS8121: An expression of type 'G<T>' cannot be handled by a pattern of type 'G<int>'.
+                //             G<int> => "int",
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "G<int>").WithArguments("G<T>", "G<int>").WithLocation(32, 13),
+                // (33,13): error CS8121: An expression of type 'G<T>' cannot be handled by a pattern of type 'G<object>'.
+                //             G<object> => "object",
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "G<object>").WithArguments("G<T>", "G<object>").WithLocation(33, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(63085, "https://github.com/dotnet/roslyn/issues/63085")]
+        public void RefStructTypeTest_02()
+        {
+            CreateCompilation(@"
+ref struct G<T> where T : class
+{
+    public void Test1(T x1)
+    {
+        var y1 = x1 as G<object>;
+    }
+
+    public void Test2(G<object> x2)
+    {
+        var y2 = x2 as T;
+    }
+}
+").VerifyDiagnostics(
+                // (6,18): error CS0077: The as operator must be used with a reference type or nullable type ('G<object>' is a non-nullable value type)
+                //         var y1 = x1 as G<object>;
+                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "x1 as G<object>").WithArguments("G<object>").WithLocation(6, 18),
+                // (11,18): error CS0019: Operator 'as' cannot be applied to operands of type 'G<object>' and 'T'
+                //         var y2 = x2 as T;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x2 as T").WithArguments("as", "G<object>", "T").WithLocation(11, 18)
+                );
         }
     }
 }

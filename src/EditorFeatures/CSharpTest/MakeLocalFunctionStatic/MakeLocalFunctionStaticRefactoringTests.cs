@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     public class MakeLocalFunctionStaticRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
         private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldNotTriggerForCSharp7()
         {
             await TestMissingAsync(
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp72ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldNotTriggerIfNoCaptures()
         {
             await TestMissingAsync(
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldNotTriggerIfAlreadyStatic()
         {
             await TestMissingAsync(
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldNotTriggerIfAlreadyStaticWithError()
         {
             await TestMissingAsync(
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldNotTriggerIfCapturesThisParameter()
         {
             await TestMissingAsync(
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldTriggerIfExplicitlyPassedInThisParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldTriggerForCSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestMultipleVariables()
         {
             await TestInRegularAndScriptAsync(
@@ -214,7 +215,7 @@ parseOptions: CSharp8ParseOptions);
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestMultipleCalls()
         {
             await TestInRegularAndScriptAsync(
@@ -247,7 +248,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestMultipleCallsWithExistingParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -282,7 +283,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestRecursiveCall()
         {
             await TestInRegularAndScriptAsync(
@@ -316,7 +317,7 @@ parseOptions: CSharp8ParseOptions);
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallInArgumentList()
         {
             await TestInRegularAndScriptAsync(
@@ -348,7 +349,7 @@ parseOptions: CSharp8ParseOptions);
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallsWithNamedArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -383,7 +384,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallsWithDafaultValue()
         {
             await TestInRegularAndScriptAsync(
@@ -418,7 +419,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestWarningAnnotation()
         {
             await TestInRegularAndScriptAsync(
@@ -449,7 +450,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestNonCamelCaseCapture()
         {
             await TestInRegularAndScriptAsync(
@@ -482,8 +483,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        [WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
+        [Fact, WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
         public async Task ShouldNotTriggerIfCallsOtherLocalFunction()
         {
             await TestMissingAsync(
@@ -506,7 +506,7 @@ parseOptions: CSharp8ParseOptions);
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallingStaticLocationFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -547,8 +547,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        [WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
+        [Fact, WorkItem(53179, "https://github.com/dotnet/roslyn/issues/53179")]
         public async Task TestLocalFunctionAsTopLevelStatement()
         {
             await TestAsync(@"

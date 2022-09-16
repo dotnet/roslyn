@@ -1,5 +1,22 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Type tests for `ref` structs are not supported.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` struct type is used in an 'is' or 'as' operator, in some scenarios compiler was previously reporting
+an erroneous warning about the type test always failing at runtime, omitting the actual type check, and leading to
+incorrect behavior. When incorrect behavior at execution time was possible, compiler will now produce an error instead.
+
+```csharp
+ref struct G<T>
+{
+    public void Test()
+    {
+        if (this is G<int>) // Will now produce an error, used to be treated as always `false`.
+        {
+```
+
 ## Unused results from ref local are dereferences.
 
 ***Introduced in Visual Studio 2022 version 17.4***

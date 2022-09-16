@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.RefType:
+                case SyntaxKind.ScopedType:
                     // These are just placeholders and are not separately meaningful.
                     return false;
 
@@ -2001,15 +2002,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (subpatternSymbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
             {
-                return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
+                return new SymbolInfo(originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
             }
 
-            return new SymbolInfo(subpatternSymbol.GetPublicSymbol(), CandidateReason.None);
+            return new SymbolInfo(subpatternSymbol.GetPublicSymbol());
         }
 
         private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
         {
-            return new SymbolInfo(pat.DeconstructMethod.GetPublicSymbol(), CandidateReason.None);
+            return new SymbolInfo(pat.DeconstructMethod.GetPublicSymbol());
         }
 
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
@@ -2340,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Non-error case. Use constructor that doesn't require creation of a Symbol array.
                 var symbolToReturn = ((options & SymbolInfoOptions.ResolveAliases) != 0) ? unwrapped : symbol;
-                return new SymbolInfo(symbolToReturn.GetPublicSymbol(), ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return new SymbolInfo(symbolToReturn.GetPublicSymbol());
             }
         }
 
@@ -4459,7 +4460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;
                 var tupleElement = GetDeclaredSymbol(tupleArgument, cancellationToken);
-                return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement);
             }
 
             if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.PositionalPatternClause))
@@ -4473,7 +4474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)containingInvocationInfo.Symbol != null)
             {
                 ParameterSymbol param = FindNamedParameter(containingInvocationInfo.Symbol.GetSymbol().GetParameters(), argumentName);
-                return (object)param == null ? SymbolInfo.None : new SymbolInfo(param.GetPublicSymbol(), ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                return (object)param == null ? SymbolInfo.None : new SymbolInfo(param.GetPublicSymbol());
             }
             else
             {
@@ -4503,7 +4504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return new SymbolInfo(null, symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
+                    return new SymbolInfo(symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
                 }
             }
         }

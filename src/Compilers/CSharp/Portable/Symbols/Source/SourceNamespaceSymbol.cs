@@ -377,6 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
                                 // no error
                                 break;
+                            case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
                                 diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
                                 break;
@@ -506,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private struct NameToSymbolMapBuilder
+        private readonly struct NameToSymbolMapBuilder
         {
             private readonly Dictionary<string, object> _dictionary;
 

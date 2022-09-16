@@ -1843,18 +1843,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             checkParameterTypes ? reportMismatchInParameterType : null,
                             (implementingType, isExplicit));
 
-                        if (checkParameterTypes)
+                        if (checkParameterTypes &&
+                            SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
                         {
                             SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                                 implementedMethod,
                                 implementingMethod,
                                 diagnostics,
                                 static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
-                                    diagnostics.Add(
-                                        ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                        GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                        new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat)),
-                                (implementingType, isExplicit));
+                                    {
+                                        diagnostics.Add(
+                                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
+                                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                                ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                            GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                            new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                                    },
+                                (implementingType, isExplicit),
+                                allowVariance: true,
+                                invokedAsExtensionMethod: false);
                         }
                     }
 

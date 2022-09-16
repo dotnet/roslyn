@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
-            var organizedFixes = await OrganizeFixesAsync(workspace, originalSolution, filteredFixes, cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var organizedFixes = await OrganizeFixesAsync(workspace, originalSolution, text, filteredFixes, cancellationToken).ConfigureAwait(false);
 
             return organizedFixes;
         }
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> OrganizeFixesAsync(
             Workspace workspace,
             Solution originalSolution,
+            SourceText text,
             ImmutableArray<CodeFixCollection> fixCollections,
             CancellationToken cancellationToken)
         {
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             await GroupFixesAsync(workspace, originalSolution, fixCollections, map, order, cancellationToken).ConfigureAwait(false);
 
             // Then prioritize between the groups.
-            var prioritizedFixes = PrioritizeFixGroups(originalSolution, map.ToImmutable(), order.ToImmutable(), workspace);
+            var prioritizedFixes = PrioritizeFixGroups(originalSolution, text, map.ToImmutable(), order.ToImmutable(), workspace);
             return prioritizedFixes;
         }
 
@@ -276,6 +278,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// </remarks>
         private static ImmutableArray<UnifiedSuggestedActionSet> PrioritizeFixGroups(
             Solution originalSolution,
+            SourceText text,
             ImmutableDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ImmutableArray<CodeFixGroupKey> order,
             Workspace workspace)
@@ -289,11 +292,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var actions = map[groupKey];
 
                 var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction)).ToImmutableArray();
-                AddUnifiedSuggestedActionsSet(originalSolution, nonSuppressionActions, groupKey, nonSuppressionSets);
+                AddUnifiedSuggestedActionsSet(originalSolution, text, nonSuppressionActions, groupKey, nonSuppressionSets);
 
                 var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
                     !IsBulkConfigurationAction(a.OriginalCodeAction)).ToImmutableArray();
-                AddUnifiedSuggestedActionsSet(originalSolution, suppressionActions, groupKey, suppressionSets);
+                AddUnifiedSuggestedActionsSet(originalSolution, text, suppressionActions, groupKey, suppressionSets);
 
                 bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
             }
@@ -383,6 +386,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         private static void AddUnifiedSuggestedActionsSet(
             Solution originalSolution,
+            SourceText text,
             ImmutableArray<IUnifiedSuggestedAction> actions,
             CodeFixGroupKey groupKey,
             ArrayBuilder<UnifiedSuggestedActionSet> sets)
@@ -392,10 +396,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var priority = GetUnifiedSuggestedActionSetPriority(group.Key);
 
                 // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-                Debug.Assert(groupKey.Item1.HasTextSpan);
                 var category = GetFixCategory(groupKey.Item1.Severity);
                 sets.Add(new UnifiedSuggestedActionSet(
-                    originalSolution, category, group.ToImmutableArray(), title: null, priority, applicableToSpan: groupKey.Item1.GetTextSpan()));
+                    originalSolution,
+                    category,
+                    group.ToImmutableArray(),
+                    title: null,
+                    priority,
+                    applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
             }
         }
 
