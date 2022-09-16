@@ -97,11 +97,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
                 options As CompletionOptions,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndSelectionInfo))
             Dim normalSymbols = Await GetNormalSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
             Dim preselectSymbols = Await GetPreselectedSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
 
-            Return normalSymbols.SelectAsArray(Function(s) (s, preselect:=False)).Concat(preselectSymbols.SelectAsArray(Function(s) (s, preselect:=True)))
+            Return normalSymbols.SelectAsArray(Function(s) New SymbolAndSelectionInfo(s, Preselect:=False)).Concat(preselectSymbols.SelectAsArray(Function(s) New SymbolAndSelectionInfo(s, Preselect:=True)))
         End Function
 
         Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
@@ -149,30 +149,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText As String,
                 displayTextSuffix As String,
                 insertionText As String,
-                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                symbols As ImmutableArray(Of SymbolAndSelectionInfo),
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim rules = GetCompletionItemRules(symbols)
-            Dim preselect = symbols.Any(Function(t) t.preselect)
-            rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
+
+            Dim preselect = symbols.Any(Function(t) t.Preselect)
+            Dim rules = CompletionItemRules.Default.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
 
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0).symbol, displayText, context),
-                symbols:=symbols.SelectAsArray(Function(t) t.symbol),
+                filterText:=GetFilterTextDefault(symbols(0).Symbol, displayText, context),
+                symbols:=symbols.SelectAsArray(Function(t) t.Symbol),
                 contextPosition:=context.Position,
                 sortText:=insertionText,
                 supportedPlatforms:=supportedPlatformData,
                 rules:=rules)
-        End Function
-
-        Private Shared ReadOnly s_rules As CompletionItemRules =
-            CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
-
-        Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean))) As CompletionItemRules
-            Return s_rules
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
