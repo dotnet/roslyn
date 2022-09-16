@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(explicitlyImplementedProperty);
         }
 
-        protected abstract Location TypeLocation { get; }
+        internal abstract Location TypeLocation { get; }
 
 #nullable disable
 

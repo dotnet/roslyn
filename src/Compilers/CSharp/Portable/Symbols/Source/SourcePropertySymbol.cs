@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
 
-        protected override Location TypeLocation
+        internal override Location TypeLocation
             => GetTypeSyntax(CSharpSyntaxNode).Location;
 
         private static SyntaxTokenList GetModifierTokensSyntax(SyntaxNode syntax)

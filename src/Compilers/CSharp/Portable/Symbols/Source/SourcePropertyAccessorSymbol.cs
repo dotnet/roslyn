@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (propertyType.IsStatic)
                 {
                     // '{0}': static types cannot be used as parameters
-                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), this.locations[0], propertyType.Type);
+                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), _property.TypeLocation, propertyType.Type);
                 }
 
                 parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));
