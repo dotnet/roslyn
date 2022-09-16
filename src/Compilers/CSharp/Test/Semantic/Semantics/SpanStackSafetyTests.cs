@@ -1500,7 +1500,7 @@ class C
                 // (15,20): error CS8157: Cannot return 'q' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref q;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "q").WithArguments("q").WithLocation(15, 20),
-                // (20,20): error CS9080: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                // (20,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         return ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(20, 20));
         }

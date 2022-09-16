@@ -13769,7 +13769,7 @@ public ref struct CustomHandler
                 // (16,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
                 //         return c;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(16, 16),
-                // (21,20): error CS9080: Cannot return a parameter by reference 'handler' because it is scoped to the current method
+                // (21,20): error CS9075: Cannot return a parameter by reference 'handler' because it is scoped to the current method
                 //         return ref handler;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "handler").WithArguments("handler").WithLocation(21, 20)
             );

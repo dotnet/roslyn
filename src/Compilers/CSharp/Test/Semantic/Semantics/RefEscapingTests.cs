@@ -787,7 +787,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(12, 20)
                 );
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (18,20): error CS9080: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                // (18,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         return ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(18, 20)
                 );
@@ -838,7 +838,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef(out z)").WithArguments("Program.ReturnsRef(out int)", "x").WithLocation(17, 20)
                 );
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (24,20): error CS9080: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                // (24,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         return ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(24, 20)
                 );
@@ -903,7 +903,7 @@ class Program
                 // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         ReturnsSpan(out var _ ) = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35),
-                // (38,20): error CS9080: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                // (38,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         return ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(38, 20)
                 );
@@ -1008,7 +1008,7 @@ class Program
                 // (60,30): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         ReturnsSpan(out s) = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(60, 30),
-                // (66,20): error CS9080: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                // (66,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         return ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(66, 20)
                 );
