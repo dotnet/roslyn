@@ -13350,7 +13350,7 @@ static class S
         [Fact]
         public void CS0721ERR_ParameterIsStaticClass01()
         {
-            var text = @"namespace NS
+            var source = @"namespace NS
 {
     public static class C
     {
@@ -13379,13 +13379,16 @@ static class S
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 16, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 23 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 25 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): warning CS8897: 'D<T>': static types cannot be used as parameters
+                //         void M(D<T> d); // Dev10 no error?
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(12, 16),
+                // (16,23): error CS0721: 'C': static types cannot be used as parameters
+                //         public void F(C p)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("NS.C").WithLocation(16, 23),
+                // (22,25): error CS0721: 'D<T>': static types cannot be used as parameters
+                //             object M<T>(D<T> p1)  // CS0721
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "D<T>").WithArguments("NS.D<T>").WithLocation(22, 25));
         }
 
         [Fact]
