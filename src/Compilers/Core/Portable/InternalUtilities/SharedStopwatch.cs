@@ -14,8 +14,9 @@ namespace Roslyn.Utilities
         {
             // CRITICAL: The size of this struct is the size of a TimeSpan (which itself is the size of a long).  This
             // allows stopwatches to be atomically overwritten, without a concern for torn writes, as long as we're
-            // running on 64bit machines.
-            Contract.ThrowIfFalse(Marshal.SizeOf(typeof(SharedStopwatch)) == 8);
+            // running on 64bit machines.  Make sure this value doesn't change as that will cause these current
+            // consumers to be invalid.
+            RoslynDebug.Assert(Marshal.SizeOf(typeof(SharedStopwatch)) == 8);
         }
 
         private static readonly Stopwatch s_stopwatch = Stopwatch.StartNew();
