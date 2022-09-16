@@ -18,7 +18,7 @@ namespace Metalama.Compiler
 {
     internal static class TreeTracker
     {
-        private static readonly ConditionalWeakTable<SyntaxAnnotation, MappedNode> preTransformationNodeMap = new();
+        private static readonly ConditionalWeakTable<SyntaxAnnotation, AnnotationData> annotations = new();
 
         // "include descendants" means that the annotation also applies to all descendant node
         // this is commonly used for nodes that are exactly the same as in the pre-transformation tree
@@ -28,13 +28,12 @@ namespace Metalama.Compiler
         // this is used for nodes that changed from the pre-transformation tree
         private const string ExcludeDescendantsData = "ExcludeDescendants";
 
-        private static SyntaxAnnotation CreateAnnotation(SyntaxNode? node,
-            bool includeChildren)
+        private static SyntaxAnnotation CreateAnnotation(SyntaxNode? node, bool includeChildren )
         {
             var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind,
                 includeChildren ? IncludeDescendantsData : ExcludeDescendantsData);
 
-            preTransformationNodeMap.Add(annotation, new MappedNode(node));
+            annotations.Add(annotation, new AnnotationData(node ));
 
             return annotation;
         }
@@ -43,9 +42,35 @@ namespace Metalama.Compiler
         {
             var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, null);
 
-            preTransformationNodeMap.Add(annotation, new MappedNode(token));
+            annotations.Add(annotation, new AnnotationData(token ));
 
             return annotation;
+        }
+
+        public static SyntaxAnnotation? GetAnnotationForNodeToBeModified(SyntaxNode node)
+        {
+            var trackedNode = TrackIfNeeded(node);
+            if (!trackedNode.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind,
+                    out var oldAnnotation))
+            {
+                // The node is not in original source code.
+                return null;
+            }
+
+            if (oldAnnotation.Data == ExcludeDescendantsData)
+            {
+                return oldAnnotation;
+            }
+
+            if (!annotations.TryGetValue(oldAnnotation, out var oldAnnotationData))
+            {
+                Debug.Fail("Cannot get the annotation data.");
+            }
+
+            var newAnnotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, ExcludeDescendantsData);
+            annotations.Add(newAnnotation, new AnnotationData(oldAnnotationData.NodeOrToken ));
+
+            return newAnnotation;
         }
 
         public static bool IsAnnotated(SyntaxNode node) => node.HasAnnotations(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind);
@@ -86,7 +111,7 @@ namespace Metalama.Compiler
 
         public static void SetAnnotationExcludeChildren(ref SyntaxAnnotation[] annotations, SyntaxNode node)
         {
-            if (NeedsTracking(node, out var preTransformationNode))
+            if (NeedsTrackingAnnotation(node, out var preTransformationNode))
             {
                 // no annotation found, but is needed, create a new one
                 Array.Resize(ref annotations, annotations.Length + 1);
@@ -107,7 +132,7 @@ namespace Metalama.Compiler
                     }
 
                     // found and incorrect, replace the annotation
-                    preTransformationNodeMap.TryGetValue(oldAnnotation, out var oldNode);
+                    TreeTracker.annotations.TryGetValue(oldAnnotation, out var oldNode);
                     Debug.Assert(oldNode != null);
                     annotations = annotations.ToArray();
                     annotations[index] = CreateAnnotation(oldNode.NodeOrToken.AsNode(),
@@ -153,8 +178,7 @@ namespace Metalama.Compiler
         }
 
         [return: NotNull]
-        internal static T FindNode<T>(this SyntaxNode ancestor, TextSpan span, bool findInsideTrivia)
-            where T : SyntaxNode?
+        internal static SyntaxNode FindNodeByPosition(this SyntaxNode ancestor, int kind, TextSpan span, bool findInsideTrivia)
         {
             SyntaxNode? foundNode;
 
@@ -188,9 +212,9 @@ namespace Metalama.Compiler
                 while (possibleZeroWidthToken.FullSpan.IsEmpty)
                 {
                     var possibleZeroWidthNode = possibleZeroWidthToken.Parent;
-                    if (possibleZeroWidthNode?.FullSpan == span && possibleZeroWidthNode is T t)
+                    if (possibleZeroWidthNode?.FullSpan == span && possibleZeroWidthNode.RawKind == kind )
                     {
-                        return t;
+                        return possibleZeroWidthNode;
                     }
 
                     possibleZeroWidthToken = possibleZeroWidthToken.GetPreviousToken(true);
@@ -198,39 +222,56 @@ namespace Metalama.Compiler
             }
 
             // if the first found node is not the correct type, it should be one of its ancestors (with the same FullSpan as the found node)
-            while (foundNode is not T)
+            while (foundNode.RawKind != kind)
             {
                 foundNode = foundNode.Parent;
                 Debug.Assert(foundNode?.FullSpan == span);
             }
 
-            return (T)foundNode;
+            return foundNode;
         }
 
         [return: NotNull]
-        private static T LocatePreTransformationSyntax<T>([DisallowNull] T node, SyntaxNode ancestor,
-            SyntaxAnnotation annotation) where T : SyntaxNode?
+        private static bool TryFindSourceNode([DisallowNull] SyntaxNode node, SyntaxNode ancestor, SyntaxAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode ) 
         {
-            preTransformationNodeMap.TryGetValue(annotation, out var preTransformationAncestor);
-            Debug.Assert(preTransformationAncestor != null);
+            annotations.TryGetValue(annotation, out var annotationData);
+            Debug.Assert(annotationData != null);
 
-            var originalPosition = node.Position - ancestor.Position + preTransformationAncestor.NodeOrToken.Position;
-            var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
-            return
-                preTransformationAncestor.NodeOrToken.AsNode()!
-                    .FindNode<T>(nodeOriginalSpan, node.IsPartOfStructuredTrivia());
+            var sourceAncestor = annotationData.NodeOrToken.AsNode()!;
+            
+            if (node == ancestor)
+            {
+                // If the annotation was found on the node itself, then the source node is directly known.
+                sourceNode = sourceAncestor;
+                return true;
+            }
+            else if (annotation.Data == ExcludeDescendantsData)
+            {
+                sourceNode = null;
+                return false;
+            }
+            else
+            {
+                var originalPosition = node.Position - ancestor.Position + sourceAncestor.Position;
+                var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
+                
+                sourceNode =
+                    sourceAncestor!
+                        .FindNodeByPosition(node.RawKind, nodeOriginalSpan, node.IsPartOfStructuredTrivia());
+
+                return true;
+            }
         }
 
-        private static bool TryLocatePreTransformationSyntax(SyntaxToken token, SyntaxNode parent,
-            SyntaxAnnotation annotation, out SyntaxToken foundToken )
+        private static bool TryFindSourceToken(SyntaxToken token, SyntaxNode parent, SyntaxAnnotation annotation, out SyntaxToken foundToken )
         {
-            preTransformationNodeMap.TryGetValue(annotation, out var preTransformationAncestor);
-            Debug.Assert(preTransformationAncestor != null);
+            annotations.TryGetValue(annotation, out var annotationData);
+            Debug.Assert(annotationData != null);
 
-            var originalPosition = token.Position - parent.Position + preTransformationAncestor.NodeOrToken.Position;
+            var originalPosition = token.Position - parent.Position + annotationData.NodeOrToken.Position;
 
             // position is the very end of the ancestor, which is technically not inside it, so FindToken would throw
-            var preTransformationNode = preTransformationAncestor.NodeOrToken.AsNode()!;
+            var preTransformationNode = annotationData.NodeOrToken.AsNode()!;
             if (originalPosition == preTransformationNode.EndPosition)
             {
                 foundToken = preTransformationNode.GetLastToken(true);
@@ -268,7 +309,7 @@ namespace Metalama.Compiler
         [return: NotNullIfNotNull("node")]
         public static T TrackIfNeeded<T>(T node) where T : SyntaxNode?
         {
-            if (NeedsTracking(node, out var preTransformationNode))
+            if (NeedsTrackingAnnotation(node, out var preTransformationNode))
 #pragma warning disable CS8631, CS8825
             {
                 return AnnotateNodeAndChildren(node, preTransformationNode);
@@ -280,7 +321,7 @@ namespace Metalama.Compiler
 
         public static SyntaxToken TrackIfNeeded(SyntaxToken token)
         {
-            if (NeedsTracking(token, out var preTransformationToken))
+            if (NeedsTrackingAnnotation(token, out var preTransformationToken))
             {
                 return AnnotateToken(token, preTransformationToken.Value);
             }
@@ -303,10 +344,10 @@ namespace Metalama.Compiler
             return trivia;
         }
 
-        private static bool NeedsTracking<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out T? preTransformationNode)
+        private static bool NeedsTrackingAnnotation<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out SyntaxNode? sourceNode)
             where T : SyntaxNode?
         {
-            preTransformationNode = null!;
+            sourceNode = null!;
 
             if (node == null)
             {
@@ -342,11 +383,19 @@ namespace Metalama.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            preTransformationNode = LocatePreTransformationSyntax(node, ancestor, annotation);
-            return true;
+            if (TryFindSourceNode(node, ancestor, annotation, out sourceNode))
+            {
+                return true;    
+            }
+            else
+            {
+                // There is no source code for this node
+                return false;
+            }
+            
         }
 
-        public static bool NeedsTracking(SyntaxToken token, [NotNullWhen(true)] out SyntaxToken? preTransformationToken)
+        public static bool NeedsTrackingAnnotation(SyntaxToken token, [NotNullWhen(true)] out SyntaxToken? preTransformationToken)
         {
             preTransformationToken = null;
 
@@ -375,7 +424,7 @@ namespace Metalama.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            if (!TryLocatePreTransformationSyntax(token, ancestor.Value.AsNode()!, annotation,
+            if (!TryFindSourceToken(token, ancestor.Value.AsNode()!, annotation,
                     out var foundToken ))
             {
                 return false;
@@ -400,7 +449,7 @@ namespace Metalama.Compiler
             // current node is annotated, so return its stored original token directly
             if (ancestor == token)
             {
-                preTransformationNodeMap.TryGetValue(annotation, out var preTransformationToken);
+                annotations.TryGetValue(annotation, out var preTransformationToken);
                 return preTransformationToken!.NodeOrToken.AsToken();
             }
 
@@ -413,7 +462,7 @@ namespace Metalama.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            if (!TryLocatePreTransformationSyntax(token, ancestor.Value.AsNode()!, annotation, out var foundToken))
+            if (!TryFindSourceToken(token, ancestor.Value.AsNode()!, annotation, out var foundToken))
             {
                 return null;
             }
@@ -423,8 +472,7 @@ namespace Metalama.Compiler
             }
         }
 
-        public static T? GetSourceSyntaxNode<T>(T node)
-            where T : SyntaxNode?
+        public static SyntaxNode? GetSourceSyntaxNode(SyntaxNode? node)
         {
             if (node == null)
             {
@@ -444,8 +492,8 @@ namespace Metalama.Compiler
             // current node is annotated, so return its stored original node directly
             if (ancestor == node)
             {
-                preTransformationNodeMap.TryGetValue(annotation, out var preTransformationNode);
-                return (T?)preTransformationNode?.NodeOrToken.AsNode();
+                annotations.TryGetValue(annotation, out var preTransformationNode);
+                return preTransformationNode?.NodeOrToken.AsNode();
             }
 
             // unannotated children of ancestor annotated as "exclude children" don't have original node
@@ -455,7 +503,14 @@ namespace Metalama.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            return LocatePreTransformationSyntax(node, ancestor, annotation);
+            if (TryFindSourceNode(node, ancestor, annotation, out var sourceNode))
+            {
+                return sourceNode;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static IEnumerable<Diagnostic> MapDiagnostics(IEnumerable<Diagnostic> diagnostics)
@@ -631,11 +686,11 @@ namespace Metalama.Compiler
         public static void MarkAsUndebuggable(SyntaxTree tree) => undebuggableTrees.Add(tree, null);
 #endif
 
-        private class MappedNode
+        private class AnnotationData
         {
             public SyntaxNodeOrToken NodeOrToken { get; }
-
-            public MappedNode(SyntaxNodeOrToken nodeOrToken)
+            
+            public AnnotationData(SyntaxNodeOrToken nodeOrToken)
             {
                 NodeOrToken = nodeOrToken;
             }

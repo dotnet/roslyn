@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace Metalama.Compiler;
@@ -12,7 +13,7 @@ namespace Metalama.Compiler;
 /// </summary>
 internal static class SyntaxAnnotationHelper
 {
-    public static bool TryGetAnnotationFast(this SyntaxNode node, string kind, out SyntaxAnnotation? annotation)
+    public static bool TryGetAnnotationFast(this SyntaxNode node, string kind, [NotNullWhen(true)] out SyntaxAnnotation? annotation)
     {
         var array = node.GetAnnotations();
         foreach (var item in array)
