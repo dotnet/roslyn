@@ -129,7 +129,7 @@ namespace B
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
-            var actual = DiagnosticData.GetExistingOrCalculatedTextSpan(data.DataLocation, text);
+            var actual = data.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
 
             Assert.Equal(span, actual);
         }
@@ -145,7 +145,7 @@ namespace B
             var document = additionalDocument.Project.Documents.Single();
 
             var externalAdditionalLocation = new DiagnosticDataLocation(
-                new(additionalDocument.Name, new(0, 0), new(0, 1)), additionalDocument.Id, sourceSpan: new TextSpan(0, 1));
+                new(additionalDocument.Name, new(0, 0), new(0, 1)), additionalDocument.Id);
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -167,7 +167,6 @@ namespace B
 
             var roundTripAdditionalLocation = Assert.Single(roundTripDiagnosticData.AdditionalLocations);
             Assert.Equal(externalAdditionalLocation.DocumentId, roundTripAdditionalLocation.DocumentId);
-            Assert.Equal(externalAdditionalLocation.SourceSpan, roundTripAdditionalLocation.SourceSpan);
             Assert.Equal(externalAdditionalLocation.UnmappedFileSpan, roundTripAdditionalLocation.UnmappedFileSpan);
         }
 
@@ -192,7 +191,7 @@ namespace B
 
             await VerifyTextSpanAsync(content, 3, 10, 3, 11, new TextSpan(28, 1));
             var location = new DiagnosticDataLocation(
-                new(document.FilePath, new(3, 10), new(3, 11)), documentId, sourceSpan: new TextSpan(28, 1));
+                new(document.FilePath, new(3, 10), new(3, 11)), documentId);
 
             var diagnosticData = new DiagnosticData(
                 id: "test1",
@@ -215,7 +214,6 @@ namespace B
             var roundTripLocation = roundTripDiagnosticData.DataLocation;
             Assert.NotNull(roundTripDiagnosticData.DataLocation);
             Assert.Equal(location.DocumentId, roundTripLocation.DocumentId);
-            Assert.Equal(location.SourceSpan, roundTripLocation.SourceSpan);
             Assert.Equal(location.UnmappedFileSpan, roundTripLocation.UnmappedFileSpan);
         }
     }

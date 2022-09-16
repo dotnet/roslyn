@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
             {
-                DebugVerifyDiagnosticLocations(buildDiagnostics);
-
                 var solution = Workspace.CurrentSolution;
 
                 foreach (var (projectId, diagnostics) in buildDiagnostics)
@@ -98,18 +96,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                     }, cancellationToken);
                 }
-            }
-        }
-
-        [Conditional("DEBUG")]
-        private static void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
-        {
-            foreach (var diagnostic in buildDiagnostics.Values.SelectMany(v => v))
-            {
-                // errors from build shouldn't have any span set.
-                // this is debug check since it gets data from us only not from third party unlike one in compiler
-                // that checks span for third party reported diagnostics
-                Debug.Assert(!diagnostic.HasTextSpan);
             }
         }
 

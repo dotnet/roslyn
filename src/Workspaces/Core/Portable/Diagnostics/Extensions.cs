@@ -47,39 +47,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (textDocument == null)
                 return Location.None;
 
-            if (textDocument is Document document && document.SupportsSyntaxTree)
-            {
-                var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                return dataLocation.ConvertLocation(syntacticDocument);
-            }
+            var text = await textDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var tree = textDocument is Document { SupportsSyntaxTree: true } document
+                ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                : null;
 
-            return dataLocation.ConvertLocation();
-        }
+            // Intentionally get the unmapped text span (the span in the original document).  If there is any mapping it
+            // will be reapplied with tree.GetLocation below.
+            var span = dataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
 
-        public static Location ConvertLocation(
-            this DiagnosticDataLocation dataLocation, SyntacticDocument? document = null)
-        {
-            if (dataLocation?.DocumentId == null)
-            {
+            // Defer to the tree if we have one.  This will make sure that remapping is properly supported.
+            if (tree != null)
+                return tree.GetLocation(span);
+
+            if (textDocument.FilePath is null)
                 return Location.None;
-            }
 
-            if (document == null)
-            {
-                if (dataLocation.SourceSpan == null)
-                    return Location.None;
-
-                var span = dataLocation.SourceSpan.Value;
-                // TODO: is OriginalFileSpan correct here?  Presumably so as we don't have an actual document, so there
-                // could not be any remapping going on.
-                Debug.Assert(dataLocation.UnmappedFileSpan == dataLocation.MappedFileSpan);
-                return Location.Create(dataLocation.UnmappedFileSpan.Path, span, dataLocation.UnmappedFileSpan.Span);
-            }
-
-            Contract.ThrowIfFalse(dataLocation.DocumentId == document.Document.Id);
-
-            var syntaxTree = document.SyntaxTree;
-            return syntaxTree.GetLocation(dataLocation.SourceSpan ?? DiagnosticData.GetTextSpan(dataLocation, document.Text));
+            // Otherwise, just produce a basic location using the path/span information we determined.
+            return Location.Create(textDocument.FilePath, span, text.Lines.GetLinePositionSpan(span));
         }
 
         public static string GetAnalyzerId(this DiagnosticAnalyzer analyzer)
