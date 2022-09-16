@@ -30,6 +30,7 @@
             Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
             BorderThickness="0"
             Background="Transparent"
+            Focusable="True"
             AutomationProperties.Name="{Binding StackTrace}">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">

@@ -371,14 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
-                var type = _property.TypeWithAnnotations;
-                if (type.Type.IsStatic)
-                {
-                    // '{0}': static types cannot be used as return types
-                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), this.locations[0], type.Type);
-                }
-
-                return type;
+                return _property.TypeWithAnnotations;
             }
             else
             {
@@ -755,14 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isGetMethod)
             {
-                var propertyType = _property.TypeWithAnnotations;
-                if (propertyType.IsStatic)
-                {
-                    // '{0}': static types cannot be used as parameters
-                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), this.locations[0], propertyType.Type);
-                }
-
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));
+                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, _property.TypeWithAnnotations, parameters.Count));
             }
 
             return parameters.ToImmutableAndFree();

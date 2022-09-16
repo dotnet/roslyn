@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Utilities
@@ -364,7 +365,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId:=projId,
-                location:=New DiagnosticDataLocation(docId, Nothing, originalFile, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                location:=New DiagnosticDataLocation(
+                    New FileLinePositionSpan(originalFile, New LinePosition(originalLine, originalColumn), New LinePosition(originalLine, originalColumn)),
+                    docId,
+                    If(mappedFile Is Nothing, Nothing, New FileLinePositionSpan(mappedFile, New LinePosition(mappedLine, mappedColumn), New LinePosition(mappedLine, mappedColumn)))),
                 additionalLocations:=Nothing,
                 language:=LanguageNames.VisualBasic,
                 title:=Nothing)
@@ -379,8 +383,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       Equals(x.DataLocation?.OriginalStartLine, y.DataLocation?.OriginalStartLine) AndAlso
-                       Equals(x.DataLocation?.OriginalStartColumn, y.DataLocation?.OriginalStartColumn)
+                       Equals(x.DataLocation.UnmappedFileSpan.StartLinePosition, y.DataLocation.UnmappedFileSpan.StartLinePosition)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -388,8 +391,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(If(obj.DataLocation?.OriginalStartLine, 0),
-                       Hash.Combine(If(obj.DataLocation?.OriginalStartColumn, 0), obj.Severity))))))
+                       Hash.Combine(obj.DataLocation.UnmappedFileSpan.StartLinePosition.GetHashCode(), obj.Severity)))))
             End Function
         End Class
     End Class

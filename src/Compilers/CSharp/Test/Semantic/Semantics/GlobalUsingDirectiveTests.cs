@@ -3506,16 +3506,17 @@ class C1
   </methods>
 </symbols>
 ";
-            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
             var expected2 = @"
@@ -3543,16 +3544,16 @@ class C1
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
             var expected3 = @"
@@ -3579,16 +3580,16 @@ class C1
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
             var expected4 = @"
@@ -3614,19 +3615,19 @@ class C1
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", @"
 <symbols>
   <files>
@@ -3716,16 +3717,17 @@ namespace NS
   </methods>
 </symbols>
 ";
-            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected1);
 
             var expected2 = @"
@@ -3753,16 +3755,16 @@ namespace NS
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
             comp.VerifyPdb("C1.Main", expected2);
 
             var expected3 = @"
@@ -3789,16 +3791,16 @@ namespace NS
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected3);
 
             var expected4 = @"
@@ -3824,16 +3826,16 @@ namespace NS
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", expected4);
         }
 

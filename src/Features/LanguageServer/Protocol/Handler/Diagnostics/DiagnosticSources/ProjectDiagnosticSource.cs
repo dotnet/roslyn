@@ -25,7 +25,6 @@ internal sealed record class ProjectDiagnosticSource(Project Project) : IDiagnos
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken)
     {
         // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
