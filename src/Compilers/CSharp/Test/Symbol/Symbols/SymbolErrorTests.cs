@@ -13405,7 +13405,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("S").WithLocation(4, 11));
         }
 
-        [WorkItem(63975, "https://github.com/dotnet/roslyn/pull/63975")]
+        [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62485")]
         public void CS0721ERR_ParameterIsStaticClass_Lambdas()
         {
