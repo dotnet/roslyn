@@ -33,7 +33,7 @@ namespace Metalama.Compiler
             var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind,
                 includeChildren ? IncludeDescendantsData : ExcludeDescendantsData);
 
-            annotations.Add(annotation, new AnnotationData(node, false ));
+            annotations.Add(annotation, new AnnotationData(node ));
 
             return annotation;
         }
@@ -42,7 +42,7 @@ namespace Metalama.Compiler
         {
             var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, null);
 
-            annotations.Add(annotation, new AnnotationData(token, false ));
+            annotations.Add(annotation, new AnnotationData(token ));
 
             return annotation;
         }
@@ -61,8 +61,8 @@ namespace Metalama.Compiler
                 Debug.Fail("Cannot get the annotation data.");
             }
 
-            var newAnnotation = new SyntaxAnnotation(oldAnnotation.Kind, oldAnnotation.Data);
-            annotations.Add(newAnnotation, new AnnotationData(oldAnnotationData.NodeOrToken, true ));
+            var newAnnotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, ExcludeDescendantsData);
+            annotations.Add(newAnnotation, new AnnotationData(oldAnnotationData.NodeOrToken ));
 
             return newAnnotation;
         }
@@ -239,20 +239,13 @@ namespace Metalama.Compiler
                 sourceNode = sourceAncestor;
                 return true;
             }
-            else if (annotationData.IsModified)
+            else if (annotation.Data == ExcludeDescendantsData)
             {
-                // The node was meant to be modified, so we cannot map anything.
                 sourceNode = null;
                 return false;
-
             }
             else
             {
-                // If the annotation was found on an ancestor of the node, we need to find the right child
-                // in the ancestor. In case that the source node was replaced by a different node (instead of being
-                // just copied), we might be unable to find this node. For instance, if `return 5;` is replaced
-                // by `var x = 5;`, then there is no source for the nodes and token `var`, `x` and `=`.
-                
                 var originalPosition = node.Position - ancestor.Position + sourceAncestor.Position;
                 var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
                 
@@ -690,12 +683,10 @@ namespace Metalama.Compiler
         private class AnnotationData
         {
             public SyntaxNodeOrToken NodeOrToken { get; }
-            public bool IsModified { get; }
-
-            public AnnotationData(SyntaxNodeOrToken nodeOrToken, bool isModified)
+            
+            public AnnotationData(SyntaxNodeOrToken nodeOrToken)
             {
                 NodeOrToken = nodeOrToken;
-                IsModified = isModified;
             }
         }
 
