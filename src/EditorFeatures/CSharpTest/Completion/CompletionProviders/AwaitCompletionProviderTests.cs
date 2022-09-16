@@ -557,8 +557,8 @@ static class Program
 }}", dotAwait: true, dotAwaitf: true);
         }
 
-        [WorkItem(56245, "https://github.com/dotnet/roslyn/issues/56245")]
         [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
+        [WorkItem(56245, "https://github.com/dotnet/roslyn/issues/56245")]
         public async Task TestDotAwaitSuggestBeforeLocalFunction()
         {
             // Speculative binding a local as expression finds the local as ILocalSymbol, but the type is ErrorType.

@@ -1219,8 +1219,8 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnYieldReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1249,8 +1249,8 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnYieldReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1333,8 +1333,8 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotOnMixedYields_Throw1()
         {
             await TestMissingAsync(
@@ -1397,8 +1397,8 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithNoElseBlockButFollowingYieldReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1426,8 +1426,8 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn_Throw2()
         {
             await TestMissingAsync(

@@ -728,8 +728,8 @@ class B
 
         // Different number of tuple elements
         // in value and declared type.
-        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
         [Fact(Skip = "13420")]
+        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
         public void ValueAndTypeDifferentElementCount()
         {
             var source =
@@ -792,8 +792,8 @@ class C
             }
         }
 
-        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
         [Fact(Skip = "13420")]
+        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
         public void ValueAndTypeDifferentElementCount_LongTuple()
         {
             var source =

@@ -1066,8 +1066,8 @@ class C
             });
         }
 
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
+        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_Parameter()
         {
             var source =
@@ -1091,8 +1091,8 @@ class C
             });
         }
 
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
+        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_Local()
         {
             var source =
@@ -1117,8 +1117,8 @@ class C
             });
         }
 
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
+        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_OtherDeclaration()
         {
             var source =

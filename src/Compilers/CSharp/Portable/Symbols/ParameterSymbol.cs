@@ -416,11 +416,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         /// <summary>
-        /// The declared scope. From source, this is from the <c>scope</c> keyword only.
-        /// </summary>
-        internal abstract DeclarationScope DeclaredScope { get; }
-
-        /// <summary>
         /// The effective scope. This is from the declared scope, implicit scope and any
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>

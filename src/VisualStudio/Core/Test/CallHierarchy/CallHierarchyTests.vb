@@ -4,14 +4,17 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CallHierarchy)>
     Public Class CallHierarchyTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestScopes()
             Dim input =
 <Workspace>
@@ -78,7 +81,7 @@ public class DSSS
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestVBMethod()
             Dim input =
 <Workspace>
@@ -99,7 +102,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestVBInterface()
             Dim input =
 <Workspace>
@@ -125,7 +128,7 @@ End Interface
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestInterfaceScopes()
             Dim input =
 <Workspace>
@@ -183,7 +186,7 @@ public class D : I
         End Sub
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestCallHierarchyCrossProjectForImplements()
             Dim input =
 <Workspace>
@@ -216,14 +219,14 @@ class CSharpIt : IChangeSignatureOptionsService
                 testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
-                                     Assert.Equal("Assembly2", c.Project.Name)
+                                     Assert.Equal("Assembly2", c.ProjectName)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
             End Using
         End Sub
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestCallHierarchyCrossProjectForCallsTo()
             Dim input =
 <Workspace>
@@ -255,14 +258,14 @@ class D
                                  String.Format(EditorFeaturesResources.Calls_To_0, "M"),
                                  Sub(c)
                                      ' The child items should be in the second project
-                                     Assert.Equal("Assembly2", c.Project.Name)
+                                     Assert.Equal("Assembly2", c.ProjectName)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
             End Using
         End Sub
 
         <WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestMustInheritMethodInclusionToOverrides()
             Dim input =
 <Workspace>
@@ -290,7 +293,7 @@ End Class
         End Sub
 
         <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestNavigateCrossProject()
             Dim input =
     <Workspace>
@@ -304,7 +307,7 @@ public class C
         </Project>
         <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
             <ProjectReference>Assembly1</ProjectReference>
-            <Document>
+            <Document FilePath="OtherDoc.cs">
 class D : C
 {
     public override void goo() { }
@@ -313,18 +316,19 @@ class D : C
         </Project>
     </Workspace>
 
-            Using testState = CallHierarchyTestState.Create(input, GetType(MockSymbolNavigationServiceProvider))
+            Using testState = CallHierarchyTestState.Create(input, GetType(MockDocumentNavigationServiceProvider))
                 Dim root = testState.GetRoot()
                 testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.goo()")
 
-                Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationServiceProvider.MockSymbolNavigationService)
-                Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedSymbol)
-                Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedProject)
+                Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
+                Dim document = testState.Workspace.CurrentSolution.GetRequiredDocument(mockNavigationService.ProvidedDocumentId)
+                Assert.Equal("OtherDoc.cs", document.Name)
+                Assert.Equal(TextSpan.FromBounds(43, 46), mockNavigationService.ProvidedTextSpan)
             End Using
         End Sub
 
         <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestUseDocumentIdWhenNavigating()
             Dim input =
     <Workspace>
@@ -364,7 +368,7 @@ namespace N
         End Sub
 
         <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberCS()
             Dim input =
     <Workspace>
@@ -387,7 +391,7 @@ cla$$ss C
         End Sub
 
         <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberCS2()
             Dim input =
     <Workspace>
@@ -411,7 +415,7 @@ class CC
         End Sub
 
         <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberCS3()
             Dim input =
     <Workspace>
@@ -435,7 +439,7 @@ class CC
         End Sub
 
         <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact>
         Public Sub TestDisplayErrorWhenNotOnMemberVB()
             Dim input =
     <Workspace>

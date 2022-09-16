@@ -8,8 +8,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -107,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return "New"
             End If
 
-            Return MyBase.GetFilterText(symbol, displayText, context)
+            Return GetFilterTextDefault(symbol, displayText, context)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)), context As VisualBasicSyntaxContext) As CompletionItemRules
-            Dim preselect = symbols.Any(Function(s) s.preselect)
+        Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of SymbolAndSelectionInfo), context As VisualBasicSyntaxContext) As CompletionItemRules
+            Dim preselect = symbols.Any(Function(s) s.Preselect)
             Return If(s_cachedRules(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext)),
                       CompletionItemRules.Default)
         End Function

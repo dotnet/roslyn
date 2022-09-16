@@ -2930,16 +2930,16 @@ class C
             await TestAsync(text, "global::C", TestMode.Position);
         }
 
-        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
         [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
         public async Task TestDeconstruction()
         {
             await TestInMethodAsync(
 @"[|(int i, _)|] =", "(global::System.Int32 i, global::System.Object _)", TestMode.Node);
         }
 
-        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
         [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
         public async Task TestDeconstruction2()
         {
             await TestInMethodAsync(

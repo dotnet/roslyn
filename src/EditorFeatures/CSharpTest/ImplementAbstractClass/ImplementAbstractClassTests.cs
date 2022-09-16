@@ -1612,8 +1612,8 @@ sealed class D : B
 }");
         }
 
-        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
         [Fact, WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
         public async Task TestAutoProperties()
         {
             var options = new OptionsCollection(GetLanguage())

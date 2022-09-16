@@ -8152,10 +8152,10 @@ ref struct S<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,11): error CS9061: Target runtime doesn't support ref fields.
+                // (4,11): error CS9064: Target runtime doesn't support ref fields.
                 //     ref T F1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F1").WithLocation(4, 11),
-                // (5,20): error CS9061: Target runtime doesn't support ref fields.
+                // (5,20): error CS9064: Target runtime doesn't support ref fields.
                 //     ref readonly T F2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F2").WithLocation(5, 20)
                 );

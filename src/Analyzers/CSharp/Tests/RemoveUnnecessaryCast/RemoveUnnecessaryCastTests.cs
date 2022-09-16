@@ -727,8 +727,8 @@ class Test
             }.RunAsync();
         }
 
-        [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
         public async Task RemoveUnneededCastInsideADelegateConstructor()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -823,8 +823,8 @@ class Test
 }");
         }
 
-        [WorkItem(545578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(545578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
         public async Task RemoveUnneededCastInsideGotoCaseStatement()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2156,8 +2156,8 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [Fact, WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         public async Task DoNotRemoveNecessaryCastBeforePointerDereference3()
         {
             // Conservatively disable cast simplifications for casts involving pointer conversions.
@@ -2175,8 +2175,8 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [Fact, WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         public async Task DoNotRemoveNumericCastInUncheckedExpression()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
@@ -2199,8 +2199,8 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [Fact, WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         public async Task DoNotRemoveNumericCastInUncheckedStatement()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
@@ -2226,8 +2226,8 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [Fact, WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         public async Task DoNotRemoveNumericCastInCheckedExpression()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
@@ -2250,8 +2250,8 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [Fact, WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         public async Task DoNotRemoveNumericCastInCheckedStatement()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
@@ -2559,8 +2559,8 @@ class Y : X, IDisposable
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         public async Task DoRemoveCastToInterfaceForSealedType1()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -2607,8 +2607,8 @@ sealed class C : I
 ");
         }
 
-        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         public async Task DoRemoveCastToInterfaceForSealedType2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2662,8 +2662,8 @@ sealed class C : I
 ");
         }
 
-        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         public async Task DoRemoveCastToInterfaceForSealedType3()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -2748,8 +2748,8 @@ sealed class C : I
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         public async Task DoRemoveCastToInterfaceForSealedTypeWhenParameterValuesDifferButExplicitValueIsProvided()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -3056,8 +3056,8 @@ sealed class C : I
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         public async Task DoNotRemoveCastToInterfaceForSealedType7()
         {
             var source =
@@ -3218,8 +3218,8 @@ struct S : IIncrementable
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, WorkItem(545834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834")]
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         public async Task RemoveCastToInterfaceForStruct2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -4257,8 +4257,8 @@ class MyAttributeAttribute : Attribute
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(608180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
         [Fact, WorkItem(624252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624252")]
+        [WorkItem(608180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
         public async Task DoNotRemoveCastIfArgumentIsRestricted_TypedReference()
         {
             var source =
@@ -4639,8 +4639,8 @@ public struct B
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(844482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
         [Fact, WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")]
+        [WorkItem(844482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
         public async Task DoNotRemoveCastFromBaseToDerivedWithExplicitReference()
         {
             var source =
@@ -10984,8 +10984,8 @@ class C
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
         public async Task DoRemoveNRTCastInConditional1()
         {
             await new VerifyCS.Test

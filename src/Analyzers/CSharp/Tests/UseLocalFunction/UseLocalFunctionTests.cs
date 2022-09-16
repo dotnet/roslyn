@@ -3075,8 +3075,8 @@ class Enclosing<U> : DelegateEnclosing<U>
 }");
         }
 
-        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56963")]
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
         public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
         {
             await TestInRegularAndScript1Async(

@@ -368,8 +368,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
-        <Theory>
+        <Theory, WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         <CombinatorialData>
         Public Async Function TestCaseSensitivity1(testHost As TestHost) As Task
             Await TestAsync(
@@ -567,8 +566,7 @@ End Namespace",
 count:=1)
         End Function
 
-        <WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
-        <Theory>
+        <Theory, WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <CombinatorialData>
         Public Async Function TestFixInExistingUsing(testHost As TestHost) As Task
             Await TestAsync(
@@ -589,8 +587,7 @@ Namespace NS
 End Namespace", testHost)
         End Function
 
-        <WorkItem(541731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541731")>
-        <Theory>
+        <Theory, WorkItem(541731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541731")>
         <CombinatorialData>
         Public Async Function TestGenericExtensionMethod(testHost As TestHost) As Task
             Await TestAsync(
@@ -631,8 +628,7 @@ Module Program
 End Module", testHost)
         End Function
 
-        <WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
-        <Theory>
+        <Theory, WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <CombinatorialData>
         Public Async Function TestAddWithExistingConflictWithDifferentArity(testHost As TestHost) As Task
             Await TestAsync(
@@ -653,8 +649,7 @@ Namespace NS
 End Namespace", testHost)
         End Function
 
-        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
-        <Theory>
+        <Theory, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <CombinatorialData>
         Public Async Function TestImportNamespace(testHost As TestHost) As Task
             Await TestAsync(
@@ -714,8 +709,7 @@ Namespace SomeNamespace
 End Namespace", testHost)
         End Function
 
-        <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
-        <Theory>
+        <Theory, WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         <CombinatorialData>
         Public Async Function TestCaseSensitivity3(testHost As TestHost) As Task
             Await TestAsync(
@@ -745,8 +739,7 @@ Namespace OUTER
 End Namespace", testHost)
         End Function
 
-        <WorkItem(541746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541746")>
-        <Theory>
+        <Theory, WorkItem(541746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541746")>
         <CombinatorialData>
         Public Async Function TestAddBlankLineAfterLastImports(testHost As TestHost) As Task
             Await TestAsync(
@@ -846,8 +839,7 @@ Class C1
 End Class")
         End Function
 
-        <WorkItem(544335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544335")>
-        <Theory>
+        <Theory, WorkItem(544335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544335")>
         <CombinatorialData>
         Public Async Function TestOnCallWithoutArgumentList(testHost As TestHost) As Task
             Await TestAsync(
@@ -905,8 +897,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(546369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546369")>
-        <Theory>
+        <Theory, WorkItem(546369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546369")>
         <CombinatorialData>
         Public Async Function TestFormattingAfterImports(testHost As TestHost) As Task
             Await TestAsync(
@@ -930,8 +921,7 @@ End Module
 </Text>.Value.Replace(vbLf, vbCrLf), testHost)
         End Function
 
-        <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
-        <Theory>
+        <Theory, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         <CombinatorialData>
         Public Async Function TestShouldTriggerOnBC32045(testHost As TestHost) As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -953,8 +943,7 @@ Module Program
 End Module</Text>.Value.Replace(vbLf, vbCrLf), testHost)
         End Function
 
-        <WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
-        <Theory>
+        <Theory, WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
         <CombinatorialData>
         Public Async Function TestUnknownIdentifierInModule(testHost As TestHost) As Task
             Await TestAsync(
@@ -974,8 +963,7 @@ Module Goo
 End Module", testHost)
         End Function
 
-        <WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")>
-        <Theory>
+        <Theory, WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")>
         <CombinatorialData>
         Public Async Function TestConflictedGenericName(testHost As TestHost) As Task
             Await TestAsync(
@@ -995,8 +983,7 @@ Module Goo
 End Module", testHost)
         End Function
 
-        <WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")>
-        <Theory>
+        <Theory, WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")>
         <CombinatorialData>
         Public Async Function TestConflictedInaccessibleType(testHost As TestHost) As Task
             Await TestAsync(
@@ -1024,8 +1011,7 @@ Class C
 End Class", testHost, index:=1)
         End Function
 
-        <WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>
-        <Theory>
+        <Theory, WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>
         <CombinatorialData>
         Public Async Function TestConflictedAttributeName(testHost As TestHost) As Task
             Await TestAsync(
@@ -1037,8 +1023,7 @@ End Class",
 End Class", testHost)
         End Function
 
-        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
-        <Theory>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <CombinatorialData>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod(testHost As TestHost) As Task
             Await TestAsync(
@@ -1088,9 +1073,8 @@ Namespace NS2
 End Namespace", testHost)
         End Function
 
-        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
-        <Theory>
         <CombinatorialData>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod(testHost As TestHost) As Task
             Await TestAsync(
@@ -1140,9 +1124,8 @@ Namespace NS2
 End Namespace", testHost)
         End Function
 
-        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
-        <Theory>
         <CombinatorialData>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod(testHost As TestHost) As Task
             Await TestAsync(
@@ -1400,8 +1383,7 @@ End Class
                 parseOptions:=options)
         End Function
 
-        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
-        <Theory>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <CombinatorialData>
         Public Async Function TestExtensionMethodNoMemberAccessOverload(testHost As TestHost) As Task
             Await TestAsync(
@@ -1445,8 +1427,7 @@ Namespace NS2
 End Namespace", testHost, )
         End Function
 
-        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
-        <Theory>
+        <Theory, WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <CombinatorialData>
         Public Async Function TestExtensionMethodNoMemberAccess(testHost As TestHost) As Task
             Await TestAsync(
@@ -1486,8 +1467,7 @@ Namespace NS2
 End Namespace", testHost, )
         End Function
 
-        <WorkItem(1003618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003618")>
-        <Theory>
+        <Theory, WorkItem(1003618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003618")>
         <CombinatorialData>
         Public Async Function TestAddImportsTypeParsedAsNamespace(testHost As TestHost) As Task
             Await TestAsync(
@@ -1526,8 +1506,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 End Namespace", testHost)
         End Function
 
-        <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
-        <Theory>
+        <Theory, WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
         <CombinatorialData>
         Public Async Function TestAddImportsForTypeAttribute(testHost As TestHost) As Task
             Await TestAsync(
@@ -1558,8 +1537,7 @@ Namespace N
 End Namespace", testHost)
         End Function
 
-        <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
-        <Theory>
+        <Theory, WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
         <CombinatorialData>
         Public Async Function TestAddImportsForTypeAttributeMultipleNestedClasses(testHost As TestHost) As Task
             Await TestAsync(
@@ -1594,8 +1572,7 @@ Namespace N
 End Namespace", testHost)
         End Function
 
-        <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
-        <Theory>
+        <Theory, WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
         <CombinatorialData>
         Public Async Function TestAddImportsForTypeAttributePartiallyQualified(testHost As TestHost) As Task
             Await TestAsync(
@@ -1630,8 +1607,7 @@ Namespace N
 End Namespace", testHost)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Theory>
+        <Theory, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <CombinatorialData>
         Public Async Function TestConditionalAccessExtensionMethod(testHost As TestHost) As Task
             Dim initial = <Workspace>
@@ -1668,8 +1644,7 @@ End Class
             Await TestAsync(initial, expected, testHost)
         End Function
 
-        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
-        <Theory>
+        <Theory, WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <CombinatorialData>
         Public Async Function TestConditionalAccessExtensionMethod2(testHost As TestHost) As Task
             Dim initial = <Workspace>
@@ -2437,8 +2412,7 @@ Namespace A
 End Namespace", testHost, placeSystemFirst:=False)
         End Function
 
-        <WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
-        <Theory>
+        <Theory, WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")>
         <CombinatorialData>
         Public Async Function TestWhenInRome2(testHost As TestHost) As Task
             Await TestAsync(

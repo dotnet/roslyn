@@ -915,8 +915,8 @@ class C
 }");
         }
 
-        [WorkItem(17470, "https://github.com/dotnet/roslyn/issues/17470")]
         [Fact, WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        [WorkItem(17470, "https://github.com/dotnet/roslyn/issues/17470")]
         public async Task AwaitInValueTaskMethod()
         {
             var initial =

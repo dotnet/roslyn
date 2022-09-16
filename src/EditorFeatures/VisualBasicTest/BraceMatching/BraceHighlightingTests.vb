@@ -17,6 +17,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
     Public Class BraceHighlightingTests
 
         Private Shared Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Return context.tagSpans
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact>
         Public Async Function TestParens() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
@@ -75,7 +76,7 @@ End Module")
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact>
         Public Async Function TestNestedTouchingItems() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
@@ -150,7 +151,7 @@ End Module")
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact>
         Public Async Function TestUnnestedTouchingItems() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
@@ -190,7 +191,7 @@ End Module")
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact>
         Public Async Function TestAngles() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1

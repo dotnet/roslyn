@@ -487,8 +487,8 @@ End Module
             VerifyNoMe(context)
         End Sub
 
-        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact, WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         Public Sub LambdaLocations_HasThis()
             Const source = "
 Imports System

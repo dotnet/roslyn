@@ -1647,8 +1647,8 @@ class Program
             await AssertFormatAsync(code, content);
         }
 
-        [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
         [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
         public async Task FormatInvalidCode_1()
         {
             var expected = @"> Roslyn.Utilities.dll!   Basic";
@@ -1656,8 +1656,8 @@ class Program
             await AssertFormatAsync(expected, content);
         }
 
-        [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
         [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";

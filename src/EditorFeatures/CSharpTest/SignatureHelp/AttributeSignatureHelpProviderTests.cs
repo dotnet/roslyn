@@ -289,8 +289,8 @@ class C
 
         #region "Setting fields in attributes"
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithValidField()
         {
             var markup = @"
@@ -374,8 +374,8 @@ class D
 
         #region "Setting properties in attributes"
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithValidProperty()
         {
             var markup = @"
@@ -496,8 +496,8 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(12544, "https://github.com/dotnet/roslyn/issues/12544")]
         [Fact, WorkItem(23664, "https://github.com/dotnet/roslyn/issues/23664")]
+        [WorkItem(12544, "https://github.com/dotnet/roslyn/issues/12544")]
         public async Task TestAttributeWithOverriddenProperty()
         {
             var markup = @"
@@ -529,8 +529,8 @@ class C
 
         #region "Setting fields and arguments"
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithArgumentsAndNamedParameters1()
         {
             var markup = @"
@@ -555,8 +555,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithArgumentsAndNamedParameters2()
         {
             var markup = @"
@@ -581,8 +581,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithArgumentsAndNamedParameters3()
         {
             var markup = @"
@@ -607,8 +607,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithOptionalArgumentAndNamedParameterWithSameName1()
         {
             var markup = @"
@@ -631,8 +631,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         [Fact, WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
         public async Task TestAttributeWithOptionalArgumentAndNamedParameterWithSameName2()
         {
             var markup = @"

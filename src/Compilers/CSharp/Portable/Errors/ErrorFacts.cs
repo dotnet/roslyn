@@ -502,6 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return 1;
                 default:
                     return 0;
@@ -2221,6 +2223,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
+                case ErrorCode.ERR_FileLocalDuplicateNameInNS:
+                case ErrorCode.ERR_ScopedNotBeforeType:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
