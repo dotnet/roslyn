@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return p => projectHierarchy == null || p.Id == projectIdToMatch;
         }
 
-        private ImmutableArray<DiagnosticData> GetAllBuildDiagnostics(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
@@ -174,7 +174,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 {
                     var diagnosticsByDocument = diagnosticsByProject.GroupBy(d => d.DocumentId);
                     foreach (var group in diagnosticsByDocument)
-                        builder.AddRange(group);
+                    {
+                        var documentId = group.Key;
+                        if (documentId == null)
+                        {
+                            // Project diagnostics, just add all of them.
+                            builder.AddRange(group);
+                            continue;
+                        }
+
+                        // For document diagnostics, build does not have the computed text span info.
+                        // So we explicitly calculate the text span from the source text for the diagnostics.
+                        var document = project.GetDocument(documentId);
+                        if (document != null)
+                        {
+                            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                            var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            foreach (var diagnostic in group)
+                            {
+                                var span = diagnostic.DataLocation.GetUnmappedTextSpan(text);
+                                builder.Add(diagnostic.WithLocations(diagnostic.DataLocation.WithSpan(span, tree), additionalLocations: default));
+                            }
+                        }
+                    }
                 }
             }
 
@@ -196,11 +218,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry
                 // snapshots. Otherwise, get all diagnostics from the diagnostic service.
-                var diagnosticsArray = selectedEntriesOnly
-                    ? _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken).WaitAndGetResult(cancellationToken)
-                    : GetAllBuildDiagnostics(shouldFixInProject, cancellationToken);
+                var diagnosticsToFixTask = selectedEntriesOnly
+                    ? _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken)
+                    : GetAllBuildDiagnosticsAsync(shouldFixInProject, cancellationToken);
 
-                diagnosticsToFix = diagnosticsArray.ToImmutableHashSet();
+                diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken).ToImmutableHashSet();
             }
 
             var title = GetFixTitle(isAddSuppression);
