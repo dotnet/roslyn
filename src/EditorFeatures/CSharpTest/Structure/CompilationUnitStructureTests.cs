@@ -150,15 +150,6 @@ $${|hint:using|} {|textspan:|}";
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, WorkItem(16186, "https://github.com/dotnet/roslyn/issues/16186")]
-        public async Task TestInvalidComment()
-        {
-            const string code = @"$${|span:/*/|}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/* / ...", autoCollapse: true));
-        }
-
         [Theory, CombinatorialData]
         public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)
         {

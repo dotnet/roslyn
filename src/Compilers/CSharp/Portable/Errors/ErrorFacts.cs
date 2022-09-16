@@ -502,6 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return 1;
                 default:
                     return 0;
@@ -2211,7 +2213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefFieldInNonRefStruct:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
-                case ErrorCode.ERR_MisplacedScoped:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
@@ -2221,6 +2222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

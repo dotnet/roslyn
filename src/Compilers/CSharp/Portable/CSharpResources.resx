@@ -6763,8 +6763,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
   </data>
+  <data name="WRN_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</value>
+  </data>
   <data name="ERR_ScopedMismatchInParameterOfTarget" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfTarget" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfTarget_Title" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter doesn't match target.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
@@ -7192,9 +7204,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_PointerElementAccess" xml:space="preserve">
     <value>pointer element access</value>
-  </data>
-  <data name="ERR_MisplacedScoped" xml:space="preserve">
-    <value>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</value>
   </data>
   <data name="ERR_ScopedTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'scoped'.</value>
