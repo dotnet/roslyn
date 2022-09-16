@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
             using var outputFile = output != null ? new StreamWriter(output, append: false, Encoding.UTF8) : null;
-            TextWriter? outputWriter;
+            TextWriter outputWriter;
 
             if (outputFile is null)
             {
