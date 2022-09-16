@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: Find the set of types D from which user-defined conversion operators
             // SPEC: will be considered...
-            var d = ArrayBuilder<TypeSymbol>.GetInstance();
+            var d = ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)>.GetInstance();
             ComputeUserDefinedExplicitConversionTypeSet(source, target, d, ref useSiteInfo);
 
             // SPEC: Find the set of applicable user-defined and lifted conversion operators, U...
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UserDefinedConversionResult.Valid(u, best.Value);
         }
 
-        private static void ComputeUserDefinedExplicitConversionTypeSet(TypeSymbol source, TypeSymbol target, ArrayBuilder<TypeSymbol> d, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static void ComputeUserDefinedExplicitConversionTypeSet(TypeSymbol source, TypeSymbol target, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> d, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Spec 6.4.5: User-defined explicit conversions
             //   Find the set of types, D, from which user-defined conversion operators will be considered. 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol source,
             TypeSymbol target,
             bool isChecked,
-            ArrayBuilder<TypeSymbol> d,
+            ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> d,
             ArrayBuilder<UserDefinedConversionAnalysis> u,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -97,30 +97,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(d != null);
             Debug.Assert(u != null);
 
-            HashSet<NamedTypeSymbol> lookedInInterfaces = null;
+            bool haveInterfaces = false;
 
-            foreach (TypeSymbol declaringType in d)
+            foreach ((NamedTypeSymbol declaringType, TypeParameterSymbol constrainedToTypeOpt) in d)
             {
-                if (declaringType is TypeParameterSymbol typeParameter)
+                if (declaringType.IsInterface)
                 {
-                    ImmutableArray<NamedTypeSymbol> interfaceTypes = typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-
-                    if (!interfaceTypes.IsEmpty)
-                    {
-                        lookedInInterfaces ??= new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.AllIgnoreOptions); // Equivalent to has identity conversion check
-
-                        foreach (var interfaceType in interfaceTypes)
-                        {
-                            if (lookedInInterfaces.Add(interfaceType))
-                            {
-                                addCandidatesFromType(constrainedToTypeOpt: typeParameter, interfaceType, sourceExpression, source, target, isChecked: isChecked, u, ref useSiteInfo);
-                            }
-                        }
-                    }
+                    Debug.Assert(constrainedToTypeOpt is not null);
+                    haveInterfaces = true;
                 }
                 else
                 {
-                    addCandidatesFromType(constrainedToTypeOpt: null, (NamedTypeSymbol)declaringType, sourceExpression, source, target, isChecked: isChecked, u, ref useSiteInfo);
+                    addCandidatesFromType(constrainedToTypeOpt: null, declaringType, sourceExpression, source, target, isChecked: isChecked, u, ref useSiteInfo);
+                }
+            }
+
+            if (u.Count == 0 && haveInterfaces)
+            {
+                foreach ((NamedTypeSymbol declaringType, TypeParameterSymbol constrainedToTypeOpt) in d)
+                {
+                    if (declaringType.IsInterface)
+                    {
+                        addCandidatesFromType(constrainedToTypeOpt: constrainedToTypeOpt, declaringType, sourceExpression, source, target, isChecked: isChecked, u, ref useSiteInfo);
+                    }
                 }
             }
 
@@ -396,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)source != null)
             {
-                if (u.Any(conv => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2)))
+                if (u.Any(static (conv, source) => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2), source))
                 {
                     return source;
                 }
@@ -451,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already written the "ToType" into the conversion analysis to
             // perpetuate this fiction.
 
-            if (u.Any(conv => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2)))
+            if (u.Any(static (conv, target) => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2), target))
             {
                 return target;
             }

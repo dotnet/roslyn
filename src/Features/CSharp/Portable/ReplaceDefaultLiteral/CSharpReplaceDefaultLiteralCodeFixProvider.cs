@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         {
             var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
             return type.TypeKind == TypeKind.Enum &&
-                   type.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(flagsAttribute));
+                   type.GetAttributes().Any(static (attribute, flagsAttribute) => attribute.AttributeClass.Equals(flagsAttribute), flagsAttribute);
         }
 
         private static bool IsZero(object o)

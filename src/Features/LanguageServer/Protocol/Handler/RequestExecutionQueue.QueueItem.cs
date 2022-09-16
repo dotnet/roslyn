@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 IRequestHandler<TRequestType, TResponseType> handler,
                 Guid activityId,
                 ILspLogger logger,
-                RequestTelemetryLogger telemetryLogger,
+                LspServices lspServices,
                 CancellationToken cancellationToken)
             {
                 var queueItem = new QueueItem<TRequestType, TResponseType>(
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     handler,
                     activityId,
                     logger,
-                    telemetryLogger,
+                    lspServices.GetRequiredService<RequestTelemetryLogger>(),
                     cancellationToken);
 
                 return (queueItem, queueItem._completionSource.Task);

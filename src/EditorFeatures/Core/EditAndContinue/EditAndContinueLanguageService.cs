@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
@@ -24,9 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
-        private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
@@ -38,7 +37,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private bool _disabled;
         private RemoteDebuggingSessionProxy? _debuggingSession;
 
-        private Solution? _pendingUpdatedSolution;
+        private Solution? _pendingUpdatedDesignTimeSolution;
+        private Solution? _committedDesignTimeSolution;
+
         public event Action<Solution>? SolutionCommitted;
 
         /// <summary>
@@ -59,10 +60,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
-        private Solution GetCurrentCompileTimeSolution()
+        private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
         {
             var workspace = WorkspaceProvider.Value.Workspace;
-            return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(workspace.CurrentSolution);
+            return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? workspace.CurrentSolution);
         }
 
         private RemoteDebuggingSessionProxy GetDebuggingSession()
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var workspace = WorkspaceProvider.Value.Workspace;
-                var solution = GetCurrentCompileTimeSolution();
+                var solution = GetCurrentCompileTimeSolution(_committedDesignTimeSolution = workspace.CurrentSolution);
                 var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
                 var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
@@ -178,19 +179,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
+            var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
+            Contract.ThrowIfNull(committedDesignTimeSolution);
+
             try
             {
-                var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
-                Contract.ThrowIfNull(committedSolution);
-                SolutionCommitted?.Invoke(committedSolution);
+                SolutionCommitted?.Invoke(committedDesignTimeSolution);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
 
+            _committedDesignTimeSolution = committedDesignTimeSolution;
+
             try
             {
-                Contract.ThrowIfTrue(_disabled);
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -205,7 +213,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            _pendingUpdatedSolution = null;
+            Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
 
             try
             {
@@ -229,7 +237,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var solution = GetCurrentCompileTimeSolution();
                 await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+
                 _debuggingSession = null;
+                _committedDesignTimeSolution = null;
+                _pendingUpdatedDesignTimeSolution = null;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -245,6 +256,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
+        /// For performance reasons it only implements a heuristic and may return both false positives and false negatives.
+        /// If the result is a false negative the debugger will not apply the changes unless the user explicitly triggers apply change command.
+        /// The background diagnostic analysis will still report rude edits for these ignored changes. It may also happen that these rude edits 
+        /// will disappear once the debuggee is resumed - if they are caused by presence of active statements around the change.
+        /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
+        /// with no actual deltas to be applied.
+        /// 
+        /// If <paramref name="sourceFilePath"/> is specified checks for changes only in a document of the given path.
+        /// This is not supported (returns false) for source-generated documents.
         /// </summary>
         public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
@@ -256,9 +276,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return false;
                 }
 
-                var solution = GetCurrentCompileTimeSolution();
-                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await debuggingSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(_committedDesignTimeSolution);
+                var oldSolution = _committedDesignTimeSolution;
+                var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
+
+                return (sourceFilePath != null) ?
+                    await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false) :
+                    await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -266,37 +290,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty);
-            }
-
-            var solution = GetCurrentCompileTimeSolution();
-            var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-            var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
-            _pendingUpdatedSolution = solution;
-            return updates.FromContract();
-        }
-
-        public async ValueTask<ManagedHotReloadUpdates> GetHotReloadUpdatesAsync(CancellationToken cancellationToken)
+        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         {
             if (_disabled)
             {
                 return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
             }
 
-            var solution = GetCurrentCompileTimeSolution();
-            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
-            _pendingUpdatedSolution = solution;
+            var workspace = WorkspaceProvider.Value.Workspace;
+            var designTimeSolution = workspace.CurrentSolution;
+            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
+            var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
-            var updates = moduleUpdates.Updates.SelectAsArray(
-                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
+            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
+            if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
+            {
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            }
 
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
-
-            return new ManagedHotReloadUpdates(updates, diagnostics.FromContract());
+            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
         }
 
         public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)

@@ -5,6 +5,7 @@
     <ItemGroup>
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net6.0\publish\*.targets" />
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net6.0\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net6.0\publish\Microsoft.Build.Tasks.CodeAnalysis.deps.json" />
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net6.0\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.dll" />

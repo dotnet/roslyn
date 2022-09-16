@@ -2574,6 +2574,38 @@ class C
             }
         }
 
+        [Fact]
+        public void GetForeachInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string?[] nullableStrings, string[] strings)
+    {
+        foreach (var o in nullableStrings) {}
+        foreach (var o in strings) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedElementTypeAnnotation)
+            {
+                var foreachInfo = model.GetForEachStatementInfo(foreachStatement);
+                Assert.Equal(expectedElementTypeAnnotation, foreachInfo.ElementType.NullableAnnotation);
+            }
+        }
+
         [InlineData("always")]
         [InlineData("never")]
         [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]

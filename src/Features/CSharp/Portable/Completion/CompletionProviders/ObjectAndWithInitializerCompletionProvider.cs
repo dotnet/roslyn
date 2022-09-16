@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member is IPropertySymbol property && property.Parameters.Any(p => !p.IsOptional))
+            if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
             {
                 return false;
             }

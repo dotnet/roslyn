@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         // method (or if it doesn't bind).
 
                         var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-                        return symbolInfo.GetBestOrAllSymbols().Any() && !symbolInfo.GetBestOrAllSymbols().Any(s => s is IMethodSymbol);
+                        return symbolInfo.GetBestOrAllSymbols().Any() && !symbolInfo.GetBestOrAllSymbols().Any(static s => s is IMethodSymbol);
                     }
                     else
                     {

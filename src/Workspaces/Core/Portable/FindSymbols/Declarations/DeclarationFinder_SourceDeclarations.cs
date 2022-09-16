@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
@@ -180,27 +179,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using var query = SearchQuery.Create(name, ignoreCase);
 
-            var result = ArrayBuilder<ISymbol>.GetInstance();
-            foreach (var projectId in solution.ProjectIds)
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            foreach (var project in solution.Projects)
             {
-                var project = solution.GetProject(projectId);
                 await AddCompilationDeclarationsWithNormalQueryAsync(
                     project, query, criteria, result, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            var list = ArrayBuilder<ISymbol>.GetInstance();
-
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             using var query = SearchQuery.Create(name, ignoreCase);
 
             await AddCompilationDeclarationsWithNormalQueryAsync(
-                project, query, filter, list, cancellationToken).ConfigureAwait(false);
-            return list.ToImmutableAndFree();
+                project, query, filter, result, cancellationToken).ConfigureAwait(false);
+
+            return result.ToImmutable();
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
@@ -214,9 +212,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we'll check if the full name matches the full pattern.
             var (namePart, containerPart) = PatternMatcher.GetNameAndContainer(pattern);
 
-            var dotIndex = pattern.LastIndexOf('.');
-            var isDottedPattern = dotIndex >= 0;
-
             // If we don't have a dot in the pattern, just make a pattern matcher for the entire
             // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
             // the dot.
@@ -226,7 +221,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var symbolAndProjectIds = await searchAsync(query).ConfigureAwait(false);
 
             if (symbolAndProjectIds.Length == 0 ||
-                !isDottedPattern)
+                containerPart == null)
             {
                 // If it wasn't a dotted pattern, or we didn't get anything back, then we're done.
                 // We can just return whatever set of results we got so far.
@@ -257,13 +252,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 query => SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(project, query, criteria, cancellationToken));
         }
 
-        private static string GetContainer(ISymbol symbol)
+        private static string? GetContainer(ISymbol symbol)
         {
             var container = symbol.ContainingSymbol;
             if (container == null)
-            {
                 return null;
-            }
 
             return container.ToDisplayString(DottedNameFormat);
         }

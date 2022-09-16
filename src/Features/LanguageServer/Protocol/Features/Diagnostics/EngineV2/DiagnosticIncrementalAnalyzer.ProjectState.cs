@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // If we couldn't find a normal document, and all features are enabled for source generated
                     // documents, attempt to locate a matching source generated document in the project.
                     if (document is null
-                        && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                        && project.Solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                     {
                         document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
                     }
@@ -250,13 +250,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
 
                 // if project didn't successfully loaded, then it is same as FSA off
-                var fullAnalysis = globalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.FullSolution &&
+                var fullAnalysis = _owner.Analyzer.IsFullSolutionAnalysisEnabled(globalOptions, project.Language) &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                var languageServices = document.Project.LanguageServices;
+                var languageServices = document.Project.Services;
                 var simplifierOptions = (languageServices.GetService<ISimplifierOptionsStorage>() != null) ? globalOptions.GetSimplifierOptions(languageServices) : null;
                 var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(simplifierOptions);
 

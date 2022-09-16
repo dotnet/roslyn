@@ -250,7 +250,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// <summary>
         /// Contains the shared state used to restore the walker at a specific point
         /// </summary>
-        internal struct SharedWalkerState
+        internal readonly struct SharedWalkerState
         {
             internal readonly VariablesSnapshot Variables;
 

@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -37,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
                    EnforceOnBuildValues.InlineDeclaration,
                    CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_inlined), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -59,25 +59,22 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
         {
-            var argumentNode = (ArgumentSyntax)context.Node;
-            var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var csOptions = (CSharpParseOptions)syntaxTree.Options;
             if (csOptions.LanguageVersion < LanguageVersion.CSharp7)
             {
                 // out-vars are not supported prior to C# 7.0.
                 return;
             }
 
-            var options = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = options.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferInlinedVariableDeclaration;
             if (!option.Value)
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.
                 return;
             }
 
+            var argumentNode = (ArgumentSyntax)context.Node;
             if (argumentNode.RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
             {
                 // Immediately bail if this is not an out-argument.  If it's not an out-argument
@@ -121,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
+
+            var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;
             if (semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol is not ILocalSymbol outLocalSymbol)

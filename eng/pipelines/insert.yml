@@ -40,6 +40,10 @@ parameters:
   - name: sourceBranch
     type: string
 
+  - name: dropPath
+    type: string
+    default: ''
+
 steps:
   - checkout: none
 
@@ -64,10 +68,11 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$($false)"
       Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$('')"
-      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('[Skip-SymbolCheck]')"
+      Write-Host "##vso[task.setvariable variable=Template.TitleSuffix]$('')"
       Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.DropPath]$('(default)')"
 
       Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
       Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($branchData.vsBranch)"
@@ -98,6 +103,15 @@ steps:
       PublishDataAccessToken: ${{ parameters.publishDataAccessToken }}
 
   - powershell: |
+      # Set AzDO authorization template variables
+      Write-Host "Setting BuildUserName to $Env:BuildUserName"
+      Write-Host "##vso[task.setvariable variable=Template.BuildUserName]$Env:BuildUserName"
+      Write-Host "##vso[task.setvariable variable=Template.BuildPassword]$Env:BuildPassword"
+
+      Write-Host "Setting ComponentUserName to $Env:ComponentUserName"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentUserName]$Env:ComponentUserName"
+      Write-Host "##vso[task.setvariable variable=Template.ComponentPassword]$Env:ComponentPassword"
+
       # Overwrite template variables with values passed into this template as parameters
       if ("" -ne $Env:CreateDraftPR)
       {
@@ -137,14 +151,25 @@ steps:
         Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$Env:ComponentBuildProjectName"
       }
 
+      if ("" -ne $Env:DropPath)
+      {
+        Write-Host "Setting DropPath to $Env:DropPath"
+        Write-Host "##vso[task.setvariable variable=Template.DropPath]$Env:DropPath"
+      }
+
     displayName: Set Variables from Input Parameters
     env:
+      BuildUserName: ${{ parameters.buildUserName }}
+      BuildPassword: ${{ parameters.buildPassword }}
+      ComponentUserName: ${{ parameters.componentUserName }}
+      ComponentPassword: ${{ parameters.componentPassword }}
       CreateDraftPR: ${{ parameters.createDraftPR }}
       AutoComplete: ${{ parameters.autoComplete }}
       TitlePrefix: ${{ parameters.titlePrefix }}
       InsertToolset: ${{ parameters.insertToolset }}
       VSBranchName: ${{ parameters.vsBranchName }}
       ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
+      DropPath: ${{ parameters.dropPath }}
 
   # Now that everything is set, actually perform the insertion.
   - powershell: |
@@ -153,10 +178,10 @@ steps:
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
-        -userName "${{ parameters.buildUserName }}" `
-        -password "${{ parameters.buildPassword }}" `
-        -componentUserName "${{ parameters.componentUserName }}" `
-        -componentPassword "${{ parameters.componentPassword }}" `
+        -userName "$(Template.BuildUserName)" `
+        -password "$(Template.BuildPassword)" `
+        -componentUserName "$(Template.ComponentUserName)" `
+        -componentPassword "$(Template.ComponentPassword)" `
         -componentAzdoUri "$(Template.ComponentAzdoUri)" `
         -componentProjectName "$(Template.ComponentProjectName)" `
         -componentName "Roslyn" `
@@ -164,7 +189,7 @@ steps:
         -componentBranchName "$(Template.ComponentBranchName)" `
         -createDraftPR "$(Template.CreateDraftPR)" `
         -defaultValueSentinel "(default)" `
-        -dropPath "(default)" `
+        -dropPath "$(Template.DropPath)" `
         -insertCore "(default)" `
         -insertDevDiv "(default)" `
         -insertionCount "1" `

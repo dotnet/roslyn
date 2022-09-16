@@ -445,13 +445,12 @@ namespace Microsoft.CodeAnalysis
         internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
-            var workspace = solution.Workspace;
 
             // only produce doc with frozen semantics if this workspace has support for that, as without
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
-            if (workspace.PartialSemanticsEnabled &&
+            if (solution.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
@@ -466,6 +465,7 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
             => this.Name;
 
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compat)
         private AsyncLazy<DocumentOptionSet>? _cachedOptions;
 
         /// <summary>
@@ -475,75 +475,34 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
-        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
-            => GetOptionsAsync(Project.Solution.Options, cancellationToken);
-
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", AllowCaptures = false)]
-        internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet solutionOptions, CancellationToken cancellationToken)
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
         {
-            // TODO: we have this workaround since Solution.Options is not actually snapshot but just return Workspace.Options which violate snapshot model.
-            //       this doesn't validate whether same optionset is given to invalidate the cache or not. this is not new since existing implementation
-            //       also didn't check whether Workspace.Option is same as before or not. all weird-ness come from the root cause of Solution.Options violating
-            //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                InitializeCachedOptions(solutionOptions);
+                InitializeCachedOptions(Project.Solution.Options);
             }
 
             Contract.ThrowIfNull(_cachedOptions);
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
-        internal async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
-        {
-            var optionService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var documentOptions = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return documentOptions.AsAnalyzerConfigOptions(optionService, Project.Language);
-        }
-
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
-            var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
+            var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async cancellationToken =>
             {
-                var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                var documentOptionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, solutionOptions, c).ConfigureAwait(false);
-                return new DocumentOptionSet(documentOptionSet, Project.Language);
+                var options = await GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+                return new DocumentOptionSet(options, solutionOptions, Project.Language);
             }, cacheResult: true);
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
+#pragma warning restore
 
-        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        internal async ValueTask<StructuredAnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
         {
-            var projectFilePath = Project.FilePath;
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-            string? effectiveFilePath = null;
-
-            if (FilePath != null)
-            {
-                effectiveFilePath = FilePath;
-            }
-            else if (Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
-                }
-            }
-
-            if (effectiveFilePath != null)
-            {
-                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
-            }
-            else
-            {
-                // Really no idea where this is going, so bail
-                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
-            }
+            var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
         }
     }
 }

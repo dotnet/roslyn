@@ -154,97 +154,96 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-    // (16,18): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
-    //         int q1 = ()=>1;
-    Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>1").WithArguments("lambda expression", "int").WithLocation(16, 18),
-    // (17,18): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
-    //         int q2 = delegate { return 1; };
-    Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate { return 1; }").WithArguments("anonymous method", "int").WithLocation(17, 18),
-    // (18,24): error CS1593: Delegate 'Func<int>' does not take 1 arguments
-    //         Func<int> q3 = x3=>1;
-    Diagnostic(ErrorCode.ERR_BadDelArgCount, "x3=>1").WithArguments("System.Func<int>", "1").WithLocation(18, 24),
-    // (19,37): error CS0234: The type or namespace name 'Itn23' does not exist in the namespace 'System' (are you missing an assembly reference?)
-    //         Func<int, int> q4 = (System.Itn23 x4)=>1; // type mismatch error should be suppressed on error type
-    Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Itn23").WithArguments("Itn23", "System").WithLocation(19, 37),
-    // (20,35): error CS0234: The type or namespace name 'Duobel' does not exist in the namespace 'System' (are you missing an assembly reference?)
-    //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
-    Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Duobel").WithArguments("Duobel", "System").WithLocation(20, 35),
-    // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
-    //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
-    Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
-    // (21,17): error CS1661: Cannot convert lambda expression to delegate type 'C.D1' because the parameter types do not match the delegate parameter types
-    //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-    Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double x6, ref int y6, ref int z6)=>1").WithArguments("lambda expression", "C.D1").WithLocation(21, 17),
-    // (21,25): error CS1678: Parameter 1 is declared as type 'double' but should be 'ref int'
-    //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-    Diagnostic(ErrorCode.ERR_BadParamType, "x6").WithArguments("1", "", "double", "ref ", "int").WithLocation(21, 25),
-    // (21,37): error CS1676: Parameter 2 must be declared with the 'out' keyword
-    //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-    Diagnostic(ErrorCode.ERR_BadParamRef, "y6").WithArguments("2", "out").WithLocation(21, 37),
-    // (21,49): error CS1677: Parameter 3 should not be declared with the 'ref' keyword
-    //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-    Diagnostic(ErrorCode.ERR_BadParamExtraRef, "z6").WithArguments("3", "ref").WithLocation(21, 49),
-    // (32,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'C.D1' because it has one or more out parameters
-    //         D1 q7 = delegate {};
-    Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate {}").WithArguments("C.D1").WithLocation(32, 17),
-    // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
-    //         Frob q8 = ()=>{};
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
-    // (36,17): error CS1676: Parameter 1 must be declared with the 'out' keyword
-    //         D2 q9 = x9=>{};
-    Diagnostic(ErrorCode.ERR_BadParamRef, "x9").WithArguments("1", "out").WithLocation(36, 17),
-    // (38,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
-    //         D1 q10 = (x10,y10,z10)=>{}; 
-    Diagnostic(ErrorCode.ERR_BadParamRef, "x10").WithArguments("1", "ref").WithLocation(38, 19),
-    // (38,23): error CS1676: Parameter 2 must be declared with the 'out' keyword
-    //         D1 q10 = (x10,y10,z10)=>{}; 
-    Diagnostic(ErrorCode.ERR_BadParamRef, "y10").WithArguments("2", "out").WithLocation(38, 23),
-    // (52,28): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
-    //         Action q11 = ()=>{ return 1; };
-    Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(52, 28),
-    // (54,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-    //         Action q12 = ()=>1;
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(54, 26),
-    // (56,42): warning CS0162: Unreachable code detected
-    //         Func<int> q13 = ()=>{ if (false) return 1; };
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(56, 42),
-    // (56,27): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
-    //         Func<int> q13 = ()=>{ if (false) return 1; };
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 27),
-    // (58,29): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-    //         Func<int> q14 = ()=>123.456;
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "123.456").WithArguments("double", "int").WithLocation(58, 29),
-    // (58,29): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-    //         Func<int> q14 = ()=>123.456;
-    Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "123.456").WithArguments("lambda expression").WithLocation(58, 29),
-    // (62,51): error CS0266: Cannot implicitly convert type 'decimal' to 'double'. An explicit conversion exists (are you missing a cast?)
-    //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1m").WithArguments("decimal", "double").WithLocation(62, 51),
-    // (62,51): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-    //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
-    Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1m").WithArguments("lambda expression").WithLocation(62, 51),
-    // (62,44): warning CS0162: Unreachable code detected
-    //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(62, 44),
-    // (66,39): error CS1670: params is not valid in this context
-    //         Action<int[]> q16 = delegate (params int[] p) { };
-    Diagnostic(ErrorCode.ERR_IllegalParams, "params int[] p").WithLocation(66, 39),
-    // (67,33): error CS1670: params is not valid in this context
-    //         Action<string[]> q17 = (params string[] s)=>{};
-    Diagnostic(ErrorCode.ERR_IllegalParams, "params string[] s").WithLocation(67, 33),
-    // (68,45): error CS1670: params is not valid in this context
-    //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
-    Diagnostic(ErrorCode.ERR_IllegalParams, "params double[] s").WithLocation(68, 45),
-    // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
-    //         object q19 = new Action( (int x)=>{} );
-    Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
-    // (72,9): warning CS0436: The type 'Expression<T>' in '' conflicts with the imported type 'Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
-    //         Expression<int> ex1 = ()=>1;  
-    Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
-    // (72,31): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
-    //         Expression<int> ex1 = ()=>1;  
-    Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "()=>1").WithArguments("int").WithLocation(72, 31)
-                );
+                // (16,18): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         int q1 = ()=>1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>1").WithArguments("lambda expression", "int").WithLocation(16, 18),
+                // (17,18): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
+                //         int q2 = delegate { return 1; };
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate { return 1; }").WithArguments("anonymous method", "int").WithLocation(17, 18),
+                // (18,24): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                //         Func<int> q3 = x3=>1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "x3=>1").WithArguments("System.Func<int>", "1").WithLocation(18, 24),
+                // (19,37): error CS0234: The type or namespace name 'Itn23' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                //         Func<int, int> q4 = (System.Itn23 x4)=>1; // type mismatch error should be suppressed on error type
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Itn23").WithArguments("Itn23", "System").WithLocation(19, 37),
+                // (20,35): error CS0234: The type or namespace name 'Duobel' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Duobel").WithArguments("Duobel", "System").WithLocation(20, 35),
+                // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
+                //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
+                // (21,17): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double x6, ref int y6, ref int z6)=>1").WithArguments("lambda expression", "C.D1").WithLocation(21, 17),
+                // (21,25): error CS1678: Parameter 1 is declared as type 'double' but should be 'ref int'
+                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
+                Diagnostic(ErrorCode.ERR_BadParamType, "x6").WithArguments("1", "", "double", "ref ", "int").WithLocation(21, 25),
+                // (21,37): error CS1676: Parameter 2 must be declared with the 'out' keyword
+                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
+                Diagnostic(ErrorCode.ERR_BadParamRef, "y6").WithArguments("2", "out").WithLocation(21, 37),
+                // (21,49): error CS1677: Parameter 3 should not be declared with the 'ref' keyword
+                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
+                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "z6").WithArguments("3", "ref").WithLocation(21, 49),
+                // (32,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'C.D1' because it has one or more out parameters
+                //         D1 q7 = delegate {};
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate {}").WithArguments("C.D1").WithLocation(32, 17),
+                // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
+                //         Frob q8 = ()=>{};
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
+                // (36,17): error CS1676: Parameter 1 must be declared with the 'out' keyword
+                //         D2 q9 = x9=>{};
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x9").WithArguments("1", "out").WithLocation(36, 17),
+                // (38,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D1 q10 = (x10,y10,z10)=>{}; 
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x10").WithArguments("1", "ref").WithLocation(38, 19),
+                // (38,23): error CS1676: Parameter 2 must be declared with the 'out' keyword
+                //         D1 q10 = (x10,y10,z10)=>{}; 
+                Diagnostic(ErrorCode.ERR_BadParamRef, "y10").WithArguments("2", "out").WithLocation(38, 23),
+                // (52,28): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                //         Action q11 = ()=>{ return 1; };
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(52, 28),
+                // (54,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         Action q12 = ()=>1;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(54, 26),
+                // (56,42): warning CS0162: Unreachable code detected
+                //         Func<int> q13 = ()=>{ if (false) return 1; };
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(56, 42),
+                // (56,27): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
+                //         Func<int> q13 = ()=>{ if (false) return 1; };
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 27),
+                // (58,29): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         Func<int> q14 = ()=>123.456;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "123.456").WithArguments("double", "int").WithLocation(58, 29),
+                // (58,29): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<int> q14 = ()=>123.456;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "123.456").WithArguments("lambda expression").WithLocation(58, 29),
+                // (62,51): error CS0266: Cannot implicitly convert type 'decimal' to 'double'. An explicit conversion exists (are you missing a cast?)
+                //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1m").WithArguments("decimal", "double").WithLocation(62, 51),
+                // (62,51): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1m").WithArguments("lambda expression").WithLocation(62, 51),
+                // (62,44): warning CS0162: Unreachable code detected
+                //         Func<double> q15 = ()=>{if (false) return 1m; else return 0; };
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(62, 44),
+                // (66,39): error CS1670: params is not valid in this context
+                //         Action<int[]> q16 = delegate (params int[] p) { };
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
+                // (67,33): error CS1670: params is not valid in this context
+                //         Action<string[]> q17 = (params string[] s)=>{};
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(67, 33),
+                // (68,45): error CS1670: params is not valid in this context
+                //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(68, 45),
+                // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
+                //         object q19 = new Action( (int x)=>{} );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
+                // (72,9): warning CS0436: The type 'Expression<T>' in '' conflicts with the imported type 'Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //         Expression<int> ex1 = ()=>1;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
+                // (72,31): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
+                //         Expression<int> ex1 = ()=>1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "()=>1").WithArguments("int").WithLocation(72, 31));
         }
 
         [Fact] // 5368
@@ -4769,7 +4768,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         Action a = [UnmanagedCallersOnly] static () => { };
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 21));
         }
@@ -6673,6 +6672,227 @@ class C
                 //     void M2(parameter parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 13)
                 );
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaDiscardParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, _) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.Int32 _", model.GetSymbolInfo(discard).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaUnderscoreParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, x) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var underscore = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.String _", model.GetSymbolInfo(underscore).Symbol.ToTestDisplayString());
+        }
+
+        [WorkItem(62085, "https://github.com/dotnet/roslyn/issues/62085")]
+        [Fact]
+        public void DuplicateRef()
+        {
+            var source =
+@"delegate void D(ref int i);
+class Program
+{
+    static void Main()
+    {
+        D d1 = (ref ref int i) => { };
+        D d2 = (in ref int i) => { };
+        D d3 = (out ref int i) => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,21): error CS1107: A parameter can only have one 'ref' modifier
+                //         D d1 = (ref ref int i) => { };
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 21),
+                // (7,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                //         D d2 = (in ref int i) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(in ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(7, 16),
+                // (7,20): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
+                //         D d2 = (in ref int i) => { };
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(7, 20),
+                // (7,28): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D d2 = (in ref int i) => { };
+                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(7, 28),
+                // (8,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                //         D d3 = (out ref int i) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(out ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(8, 16),
+                // (8,16): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+                //         D d3 = (out ref int i) => { };
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "(out ref int i) => { }").WithArguments("i").WithLocation(8, 16),
+                // (8,21): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
+                //         D d3 = (out ref int i) => { };
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(8, 21),
+                // (8,29): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D d3 = (out ref int i) => { };
+                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(8, 29));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            Assert.Equal(RefKind.Ref, lambdas[0].Parameters[0].RefKind);
+            Assert.Equal(RefKind.In, lambdas[1].Parameters[0].RefKind);
+            Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
+        }
+
+        [Fact]
+        public void StaticPartialLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = static partial () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "static partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27),
+                // (5,34): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 34));
+        }
+
+        [Fact]
+        public void PartialStaticLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = partial static () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS0103: The name 'partial' does not exist in the current context
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,35): error CS1002: ; expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 35),
+                // (5,35): error CS0106: The modifier 'static' is not valid for this item
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 35),
+                // (5,43): error CS8124: Tuple must contain at least two elements.
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),
+                // (5,45): error CS1001: Identifier expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 45),
+                // (5,45): error CS1003: Syntax error, ',' expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 45),
+                // (5,48): error CS1002: ; expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PartialLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = partial () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action x = partial () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27));
+        }
+
+        [WorkItem(61013, "https://github.com/dotnet/roslyn/issues/61013")]
+        [Fact]
+        public void InvalidCast()
+        {
+            var source = """
+                using System;
+                #nullable enable
+                internal class Program
+                {
+                    void Main(string[] args)
+                    {
+                        Choice(args.Length > 0
+                            ? (Action)(() => DS1()
+                            : () => DS2(args[0]));
+                    }
+
+                    void DS1()
+                    { }
+
+                    void DS2(string a)
+                    { }
+
+                    void Choice(Action a)
+                    {
+                        a();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var action = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.ValueText == "Action");
+            var model = comp.GetSemanticModel(syntaxTree);
+            AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
         }
     }
 }

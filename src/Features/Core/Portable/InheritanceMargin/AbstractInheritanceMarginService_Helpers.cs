@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -12,16 +13,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
+    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
+
     internal abstract partial class AbstractInheritanceMarginService
     {
         private static readonly SymbolDisplayFormat s_displayFormat = new(
@@ -38,63 +42,25 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                 SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemAsync(
+        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolInheritanceChainItemsAsync(
             Project project,
-            Document? documentForGlobalImports,
-            TextSpan spanToSearch,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            Document? document,
+            SymbolAndLineNumberArray symbolAndLineNumbers,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
-            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
-            if (remoteClient != null)
+            // If we're starting from a document, use it to go to a frozen partial version of it to lower the amount of
+            // work we need to do running source generators or producing skeleton references.
+            if (document != null && frozenPartialSemantics)
             {
-                // Here the line number is also passed to the remote process. It is done in this way because
-                // when a set of symbols is passed to remote process, those without inheritance targets would not be returned.
-                // To match the returned inheritance targets to the line number, we need set an 'Id' when calling the remote process,
-                // however, given the line number is just an int, setting up an int 'Id' for an int is quite useless, so just passed it to the remote process.
-                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.GetInheritanceMarginItemsAsync(
-                            solutionInfo, project.Id, documentForGlobalImports?.Id, spanToSearch, symbolKeyAndLineNumbers, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<InheritanceMarginItem>.Empty;
-                }
-
-                return result.Value;
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+                project = document.Project;
             }
-            else
-            {
-                return await GetInheritanceMemberItemInProcessAsync(
-                    project, documentForGlobalImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken).ConfigureAwait(false);
-            }
-        }
 
-        private async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemInProcessAsync(
-            Project project,
-            Document? documentForGlobalImports,
-            TextSpan spanToSearch,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
-            CancellationToken cancellationToken)
-        {
             var solution = project.Solution;
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
-
-            if (documentForGlobalImports != null)
+            foreach (var (symbol, lineNumber) in symbolAndLineNumbers)
             {
-                await AddInheritedGlobalImportsAsync(
-                    documentForGlobalImports, spanToSearch, builder, cancellationToken).ConfigureAwait(false);
-            }
-
-            foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
-            {
-                var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
                     await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
@@ -109,12 +75,88 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return builder.ToImmutable();
         }
 
-        private async Task AddInheritedGlobalImportsAsync(
+        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
             Document document,
             TextSpan spanToSearch,
-            ArrayBuilder<InheritanceMarginItem> items,
             CancellationToken cancellationToken)
         {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
+            if (!allDeclarationNodes.IsEmpty)
+            {
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var mappingService = document.Project.Solution.Services.GetRequiredService<ISymbolMappingService>();
+                using var _ = ArrayBuilder<(ISymbol symbol, int lineNumber)>.GetInstance(out var builder);
+
+                Project? project = null;
+
+                foreach (var memberDeclarationNode in allDeclarationNodes)
+                {
+                    var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
+                    if (member == null || !CanHaveInheritanceTarget(member))
+                        continue;
+
+                    // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
+                    var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
+                    if (mappingResult == null)
+                        continue;
+
+                    // All the symbols here are declared in the same document, they should belong to the same project.
+                    // So here it is enough to get the project once.
+                    project ??= mappingResult.Project;
+                    builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                }
+
+                if (project != null)
+                    return (project, builder.ToImmutable());
+            }
+
+            return (document.Project, SymbolAndLineNumberArray.Empty);
+        }
+
+        private async Task<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsInProcessAsync(
+            Document document,
+            TextSpan spanToSearch,
+            bool includeGlobalImports,
+            bool frozenPartialSemantics,
+            CancellationToken cancellationToken)
+        {
+            var (remappedProject, symbolAndLineNumbers) = await GetMemberSymbolsAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
+
+            // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
+            // the originating project), then we're in teh same project and we should try to get global import
+            // information to display.
+            var remapped = remappedProject != document.Project;
+
+            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
+
+            if (includeGlobalImports && !remapped)
+                result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
+
+            if (!symbolAndLineNumbers.IsEmpty)
+            {
+                result.AddRange(await GetSymbolInheritanceChainItemsAsync(
+                    remappedProject,
+                    document: remapped ? null : document,
+                    symbolAndLineNumbers,
+                    frozenPartialSemantics: frozenPartialSemantics,
+                    cancellationToken).ConfigureAwait(false));
+            }
+
+            return result.ToImmutable();
+        }
+
+        private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
+            Document document,
+            TextSpan spanToSearch,
+            bool frozenPartialSemantics,
+            CancellationToken cancellationToken)
+        {
+            if (frozenPartialSemantics)
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -126,7 +168,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             // if that location doesn't intersect with the lines of interest, immediately bail out.
             if (!spanToSearch.IntersectsWith(spanStart))
-                return;
+                return ImmutableArray<InheritanceMarginItem>.Empty;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var scopes = semanticModel.GetImportScopes(root.FullSpan.End, cancellationToken);
@@ -135,7 +177,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // correspond to inner scopes for either the compilation unit or namespace.
             var lastScope = scopes.LastOrDefault();
             if (lastScope == null)
-                return;
+                return ImmutableArray<InheritanceMarginItem>.Empty;
 
             // Pull in any project level imports, or imports from other files (e.g. global usings).
             var syntaxTree = semanticModel.SyntaxTree;
@@ -159,7 +201,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 });
 
             if (nonLocalImports.Length == 0)
-                return;
+                return ImmutableArray<InheritanceMarginItem>.Empty;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
@@ -173,12 +215,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 _ => throw ExceptionUtilities.UnexpectedValue(document.Project.Language),
             };
 
+            using var _1 = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var items);
+
             foreach (var group in nonLocalImports.GroupBy(i => i.DeclaringSyntaxReference?.SyntaxTree))
             {
                 var groupSyntaxTree = group.Key;
                 if (groupSyntaxTree is null)
                 {
-                    using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
+                    using var _2 = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
 
                     foreach (var import in group)
                     {
@@ -218,6 +262,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                         lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, targetItems.ToImmutable()));
                 }
             }
+
+            return items.ToImmutable();
         }
 
         private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
@@ -250,7 +296,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // Ensure the user won't be able to see symbol outside the solution for derived symbols.
             // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
             // the user all the derived types under System.Collections
-            var derivedSymbols = allDerivedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+            var derivedSymbols = allDerivedSymbols.WhereAsArray(symbol => symbol.Locations.Any(static l => l.IsInSource));
 
             if (baseSymbols.Any() || derivedSymbols.Any())
             {
@@ -295,7 +341,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // For all implementing symbols, make sure it is in source.
                 // For example, if the user is viewing IEnumerable from metadata,
                 // then don't show the derived overriden & implemented types in System.Collections
-                var implementingSymbols = allImplementingSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+                var implementingSymbols = allImplementingSymbols.WhereAsArray(symbol => symbol.Locations.Any(static l => l.IsInSource));
 
                 if (implementingSymbols.Any())
                 {
@@ -321,7 +367,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // For all overriding symbols, make sure it is in source.
                 // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
                 // then don't show the derived overriden & implemented method in the default implementation for System.Threading.SynchronizationContext in metadata
-                var overridingSymbols = allOverridingSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+                var overridingSymbols = allOverridingSymbols.WhereAsArray(symbol => symbol.Locations.Any(static l => l.IsInSource));
 
                 if (overridingSymbols.Any() || overriddenSymbols.Any() || implementedSymbols.Any())
                 {
@@ -337,7 +383,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static async ValueTask<InheritanceMarginItem> CreateInheritanceMemberItemForInterfaceAsync(
+        private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForInterfaceAsync(
             Solution solution,
             INamedTypeSymbol interfaceSymbol,
             int lineNumber,
@@ -347,7 +393,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -358,7 +403,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
                     symbol,
@@ -366,15 +410,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
+            var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
+            var nonNullDerivedTypeItems = GetNonNullTargetItems(derivedTypeItems);
+
             return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
                 interfaceSymbol.GetGlyph(),
-                baseSymbolItems.Concat(derivedTypeItems));
+                nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
         }
 
-        private static async ValueTask<InheritanceMarginItem> CreateInheritanceMemberItemForInterfaceMemberAsync(
+        private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForInterfaceMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
@@ -383,7 +430,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var implementedMemberItems = await implementingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -391,15 +437,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.ImplementingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
+            var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
             return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                implementedMemberItems);
+                nonNullImplementedMemberItems);
         }
 
-        private static async ValueTask<InheritanceMarginItem> CreateInheritanceItemForClassAndStructureAsync(
+        private static async ValueTask<InheritanceMarginItem?> CreateInheritanceItemForClassAndStructureAsync(
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
@@ -411,7 +458,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // and if it is an class/struct, it whould be shown as 'Base Type'
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -421,7 +467,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
                     symbol,
@@ -429,15 +474,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
+            var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
+            var nonNullDerivedTypeItems = GetNonNullTargetItems(derivedTypeItems);
+
             return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                baseSymbolItems.Concat(derivedTypeItems));
+                nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
         }
 
-        private static async ValueTask<InheritanceMarginItem> CreateInheritanceMemberItemForClassOrStructMemberAsync(
+        private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForClassOrStructMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
@@ -448,7 +496,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var implementedMemberItems = await implementedMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -456,9 +503,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.ImplementedMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var overridenMemberItems = await overriddenMembers
+            var overriddenMemberItems = await overriddenMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -468,7 +514,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var overridingMemberItems = await overridingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -476,15 +521,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.OverridingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
+            var nonNullImplementedMemberItems = GetNonNullTargetItems(implementedMemberItems);
+            var nonNullOverriddenMemberItems = GetNonNullTargetItems(overriddenMemberItems);
+            var nonNullOverridingMemberItems = GetNonNullTargetItems(overridingMemberItems);
+
             return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                implementedMemberItems.Concat(overridenMemberItems).Concat(overridingMemberItems));
+                nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems, nonNullOverridingMemberItems));
         }
 
-        private static async ValueTask<InheritanceTargetItem> CreateInheritanceItemAsync(
+        private static async ValueTask<InheritanceTargetItem?> CreateInheritanceItemAsync(
             Solution solution,
             ISymbol targetSymbol,
             InheritanceRelationship inheritanceRelationship,
@@ -495,6 +544,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             // Right now the targets are not shown in a classified way.
             var definition = ToSlimDefinitionItem(targetSymbol, solution);
+            if (definition == null)
+            {
+                return null;
+            }
 
             var displayName = targetSymbol.ToDisplayString(s_displayFormat);
 
@@ -644,9 +697,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Otherwise, create the full non-classified DefinitionItem. Because in such case we want to display all the locations to the user
         /// by reusing the FAR window.
         /// </summary>
-        private static DefinitionItem ToSlimDefinitionItem(ISymbol symbol, Solution solution)
+        private static DefinitionItem? ToSlimDefinitionItem(ISymbol symbol, Solution solution)
         {
-            RoslynDebug.Assert(IsNavigableSymbol(symbol));
             var locations = symbol.Locations;
             if (locations.Length > 1)
             {
@@ -683,19 +735,21 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            return null;
         }
 
-        private static bool IsNavigableSymbol(ISymbol symbol)
+        private static ImmutableArray<InheritanceTargetItem> GetNonNullTargetItems(ImmutableArray<InheritanceTargetItem?> inheritanceTargetItems)
         {
-            var locations = symbol.Locations;
-            if (locations.Length == 1)
+            using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var builder);
+            foreach (var item in inheritanceTargetItems)
             {
-                var location = locations[0];
-                return location.IsInMetadata || (location.IsInSource && location.IsVisibleSourceLocation());
+                if (item.HasValue)
+                {
+                    builder.Add(item.Value);
+                }
             }
 
-            return !locations.IsEmpty;
+            return builder.ToImmutable();
         }
     }
 }

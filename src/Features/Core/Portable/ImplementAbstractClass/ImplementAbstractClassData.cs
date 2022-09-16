@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             Compilation compilation, ISymbol member, ISymbol? throughMember, bool addUnsafe,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
-            var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
+            var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe, isRequired: member.IsRequired());
             var accessibility = member.ComputeResultantAccessibility(ClassType);
 
             // only call through one of members for this symbol if we can actually access the symbol

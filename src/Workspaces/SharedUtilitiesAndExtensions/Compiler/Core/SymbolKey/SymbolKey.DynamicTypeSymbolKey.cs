@@ -6,15 +6,18 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class DynamicTypeSymbolKey
+        private sealed class DynamicTypeSymbolKey : AbstractSymbolKey<IDynamicTypeSymbol>
         {
-            public static void Create(SymbolKeyWriter _)
+            public static readonly DynamicTypeSymbolKey Instance = new();
+
+            public sealed override void Create(IDynamicTypeSymbol symbol, SymbolKeyWriter writer)
             {
                 // No need to encode anything here.  There is only ever one dynamic-symbol
                 // per compilation.
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IDynamicTypeSymbol? contextualSymbol, out string? failureReason)
             {
                 if (reader.Compilation.Language == LanguageNames.VisualBasic)
                 {

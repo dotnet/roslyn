@@ -12,7 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     {
@@ -150,17 +150,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
             => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
 
-        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
-            => SemanticFacts.IsNullChecked(parameterSymbol, cancellationToken);
-
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, cancellationToken);
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
+
+        public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argumentNode, cancellationToken);
+
+        public ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindFieldOrPropertyForAttributeArgument(semanticModel, argumentNode, cancellationToken);
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);

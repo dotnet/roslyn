@@ -28,14 +28,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         public FixAllProviderInfo? FixAllProviderInfo { get; }
 
+        public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
+
         public CodeRefactoring(
             CodeRefactoringProvider provider,
             ImmutableArray<(CodeAction, TextSpan?)> actions,
-            FixAllProviderInfo? fixAllProviderInfo)
+            FixAllProviderInfo? fixAllProviderInfo,
+            CodeActionOptionsProvider codeActionOptionsProvider)
         {
             Provider = provider;
             CodeActions = actions.NullToEmpty();
             FixAllProviderInfo = fixAllProviderInfo;
+            CodeActionOptionsProvider = codeActionOptionsProvider;
 
             if (CodeActions.IsEmpty)
             {

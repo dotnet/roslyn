@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
+        Friend Overrides ReadOnly Property ElasticMarker As SyntaxTrivia = SyntaxFactory.ElasticMarker
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
 
@@ -674,6 +675,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
+        Friend Overrides Function GlobalStatement(statement As SyntaxNode) As SyntaxNode
+            ' Visual basic does not have global statements
             Throw New NotSupportedException()
         End Function
 
@@ -2602,7 +2608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean
-            Return VisualBasicAccessibilityFacts.Instance.CanHaveAccessibility(declaration)
+            Return VisualBasicAccessibilityFacts.Instance.CanHaveAccessibility(declaration, ignoreDeclarationModifiers:=True)
         End Function
 
         Private Function WithAccessibilityInternal(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode

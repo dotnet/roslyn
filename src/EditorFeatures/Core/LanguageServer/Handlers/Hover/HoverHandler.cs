@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// no longer references VS icon or classified text run types.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(HoverHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
-    internal sealed class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
+    internal sealed class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
+            var quickInfoService = document.Project.Services.GetRequiredService<QuickInfoService>();
             var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             var info = await quickInfoService.GetQuickInfoAsync(document, position, options, cancellationToken).ConfigureAwait(false);
             if (info == null)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SemanticModel semanticModel,
             int position,
             SymbolDescriptionOptions options,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             CancellationToken cancellationToken)
         {
             Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return new VSInternalHover
                 {
                     Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                    Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+                    Contents = new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
                     // Build the classified text without navigation actions - they are not serializable.
                     // TODO - Switch to markup content once it supports classifications.
                     // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138

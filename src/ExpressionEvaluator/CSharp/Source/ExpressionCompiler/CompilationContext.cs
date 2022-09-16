@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             NamespaceBinder = CreateBinderChain(
                 Compilation,
                 currentFrame.ContainingNamespace,
-                methodDebugInfo.ImportRecordGroups);
+                methodDebugInfo.ImportRecordGroups,
+                methodDebugInfo.ContainingDocumentName is { } documentName ? FileIdentifier.Create(documentName) : null);
 
             if (_methodNotType)
             {
@@ -697,7 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static Binder CreateBinderChain(
             CSharpCompilation compilation,
             NamespaceSymbol @namespace,
-            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups)
+            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
+            FileIdentifier? fileIdentifier)
         {
             var stack = ArrayBuilder<string>.GetInstance();
             while (@namespace is object)
@@ -706,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @namespace = @namespace.ContainingNamespace;
             }
 
-            Binder binder = new BuckStopsHereBinder(compilation);
+            Binder binder = new BuckStopsHereBinder(compilation, fileIdentifier);
             var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;

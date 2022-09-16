@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageClassifierInternal(
-        PredefinedEmbeddedLanguageClassifierNames.CSharpTest, LanguageNames.CSharp, supportsUnannotatedAPIs: false,
-        PredefinedEmbeddedLanguageClassifierNames.CSharpTest), Shared]
+    [ExportEmbeddedLanguageClassifier(
+        PredefinedEmbeddedLanguageNames.CSharpTest, new[] { LanguageNames.CSharp }, supportsUnannotatedAPIs: false,
+        PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
     internal class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         [ImportingConstructor]
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                     virtualCharsWithoutMarkup.Last().Span.End));
 
             var testFileClassifiedSpans = Classifier.GetClassifiedSpans(
-                context.WorkspaceServices,
+                context.SolutionServices,
                 project: null,
                 semanticModeWithTestFile,
                 new TextSpan(0, virtualCharsWithoutMarkup.Length),

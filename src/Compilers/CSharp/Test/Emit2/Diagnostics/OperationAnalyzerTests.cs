@@ -1328,7 +1328,7 @@ class Test
     public static long Calculate1(long[] f)
     {
         long x;
-" + $"        x = { buildSequenceOfBinaryExpressions(8192) };" + @"
+" + $"        x = {buildSequenceOfBinaryExpressions(8192)};" + @"
         return x;
     }
 }";
@@ -1336,8 +1336,8 @@ class Test
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null,
-                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9),
-                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = {buildSequenceOfBinaryExpressions(8192)}").WithLocation(7, 9),
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = {buildSequenceOfBinaryExpressions(8192)}").WithLocation(7, 9));
         }
 
         [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]
@@ -1732,7 +1732,7 @@ public class A
                 // (4,28): error CS0225: The params parameter must be a single dimensional array
                 //     public static void Goo(params int a) {}
                 Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(4, 28),
-                // (8,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'A.Goo(params int)'
+                // (8,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'A.Goo(params int)'
                 //         Goo();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("a", "A.Goo(params int)").WithLocation(8, 9))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null);

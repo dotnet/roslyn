@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// </summary>
         protected override async Task FixOneAsync(
             Document document, Diagnostic diagnostic,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueStatement, falseStatement,
                 trueAssignment?.Value ?? trueStatement,
                 falseAssignment?.Value ?? falseStatement,
-                trueAssignment?.IsRef == true, cancellationToken).ConfigureAwait(false);
+                trueAssignment?.IsRef == true,
+                fallbackOptions,
+                cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
             // try to inline the conditional directly into the initializer for that variable.

@@ -16,11 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup;
 internal static class CodeCleanupOptionsStorage
 {
     public static ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.LanguageServices), cancellationToken);
+        => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.Services), cancellationToken);
 
-    public static CodeCleanupOptions GetCodeCleanupOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => new(
-            FormattingOptions: globalOptions.GetSyntaxFormattingOptions(languageServices),
-            SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
-            AddImportOptions: AddImportPlacementOptions.Default);
+            globalOptions.GetSyntaxFormattingOptions(languageServices),
+            globalOptions.GetSimplifierOptions(languageServices))
+        {
+            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
+            DocumentFormattingOptions = globalOptions.GetDocumentFormattingOptions(languageServices.Language)
+        };
 }

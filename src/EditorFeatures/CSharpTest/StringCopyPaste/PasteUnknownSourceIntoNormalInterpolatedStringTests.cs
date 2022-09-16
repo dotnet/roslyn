@@ -17,8 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-                @"var x = $""[||]""",
-                @"var x = $""\n[||]""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"\n[||]"
+                """,
                 afterUndo: "var x = $\"\n[||]\"");
         }
 
@@ -26,10 +30,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNewLineIntoNormalInterpolatedString2()
         {
             TestPasteUnknownSource(
-                pasteText: "\r\n",
-                @"var x = $""[||]""",
-                @"var x = $""\r\n[||]""",
-                afterUndo: "var x = $\"\r\n[||]\"");
+                pasteText: """
+
+
+                """,
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"\r\n[||]"
+                """,
+                afterUndo: """
+                var x = $"
+                [||]"
+                """);
         }
 
         [WpfFact]
@@ -37,8 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t",
-                @"var x = $""[||]""",
-                @"var x = $""\t[||]""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"\t[||]"
+                """,
                 afterUndo: "var x = $\"\t[||]\"");
         }
 
@@ -46,20 +64,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestSingleQuoteIntoNormalInterpolatedString()
         {
             TestPasteUnknownSource(
-                pasteText: "'",
-                @"var x = $""[||]""",
-                @"var x = $""'[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """'""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"'[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestDoubleQuoteIntoNormalInterpolatedString()
         {
             TestPasteUnknownSource(
-                pasteText: "\"",
-                @"var x = $""[||]""",
-                @"var x = $""\""[||]""",
-                afterUndo: "var x = $\"\"[||]\"");
+                pasteText: """
+                "
+                """,
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"\"[||]"
+                """,
+                afterUndo: """
+                var x = $""[||]"
+                """);
         }
 
         [WpfFact]
@@ -67,8 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
-                @"var x = $""[||]""",
-                @"var x = $""\t\""\""\t[||]""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"\t\"\"\t[||]"
+                """,
                 afterUndo: "var x = $\"\t\"\"\t[||]\"");
         }
 
@@ -76,90 +112,144 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNormalTextIntoNormalInterpolatedString()
         {
             TestPasteUnknownSource(
-                pasteText: "abc",
-                @"var x = $""[||]""",
-                @"var x = $""abc[||]""",
-                afterUndo: @"var x = $""[||]""");
+                pasteText: """abc""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"abc[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestOpenCurlyIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "{",
-                @"var x = $""[||]""",
-                @"var x = $""{{[||]""",
-                afterUndo: "var x = $\"{[||]\"");
+                pasteText: """{""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"{{[||]"
+                """,
+                afterUndo: """
+                var x = $"{[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoOpenCurliesIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "{{",
-                @"var x = $""[||]""",
-                @"var x = $""{{[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """{{""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"{{[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoOpenCurliesAndContentIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "{{0",
-                @"var x = $""[||]""",
-                @"var x = $""{{0[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """{{0""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"{{0[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestCloseCurlyIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "}",
-                @"var x = $""[||]""",
-                @"var x = $""}}[||]""",
-                afterUndo: "var x = $\"}[||]\"");
+                pasteText: """}""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"}}[||]"
+                """,
+                afterUndo: """
+                var x = $"}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoCloseCurliesIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "}}",
-                @"var x = $""[||]""",
-                @"var x = $""}}[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """}}""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"}}[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoCloseCurliesAndContentIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "}}0",
-                @"var x = $""[||]""",
-                @"var x = $""}}0[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """}}0""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"}}0[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestCurlyWithContentIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "x{0}y",
-                @"var x = $""[||]""",
-                @"var x = $""x{0}y[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """x{0}y""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"x{0}y[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestCurliesWithContentIntoNormalInterpolatedString1()
         {
             TestPasteUnknownSource(
-                pasteText: "x{{0}}y",
-                @"var x = $""[||]""",
-                @"var x = $""x{{0}}y[||]""",
-                afterUndo: "var x = $\"[||]\"");
+                pasteText: """x{{0}}y""",
+                """
+                var x = $"[||]"
+                """,
+                """
+                var x = $"x{{0}}y[||]"
+                """,
+                afterUndo: """
+                var x = $"[||]"
+                """);
         }
 
         #endregion
@@ -171,8 +261,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-                @"var x = $""[||]{0}""",
-                @"var x = $""\n[||]{0}""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"\n[||]{0}"
+                """,
                 afterUndo: "var x = $\"\n[||]{0}\"");
         }
 
@@ -180,10 +274,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNewLineIntoNormalInterpolatedStringBeforeHole2()
         {
             TestPasteUnknownSource(
-                pasteText: "\r\n",
-                @"var x = $""[||]{0}""",
-                @"var x = $""\r\n[||]{0}""",
-                afterUndo: "var x = $\"\r\n[||]{0}\"");
+                pasteText: """
+
+
+                """,
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"\r\n[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"
+                [||]{0}"
+                """);
         }
 
         [WpfFact]
@@ -191,8 +295,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t",
-                @"var x = $""[||]{0}""",
-                @"var x = $""\t[||]{0}""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"\t[||]{0}"
+                """,
                 afterUndo: "var x = $\"\t[||]{0}\"");
         }
 
@@ -200,20 +308,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestSingleQuoteIntoNormalInterpolatedStringBeforeHole()
         {
             TestPasteUnknownSource(
-                pasteText: "'",
-                @"var x = $""[||]{0}""",
-                @"var x = $""'[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """'""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"'[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestDoubleQuoteIntoNormalInterpolatedStringBeforeHole()
         {
             TestPasteUnknownSource(
-                pasteText: "\"",
-                @"var x = $""[||]{0}""",
-                @"var x = $""\""[||]{0}""",
-                afterUndo: "var x = $\"\"[||]{0}\"");
+                pasteText: """
+                "
+                """,
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"\"[||]{0}"
+                """,
+                afterUndo: """
+                var x = $""[||]{0}"
+                """);
         }
 
         [WpfFact]
@@ -221,8 +343,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
-                @"var x = $""[||]{0}""",
-                @"var x = $""\t\""\""\t[||]{0}""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"\t\"\"\t[||]{0}"
+                """,
                 afterUndo: "var x = $\"\t\"\"\t[||]{0}\"");
         }
 
@@ -230,90 +356,144 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNormalTextIntoNormalInterpolatedStringBeforeHole()
         {
             TestPasteUnknownSource(
-                pasteText: "abc",
-                @"var x = $""[||]{0}""",
-                @"var x = $""abc[||]{0}""",
-                afterUndo: @"var x = $""[||]{0}""");
+                pasteText: """abc""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"abc[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestOpenCurlyIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "{",
-                @"var x = $""[||]{0}""",
-                @"var x = $""{{[||]{0}""",
-                afterUndo: "var x = $\"{[||]{0}\"");
+                pasteText: """{""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"{{[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"{[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestTwoOpenCurliesIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "{{",
-                @"var x = $""[||]{0}""",
-                @"var x = $""{{[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """{{""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"{{[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestTwoOpenCurliesAndContentIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "{{0",
-                @"var x = $""[||]{0}""",
-                @"var x = $""{{0[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """{{0""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"{{0[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestCloseCurlyIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "}",
-                @"var x = $""[||]{0}""",
-                @"var x = $""}}[||]{0}""",
-                afterUndo: "var x = $\"}[||]{0}\"");
+                pasteText: """}""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"}}[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"}[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestTwoCloseCurliesIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "}}",
-                @"var x = $""[||]{0}""",
-                @"var x = $""}}[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """}}""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"}}[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestTwoCloseCurliesAndContentIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "}}0",
-                @"var x = $""[||]{0}""",
-                @"var x = $""}}0[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """}}0""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"}}0[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestCurlyWithContentIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "x{0}y",
-                @"var x = $""[||]{0}""",
-                @"var x = $""x{0}y[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """x{0}y""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"x{0}y[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         [WpfFact]
         public void TestCurliesWithContentIntoNormalInterpolatedStringBeforeHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "x{{0}}y",
-                @"var x = $""[||]{0}""",
-                @"var x = $""x{{0}}y[||]{0}""",
-                afterUndo: "var x = $\"[||]{0}\"");
+                pasteText: """x{{0}}y""",
+                """
+                var x = $"[||]{0}"
+                """,
+                """
+                var x = $"x{{0}}y[||]{0}"
+                """,
+                afterUndo: """
+                var x = $"[||]{0}"
+                """);
         }
 
         #endregion
@@ -325,8 +505,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}\n[||]""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}\n[||]"
+                """,
                 afterUndo: "var x = $\"{0}\n[||]\"");
         }
 
@@ -334,10 +518,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNewLineIntoNormalInterpolatedStringAfterHole2()
         {
             TestPasteUnknownSource(
-                pasteText: "\r\n",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}\r\n[||]""",
-                afterUndo: "var x = $\"{0}\r\n[||]\"");
+                pasteText: """
+
+
+                """,
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}\r\n[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}
+                [||]"
+                """);
         }
 
         [WpfFact]
@@ -345,8 +539,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}\t[||]""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}\t[||]"
+                """,
                 afterUndo: "var x = $\"{0}\t[||]\"");
         }
 
@@ -354,20 +552,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestSingleQuoteIntoNormalInterpolatedStringAfterHole()
         {
             TestPasteUnknownSource(
-                pasteText: "'",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}'[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """'""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}'[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestDoubleQuoteIntoNormalInterpolatedStringAfterHole()
         {
             TestPasteUnknownSource(
-                pasteText: "\"",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}\""[||]""",
-                afterUndo: "var x = $\"{0}\"[||]\"");
+                pasteText: """
+                "
+                """,
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}\"[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}"[||]"
+                """);
         }
 
         [WpfFact]
@@ -375,8 +587,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}\t\""\""\t[||]""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}\t\"\"\t[||]"
+                """,
                 afterUndo: "var x = $\"{0}\t\"\"\t[||]\"");
         }
 
@@ -384,90 +600,144 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNormalTextIntoNormalInterpolatedStringAfterHole()
         {
             TestPasteUnknownSource(
-                pasteText: "abc",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}abc[||]""",
-                afterUndo: @"var x = $""{0}[||]""");
+                pasteText: """abc""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}abc[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestOpenCurlyIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "{",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}{{[||]""",
-                afterUndo: "var x = $\"{0}{[||]\"");
+                pasteText: """{""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}{{[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}{[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoOpenCurliesIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "{{",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}{{[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """{{""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}{{[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoOpenCurliesAndContentIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "{{0",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}{{0[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """{{0""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}{{0[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestCloseCurlyIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "}",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}}}[||]""",
-                afterUndo: "var x = $\"{0}}[||]\"");
+                pasteText: """}""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}}}[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoCloseCurliesIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "}}",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}}}[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """}}""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}}}[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestTwoCloseCurliesAndContentIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "}}0",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}}}0[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """}}0""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}}}0[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestCurlyWithContentIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "x{0}y",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}x{0}y[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """x{0}y""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}x{0}y[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         [WpfFact]
         public void TestCurliesWithContentIntoNormalInterpolatedStringAfterHole1()
         {
             TestPasteUnknownSource(
-                pasteText: "x{{0}}y",
-                @"var x = $""{0}[||]""",
-                @"var x = $""{0}x{{0}}y[||]""",
-                afterUndo: "var x = $\"{0}[||]\"");
+                pasteText: """x{{0}}y""",
+                """
+                var x = $"{0}[||]"
+                """,
+                """
+                var x = $"{0}x{{0}}y[||]"
+                """,
+                afterUndo: """
+                var x = $"{0}[||]"
+                """);
         }
 
         #endregion

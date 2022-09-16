@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (info != null)
                 {
-                    var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
+                    var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                     {
                         var codeGenOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);

@@ -20,6 +20,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    /// <summary>
+    /// Represents a tree of names of the namespaces, types (and members within those types) within a <see
+    /// cref="Project"/> or <see cref="PortableExecutableReference"/>.  This tree can be used to quickly determine if
+    /// there is a name match, and can provide the named path to that named entity.  This path can then be used to
+    /// produce a corresponding <see cref="ISymbol"/> that can be used by a feature.  The primary purpose of this index
+    /// is to allow features to quickly determine that there is <em>no</em> name match, so that acquiring symbols is not
+    /// necessary.  The secondary purpose is to generate a minimal set of symbols when there is a match, though that
+    /// will still incur a heavy cost (for example, getting the <see cref="IAssemblySymbol"/> root symbol for a
+    /// particular project).
+    /// </summary>
     internal partial class SymbolTreeInfo : IChecksummedObject
     {
         public Checksum Checksum { get; }
@@ -62,17 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
-        /// <summary>
-        /// The task that produces the spell checker we use for fuzzy match queries.
-        /// We use a task so that we can generate the <see cref="SymbolTreeInfo"/> 
-        /// without having to wait for the spell checker construction to finish.
-        /// 
-        /// Features that don't need fuzzy matching don't want to incur the cost of 
-        /// the creation of this value.  And the only feature which does want fuzzy
-        /// matching (add-using) doesn't want to block waiting for the value to be
-        /// created.
-        /// </summary>
-        private readonly Task<SpellChecker> _spellCheckerTask;
+        private readonly SpellChecker _spellChecker;
 
         private static readonly StringSliceComparer s_caseInsensitiveComparer =
             StringSliceComparer.OrdinalIgnoreCase;
@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            Task<SpellChecker> spellCheckerTask,
+            SpellChecker spellChecker,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap)
-            : this(checksum, sortedNodes, spellCheckerTask,
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
+            : this(checksum, sortedNodes, spellChecker,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
         {
@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
-            Task<SpellChecker> spellCheckerTask,
+            SpellChecker spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             Checksum = checksum;
             _nodes = sortedNodes;
-            _spellCheckerTask = spellCheckerTask;
+            _spellChecker = spellChecker;
             _inheritanceMap = inheritanceMap;
             _receiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
         }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SortNodes(unsortedNodes, out var sortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
-                CreateSpellCheckerAsync(checksum, sortedNodes),
+                CreateSpellChecker(checksum, sortedNodes),
                 new OrderPreservingMultiDictionary<string, string>(),
                 new MultiDictionary<string, ExtensionMethodInfo>());
         }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public SymbolTreeInfo WithChecksum(Checksum checksum)
         {
             return new SymbolTreeInfo(
-                checksum, _nodes, _spellCheckerTask, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
+                checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
         }
 
         public Task<ImmutableArray<ISymbol>> FindAsync(
@@ -169,11 +169,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
+
+            var queryName = query.Name;
+            Contract.ThrowIfNull(queryName);
+
             return query.Kind switch
             {
-                SearchKind.Exact => this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken),
-                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken),
-                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken),
+                SearchKind.Exact => this.FindAsync(lazyAssembly, queryName, ignoreCase: false, cancellationToken: cancellationToken),
+                SearchKind.ExactIgnoreCase => this.FindAsync(lazyAssembly, queryName, ignoreCase: true, cancellationToken: cancellationToken),
+                SearchKind.Fuzzy => this.FuzzyFindAsync(lazyAssembly, queryName, cancellationToken),
                 _ => throw new InvalidOperationException(),
             };
         }
@@ -184,14 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            if (_spellCheckerTask.Status != TaskStatus.RanToCompletion)
-            {
-                // Spell checker isn't ready.  Just return immediately.
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
-            var spellChecker = await _spellCheckerTask.ConfigureAwait(false);
-            var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
+            var similarNames = _spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = ArrayBuilder<ISymbol>.GetInstance();
 
             foreach (var similarName in similarNames)
@@ -329,22 +326,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToInfo = new();
 
-        private static Task<SpellChecker> GetSpellCheckerAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
-        {
-            // Create a new task to attempt to load or create the spell checker for this 
-            // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
-            // for non-fuzzy searches, and soon afterwards it will be able to perform
-            // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(services, solutionKey, checksum, filePath, sortedNodes));
-        }
-
-        private static Task<SpellChecker> CreateSpellCheckerAsync(
-            Checksum checksum, ImmutableArray<Node> sortedNodes)
-        {
-            return Task.FromResult(new SpellChecker(
-                checksum, sortedNodes.Select(n => n.Name.AsMemory())));
-        }
+        private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
+            => new(checksum, sortedNodes.Select(n => n.Name.AsMemory()));
 
         private static void SortNodes(
             ImmutableArray<BuilderNode> unsortedNodes,
@@ -493,17 +476,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum,
-            string filePath, ImmutableArray<BuilderNode> unsortedNodes,
+            Checksum checksum,
+            ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             SortNodes(unsortedNodes, out var sortedNodes);
-            var createSpellCheckerTask = GetSpellCheckerAsync(
-                services, solutionKey, checksum, filePath, sortedNodes);
+            var spellChecker = CreateSpellChecker(checksum, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, simpleMethods);
+                checksum, sortedNodes, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

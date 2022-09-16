@@ -94,12 +94,19 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
         /// </summary>
-        public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+        public bool SupportsCompilation => this.Services.GetService<ICompilationFactoryService>() != null;
 
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
+        [Obsolete($"Use {nameof(Services)} instead.")]
         public HostLanguageServices LanguageServices => _projectState.LanguageServices;
+
+        /// <summary>
+        /// Immutable snapshot of language services from the host environment associated with this project's language.
+        /// Use this over <see cref="LanguageServices"/> when possible.
+        /// </summary>
+        public LanguageServices Services => LanguageServices.LanguageServices;
 
         /// <summary>
         /// The language associated with the project.
@@ -774,7 +781,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+        internal AnalyzerConfigData? GetAnalyzerConfigOptions()
             => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractInterface;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -25,14 +25,18 @@ namespace Microsoft.CodeAnalysis.ExtractClass
     internal class ExtractClassWithDialogCodeAction : CodeActionWithOptions
     {
         private readonly Document _document;
-        private readonly ISymbol? _selectedMember;
+        private readonly ImmutableArray<ISymbol> _selectedMembers;
         private readonly INamedTypeSymbol _selectedType;
         private readonly SyntaxNode _selectedTypeDeclarationNode;
         private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
-        public override string Title => FeaturesResources.Extract_base_class;
+        public override string Title => _selectedType.IsRecord
+            ? FeaturesResources.Extract_base_record
+            : FeaturesResources.Extract_base_class;
+
+        internal override CodeActionPriority Priority { get; }
 
         public ExtractClassWithDialogCodeAction(
             Document document,
@@ -41,101 +45,105 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             INamedTypeSymbol selectedType,
             SyntaxNode selectedTypeDeclarationNode,
             CleanCodeGenerationOptionsProvider fallbackOptions,
-            ISymbol? selectedMember = null)
+            ImmutableArray<ISymbol> selectedMembers)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
             _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
             _fallbackOptions = fallbackOptions;
-            _selectedMember = selectedMember;
+            _selectedMembers = selectedMembers;
             Span = span;
+
+            // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
+            // class.  on a member however, we deprioritize this as there are likely more member-specific operations
+            // they'd prefer to invoke instead.
+            Priority = selectedMembers.IsEmpty ? CodeActionPriority.Medium : CodeActionPriority.Low;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
-            var extractClassService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IExtractClassOptionsService>();
-            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember, cancellationToken)
+            var extractClassService = _service ?? _document.Project.Solution.Services.GetRequiredService<IExtractClassOptionsService>();
+            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMembers, cancellationToken)
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            if (options is ExtractClassOptions extractClassOptions)
-            {
-                // Map the symbols we're removing to annotations
-                // so we can find them easily
-                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-                var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
-                    extractClassOptions.MemberAnalysisResults.Select(m => m.Member),
-                    _document.Project.Solution,
-                    _selectedTypeDeclarationNode,
-                    cancellationToken).ConfigureAwait(false);
-
-                var namespaceService = _document.GetRequiredLanguageService<AbstractExtractInterfaceService>();
-
-                // Create the symbol for the new type 
-                var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                    _selectedType.GetAttributes(),
-                    _selectedType.DeclaredAccessibility,
-                    _selectedType.GetSymbolModifiers(),
-                    TypeKind.Class,
-                    extractClassOptions.TypeName,
-                    typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, extractClassOptions.MemberAnalysisResults.Select(m => m.Member)));
-
-                var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
-                    _selectedType,
-                    _document.Project.CompilationOptions);
-
-                // Add the new type to the solution. It can go in a new file or
-                // be added to an existing. The returned document is always the document
-                // containing the new type
-                var (updatedDocument, typeAnnotation) = extractClassOptions.SameFile
-                    ? await ExtractTypeHelpers.AddTypeToExistingFileAsync(
-                        symbolMapping.AnnotatedSolution.GetRequiredDocument(_document.Id),
-                        newType,
-                        symbolMapping,
-                        _fallbackOptions,
-                        cancellationToken).ConfigureAwait(false)
-                    : await ExtractTypeHelpers.AddTypeToNewFileAsync(
-                        symbolMapping.AnnotatedSolution,
-                        containingNamespaceDisplay,
-                        extractClassOptions.FileName,
-                        _document.Project.Id,
-                        _document.Folders,
-                        newType,
-                        _document,
-                        _fallbackOptions,
-                        cancellationToken).ConfigureAwait(false);
-
-                // Update the original type to have the new base
-                var solutionWithUpdatedOriginalType = await GetSolutionWithBaseAddedAsync(
-                    updatedDocument.Project.Solution,
-                    symbolMapping,
-                    newType,
-                    extractClassOptions.MemberAnalysisResults,
-                    cancellationToken).ConfigureAwait(false);
-
-                // After all the changes, make sure we're using the most up to date symbol 
-                // as the destination for pulling members into
-                var documentWithTypeDeclaration = solutionWithUpdatedOriginalType.GetRequiredDocument(updatedDocument.Id);
-                var newTypeAfterEdits = await GetNewTypeSymbolAsync(documentWithTypeDeclaration, typeAnnotation, cancellationToken).ConfigureAwait(false);
-
-                // Use Members Puller to move the members to the new symbol
-                var finalSolution = await PullMembersUpAsync(
-                    solutionWithUpdatedOriginalType,
-                    newTypeAfterEdits,
-                    symbolMapping,
-                    extractClassOptions.MemberAnalysisResults,
-                    cancellationToken).ConfigureAwait(false);
-
-                return new[] { new ApplyChangesOperation(finalSolution) };
-            }
-            else
+            if (options is not ExtractClassOptions extractClassOptions)
             {
                 // If user click cancel button, options will be null and hit this branch
                 return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
             }
+
+            // Map the symbols we're removing to annotations
+            // so we can find them easily
+            var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+            var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
+                extractClassOptions.MemberAnalysisResults.Select(m => m.Member),
+                _document.Project.Solution,
+                _selectedTypeDeclarationNode,
+                cancellationToken).ConfigureAwait(false);
+
+            var namespaceService = _document.GetRequiredLanguageService<AbstractExtractInterfaceService>();
+
+            // Create the symbol for the new type 
+            var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
+                _selectedType.GetAttributes(),
+                _selectedType.DeclaredAccessibility,
+                _selectedType.GetSymbolModifiers(),
+                _selectedType.IsRecord,
+                TypeKind.Class,
+                extractClassOptions.TypeName,
+                typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, extractClassOptions.MemberAnalysisResults.Select(m => m.Member)));
+
+            var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
+                _selectedType,
+                _document.Project.CompilationOptions);
+
+            // Add the new type to the solution. It can go in a new file or
+            // be added to an existing. The returned document is always the document
+            // containing the new type
+            var (updatedDocument, typeAnnotation) = extractClassOptions.SameFile
+                ? await ExtractTypeHelpers.AddTypeToExistingFileAsync(
+                    symbolMapping.AnnotatedSolution.GetRequiredDocument(_document.Id),
+                    newType,
+                    symbolMapping,
+                    _fallbackOptions,
+                    cancellationToken).ConfigureAwait(false)
+                : await ExtractTypeHelpers.AddTypeToNewFileAsync(
+                    symbolMapping.AnnotatedSolution,
+                    containingNamespaceDisplay,
+                    extractClassOptions.FileName,
+                    _document.Project.Id,
+                    _document.Folders,
+                    newType,
+                    _document,
+                    _fallbackOptions,
+                    cancellationToken).ConfigureAwait(false);
+
+            // Update the original type to have the new base
+            var solutionWithUpdatedOriginalType = await GetSolutionWithBaseAddedAsync(
+                updatedDocument.Project.Solution,
+                symbolMapping,
+                newType,
+                extractClassOptions.MemberAnalysisResults,
+                cancellationToken).ConfigureAwait(false);
+
+            // After all the changes, make sure we're using the most up to date symbol 
+            // as the destination for pulling members into
+            var documentWithTypeDeclaration = solutionWithUpdatedOriginalType.GetRequiredDocument(updatedDocument.Id);
+            var newTypeAfterEdits = await GetNewTypeSymbolAsync(documentWithTypeDeclaration, typeAnnotation, cancellationToken).ConfigureAwait(false);
+
+            // Use Members Puller to move the members to the new symbol
+            var finalSolution = await PullMembersUpAsync(
+                solutionWithUpdatedOriginalType,
+                newTypeAfterEdits,
+                symbolMapping,
+                extractClassOptions.MemberAnalysisResults,
+                cancellationToken).ConfigureAwait(false);
+
+            return new[] { new ApplyChangesOperation(finalSolution) };
         }
 
         private async Task<Solution> PullMembersUpAsync(
@@ -145,8 +153,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             ImmutableArray<ExtractClassMemberAnalysisResult> memberAnalysisResults,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<(ISymbol member, bool makeAbstract)>.GetInstance(out var pullMembersBuilder);
-            using var _1 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(memberAnalysisResults.Length, out var remainingResults);
+            using var _1 = ArrayBuilder<(ISymbol member, bool makeAbstract)>.GetInstance(out var pullMembersBuilder);
+            using var _2 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(memberAnalysisResults.Length, out var remainingResults);
             remainingResults.AddRange(memberAnalysisResults);
 
             // For each document in the symbol mappings, we want to find the annotated nodes
@@ -166,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                using var _2 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(remainingResults.Count, out var resultsToRemove);
+                using var _3 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(remainingResults.Count, out var resultsToRemove);
 
                 // Out of the remaining members that we need to move, does this
                 // document contain the definition for that symbol? If so, add it to the builder

@@ -26,8 +26,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             /// <summary>
             /// Partial analysis state for operation block actions executed on the declaration.
+            /// 
+            /// NOTE: This state tracks operations actions registered inside operation block start context.
+            /// Operation actions registered outside operation block start context are tracked
+            /// with <see cref="OperationAnalysisState"/>.
             /// </summary>
             public OperationBlockAnalyzerStateData OperationBlockAnalysisState { get; }
+
+            /// <summary>
+            /// Partial analysis state for operation actions executed on the declaration.
+            /// 
+            /// NOTE: This state tracks operations actions registered outside of operation block start context.
+            /// Operation actions registered inside operation block start context are tracked
+            /// with <see cref="OperationBlockAnalyzerStateData"/>.
+            /// </summary>
+            public OperationAnalyzerStateData OperationAnalysisState { get; }
 
             public static new readonly DeclarationAnalyzerStateData FullyProcessedInstance = CreateFullyProcessedInstance();
 
@@ -35,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 CodeBlockAnalysisState = new CodeBlockAnalyzerStateData();
                 OperationBlockAnalysisState = new OperationBlockAnalyzerStateData();
+                OperationAnalysisState = new OperationAnalyzerStateData();
             }
 
             private static DeclarationAnalyzerStateData CreateFullyProcessedInstance()
@@ -48,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 CodeBlockAnalysisState.SetStateKind(stateKind);
                 OperationBlockAnalysisState.SetStateKind(stateKind);
+                OperationAnalysisState.SetStateKind(stateKind);
                 base.SetStateKind(stateKind);
             }
 
@@ -56,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 base.Free();
                 CodeBlockAnalysisState.Free();
                 OperationBlockAnalysisState.Free();
+                OperationAnalysisState.Free();
             }
         }
 
@@ -73,10 +89,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ProcessedNodes = new HashSet<SyntaxNode>();
             }
 
-            public void ClearNodeAnalysisState()
+            public void OnAllActionsExecutedForNode(SyntaxNode node)
             {
                 CurrentNode = null;
                 ProcessedActions.Clear();
+                ProcessedNodes.Add(node);
             }
 
             public override void Free()
@@ -101,10 +118,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ProcessedOperations = new HashSet<IOperation>();
             }
 
-            public void ClearNodeAnalysisState()
+            public void OnAllActionsExecutedForOperation(IOperation operation)
             {
                 CurrentOperation = null;
                 ProcessedActions.Clear();
+                ProcessedOperations.Add(operation);
             }
 
             public override void Free()

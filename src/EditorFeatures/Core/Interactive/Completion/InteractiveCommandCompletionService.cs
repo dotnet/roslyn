@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal sealed class InteractiveCommandCompletionService : CompletionServiceWithProviders
+    internal sealed class InteractiveCommandCompletionService : CompletionService
     {
         [ExportLanguageServiceFactory(typeof(CompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
         internal sealed class Factory : ILanguageServiceFactory
@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);
+                => new InteractiveCommandCompletionService(languageServices.LanguageServices.SolutionServices);
         }
 
-        private InteractiveCommandCompletionService(Workspace workspace)
-            : base(workspace)
+        private InteractiveCommandCompletionService(SolutionServices services)
+            : base(services)
         {
         }
 

@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AbstractAddObsoleteAttributeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AbstractAliasAmbiguousTypeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\AbstractConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\AbstractForEachCastCodeFixProvider.cs" />

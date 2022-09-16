@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
@@ -132,10 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 var outliningManager = outliningManagerService.GetOutliningManager(textView);
 
-                if (outliningManager != null)
-                {
-                    outliningManager.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
-                }
+                outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
             }
 
             var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
@@ -383,5 +381,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static bool IsNotSurfaceBufferOfTextView(this ITextView textView, ITextBuffer textBuffer)
             => textBuffer != textView.TextBuffer;
+
+        internal static bool IsInLspEditorContext(this ITextView textView)
+        {
+            // If any of the buffers in the projection graph are in the LSP editor context, then we consider this to be in an LSP context.
+            // We cannot be in a partial context where some buffers are LSP and some are not.
+            var anyBufferInLspContext = false;
+            _ = textView.BufferGraph.GetTextBuffers(textBuffer =>
+            {
+                // Just set a flag if we found one to avoid creating a collection of all the buffers
+                if (textBuffer.IsInLspEditorContext())
+                {
+                    anyBufferInLspContext = true;
+                }
+
+                return false;
+            });
+
+            return anyBufferInLspContext;
+        }
     }
 }

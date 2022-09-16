@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// <remarks>
     /// They monitor changes in the underlying files and provide snapshot references (subclasses of <see cref="PortableExecutableReference"/>) 
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
-    /// from <see cref="ITemporaryStorageService"/>.
+    /// from <see cref="ITemporaryStorageServiceInternal"/>.
     /// </remarks>
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
-        private readonly ITemporaryStorageService _temporaryStorageService;
+        private readonly TemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            ITemporaryStorageService temporaryStorageService)
+            TemporaryStorageService temporaryStorageService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Assumes.Present(_temporaryStorageService);
         }
 
-        internal IEnumerable<ITemporaryStreamStorage>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+        internal IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => _metadataCache.ClearCache();
 
         private bool VsSmartScopeCandidate(string fullPath)
-            => _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
+            => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
 
         internal static IEnumerable<string> GetReferencePaths()
         {
@@ -136,11 +136,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // use temporary storage
-            var storages = new List<ITemporaryStreamStorage>();
+            var storages = new List<TemporaryStorageService.TemporaryStreamStorage>();
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
             // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages), out metadata))
             {
                 newMetadata.Dispose();
             }
@@ -153,28 +153,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage(FileKey fileKey, List<ITemporaryStreamStorage> storages)
+        private AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage(
+            FileKey fileKey, List<TemporaryStorageService.TemporaryStreamStorage> storages)
         {
             var moduleMetadata = CreateModuleMetadataFromTemporaryStorage(fileKey, storages);
             return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, CreateModuleMetadataFromTemporaryStorage);
         }
 
-        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
+        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(
+            FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
         {
-            GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream, out var pImage);
+            GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream);
 
-            var metadata = ModuleMetadata.CreateFromMetadata(pImage, (int)stream.Length);
+            unsafe
+            {
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
 
-            // first time, the metadata is created. tie lifetime.
-            s_lifetimeMap.Add(metadata, stream);
+                // hold onto storage if requested
+                storages?.Add(storage);
 
-            // hold onto storage if requested
-            storages?.Add(storage);
-
-            return metadata;
+                return metadata;
+            }
         }
 
-        private void GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey, out ITemporaryStreamStorage storage, out Stream stream, out IntPtr pImage)
+        private void GetStorageInfoFromTemporaryStorage(
+            FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
         {
             int size;
             using (var copyStream = SerializableBytes.CreateWritableStream())
@@ -198,21 +202,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // copy over the data to temp storage and let pooled stream go
-                storage = _temporaryStorageService.CreateTemporaryStreamStorage(CancellationToken.None);
+                storage = _temporaryStorageService.CreateTemporaryStreamStorage();
 
                 copyStream.Position = 0;
                 storage.WriteStream(copyStream);
             }
 
-            // get stream that owns direct access memory
+            // get stream that owns the underlying unmanaged memory.
             stream = storage.ReadStream(CancellationToken.None);
 
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
 
-            // under VS host, direct access should be supported
-            var directAccess = (ISupportDirectMemoryAccess)stream;
-            pImage = directAccess.GetPointer();
+            return;
         }
 
         private static void StreamCopy(Stream source, Stream destination, int start, int length)
@@ -263,14 +265,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
+        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
-            if (metadata == null)
-            {
-                // getting metadata didn't work out through importer. fallback to shadow copy one
-                metadata = CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
-            }
+            // getting metadata didn't work out through importer. fallback to shadow copy one
+            metadata ??= CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
 
             return metadata;
         }
@@ -312,8 +311,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
         private static AssemblyMetadata CreateAssemblyMetadata(
-            FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage>? storages,
-            Func<FileKey, List<ITemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
+            FileKey fileKey, ModuleMetadata manifestModule, List<TemporaryStorageService.TemporaryStreamStorage>? storages,
+            Func<FileKey, List<TemporaryStorageService.TemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
         {
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 

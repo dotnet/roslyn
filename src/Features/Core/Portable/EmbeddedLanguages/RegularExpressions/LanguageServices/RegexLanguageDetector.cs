@@ -12,7 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                     from method in regexType.GetMembers().OfType<IMethodSymbol>()
                     where method.DeclaredAccessibility == Accessibility.Public
                     where method.IsStatic
-                    where method.Parameters.Any(p => p.Name == _patternName)
+                    where method.Parameters.Any(static p => p.Name == _patternName)
                     select method.Name);
             }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         {
             options = default;
 
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates: true, cancellationToken);
             if (parameter?.Name != _patternName)
             {
                 return false;

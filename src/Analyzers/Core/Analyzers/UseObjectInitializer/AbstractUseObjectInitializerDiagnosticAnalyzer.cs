@@ -6,7 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
@@ -29,14 +30,26 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
+        private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+            EnforceOnBuildValues.UseObjectInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: false);
+
+        private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+            EnforceOnBuildValues.UseObjectInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true);
+
         protected abstract bool FadeOutOperatorToken { get; }
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-                   EnforceOnBuildValues.UseObjectInitializer,
-                   CodeStyleOptions2.PreferObjectInitializer,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
+                    .Add(s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
+                    .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferObjectInitializer))
         {
         }
 
@@ -67,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferObjectInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -95,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
+                s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 locations,
@@ -111,11 +124,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, context.Node.Language);
-            if (!fadeOutCode)
-                return;
-
             var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
@@ -130,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        Descriptor,
+                        s_unnecessaryCodeDescriptor,
                         location1,
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
@@ -140,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 else
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        Descriptor, location1, additionalLocations: locations));
+                        s_unnecessaryCodeDescriptor, location1, additionalLocations: locations));
                 }
             }
         }

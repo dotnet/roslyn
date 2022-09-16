@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
                     }
-                    else if (method.IsAbstract && method.IsStatic)
+                    else if ((method.IsAbstract || method.IsVirtual) && method.IsStatic)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                     }

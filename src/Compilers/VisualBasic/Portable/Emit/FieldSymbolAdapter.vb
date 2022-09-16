@@ -32,6 +32,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
+        Private ReadOnly Property IFieldReferenceRefCustomModifiers As ImmutableArray(Of ICustomModifier) Implements IFieldReference.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of ICustomModifier).Empty
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldReferenceIsByReference As Boolean Implements IFieldReference.IsByReference
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Function IFieldReferenceGetResolvedField(context As EmitContext) As IFieldDefinition Implements IFieldReference.GetResolvedField
             Return ResolvedFieldImpl(DirectCast(context.Module, PEModuleBuilder))
         End Function

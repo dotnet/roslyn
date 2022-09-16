@@ -7,8 +7,9 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -18,21 +19,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private sealed class State
         {
             public SemanticDocument SemanticDocument { get; }
-            public SyntaxFormattingOptionsProvider FallbackOptions { get; }
+            public CodeCleanupOptionsProvider FallbackOptions { get; }
 
             public TTypeDeclarationSyntax TypeNode { get; set; }
             public string TypeName { get; set; }
             public string DocumentNameWithoutExtension { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
-            private State(SemanticDocument document, SyntaxFormattingOptionsProvider fallbackOptions)
+            private State(SemanticDocument document, CodeCleanupOptionsProvider fallbackOptions)
             {
                 SemanticDocument = document;
                 FallbackOptions = fallbackOptions;
             }
 
             internal static State Generate(
-                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, SyntaxFormattingOptionsProvider fallbackOptions,
+                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State(document, fallbackOptions);
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
                 if (SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol ||
-                    typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
+                    typeSymbol.Locations.Any(static loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
                     typeSymbol.IsImplicitlyDeclared ||
                     typeSymbol.Name == string.Empty)

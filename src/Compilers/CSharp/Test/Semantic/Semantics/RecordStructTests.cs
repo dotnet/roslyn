@@ -1947,15 +1947,15 @@ record struct C(int X, int Y)
 }";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,15): error CS0843: Auto-implemented property 'C.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (3,15): error CS0843: Auto-implemented property 'C.X' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 // record struct C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "C").WithArguments("C.X", "preview").WithLocation(3, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "C").WithArguments("C.X", "11.0").WithLocation(3, 15),
                 // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C(int X, int Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
                 );
 
-            var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(src, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C(int X, int Y)
@@ -2211,18 +2211,18 @@ record struct C1(object O1, object O2, object O3) // 1, 2
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0843: Auto-implemented property 'C1.O1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
-                // record struct C1(object O1, object O2, object O3) // 1, 2
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "C1").WithArguments("C1.O1", "preview").WithLocation(2, 15),
-                // (2,25): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct C1(object O1, object O2, object O3) // 1, 2
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O1").WithArguments("O1").WithLocation(2, 25),
-                // (2,47): warning CS8907: Parameter 'O3' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct C1(object O1, object O2, object O3) // 1, 2
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O3").WithArguments("O3").WithLocation(2, 47)
+                    // (2,15): error CS0843: Auto-implemented property 'C1.O1' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
+                    // record struct C1(object O1, object O2, object O3) // 1, 2
+                    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "C1").WithArguments("C1.O1", "11.0").WithLocation(2, 15),
+                    // (2,25): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
+                    // record struct C1(object O1, object O2, object O3) // 1, 2
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O1").WithArguments("O1").WithLocation(2, 25),
+                    // (2,47): warning CS8907: Parameter 'O3' is unread. Did you forget to use it to initialize the property with that name?
+                    // record struct C1(object O1, object O2, object O3) // 1, 2
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O3").WithArguments("O3").WithLocation(2, 47)
                 );
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11, verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (2,25): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C1(object O1, object O2, object O3) // 1, 2
@@ -2305,6 +2305,14 @@ namespace System
         public bool X { get; set; }
     }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public class String { }
     public struct Void { }
     public struct Boolean { }
@@ -2399,6 +2407,14 @@ namespace System
         public static bool X { get; set; }
     }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public class String { }
     public struct Void { }
     public struct Boolean { }
@@ -2893,15 +2909,15 @@ record struct R(int P = 42)
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0843: Auto-implemented property 'R.P' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (2,15): error CS0843: Auto-implemented property 'R.P' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 // record struct R(int P = 42)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "R").WithArguments("R.P", "preview").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "R").WithArguments("R.P", "11.0").WithLocation(2, 15),
                 // (2,21): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct R(int P = 42)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 21)
                 );
 
-            var verifier = CompileAndVerify(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11, verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (2,21): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct R(int P = 42)
@@ -3933,7 +3949,7 @@ record struct B(int X)
 $@"
 record struct A(int X)
 {{
-    { accessibility } void Deconstruct(out int a)
+    {accessibility} void Deconstruct(out int a)
         => throw null;
 }}
 ";
@@ -4001,15 +4017,15 @@ record struct Pos2(int X)
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 // record struct Pos(int X)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Pos").WithArguments("Pos.x", "preview").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Pos").WithArguments("Pos.x", "11.0").WithLocation(2, 15),
                 // (5,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
@@ -4241,7 +4257,7 @@ record struct B;
 $@"
 record struct A
 {{
-    { accessibility } bool Equals(A x)
+    {accessibility} bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -4271,7 +4287,7 @@ record struct A
 $@"
 record struct A
 {{
-    { accessibility } bool Equals(A x)
+    {accessibility} bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -4515,7 +4531,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -4792,7 +4808,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -7527,12 +7543,12 @@ record struct C
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         _ = this with { X = 42 }; // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(8, 13)
                 );
 
-            var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(src, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(string)", @"
 {
@@ -7933,21 +7949,23 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (12,48): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,48): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new S2() with { Field1 = outer, Field2 = inner };
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field2 = inner").WithArguments("inner").WithLocation(12, 48),
-                // (23,34): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "Field2 = inner").WithArguments("inner").WithLocation(12, 48),
+                // (23,34): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         result = new S2() with { Field1 = inner, Field2 = outer };
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field1 = inner").WithArguments("inner").WithLocation(23, 34)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "Field1 = inner").WithArguments("inner").WithLocation(23, 34)
                 );
         }
 
-        [Fact]
-        public void WithExprOnStruct_OnRefStruct_ReceiverMayWrap()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void WithExprOnStruct_OnRefStruct_ReceiverMayWrap(LanguageVersion languageVersion)
         {
             // Similar to test LocalWithNoInitializerEscape but wrapping method is used as receiver for `with` expression
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class Program
 {
     static void Main()
@@ -7957,7 +7975,7 @@ class Program
         sp = MayWrap(ref local) with { }; // 1, 2
     }
 
-    static S1 MayWrap(ref Span<int> arg)
+    static S1 MayWrap([UnscopedRef] ref Span<int> arg)
     {
         return default;
     }
@@ -7968,14 +7986,24 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (9,26): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var expectedDiagnostics = new[]
+            {
+                // (9,26): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         sp = MayWrap(ref local) with { }; // 1, 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(9, 26),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(9, 26),
                 // (9,14): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //         sp = MayWrap(ref local) with { }; // 1, 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(9, 14)
-                );
+            };
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                expectedDiagnostics = expectedDiagnostics.Append(
+                    // (12,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     static S1 MayWrap([UnscopedRef] ref Span<int> arg)
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(12, 24));
+            }
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -11229,9 +11257,9 @@ record struct S3(char A)
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (1,15): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (1,15): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 // record struct S(object F)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "preview").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "11.0").WithLocation(1, 15),
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
@@ -11239,7 +11267,7 @@ record struct S3(char A)
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)

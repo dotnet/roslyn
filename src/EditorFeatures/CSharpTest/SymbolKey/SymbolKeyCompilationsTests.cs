@@ -108,8 +108,7 @@ public void Method()
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact]
-        [WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
+        [Fact, WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
             var src = @"using System;
@@ -161,8 +160,7 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
-        [Fact]
-        [WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
+        [Fact, WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
             var src = @"
@@ -237,6 +235,98 @@ class C
             var members2 = symbols2.OfType<INamespaceOrTypeSymbol>().SelectMany(n => n.GetMembers()).ToList();
 
             ResolveAndVerifySymbolList(members1, members2, comp1);
+        }
+
+        [Fact]
+        public void FileType1()
+        {
+            var src1 = @"using System;
+
+namespace N1.N2
+{
+    file class C { }
+}
+";
+            var originalComp = CreateCompilation(src1, assemblyName: "Test");
+            var newComp = CreateCompilation(src1, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(3, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
+        [Fact]
+        public void FileType2()
+        {
+            var src1 = @"using System;
+
+namespace N1.N2
+{
+    file class C<T> { }
+}
+";
+            var originalComp = CreateCompilation(src1, assemblyName: "Test");
+            var newComp = CreateCompilation(src1, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(3, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
+        [Fact]
+        public void FileType3()
+        {
+            var src1 = @"using System;
+
+namespace N1.N2
+{
+    file class C { }
+}
+";
+            // this should result in two entirely separate file symbols.
+            // note that the IDE can only distinguish file-local type symbols with the same name when they have distinct file paths.
+            // We are OK with this as we will require file types with identical names to have distinct file paths later in the preview.
+            // See https://github.com/dotnet/roslyn/issues/61999
+            var originalComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
+            var newComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(4, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
+        [Fact]
+        public void FileType4()
+        {
+            // we should be able to distinguish a file-local type and non-file-local type when they have the same source name.
+            var src1 = SyntaxFactory.ParseSyntaxTree(@"using System;
+
+namespace N1.N2
+{
+    file class C { }
+}
+", path: "File1.cs");
+
+            var src2 = SyntaxFactory.ParseSyntaxTree(@"
+namespace N1.N2
+{
+    class C { }
+}
+", path: "File2.cs");
+            var originalComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+            var newComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(4, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
         }
 
         #endregion
@@ -386,8 +476,7 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
-        [Fact]
+        [Fact, WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void C2CIndexerSymbolChanged01()
         {
             var src1 = @"using System;

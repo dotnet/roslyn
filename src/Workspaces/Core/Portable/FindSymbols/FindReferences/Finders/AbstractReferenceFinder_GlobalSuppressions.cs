@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -52,19 +52,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            Document document,
-            SemanticModel semanticModel,
             ISymbol symbol,
+            FindReferencesDocumentState state,
             CancellationToken cancellationToken)
         {
             if (!ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId))
                 return ImmutableArray<FinderLocation>.Empty;
 
             // Check if we have any relevant global attributes in this document.
-            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(state.Document, cancellationToken).ConfigureAwait(false);
             if (!info.ContainsGlobalSuppressMessageAttribute)
                 return ImmutableArray<FinderLocation>.Empty;
 
+            var semanticModel = state.SemanticModel;
             var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
             if (suppressMessageAttribute == null)
                 return ImmutableArray<FinderLocation>.Empty;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (!TryGetExpectedDocumentationCommentId(docCommentId, out var expectedDocCommentId))
                 return ImmutableArray<FinderLocation>.Empty;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = state.SyntaxFacts;
 
             // We map the positions of documentation ID literals in tree to string literal tokens,
             // perform semantic checks to ensure these are valid references to the symbol
@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in root.DescendantTokens())
             {
-                if (IsCandidate(token, expectedDocCommentId.Span, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
+                if (IsCandidate(state, token, expectedDocCommentId.Span, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
                 {
-                    var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, document, syntaxFacts);
+                    var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, state.Document, syntaxFacts);
                     locations.Add(new FinderLocation(token.GetRequiredParent(), referenceLocation));
                 }
             }
@@ -94,13 +94,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // Local functions
             static bool IsCandidate(
-                SyntaxToken token, ReadOnlySpan<char> expectedDocCommentId, SemanticModel semanticModel, ISyntaxFacts syntaxFacts,
+                FindReferencesDocumentState state, SyntaxToken token, ReadOnlySpan<char> expectedDocCommentId,
                 INamedTypeSymbol suppressMessageAttribute, CancellationToken cancellationToken, out int offsetOfReferenceInToken)
             {
                 offsetOfReferenceInToken = -1;
 
                 // Check if this token is a named attribute argument to "Target" property of "SuppressMessageAttribute".
-                if (!IsValidTargetOfGlobalSuppressionAttribute(token, suppressMessageAttribute, semanticModel, syntaxFacts, cancellationToken))
+                if (!IsValidTargetOfGlobalSuppressionAttribute(
+                        token, suppressMessageAttribute, state.SemanticModel, state.SyntaxFacts, cancellationToken))
                 {
                     return false;
                 }

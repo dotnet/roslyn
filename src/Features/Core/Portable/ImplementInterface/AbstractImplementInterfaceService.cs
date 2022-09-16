@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return document;
                 }
 
+                // TODO: https://github.com/dotnet/roslyn/issues/60990
                 // While implementing just one default action, like in the case of pressing enter after interface name in VB,
                 // choose to implement with the dispose pattern as that's the Dev12 behavior.
                 var action = ShouldImplementDisposePattern(state, explicitly: false)

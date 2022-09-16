@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
         protected abstract (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token);
 
-        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
-
         private protected async Task VerifyDefaultValueAsync(
             string markup,
             string? expectedDefaultValue,
@@ -58,14 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             var code = workspaceFixture.Target.Code;
             var position = workspaceFixture.Target.Position;
 
-            var changedOptions = WithChangedOptions(workspace.Options);
-            if (options is not null)
-            {
-                foreach (var option in options)
-                    changedOptions = changedOptions.WithChangedOption(option.Key, option.Value);
-            }
-
-            workspace.SetOptions(changedOptions);
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             var document = workspaceFixture.Target.UpdateDocument(code, SourceCodeKind.Regular);
 
@@ -73,12 +64,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             Assert.IsType(GetArgumentProviderType(), provider);
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
             var parameter = GetParameterSymbolInfo(workspace, semanticModel, root, position, CancellationToken.None);
             Contract.ThrowIfNull(parameter);
 
-            var context = new ArgumentContext(provider, documentOptions, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
+            var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
             await provider.ProvideArgumentAsync(context);
 
             Assert.Equal(expectedDefaultValue, context.DefaultValue);

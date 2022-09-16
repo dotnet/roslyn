@@ -6,13 +6,17 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.Progression.CodeSchema.Api;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -24,6 +28,8 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
+using Reference5 = VSLangProj110.Reference5;
+using Reference2 = VSLangProj2.Reference2;
 using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -96,6 +102,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task SetProjectInferAsync(string projectName, bool value, CancellationToken cancellationToken)
+        {
+            var convertedValue = value ? 1 : 0;
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            project.Properties.Item("OptionInfer").Value = convertedValue;
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+        }
+
         public async Task AddProjectReferenceAsync(string projectName, string projectToReferenceName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -105,12 +119,52 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
+        public Task RemoveProjectReferenceAsync(string projectName, string projectReferenceName, CancellationToken cancellationToken)
+        {
+            return RemoveReference(projectName, projectReferenceName, cancellationToken);
+        }
+
         public async Task AddAnalyzerReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var project = await GetProjectAsync(projectName, cancellationToken);
             ((VSProject3)project.Object).AnalyzerReferences.Add(filePath);
+        }
+
+        public async Task AddDllReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            ((VSProject)project.Object).References.Add(filePath);
+        }
+
+        public Task RemoveDllReferenceAsync(string projectName, string assemblyName, CancellationToken cancellationToken)
+        {
+            return RemoveReference(projectName, assemblyName, cancellationToken);
+        }
+
+        private async Task RemoveReference(string projectName, string referenceName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var vsProject = (VSProject)project.Object;
+            var referenceCount = vsProject.References.Count;
+            // The index for references starts at 1
+            for (var i = 1; i <= referenceCount; i++)
+            {
+                var reference = vsProject.References.Item(i);
+                var name = reference?.Name;
+                if (reference != null && name == referenceName)
+                {
+                    reference.Remove();
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException($"Could not find reference {referenceName} to remove");
         }
 
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
@@ -205,9 +259,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return;
             }
 
-            var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
-            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
-
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
                 async cancellationToken =>
@@ -229,6 +280,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
+
+            // Wait for async save operations to complete before proceeding
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+
+            // Verify documents are truly saved after a Save Solution operation
+            await TestServices.SolutionExplorerVerifier.AllDocumentsAreSavedAsync(cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -243,6 +300,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
             ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
             ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
+        }
+
+        public async Task CloseActiveWindow(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var monitorSelection = await GetRequiredGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var windowFrameObj));
+            var windowFrame = (IVsWindowFrame)windowFrameObj;
+
+            ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
         }
 
         public async Task CloseCodeFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
@@ -358,6 +426,53 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 await OpenFileAsync(projectName, fileName, cancellationToken);
             }
+        }
+
+        public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectDirectory = Path.GetDirectoryName(project.FullName);
+
+            VsShellUtilities.RenameDocument(
+                ServiceProvider.GlobalProvider,
+                Path.Combine(projectDirectory, oldFileName),
+                Path.Combine(projectDirectory, newFileName));
+        }
+
+        public async Task RenameFileViaDTEAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var projectItem = await GetProjectItemAsync(projectName, oldFileName, cancellationToken);
+
+            projectItem.Name = newFileName;
+        }
+
+        private async Task<EnvDTE.ProjectItem> GetProjectItemAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = (await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken)).Solution;
+            var projects = solution.Projects.Cast<EnvDTE.Project>();
+            var project = projects.FirstOrDefault(x => x.Name == projectName);
+
+            if (project == null)
+            {
+                throw new InvalidOperationException($"Project '{projectName} could not be found. Available projects: {string.Join(", ", projects.Select(x => x.Name))}.");
+            }
+
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var fullFilePath = Path.Combine(projectPath, relativeFilePath);
+
+            var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
+            var document = projectItems.FirstOrDefault(d => d.get_FileNames(1).Equals(fullFilePath));
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.get_FileNames(1)))}.");
+            }
+
+            return document;
         }
 
         public async Task SetFileContentsAsync(string projectName, string relativeFilePath, string content, CancellationToken cancellationToken)

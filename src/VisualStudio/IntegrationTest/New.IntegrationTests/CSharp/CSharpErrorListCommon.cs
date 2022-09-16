@@ -6,9 +6,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task ErrorList()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -61,7 +61,7 @@ class C
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task ErrorLevelWarning()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -84,7 +84,7 @@ class C
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task ErrorsDuringMethodBodyEditing()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -123,7 +123,7 @@ class Program2
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("aa = aa", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Delete);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = new string[] { };
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
@@ -133,7 +133,7 @@ class Program2
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public virtual async Task ErrorsAfterClosingFile()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -174,7 +174,7 @@ class Program2
             // Assert the window title is Class1.cs, which also means the file has no unsaved changes
             Assert.Equal("Class1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F4, ShiftState.Ctrl));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F4, VirtualKeyCode.CONTROL));
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);

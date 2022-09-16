@@ -159,9 +159,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ContainingType;
         }
 
-        public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IPointerTypeSymbol;
-
         public static bool IsErrorType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
@@ -252,10 +249,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;
+            => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
 
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol && ((INamedTypeSymbol)symbol).IsAnonymousType;
+            => symbol is INamedTypeSymbol { IsAnonymousType: true };
 
         public static bool IsNormalAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();
@@ -279,6 +276,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IPropertySymbol propertySymbol => !propertySymbol.IsReadOnly,
                 _ => false,
             };
+
+        public static bool IsRequired([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
 
         public static ITypeSymbol? GetMemberType(this ISymbol symbol)
             => symbol switch
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="symbol"></param>
         /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
         public static bool IsObsolete(this ISymbol symbol)
-            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            => symbol.GetAttributes().Any(static x => x.AttributeClass is
             {
                 MetadataName: nameof(ObsoleteAttribute),
                 ContainingNamespace.Name: nameof(System),

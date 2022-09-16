@@ -9,12 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -59,12 +60,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ITextView textView,
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
+            _languageServerSnippetExpander = languageServerSnippetExpander;
         }
 
         /// <summary>
@@ -157,18 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            // Telemetry
-            if (sessionData.TargetTypeFilterExperimentEnabled)
-            {
-                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
-                // (regardless of whether that filter button was active at the time of commit).
-                AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
-                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
-                {
-                    AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
-                }
-            }
-
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             return Commit(
@@ -230,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            var provider = GetCompletionProvider(completionService, roslynItem);
+            var provider = completionService.GetProvider(roslynItem, document.Project);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
@@ -241,61 +232,80 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
+            // Specifically for snippets, we check to see if the associated completion item is a snippet,
+            // and if so, we call upon the LanguageServerSnippetExpander's TryExpand to insert the snippet.
+            if (SnippetCompletionItem.IsSnippet(roslynItem))
+            {
+                Contract.ThrowIfNull(_languageServerSnippetExpander);
+
+                var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
+
+                Contract.ThrowIfNull(lspSnippetText);
+                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, mappedSpan, _textView))
+                {
+                    FatalError.ReportAndCatch(new InvalidOperationException("The invoked LSP snippet expander came back as false."), ErrorSeverity.Critical);
+                }
+
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
+            }
+
+            ITextSnapshot updatedCurrentSnapshot;
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
                 // edit.Apply() may trigger changes made by extensions.
                 // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
-                var updatedCurrentSnapshot = edit.Apply();
+                updatedCurrentSnapshot = edit.Apply();
+            }
 
-                if (change.NewPosition.HasValue)
+            if (change.NewPosition.HasValue)
+            {
+                // Roslyn knows how to position the caret in the snapshot we just created.
+                // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
+                view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+            }
+            else
+            {
+                // Or, If we're doing a minimal change, then the edit that we make to the 
+                // buffer may not make the total text change that places the caret where we 
+                // would expect it to go based on the requested change. In this case, 
+                // determine where the item should go and set the care manually.
+
+                // Note: we only want to move the caret if the caret would have been moved 
+                // by the edit.  i.e. if the caret was actually in the mapped span that 
+                // we're replacing.
+                var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
+                if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
                 {
-                    // Roslyn knows how to position the caret in the snapshot we just created.
-                    // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
-                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
                 }
                 else
                 {
-                    // Or, If we're doing a minimal change, then the edit that we make to the 
-                    // buffer may not make the total text change that places the caret where we 
-                    // would expect it to go based on the requested change. In this case, 
-                    // determine where the item should go and set the care manually.
-
-                    // Note: we only want to move the caret if the caret would have been moved 
-                    // by the edit.  i.e. if the caret was actually in the mapped span that 
-                    // we're replacing.
-                    var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
-                    if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
-                    {
-                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
-                    }
-                    else
-                    {
-                        view.Caret.EnsureVisible();
-                    }
-                }
-
-                includesCommitCharacter = change.IncludesCommitCharacter;
-
-                if (roslynItem.Rules.FormatOnCommit)
-                {
-                    // The edit updates the snapshot however other extensions may make changes there.
-                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
-                    var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
-
-                    if (currentDocument != null && formattingService != null)
-                    {
-                        var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                        var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
-                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
-                    }
+                    view.Caret.EnsureVisible();
                 }
             }
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+            includesCommitCharacter = change.IncludesCommitCharacter;
+
+            if (roslynItem.Rules.FormatOnCommit)
+            {
+                // The edit updates the snapshot however other extensions may make changes there.
+                // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
+                var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
+
+                if (currentDocument != null && formattingService != null)
+                {
+                    var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                    // Note: C# always completes synchronously, TypeScript is async
+                    var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                    subjectBuffer.ApplyChanges(changes);
+                }
+            }
+
+            _recentItemsManager.MakeMostRecentItem(roslynItem);
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {
@@ -379,16 +389,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
-        }
-
-        private static CompletionProvider? GetCompletionProvider(CompletionService completionService, CompletionItem item)
-        {
-            if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
-            {
-                return completionServiceWithProviders.GetProvider(item);
-            }
-
-            return null;
         }
     }
 }

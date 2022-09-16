@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILanguageServerNotificationManager
+    internal interface ILanguageServerNotificationManager : ILspService
     {
         ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken);
     }

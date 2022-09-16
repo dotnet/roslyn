@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base.Shutdown();
 
                         Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
+
+                        foreach (var analyzer in Analyzers)
+                        {
+                            analyzer.Shutdown();
+                        }
                     }
 
                     private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)

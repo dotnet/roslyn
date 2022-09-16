@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -60,12 +60,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isCustomEventContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
             isAnyExpressionContext As Boolean,
+            isGenericConstraintContext As Boolean,
             isGlobalStatementContext As Boolean,
             isOnArgumentListBracketOrComma As Boolean,
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
-            isInTaskLikeTypeContext As Boolean,
+            isTaskLikeTypeContext As Boolean,
             isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
@@ -91,10 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAttributeNameContext:=isAttributeNameContext,
                 isAwaitKeywordContext:=isAwaitKeywordContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
+                isGenericConstraintContext:=isGenericConstraintContext,
                 isGlobalStatementContext:=isGlobalStatementContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
-                isInTaskLikeTypeContext:=isInTaskLikeTypeContext,
+                isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
@@ -132,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Function ComputeIsInTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
             ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
             If targetToken.Kind() = SyntaxKind.AsKeyword Then
                 Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
@@ -170,11 +172,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
+                isGenericConstraintContext:=targetToken.Parent.IsKind(SyntaxKind.TypeParameterSingleConstraintClause, SyntaxKind.TypeParameterMultipleConstraintClause),
                 isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
-                isInTaskLikeTypeContext:=ComputeIsInTaskLikeTypeContext(targetToken),
+                isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),

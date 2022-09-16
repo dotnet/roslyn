@@ -253,11 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
-                if (conversion.IsUTF8StringLiteral)
-                {
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
-                }
-
                 reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
 
                 return new BoundConversion(
@@ -320,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
             {
-                if (method.IsAbstract)
+                if (method.IsAbstract || method.IsVirtual)
                 {
                     Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
 
@@ -343,12 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertObjectCreationExpression(
+        private static BoundExpression ConvertObjectCreationExpression(
             SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
             ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
-            BoundExpression expr = bindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
+            BoundExpression expr = bindObjectCreationExpression(node.Syntax, node.InitializerOpt, node.Binder, destination.StrippedType(), arguments, diagnostics);
             arguments.Free();
 
             Debug.Assert(expr is BoundObjectCreationExpressionBase { WasTargetTyped: true } or
@@ -367,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   syntax,
                                   expr,
                                   expr is BoundBadExpression ? Conversion.NoConversion : conversion,
-                                  CheckOverflowAtRuntime,
+                                  node.Binder.CheckOverflowAtRuntime,
                                   explicitCastInCode: isCast && !wasCompilerGenerated,
                                   conversionGroupOpt,
                                   expr.ConstantValue,
@@ -376,21 +371,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return expr;
 
-            BoundExpression bindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
+            static BoundExpression bindObjectCreationExpression(
+                SyntaxNode syntax, InitializerExpressionSyntax? initializerOpt, Binder binder,
+                TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
             {
-                var syntax = node.Syntax;
                 switch (type.TypeKind)
                 {
                     case TypeKind.Enum:
                     case TypeKind.Struct:
                     case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
-                        return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                        return binder.BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, initializerOpt, wasTargetTyped: true);
                     case TypeKind.TypeParameter:
-                        return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                        return binder.BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, initializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
                     case TypeKind.Delegate:
-                        return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, wasTargetTyped: true, diagnostics);
+                        return binder.BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, initializerOpt, wasTargetTyped: true, diagnostics);
                     case TypeKind.Interface:
-                        return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                        return binder.BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, initializerOpt, wasTargetTyped: true);
                     case TypeKind.Array:
                     case TypeKind.Class:
                     case TypeKind.Dynamic:
@@ -401,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
                         goto case TypeKind.Error;
                     case TypeKind.Error:
-                        return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                        return binder.MakeBadExpressionForObjectCreation(syntax, type, arguments, initializerOpt, typeSyntax: syntax, diagnostics);
                     case var v:
                         throw ExceptionUtilities.UnexpectedValue(v);
                 }
@@ -462,13 +458,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
                 var oldCase = source.SwitchArms[i];
-                Debug.Assert(oldCase.Syntax is SwitchExpressionArmSyntax);
-                var binder = GetRequiredBinder(oldCase.Syntax);
                 var oldValue = oldCase.Value;
                 var newValue =
                     targetTyped
-                    ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : binder.GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
@@ -706,9 +700,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
             diagnostics.AddRange(boundLambda.Diagnostics);
+
+            CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -738,6 +733,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
+        }
+
+        private static void CheckValidScopedMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
+        {
+            MethodSymbol? delegateMethod;
+            if (targetType.GetDelegateType() is { } delegateType)
+            {
+                delegateMethod = delegateType.DelegateInvokeMethod;
+            }
+            else if (targetType is FunctionPointerTypeSymbol functionPointerType)
+            {
+                delegateMethod = functionPointerType.Signature;
+            }
+            else
+            {
+                return;
+            }
+
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod))
+            {
+                SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                    delegateMethod,
+                    lambdaOrMethod,
+                    diagnostics,
+                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndLocation) =>
+                    {
+                        diagnostics.Add(
+                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
+                                ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
+                                ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
+                            typeAndLocation.Location,
+                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                            typeAndLocation.Type);
+                    },
+                    (Type: targetType, Location: syntax.Location),
+                    allowVariance: true,
+                    invokedAsExtensionMethod: invokedAsExtensionMethod);
+            }
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -1351,6 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
+
+            CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);

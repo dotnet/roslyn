@@ -188,13 +188,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic template. Otherwise, use a non-generic template.
-            if (allValidTypeArguments(typeDescr))
+            bool useUpdatedEscapeRules = Compilation.SourceModule.UseUpdatedEscapeRules;
+            if (allValidTypeArguments(useUpdatedEscapeRules, typeDescr))
             {
                 var fields = typeDescr.Fields;
+                Debug.Assert(fields.All(f => hasDefaultScope(useUpdatedEscapeRules, f)));
+
                 bool returnsVoid = fields.Last().Type.IsVoidType();
                 int nTypeArguments = fields.Length - (returnsVoid ? 1 : 0);
                 var refKinds = default(RefKindVector);
-                if (fields.Any(f => f.RefKind != RefKind.None))
+                if (fields.Any(static f => f.RefKind != RefKind.None))
                 {
                     refKinds = RefKindVector.Create(nTypeArguments);
                     for (int i = 0; i < nTypeArguments; i++)
@@ -202,11 +205,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKinds[i] = fields[i].RefKind;
                     }
                 }
+
                 var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(nTypeArguments);
                 for (int i = 0; i < nTypeArguments; i++)
                 {
                     typeArgumentsBuilder.Add(fields[i].TypeWithAnnotations);
                 }
+
                 var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
                 var template = SynthesizeDelegate(parameterCount: fields.Length - 1, refKinds, returnsVoid, generation);
 
@@ -239,24 +244,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     template.Construct(typeParameters);
             }
 
-            static bool allValidTypeArguments(AnonymousTypeDescriptor typeDescr)
+            static bool allValidTypeArguments(bool useUpdatedEscapeRules, AnonymousTypeDescriptor typeDescr)
             {
                 var fields = typeDescr.Fields;
                 int n = fields.Length;
                 for (int i = 0; i < n - 1; i++)
                 {
-                    if (!isValidTypeArgument(fields[i]))
+                    if (!isValidTypeArgument(useUpdatedEscapeRules, fields[i]))
                     {
                         return false;
                     }
                 }
                 var returnParameter = fields[n - 1];
-                return returnParameter.Type.IsVoidType() || isValidTypeArgument(returnParameter);
+                return returnParameter.Type.IsVoidType() || isValidTypeArgument(useUpdatedEscapeRules, returnParameter);
             }
 
-            static bool isValidTypeArgument(AnonymousTypeField field)
+            static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
             {
-                return field.Type is { } type &&
+                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(useUpdatedEscapeRules, field.RefKind, field.TypeWithAnnotations)) switch
+                {
+                    (DeclarationScope.Unscoped, false) => true,
+                    (DeclarationScope.RefScoped, true) => true,
+                    _ => false
+                };
+            }
+
+            static bool isValidTypeArgument(bool useUpdatedEscapeRules, AnonymousTypeField field)
+            {
+                return hasDefaultScope(useUpdatedEscapeRules, field) &&
+                    field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();
             }
@@ -385,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private AnonymousTypeTemplateSymbol CreatePlaceholderTemplate(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
         {
-            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None));
+            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None, DeclarationScope.Unscoped));
             var typeDescr = new AnonymousTypeDescriptor(fields, Location.None);
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }

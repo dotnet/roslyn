@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -36,18 +36,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         public static CodeAction TryComputeCodeAction(
             Document document,
-            ISymbol selectedMember,
+            ImmutableArray<ISymbol> selectedMembers,
             INamedTypeSymbol destination,
             CleanCodeGenerationOptionsProvider fallbackOptions)
         {
-            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, ImmutableArray.Create((member: selectedMember, makeAbstract: false)));
+            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination,
+                selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
+
             if (result.PullUpOperationNeedsToDoExtraChanges ||
-                IsSelectedMemberDeclarationAlreadyInDestination(selectedMember, destination))
+                selectedMembers.Any(IsSelectedMemberDeclarationAlreadyInDestination, destination))
             {
                 return null;
             }
 
-            var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
+            var title = selectedMembers.IsSingle()
+                ? string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name)
+                : string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
+
             return SolutionChangeAction.Create(
                 title,
                 cancellationToken => PullMembersUpAsync(document, result, fallbackOptions, cancellationToken),
@@ -95,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
-            var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, pullMemberUpOptions.Destination, location: null, cancellationToken).ConfigureAwait(false);
             var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
@@ -275,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
-            var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
 
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, location: null, cancellationToken).ConfigureAwait(false);
@@ -355,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             // Change the destination to abstract class if needed.
             if (!result.Destination.IsAbstract &&
-                result.MemberAnalysisResults.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
+                result.MemberAnalysisResults.Any(static analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
             {
                 var modifiers = DeclarationModifiers.From(result.Destination).WithIsAbstract(true);
                 newDestination = destinationEditor.Generator.WithModifiers(newDestination, modifiers);

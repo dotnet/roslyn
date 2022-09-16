@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise we still show the item even if there are no references to it.
             // And it's at least a source definition.
-            if (definition.Locations.Any(loc => loc.IsInSource))
+            if (definition.Locations.Any(static loc => loc.IsInSource))
             {
                 return true;
             }
 
             if (showMetadataSymbolsWithoutReferences &&
-                definition.Locations.Any(loc => loc.IsInMetadata))
+                definition.Locations.Any(static loc => loc.IsInMetadata))
             {
                 return true;
             }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
             foreach (var reference in references)
             {
-                var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
+                var isCaseSensitive = solution.Services.GetLanguageServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
                 var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 if (reference.Definition.IsOrdinaryMethod() &&
                     !comparer.Equals(reference.Definition.Name, symbol.Name))

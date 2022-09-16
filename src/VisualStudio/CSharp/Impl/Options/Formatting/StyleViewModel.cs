@@ -1159,21 +1159,6 @@ class Customer
 }}
 ";
 
-        private static readonly string s_preferUTF8StringLiterals = $@"
-using System;
-
-//[
-class WebResponse
-{{
-    // {ServicesVSResources.Prefer_colon}
-    private readonly byte[] header = ""Hello""u8;
-
-    // {ServicesVSResources.Over_colon}
-    private readonly byte[] header = new byte[] {{ 72, 101, 108, 108, 111 }};
-}}
-//]
-";
-
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
 using System;
 
@@ -1201,28 +1186,6 @@ class Customer
             return;
 //]
     }}
-}}
-";
-
-        private static readonly string s_preferParameterNullChecking = $@"
-using System;
-
-class Customer
-{{
-//[
-    // {ServicesVSResources.Prefer_colon}
-    void M1(string value!!)
-    {{
-    }}
-//]
-//[
-    // {ServicesVSResources.Over_colon}
-    void M2(string value)
-    {{
-        if (value is null)
-            throw new ArgumentNullException(nameof(value));
-    }}
-//]
 }}
 ";
 
@@ -1538,6 +1501,23 @@ class Customer2
     }}
 //]
 " };
+
+        private static readonly string s_preferReadOnlyStruct = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+readonly struct Point
+{{
+    public readonly int X, Y;
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+struct Point
+{{
+    public readonly int X, Y;
+}}
+//]
+";
 
         private static readonly string s_preferStaticLocalFunction = $@"
 class Customer1
@@ -2192,7 +2172,6 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferUTF8StringLiterals, ServicesVSResources.Prefer_UTF8_string_literals, s_preferUTF8StringLiterals, s_preferUTF8StringLiterals, this, optionStore, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);
@@ -2213,7 +2192,6 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferParameterNullChecking, CSharpVSResources.Prefer_parameter_null_checking, s_preferParameterNullChecking, s_preferParameterNullChecking, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
@@ -2224,6 +2202,7 @@ class C2
 
             // Modifier preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionStore, modifierGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferReadOnlyStruct, ServicesVSResources.Prefer_read_only_struct, s_preferReadOnlyStruct, s_preferReadOnlyStruct, this, optionStore, modifierGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, s_preferStaticLocalFunction, s_preferStaticLocalFunction, this, optionStore, modifierGroupTitle));
 
             // Parameter preferences

@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                current = current.Add(referenceIdentity, analyzers.Where(a => seen.Add(a)).ToImmutableArray());
+                current = current.Add(referenceIdentity, analyzers.Where(seen.Add).ToImmutableArray());
             }
 
             return current;

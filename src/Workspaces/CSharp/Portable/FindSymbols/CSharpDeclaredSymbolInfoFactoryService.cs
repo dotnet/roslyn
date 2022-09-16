@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,11 +15,11 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         BaseNamespaceDeclarationSyntax,
         TypeDeclarationSyntax,
         EnumDeclarationSyntax,
+        MethodDeclarationSyntax,
         MemberDeclarationSyntax,
         NameSyntax,
         QualifiedNameSyntax,
@@ -157,72 +159,118 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        protected override void AddDeclaredSymbolInfosWorker(
-            SyntaxNode container,
-            MemberDeclarationSyntax node,
+        protected override void AddLocalFunctionInfos(
+            MemberDeclarationSyntax memberDeclaration,
             StringTable stringTable,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string> aliases,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             string containerDisplayName,
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
+        {
+            using var pooledQueue = SharedPools.Default<Queue<SyntaxNodeOrToken>>().GetPooledObject();
+            var queue = pooledQueue.Object;
+            queue.Enqueue(memberDeclaration);
+            while (!queue.IsEmpty())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = queue.Dequeue();
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                    {
+                        queue.Enqueue(child);
+                    }
+                }
+
+                if (node.AsNode() is LocalFunctionStatementSyntax localFunction)
+                {
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                        stringTable,
+                        localFunction.Identifier.ValueText, GetMethodSuffix(localFunction),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
+                        isPartial: false,
+                        DeclaredSymbolInfoKind.Method,
+                        Accessibility.Private,
+                        localFunction.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty,
+                        parameterCount: localFunction.ParameterList.Parameters.Count,
+                        typeParameterCount: localFunction.TypeParameterList?.Parameters.Count ?? 0));
+                }
+            }
+        }
+
+        protected override DeclaredSymbolInfo? GetTypeDeclarationInfo(
+            SyntaxNode container,
+            TypeDeclarationSyntax typeDeclaration,
+            StringTable stringTable,
+            string containerDisplayName,
+            string fullyQualifiedContainerName)
         {
             // If this is a part of partial type that only contains nested types, then we don't make an info type for
             // it. That's because we effectively think of this as just being a virtual container just to hold the nested
             // types, and not something someone would want to explicitly navigate to itself.  Similar to how we think of
             // namespaces.
-            if (node is TypeDeclarationSyntax typeDeclaration &&
-                typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) &&
+            if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) &&
                 typeDeclaration.Members.Any() &&
                 typeDeclaration.Members.All(m => m is BaseTypeDeclarationSyntax))
             {
-                return;
+                return null;
             }
 
+            return DeclaredSymbolInfo.Create(
+                stringTable,
+                typeDeclaration.Identifier.ValueText,
+                GetTypeParameterSuffix(typeDeclaration.TypeParameterList),
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                typeDeclaration.Kind() switch
+                {
+                    SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
+                    SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
+                    SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
+                    SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
+                    SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
+                    _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
+                },
+                GetAccessibility(container, typeDeclaration.Modifiers),
+                typeDeclaration.Identifier.Span,
+                GetInheritanceNames(stringTable, typeDeclaration.BaseList),
+                IsNestedType(typeDeclaration));
+        }
+
+        protected override DeclaredSymbolInfo GetEnumDeclarationInfo(
+            SyntaxNode container,
+            EnumDeclarationSyntax enumDeclaration,
+            StringTable stringTable,
+            string containerDisplayName,
+            string fullyQualifiedContainerName)
+        {
+            return DeclaredSymbolInfo.Create(
+                stringTable,
+                enumDeclaration.Identifier.ValueText, null,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                enumDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                DeclaredSymbolInfoKind.Enum,
+                GetAccessibility(container, enumDeclaration.Modifiers),
+                enumDeclaration.Identifier.Span,
+                inheritanceNames: ImmutableArray<string>.Empty,
+                isNestedType: IsNestedType(enumDeclaration));
+        }
+
+        protected override void AddMemberDeclarationInfos(
+            SyntaxNode container,
+            MemberDeclarationSyntax node,
+            StringTable stringTable,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            string containerDisplayName,
+            string fullyQualifiedContainerName)
+        {
+            Contract.ThrowIfTrue(node is TypeDeclarationSyntax);
             switch (node.Kind())
             {
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.RecordDeclaration:
-                case SyntaxKind.RecordStructDeclaration:
-                    var typeDecl = (TypeDeclarationSyntax)node;
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        typeDecl.Identifier.ValueText,
-                        GetTypeParameterSuffix(typeDecl.TypeParameterList),
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        typeDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        node.Kind() switch
-                        {
-                            SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                            SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
-                            SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
-                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
-                            SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                            _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
-                        },
-                        GetAccessibility(container, typeDecl.Modifiers),
-                        typeDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, typeDecl.BaseList),
-                        IsNestedType(typeDecl)));
-                    return;
-                case SyntaxKind.EnumDeclaration:
-                    var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        enumDecl.Identifier.ValueText, null,
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(container, enumDecl.Modifiers),
-                        enumDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty,
-                        isNestedType: IsNestedType(enumDecl)));
-                    return;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
@@ -306,8 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: method.ParameterList?.Parameters.Count ?? 0,
                         typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0));
-                    if (isExtensionMethod)
-                        AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
                     return;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
@@ -436,6 +482,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 : GetSuffix('(', ')', constructor.ParameterList.Parameters);
 
         private static string GetMethodSuffix(MethodDeclarationSyntax method)
+            => GetTypeParameterSuffix(method.TypeParameterList) +
+               GetSuffix('(', ')', method.ParameterList.Parameters);
+
+        private static string GetMethodSuffix(LocalFunctionStatementSyntax method)
             => GetTypeParameterSuffix(method.TypeParameterList) +
                GetSuffix('(', ')', method.ParameterList.Parameters);
 
@@ -622,9 +672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        protected override string GetReceiverTypeName(MemberDeclarationSyntax node)
+        protected override string GetReceiverTypeName(MethodDeclarationSyntax methodDeclaration)
         {
-            var methodDeclaration = (MethodDeclarationSyntax)node;
             Debug.Assert(IsExtensionMethod(methodDeclaration));
 
             var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);

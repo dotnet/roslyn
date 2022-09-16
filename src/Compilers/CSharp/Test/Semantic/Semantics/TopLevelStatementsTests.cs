@@ -7610,9 +7610,9 @@ return;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" name=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7657,9 +7657,9 @@ return 10;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" name=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7704,9 +7704,9 @@ return;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""2"" />
@@ -7735,8 +7735,8 @@ return;
       </scope>
       <asyncInfo>
         <catchHandler offset=""0xa9"" />
-        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -7773,9 +7773,9 @@ return 11;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""2"" />
@@ -7805,8 +7805,8 @@ return 11;
       </scope>
       <asyncInfo>
         <catchHandler offset=""0xac"" />
-        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -8621,9 +8621,9 @@ for (Span<int> inner = stackalloc int[10];; inner = outer)
 ", options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (7,13): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,13): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //     outer = inner;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(7, 13)
                 );
         }
 

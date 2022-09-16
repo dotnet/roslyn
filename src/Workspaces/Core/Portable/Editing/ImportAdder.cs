@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             // Since no public options affect the behavior we can ignore options parameter and pass no fallback options:
-            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
             return await service.AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSyntaxes, addImportOptions, cancellationToken).ConfigureAwait(false);
         }
 

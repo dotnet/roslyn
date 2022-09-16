@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, bool skipSpeculation = false)
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
             var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionValueSet.Empty));
+            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices.LanguageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionValueSet.Empty));
         }
     }
 }

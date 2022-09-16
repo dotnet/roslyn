@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         protected abstract SyntaxNode ConvertForNode(
             TForStatementSyntax currentFor, TTypeNode? typeNode, SyntaxToken foreachIdentifier,
-            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType, OptionSet options);
+            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -350,12 +350,11 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
                 (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
-                    collectionExpression, iterationType, options));
+                    collectionExpression, iterationType));
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
 
@@ -375,14 +374,17 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             var firstVariable = (TVariableDeclaratorSyntax)variables[0];
                             if (IsValidVariableDeclarator(firstVariable))
                             {
-                                var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
-                                    syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
-                                if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
+                                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable);
+                                if (initializer != null)
                                 {
-                                    var type = (TTypeNode?)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
-                                    var identifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
-                                    var statement = firstStatement;
-                                    return (type, identifier, statement);
+                                    var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                                    if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
+                                    {
+                                        var type = (TTypeNode?)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
+                                        var identifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
+                                        var statement = firstStatement;
+                                        return (type, identifier, statement);
+                                    }
                                 }
                             }
                         }

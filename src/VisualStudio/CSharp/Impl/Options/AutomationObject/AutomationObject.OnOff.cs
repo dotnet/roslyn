@@ -52,10 +52,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, value); }
         }
 
-        public int CollapseMetadataImplementationsWhenFirstOpened
+        public int CollapseMetadataSignatureFilesWhenFirstOpened
         {
-            get { return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened); }
-            set { SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, value); }
+            get { return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened); }
+            set { SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, value); }
+        }
+
+        public int CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened
+        {
+            get { return GetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened); }
+            set { SetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, value); }
         }
 
         public int HighlightReferences
@@ -92,6 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources); }
             set { SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, value); }
+        }
+
+        public int NavigateToSourceLinkAndEmbeddedSources
+        {
+            get { return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources); }
+            set { SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, value); }
         }
 
         public int AlwaysUseDefaultSymbolServers

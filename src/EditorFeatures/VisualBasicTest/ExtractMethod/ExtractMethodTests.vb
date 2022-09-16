@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -100,8 +101,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
             Assert.NotNull(document)
 
-            Dim extractOptions = New ExtractMethodOptions(DontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
-            Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
+            Dim extractOptions = New ExtractMethodOptions() With {.DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct}
+            Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), extractOptions)
@@ -114,11 +115,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.True(selectedCode.ContainsValidContext)
 
             ' extract method
-            Dim extractGenerationOptions = New ExtractMethodGenerationOptions(
-                extractOptions,
-                CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
-                AddImportPlacementOptions.Default,
-                Function() NamingStylePreferences.Default)
+            Dim extractGenerationOptions = New ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.Services)) With
+            {
+                .ExtractOptions = extractOptions
+            }
 
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
             Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)

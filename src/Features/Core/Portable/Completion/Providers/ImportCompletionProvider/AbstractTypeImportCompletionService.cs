@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(Workspace workspace)
+        internal AbstractTypeImportCompletionService(SolutionServices services)
         {
-            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
+            CacheService = services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
         }
 
         public void QueueCacheWarmUpTask(Project project)
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var solution = currentProject.Solution;
                 var graph = solution.GetProjectDependencyGraph();
-                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
+                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(solution.GetRequiredProject).Where(p => p.SupportsCompilation);
 
                 projectsBuilder.Add(currentProject);
                 projectsBuilder.AddRange(referencedProjects);
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool HasGlobalAlias(ImmutableArray<string> aliases)
-            => aliases.IsEmpty || aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+            => aliases.IsEmpty || aliases.Any(static alias => alias == MetadataReferenceProperties.GlobalAlias);
 
         private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
             => peReference.FilePath ?? peReference.Display;
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry = CreateCacheWorker(
                     GetPEReferenceCacheKey(peReference)!,
                     assemblySymbol,
-                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken),
+                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution.Services, peReference, cancellationToken),
                     CacheService.PEItemsCache,
                     editorBrowsableInfo,
                     cancellationToken);

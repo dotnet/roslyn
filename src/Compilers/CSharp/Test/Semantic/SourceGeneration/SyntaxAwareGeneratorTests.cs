@@ -2077,7 +2077,7 @@ class C
             Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception!.Message);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61540: Timing is unreliable in CI")]
         public void Syntax_Provider_Doesnt_Attribute_Incorrect_Timing()
         {
             var source = @"

@@ -12,12 +12,14 @@ using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
@@ -28,7 +30,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 {
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(TypeScriptHandlerProvider));
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(TypeScriptHandlerFactory));
 
     [Fact]
     public async Task TestExternalAccessTypeScriptHandlerInvoked()
@@ -60,6 +62,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 </Workspace>";
 
         using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var documentPullRequest = new VSInternalDocumentDiagnosticsParams
@@ -85,25 +88,18 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
     private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
-        var dispatcherFactory = workspace.ExportProvider.GetExportedValue<VSTypeScriptRequestDispatcherFactory>();
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-        var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
-        var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
+        var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
+        var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        var globalOptions = workspace.GetService<IGlobalOptionService>();
-
         var languageServer = new LanguageServerTarget(
-            dispatcherFactory,
-            jsonRpc,
+            servicesProvider, jsonRpc,
             capabilitiesProvider,
-            lspWorkspaceRegistrationService,
-            new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
-            globalOptions,
             listenerProvider,
             NoOpLspLogger.Instance,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
@@ -114,6 +110,21 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     }
 
     internal record TSRequest(Uri Document, string Project);
+
+    [ExportTypeScriptLspServiceFactory(typeof(TypeScriptHandler)), PartNotDiscoverable, Shared]
+    internal class TypeScriptHandlerFactory : AbstractVSTypeScriptRequestHandlerFactory
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptHandlerFactory()
+        {
+        }
+
+        protected override IVSTypeScriptRequestHandler CreateRequestHandler()
+        {
+            return new TypeScriptHandler();
+        }
+    }
 
     [VSTypeScriptMethod(MethodName)]
     internal class TypeScriptHandler : AbstractVSTypeScriptRequestHandler<TSRequest, int>
@@ -137,21 +148,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             AssertEx.NotNull(context.Document);
             Assert.Equal(context.Document.GetURI(), request.Document);
             return Task.FromResult(Response);
-        }
-    }
-
-    [ExportTypeScriptLspRequestHandlerProvider(typeof(TypeScriptHandler)), Shared, PartNotDiscoverable]
-    internal class TypeScriptHandlerProvider : AbstractVSTypeScriptRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptHandlerProvider()
-        {
-        }
-
-        protected override ImmutableArray<IVSTypeScriptRequestHandler> CreateRequestHandlers()
-        {
-            return ImmutableArray.Create<IVSTypeScriptRequestHandler>(new TypeScriptHandler());
         }
     }
 }

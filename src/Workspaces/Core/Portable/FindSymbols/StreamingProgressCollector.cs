@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly object _gate = new();
         private readonly IStreamingFindReferencesProgress _underlyingProgress;
 
-        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations =
-            new();
+        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations = new();
 
         public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
 

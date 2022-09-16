@@ -145,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         public override Symbol? ContainingSymbol
         {
             get

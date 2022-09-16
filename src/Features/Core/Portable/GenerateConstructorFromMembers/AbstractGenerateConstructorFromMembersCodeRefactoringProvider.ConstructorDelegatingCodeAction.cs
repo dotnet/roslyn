@@ -18,20 +18,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private class ConstructorDelegatingCodeAction : CodeAction
+        private sealed class ConstructorDelegatingCodeAction : CodeAction
         {
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public ConstructorDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
                 bool addNullChecks,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var project = _document.Project;
-                var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
+                var languageServices = project.Solution.Services.GetLanguageServices(_state.ContainingType.Language);
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var factory = languageServices.GetRequiredService<SyntaxGenerator>();
@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
                 using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var useThrowExpressions = _service.PrefersThrowExpression(options);
+                var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {

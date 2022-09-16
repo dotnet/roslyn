@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,39 +18,63 @@ namespace Microsoft.CodeAnalysis;
 internal partial class SolutionState
 {
     /// <summary>
-    /// Caches the skeleton references produced for a given project/compilation under the varying
-    /// <see cref="MetadataReferenceProperties"/> it might be referenced by.  Skeletons are used in the compilation
-    /// tracker to allow cross-language project references with live semantic updating between VB/C# and vice versa.
+    /// Caches the skeleton references produced for a given project/compilation under the varying <see
+    /// cref="MetadataReferenceProperties"/> it might be referenced by.  Skeletons are used in the compilation tracker
+    /// to allow cross-language project references with live semantic updating between VB/C# and vice versa.
     /// Specifically, in a cross language case we will build a skeleton ref for the referenced project and have the
     /// referrer use that to understand its semantics.
-    /// <para/>
-    /// This approach works, but has the caveat that live cross-language semantics are only possible when the 
-    /// skeleton assembly can be built.  This should always be the case for correct code, but it may not be the
-    /// case for code with errors depending on if the respective language compiler is resilient to those errors or not.
-    /// In that case though where the skeleton cannot be built, this type provides mechanisms to fallback to the last
-    /// successfully built skeleton so that a somewhat reasonable experience can be maintained.  If we failed to do this
-    /// and instead returned nothing, a user would find that practically all semantic experiences that depended on
-    /// that particular project would fail or be seriously degraded (e.g. diagnostics).  To that end, it's better to
-    /// limp along with stale date, then barrel on ahead with no data.
-    /// <para/>
-    /// The implementation works by keeping metadata references around associated with a specific <see cref="VersionStamp"/>
-    /// for a project. As long as the <see cref="Project.GetDependentSemanticVersionAsync"/> for that project
-    /// is the same, then all the references of it can be reused.  When an <see cref="ICompilationTracker"/> forks
-    /// itself, it  will also <see cref="Clone"/> this, allowing previously computed references to be used by later forks.
-    /// However, this means that later forks (esp. ones that fail to produce a skeleton, or which produce a skeleton for 
-    /// different semantics) will not leak backward to a prior <see cref="ProjectState"/>, causing it to see a view of the world
-    /// inapplicable to its current snapshot.
+    /// <para>
+    /// This approach works, but has the caveat that live cross-language semantics are only possible when the skeleton
+    /// assembly can be built.  This should always be the case for correct code, but it may not be the case for code
+    /// with errors depending on if the respective language compiler is resilient to those errors or not. In that case
+    /// though where the skeleton cannot be built, this type provides mechanisms to fallback to the last successfully
+    /// built skeleton so that a somewhat reasonable experience can be maintained.  If we failed to do this and instead
+    /// returned nothing, a user would find that practically all semantic experiences that depended on that particular
+    /// project would fail or be seriously degraded (e.g. diagnostics).  To that end, it's better to limp along with
+    /// stale date, then barrel on ahead with no data.
+    /// </para>
+    /// <para>
+    /// The implementation works by keeping metadata references around associated with a specific <see
+    /// cref="VersionStamp"/> for a project. As long as the <see cref="Project.GetDependentSemanticVersionAsync"/> for
+    /// that project is the same, then all the references of it can be reused.  When an <see
+    /// cref="ICompilationTracker"/> forks itself, it will also <see cref="Clone"/> this, allowing previously computed
+    /// references to be used by later forks. However, this means that later forks (esp. ones that fail to produce a
+    /// skeleton, or which produce a skeleton for different semantics) will not leak backward to a prior <see
+    /// cref="ProjectState"/>, causing it to see a view of the world inapplicable to its current snapshot.  A downside
+    /// of this is that if a fork happens to a compilation tracker *prior* to the skeleton for it being computed, then
+    /// when the skeleton is actually produced it won't be shared forward.  In practice the hope is that this is rare,
+    /// and that eventually the compilation trackers will have computed the skeleton and will be able to pass it forward
+    /// from that point onwards.
+    /// </para>
+    /// <para>
+    /// The cached data we compute is associated with a particular compilation-tracker.  Because of this, once we
+    /// compute the skeleton information for that tracker, we hold onto it for as long as the tracker is itself alive.
+    /// The presumption here is that once created, it will likely be needed in the future as well as there will still be
+    /// downstream projects of different languages that reference this.  The only time this won't hold true is if there
+    /// was a cross language p2p ref, but then it gets removed from the solution.  However, this sort of change should
+    /// be rare in a solution, so it's unlikely to happen much, and the only negative is holding onto a little bit more
+    /// memory.
+    /// </para>
     /// </summary>
     private partial class SkeletonReferenceCache
     {
         private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
 
         /// <summary>
-        /// Lock we take before emitting metadata.  Metadata emit is extremely expensive.  So we want to avoid cases
-        /// where N threads come in and try to get the skeleton for a particular project.  This way they will instead
-        /// yield if something else is computing and will then use the single instance computed once one thread succeeds.
+        /// Static conditional mapping from a compilation to the skeleton set produced for it.  This is valuable for a
+        /// couple of reasons. First, a compilation tracker may fork, but produce the same compilation.  As such, we
+        /// want to get the same skeleton set for it.  Second, consider the following scenario:
+        /// <list type="number">
+        /// <item>Project A is referenced by projects B and C (both have a different language than A).</item>
+        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produces the skeleton that 'B' references.</item>
+        /// <item>B's compilation is released and then GC'ed.</item> 
+        /// <item>Producing the compilation for 'C' needs the skeleton from 'A'</item>
+        /// </list>
+        /// At this point we would not want to re-emit the assembly metadata for A's compilation.  We already did that
+        /// for 'B', and it can be enormously expensive to do so again.  So as long as A's compilation lives, we really
+        /// want to keep it's skeleton cache around.
         /// </summary>
-        private readonly SemaphoreSlim _emitGate = new(initialCount: 1);
+        private static readonly ConditionalWeakTable<Compilation, AsyncLazy<SkeletonReferenceSet?>> s_compilationToSkeletonSet = new();
 
         /// <summary>
         /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read 
@@ -101,6 +124,9 @@ internal partial class SolutionState
             }
         }
 
+        public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
+            => _skeletonReferenceSet?.GetOrCreateMetadataReference(properties);
+
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
             ICompilationTracker compilationTracker,
             SolutionState solution,
@@ -110,7 +136,10 @@ internal partial class SolutionState
             var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
                 compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
-            return referenceSet?.GetMetadataReference(properties);
+            if (referenceSet == null)
+                return null;
+
+            return referenceSet.GetOrCreateMetadataReference(properties);
         }
 
         private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
@@ -124,34 +153,63 @@ internal partial class SolutionState
             if (TryReadSkeletonReferenceSetAtThisVersion(version, out var referenceSet))
                 return referenceSet;
 
-            // okay, we don't have anything cached with this version. so create one now.  Note: this is expensive
-            // so ensure only one thread is doing hte work to actually make the compilation and emit it.
-            using (await _emitGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            // okay, we don't have anything cached with this version. so create one now.
+
+            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, solution, cancellationToken).ConfigureAwait(false);
+
+            lock (_stateGate)
             {
-                // after taking the gate, another thread may have succeeded.  See if we can use their version if so:
-                if (TryReadSkeletonReferenceSetAtThisVersion(version, out referenceSet))
-                    return referenceSet;
+                // If we successfully created the metadata storage, then create the new set that points to it.
+                // if we didn't, that's ok too, we'll just say that for this requested version, that we can
+                // return any prior computed reference set (including 'null' if we've never successfully made
+                // a skeleton).
+                if (currentSkeletonReferenceSet != null)
+                    _skeletonReferenceSet = currentSkeletonReferenceSet;
 
-                // Ok, first thread to get in and actually do this work.  Build the compilation and try to emit it.
-                // Regardless of if we succeed or fail, store this result so this only happens once.
+                _version = version;
 
-                var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                var storage = TryCreateMetadataStorage(solution.Workspace, compilation, cancellationToken);
-
-                lock (_stateGate)
-                {
-                    // If we successfully created the metadata storage, then create the new set that points to it.
-                    // if we didn't, that's ok too, we'll just say that for this requested version, that we can
-                    // return any prior computed reference set (including 'null' if we've never successfully made
-                    // a skeleton).
-                    if (storage != null)
-                        _skeletonReferenceSet = new SkeletonReferenceSet(storage, compilation.AssemblyName, new DeferredDocumentationProvider(compilation));
-
-                    _version = version;
-
-                    return _skeletonReferenceSet;
-                }
+                return _skeletonReferenceSet;
             }
+        }
+
+        private static async Task<SkeletonReferenceSet?> CreateSkeletonReferenceSetAsync(
+            ICompilationTracker compilationTracker,
+            SolutionState solution,
+            CancellationToken cancellationToken)
+        {
+            // It's acceptable for this computation to be something that multiple calling threads may hit at once.  The
+            // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
+            // only one thread actually does the computation and the rest wait.
+            var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+            var workspace = solution.Workspace;
+
+            // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
+            // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
+            // concurrent requests asynchronously wait for that work to be done.
+
+            var lazy = s_compilationToSkeletonSet.GetValue(compilation,
+                compilation => new AsyncLazy<SkeletonReferenceSet?>(
+                    cancellationToken => Task.FromResult(CreateSkeletonSet(workspace, compilation, cancellationToken)),
+                    cacheResult: true));
+
+            return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private static SkeletonReferenceSet? CreateSkeletonSet(
+            Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
+        {
+            var storage = TryCreateMetadataStorage(workspace, compilation, cancellationToken);
+            if (storage == null)
+                return null;
+
+            var metadata = AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
+
+            // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
+            // the stream as well.
+            return new SkeletonReferenceSet(
+                metadata,
+                compilation.AssemblyName,
+                new DeferredDocumentationProvider(compilation));
         }
 
         private bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
@@ -171,27 +229,30 @@ internal partial class SolutionState
             return false;
         }
 
-        private static ITemporaryStreamStorage? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
+        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+                workspace.LogTestMessage(static compilation => $"Beginning to create a skeleton assembly for {compilation.AssemblyName}...", compilation);
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
                     using var stream = SerializableBytes.CreateWritableStream();
-                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                    // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+
+                    var optionsService = workspace.Services.GetService<IWorkspaceConfigurationService>();
+                    var doNotClone = optionsService != null && optionsService.Options.DisableCloneWhenProducingSkeletonReferences;
+
+                    var compilationToEmit = doNotClone ? compilation : compilation.Clone();
+                    var emitResult = compilationToEmit.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {
-                        workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                        workspace.LogTestMessage(static compilation => $"Successfully emitted a skeleton assembly for {compilation.AssemblyName}", compilation);
 
-                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
+                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
+                        var storage = temporaryStorageService.CreateTemporaryStreamStorage();
 
                         stream.Position = 0;
                         storage.WriteStream(stream, cancellationToken);
@@ -200,11 +261,11 @@ internal partial class SolutionState
                     }
                     else
                     {
-                        workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+                        workspace.LogTestMessage(static compilation => $"Failed to create a skeleton assembly for {compilation.AssemblyName}:", compilation);
 
                         foreach (var diagnostic in emitResult.Diagnostics)
                         {
-                            workspace.LogTestMessage("  " + diagnostic.GetMessage());
+                            workspace.LogTestMessage(static diagnostic => "  " + diagnostic.GetMessage(), diagnostic);
                         }
 
                         // log emit failures so that we can improve most common cases
@@ -222,128 +283,7 @@ internal partial class SolutionState
             }
             finally
             {
-                workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
-            }
-        }
-
-        private sealed class SkeletonReferenceSet
-        {
-            /// <summary>
-            /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
-            /// as the metadata is alive.
-            /// </summary>
-            private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime = new();
-
-            private readonly ITemporaryStreamStorage? _storage;
-            private readonly string? _assemblyName;
-
-            /// <summary>
-            /// The documentation provider used to lookup xml docs for any metadata reference we pass out.  See
-            /// docs on <see cref="DeferredDocumentationProvider"/> for why this is safe to hold onto despite it
-            /// rooting a compilation internally.
-            /// </summary>
-            private readonly DeferredDocumentationProvider _documentationProvider;
-
-            /// <summary>
-            /// Use WeakReference so we don't keep MetadataReference's alive if they are not being consumed. 
-            /// Note: if the weak-reference is actually <see langword="null"/> (not that it points to null),
-            /// that means we know we were unable to generate a reference for those properties, and future
-            /// calls can early exit.
-            /// </summary>
-            /// <remarks>
-            /// This instance should be locked when being read/written.
-            /// </remarks>
-            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>?> _metadataReferences = new();
-
-            public SkeletonReferenceSet(
-                ITemporaryStreamStorage? storage,
-                string? assemblyName,
-                DeferredDocumentationProvider documentationProvider)
-            {
-                _storage = storage;
-                _assemblyName = assemblyName;
-                _documentationProvider = documentationProvider;
-            }
-
-            public MetadataReference? GetMetadataReference(MetadataReferenceProperties properties)
-            {
-                // lookup first and eagerly return cached value if we have it.
-                lock (_metadataReferences)
-                {
-                    if (TryGetExisting_NoLock(properties, out var metadataReference))
-                        return metadataReference;
-                }
-
-                // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
-                {
-                    var metadataReference = CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
-                    var weakMetadata = metadataReference == null ? null : new WeakReference<MetadataReference>(metadataReference);
-
-                    lock (_metadataReferences)
-                    {
-                        // see if someone beat us to writing this.
-                        if (TryGetExisting_NoLock(properties, out var existingMetadataReference))
-                            return existingMetadataReference;
-
-                        _metadataReferences[properties] = weakMetadata;
-                    }
-
-                    return metadataReference;
-                }
-
-                bool TryGetExisting_NoLock(MetadataReferenceProperties properties, out MetadataReference? metadataReference)
-                {
-                    metadataReference = null;
-                    if (!_metadataReferences.TryGetValue(properties, out var weakMetadata))
-                        return false;
-
-                    // If we are pointing at a null-weak reference (not a weak reference that points to null), then we 
-                    // know we failed to create the metadata the last time around, and we can shortcircuit immediately,
-                    // returning null *with* success to bubble that up.
-                    if (weakMetadata == null)
-                        return true;
-
-                    return weakMetadata.TryGetTarget(out metadataReference);
-                }
-            }
-
-            private MetadataReference? CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
-            {
-                if (_storage == null)
-                    return null;
-
-                // first see whether we can use native memory directly.
-                var stream = _storage.ReadStream();
-                AssemblyMetadata metadata;
-
-                if (stream is ISupportDirectMemoryAccess supportNativeMemory)
-                {
-                    // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
-                    // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
-                    // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                    metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
-
-                    // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
-                    // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
-                    // a brand new object in AssemblyMetadata.Create above.
-                    s_lifetime.Add(metadata, supportNativeMemory);
-                }
-                else
-                {
-                    // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-                    // internally copy it to native memory again. since compiler owns lifetime of stream,
-                    // it would be great if compiler can be little bit smarter on how it deals with stream.
-
-                    // We don't deterministically release the resulting metadata since we don't know 
-                    // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                    metadata = AssemblyMetadata.CreateFromStream(stream);
-                }
-
-                return metadata.GetReference(
-                    documentation: documentationProvider,
-                    aliases: aliases,
-                    embedInteropTypes: embedInteropTypes,
-                    display: _assemblyName);
+                workspace.LogTestMessage(static compilation => $"Done trying to create a skeleton assembly for {compilation.AssemblyName}", compilation);
             }
         }
     }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,36 +22,33 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class DeclarationTable
     {
         public static readonly DeclarationTable Empty = new DeclarationTable(
-            allOlderRootDeclarations: ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration>.Empty,
+            allOlderRootDeclarations: ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>>.Empty,
             latestLazyRootDeclaration: null,
             cache: null);
 
         // All our root declarations.  We split these so we can separate out the unchanging 'older'
         // declarations from the constantly changing 'latest' declaration.
-        private readonly ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> _allOlderRootDeclarations;
-        private readonly Lazy<RootSingleNamespaceDeclaration> _latestLazyRootDeclaration;
+        private readonly ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>> _allOlderRootDeclarations;
+        private readonly Lazy<RootSingleNamespaceDeclaration>? _latestLazyRootDeclaration;
 
         // The cache of computed values for the old declarations.
         private readonly Cache _cache;
 
         // The lazily computed total merged declaration.
-        private MergedNamespaceDeclaration _mergedRoot;
+        private MergedNamespaceDeclaration? _mergedRoot;
 
-        private readonly Lazy<ICollection<string>> _typeNames;
-        private readonly Lazy<ICollection<string>> _namespaceNames;
-        private readonly Lazy<ICollection<ReferenceDirective>> _referenceDirectives;
+        private ICollection<string>? _typeNames;
+        private ICollection<string>? _namespaceNames;
+        private ICollection<ReferenceDirective>? _referenceDirectives;
 
         private DeclarationTable(
-            ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations,
-            Lazy<RootSingleNamespaceDeclaration> latestLazyRootDeclaration,
-            Cache cache)
+            ImmutableSetWithInsertionOrder<Lazy<RootSingleNamespaceDeclaration>> allOlderRootDeclarations,
+            Lazy<RootSingleNamespaceDeclaration>? latestLazyRootDeclaration,
+            Cache? cache)
         {
             _allOlderRootDeclarations = allOlderRootDeclarations;
             _latestLazyRootDeclaration = latestLazyRootDeclaration;
             _cache = cache ?? new Cache(this);
-            _typeNames = new Lazy<ICollection<string>>(GetMergedTypeNames);
-            _namespaceNames = new Lazy<ICollection<string>>(GetMergedNamespaceNames);
-            _referenceDirectives = new Lazy<ICollection<ReferenceDirective>>(GetMergedReferenceDirectives);
         }
 
         public DeclarationTable AddRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
@@ -67,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // we already had a 'latest' item.  This means we're hearing about a change to a
-                // different tree.  Realize the old latest item, add it to the 'oldest' collection
+                // different tree.  Add old latest item to the 'oldest' collection
                 // and don't reuse the cache.
-                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration.Value), lazyRootDeclaration, cache: null);
+                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, cache: null);
             }
         }
 
@@ -82,13 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // We're removing a different tree than the latest one added.  We need to realize the
-                // passed in root and remove that from our 'older' list.  We also can't reuse the
+                // We're removing a different tree than the latest one added.  We need
+                // to remove the passed in root from our 'older' list.  We also can't reuse the
                 // cache.
                 //
-                // Note: we can keep around the 'latestLazyRootDeclaration'.  There's no need to
-                // realize it if we don't have to.
-                return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration.Value), _latestLazyRootDeclaration, cache: null);
+                // Note: we can keep around the 'latestLazyRootDeclaration'.
+                return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration), _latestLazyRootDeclaration, cache: null);
             }
         }
 
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Internal for unit tests only.
         internal MergedNamespaceDeclaration CalculateMergedRoot(CSharpCompilation compilation)
         {
-            var oldRoot = _cache.MergedRoot.Value;
+            var oldRoot = _cache.MergedRoot;
             if (_latestLazyRootDeclaration == null)
             {
                 return oldRoot;
@@ -155,15 +149,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             [PerformanceSensitive(
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid " + nameof(SingleNamespaceOrTypeDeclaration.Location) + " since it has a costly allocation on this fast path.")]
-            public int Compare(SingleNamespaceDeclaration x, SingleNamespaceDeclaration y)
+            public int Compare(SingleNamespaceDeclaration? x, SingleNamespaceDeclaration? y)
             {
-                return _compilation.CompareSourceLocations(x.SyntaxReference, y.SyntaxReference);
+                return _compilation.CompareSourceLocations(x!.SyntaxReference, y!.SyntaxReference);
             }
         }
 
         private ICollection<string> GetMergedTypeNames()
         {
-            var cachedTypeNames = _cache.TypeNames.Value;
+            var cachedTypeNames = _cache.TypeNames;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -177,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<string> GetMergedNamespaceNames()
         {
-            var cachedNamespaceNames = _cache.NamespaceNames.Value;
+            var cachedNamespaceNames = _cache.NamespaceNames;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -191,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<ReferenceDirective> GetMergedReferenceDirectives()
         {
-            var cachedReferenceDirectives = _cache.ReferenceDirectives.Value;
+            var cachedReferenceDirectives = _cache.ReferenceDirectives;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -248,7 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _typeNames.Value;
+                if (_typeNames is null)
+                    Interlocked.CompareExchange(ref _typeNames, GetMergedTypeNames(), comparand: null);
+
+                return _typeNames;
             }
         }
 
@@ -256,7 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _namespaceNames.Value;
+                if (_namespaceNames is null)
+                    Interlocked.CompareExchange(ref _namespaceNames, GetMergedNamespaceNames(), comparand: null);
+
+                return _namespaceNames;
             }
         }
 
@@ -264,7 +264,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _referenceDirectives.Value;
+                if (_referenceDirectives is null)
+                    Interlocked.CompareExchange(ref _referenceDirectives, GetMergedReferenceDirectives(), comparand: null);
+
+                return _referenceDirectives;
             }
         }
 

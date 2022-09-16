@@ -207,10 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldEnclosing = _enclosing;
 
                 WithTypeParametersBinder? withTypeParametersBinder;
-                WithParametersBinder? withParametersBinder;
-                // The LangVer check will be removed before shipping .NET 7.
-                // Tracked by https://github.com/dotnet/roslyn/issues/60640
-                if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
+                Binder? withParametersBinder;
+                if ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0)
                 {
                     var attributeTarget = getAttributeTarget(_enclosing);
                     withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);
@@ -249,8 +247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We're bringing parameters in scope inside `nameof` in attributes on methods, their type parameters and parameters.
             // This also applies to local functions, lambdas, indexers and delegates.
-            static WithParametersBinder? getExtraWithParametersBinder(Binder enclosing, Symbol target)
+            static Binder? getExtraWithParametersBinder(Binder enclosing, Symbol target)
             {
+                if (target is LambdaSymbol lambda)
+                {
+                    // lambda parameters have some special rules around parameters named `_`
+                    return new WithLambdaParametersBinder(lambda, enclosing);
+                }
+
                 var parameters = target switch
                 {
                     SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet } setter => getSetterParameters(setter),
@@ -603,6 +607,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
+        }
+
+        public override void VisitCheckedExpression(CheckedExpressionSyntax node)
+        {
+            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
+            AddToMap(node, binder);
+            Visit(node.Expression, binder);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)

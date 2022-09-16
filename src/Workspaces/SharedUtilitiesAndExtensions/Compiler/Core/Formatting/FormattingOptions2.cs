@@ -39,20 +39,21 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption2<bool> UseTabs =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
-            storageLocation: new EditorConfigStorageLocation<bool>(
-                "indent_style",
-                s => s == "tab",
-                isSet => isSet ? "tab" : "space"));
+            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
+                new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> TabSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
-            storageLocation: EditorConfigStorageLocation.ForInt32Option("tab_width"));
+            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
+                EditorConfigStorageLocation.ForInt32Option("tab_width"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> IndentationSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
-            storageLocation: EditorConfigStorageLocation.ForInt32Option("indent_size"));
+            storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
+                EditorConfigStorageLocation.ForInt32Option("indent_size"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
 
         public static PerLanguageOption2<string> NewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }));
 
         internal static Option2<bool> InsertFinalNewLine =
-            new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
+            new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
         public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =

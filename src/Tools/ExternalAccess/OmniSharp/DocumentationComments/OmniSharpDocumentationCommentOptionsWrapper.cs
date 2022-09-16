@@ -4,7 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
@@ -18,10 +20,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
 
         public OmniSharpDocumentationCommentOptionsWrapper(
             bool autoXmlDocCommentGeneration,
-            int tabSize,
-            bool useTabs,
-            string newLine)
-            : this(new(autoXmlDocCommentGeneration, tabSize, useTabs, newLine))
+            OmniSharpLineFormattingOptions lineFormattingOptions)
+            : this(new DocumentationCommentOptions()
+            {
+                LineFormatting = new LineFormattingOptions()
+                {
+                    UseTabs = lineFormattingOptions.UseTabs,
+                    TabSize = lineFormattingOptions.TabSize,
+                    IndentationSize = lineFormattingOptions.IndentationSize,
+                    NewLine = lineFormattingOptions.NewLine,
+                },
+                AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration
+            })
         {
         }
 
@@ -30,13 +40,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             bool autoXmlDocCommentGeneration,
             CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
 
-            return new(new DocumentationCommentOptions(
-                AutoXmlDocCommentGeneration: autoXmlDocCommentGeneration,
-                TabSize: formattingOptions.TabSize,
-                UseTabs: formattingOptions.UseTabs,
-                NewLine: formattingOptions.NewLine));
+            return new(new() { LineFormatting = formattingOptions.LineFormatting, AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration });
         }
     }
 }

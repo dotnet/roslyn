@@ -7,7 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineHints
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -19,15 +19,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
-                Dim options = New InlineParameterHintsOptions(
-                    EnabledForParameters:=optionIsEnabled,
-                    ForLiteralParameters:=True,
-                    ForIndexerParameters:=True,
-                    ForObjectCreationParameters:=True,
-                    ForOtherParameters:=False,
-                    SuppressForParametersThatDifferOnlyBySuffix:=True,
-                    SuppressForParametersThatMatchMethodIntent:=True,
-                    SuppressForParametersThatMatchArgumentName:=True)
+                Dim options = New InlineParameterHintsOptions() With
+                {
+                    .EnabledForParameters = optionIsEnabled
+                }
 
                 Dim displayOptions = New SymbolDescriptionOptions()
 
@@ -84,11 +79,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(New OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), ephemeral)
 
-                Dim options = New InlineTypeHintsOptions(
-                    EnabledForTypes:=optionIsEnabled AndAlso Not ephemeral,
-                    ForImplicitVariableTypes:=True,
-                    ForLambdaParameterTypes:=True,
-                    ForImplicitObjectCreation:=True)
+                Dim options = New InlineTypeHintsOptions() With
+                {
+                    .EnabledForTypes = optionIsEnabled AndAlso Not ephemeral
+                }
 
                 Dim displayOptions = New SymbolDescriptionOptions()
 

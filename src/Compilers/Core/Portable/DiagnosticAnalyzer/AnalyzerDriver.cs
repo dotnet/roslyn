@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.AnalyzerManager = analyzerManager;
             _isGeneratedCode = (tree, ct) => GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, ct);
             _severityFilter = severityFilter;
-            _hasDiagnosticSuppressors = this.Analyzers.Any(a => a is DiagnosticSuppressor);
+            _hasDiagnosticSuppressors = this.Analyzers.Any(static a => a is DiagnosticSuppressor);
             _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
             _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
             _lazyAnalyzerGateMap = ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
@@ -889,8 +889,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)
             => GetOrCreateSemanticModel(tree, AnalyzerExecutor.Compilation);
 
-        private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
-            => SemanticModelProvider.GetSemanticModel(tree, compilation);
+        protected SemanticModel GetOrCreateSemanticModel(SyntaxTree tree, Compilation compilation)
+        {
+            Debug.Assert(compilation.ContainsSyntaxTree(tree));
+
+            return SemanticModelProvider.GetSemanticModel(tree, compilation);
+        }
 
         public void ApplyProgrammaticSuppressions(DiagnosticBag reportedDiagnostics, Compilation compilation)
         {
@@ -1796,7 +1800,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // might want to ask the compiler for all the diagnostics in the source file, for example
             // to get information about unnecessary usings.
 
-            var semanticModel = SemanticModelProvider.GetSemanticModel(completedEvent.CompilationUnit, completedEvent.Compilation);
+            var semanticModel = GetOrCreateSemanticModel(completedEvent.CompilationUnit, completedEvent.Compilation);
             if (!analysisScope.ShouldAnalyze(semanticModel.SyntaxTree))
             {
                 return true;
@@ -2500,15 +2504,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var declaringReferences = symbolEvent.DeclaringSyntaxReferences;
                 for (var i = 0; i < declaringReferences.Length; i++)
                 {
-                    var decl = declaringReferences[i];
-                    ClearCachedAnalysisDataIfAnalyzed(decl, symbol, i, analysisState);
+                    ClearCachedAnalysisDataIfAnalyzed(symbol, i, analysisState);
                 }
             }
 
             return success;
         }
 
-        private void ClearCachedAnalysisDataIfAnalyzed(SyntaxReference declaration, ISymbol symbol, int declarationIndex, AnalysisState analysisState)
+        private void ClearCachedAnalysisDataIfAnalyzed(ISymbol symbol, int declarationIndex, AnalysisState analysisState)
         {
             Debug.Assert(analysisState != null);
 
@@ -2517,7 +2520,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            CurrentCompilationData.ClearDeclarationAnalysisData(declaration);
+            CurrentCompilationData.ClearDeclarationAnalysisData(symbol, declarationIndex);
         }
 
         private DeclarationAnalysisData ComputeDeclarationAnalysisData(
@@ -2576,13 +2579,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolEvent.Symbol;
 
             var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
-                SemanticModelProvider.GetSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
+                GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
             var cacheAnalysisData = analysisScope.Analyzers.Length < Analyzers.Length &&
                 (!analysisScope.FilterSpanOpt.HasValue || analysisScope.FilterSpanOpt.Value.Length >= decl.SyntaxTree.GetRoot(cancellationToken).Span.Length);
 
             var declarationAnalysisData = CurrentCompilationData.GetOrComputeDeclarationAnalysisData(
-                decl,
+                symbol,
+                declarationIndex,
                 computeDeclarationAnalysisData: () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken),
                 cacheAnalysisData: cacheAnalysisData);
 
@@ -2614,7 +2618,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (cacheAnalysisData)
                 {
-                    ClearCachedAnalysisDataIfAnalyzed(decl, symbol, declarationIndex, analysisState);
+                    ClearCachedAnalysisDataIfAnalyzed(symbol, declarationIndex, analysisState);
                 }
             }
 

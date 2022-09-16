@@ -9,14 +9,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static partial class SymbolCompletionItem
+    internal static class SymbolCompletionItem
     {
         private const string InsertionTextProperty = "InsertionText";
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (symbols.Count > 1)
             {
-                return string.Join("|", symbols.Select(s => EncodeSymbol(s)));
+                return string.Join("|", symbols.Select(EncodeSymbol));
             }
             else if (symbols.Count == 1)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
             var semanticModel = await contextDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             return await CommonCompletionUtilities.CreateDescriptionAsync(services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (symbols.Count != 0)
             {
-                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Workspace.Services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }
             else
             {

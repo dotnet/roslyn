@@ -2,20 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
-using System.Globalization;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
+    [DataContract]
+    [Obsolete($"Use {nameof(TaskListItemDescriptor)} instead")]
     internal readonly struct TodoCommentDescriptor
     {
+        [DataMember(Order = 0)]
         public string Text { get; }
+        [DataMember(Order = 1)]
         public int Priority { get; }
 
         public TodoCommentDescriptor(string text, int priority)
@@ -24,31 +27,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Priority = priority;
         }
 
-        public static ImmutableArray<TodoCommentDescriptor> Parse(string data)
-        {
-            if (string.IsNullOrWhiteSpace(data))
-                return ImmutableArray<TodoCommentDescriptor>.Empty;
-
-            var tuples = data.Split('|');
-            using var _ = ArrayBuilder<TodoCommentDescriptor>.GetInstance(out var result);
-
-            foreach (var tuple in tuples)
-            {
-                if (string.IsNullOrWhiteSpace(tuple))
-                    continue;
-
-                var pair = tuple.Split(':');
-
-                if (pair.Length != 2 || string.IsNullOrWhiteSpace(pair[0]))
-                    continue;
-
-                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
-                    continue;
-
-                result.Add(new TodoCommentDescriptor(pair[0].Trim(), priority));
-            }
-
-            return result.ToImmutable();
-        }
+        public static ImmutableArray<TodoCommentDescriptor> Parse(ImmutableArray<string> items)
+            => TaskListItemDescriptor.Parse(items).SelectAsArray(d => new TodoCommentDescriptor(d.Text, d.Priority));
     }
 }

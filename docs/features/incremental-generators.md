@@ -30,7 +30,7 @@ public class Generator : IIncrementalGenerator
         // define the execution pipeline here via a series of transformations:
 
         // find all additional files that end with .txt
-        IncrementalValuesProvider<AdditionalText> textFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
+        IncrementalValuesProvider<AdditionalText> textFiles = initContext.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
 
         // read their contents and save their name
         IncrementalValuesProvider<(string name, string content)> namesAndContents = textFiles.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString()));
@@ -89,7 +89,7 @@ single time for the lifetime of the host.
 Rather than a dedicated `Execute` method, an Incremental Generator instead
 defines an immutable execution pipeline as part of initialization. The
 `Initialize` method receives an instance of
-`IncrementalGeneratorInitializationContext`which is used by the generator to
+`IncrementalGeneratorInitializationContext` which is used by the generator to
 define a set of transformations.
 
 
@@ -160,7 +160,7 @@ IValueProvider<TSource>
    └─────────────┘
 ```
 
-Instead, the generator supplies a set of transformations that ar to be applied to the
+Instead, the generator supplies a set of transformations that are to be applied to the
 data contained within the provider, which in turn creates a new value provider.
 
 ### Select
@@ -799,7 +799,7 @@ even though they referenced something in `file1.cs`. Because the first check is
 purely _syntactic_ we can be sure the results for `file2.cs` would be the same.
 
 While it may seem unfortunate that the driver must run the `transform` for all
-selected syntax nodes, if it did not it could up producing incorrect data
+selected syntax nodes, if it did not it could end up producing incorrect data
 due to cross file dependencies. Because the initial syntactic check
 allows the driver to substantially filter the number of nodes on which the
 semantic checks have to be re-run, significantly improved performance
@@ -826,7 +826,7 @@ The set of output methods are
 
 **RegisterSourceOutput**:
 
-RegisterSourceOutput allows a generator author to produce source files and
+`RegisterSourceOutput` allows a generator author to produce source files and
 diagnostics that will be included in the users compilation. As input, it takes a
 `Value[s]Provider` and an `Action<SourceProductionContext, TSource>` that will
 be invoked for every value in the value provider.
@@ -905,15 +905,15 @@ transformations are run, meaning that it will be visible as part of the rest of
 the regular execution pipeline, and an author may ask semantic questions about
 it.
 
-It is particularly useful for adding attributes to the users source code. These
-can then be added by the user their code, and the generator may find the
-attributed code via the semantic model.
+It is particularly useful for adding attribute definitions to the users'
+source code. These can then be applied by the user in their code, and the
+generator may find the attributed code via the semantic model.
 
 ## Handling Cancellation
 
 Incremental generators are designed to be used in interactive hosts such as an
 IDE. As such, it is critically important that generators respect and respond to
-the passed in cancellation tokens.
+the passed-in cancellation tokens.
 
 In general, it is likely that the amount of user computation performed per
 transformation is low, but often will be calling into Roslyn APIs that may have
@@ -1033,7 +1033,7 @@ the driver knows there can be no work to be done when a `SyntaxTree` changes.
 
 ### Comparing Items
 
-For a user provided result to be comparable across iterations, there needs to be
+For a user-provided result to be comparable across iterations, there needs to be
 some concept of equivalence. By default the host will use `EqualityComparer<T>`
 to determine equivalence. There are obviously times where this is insufficient,
 and there exists an extension method that allows the author to supply a comparer

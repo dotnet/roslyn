@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -9,23 +11,27 @@ namespace Microsoft.CodeAnalysis.Completion;
 internal static class CompletionOptionsStorage
 {
     public static CompletionOptions GetCompletionOptions(this IGlobalOptionService options, string language)
-      => new(
-          TriggerOnTyping: options.GetOption(TriggerOnTyping, language),
-          TriggerOnTypingLetters: options.GetOption(TriggerOnTypingLetters, language),
-          TriggerOnDeletion: options.GetOption(TriggerOnDeletion, language),
-          TriggerInArgumentLists: options.GetOption(TriggerInArgumentLists, language),
-          EnterKeyBehavior: options.GetOption(EnterKeyBehavior, language),
-          SnippetsBehavior: options.GetOption(SnippetsBehavior, language),
-          HideAdvancedMembers: options.GetOption(HideAdvancedMembers, language),
-          ShowNameSuggestions: options.GetOption(ShowNameSuggestions, language),
-          ShowItemsFromUnimportedNamespaces: options.GetOption(ShowItemsFromUnimportedNamespaces, language),
-          UnnamedSymbolCompletionDisabled: options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
-          TargetTypedCompletionFilter: options.GetOption(TargetTypedCompletionFilterFeatureFlag),
-          TypeImportCompletion: options.GetOption(TypeImportCompletionFeatureFlag),
-          ProvideDateAndTimeCompletions: options.GetOption(ProvideDateAndTimeCompletions, language),
-          ProvideRegexCompletions: options.GetOption(ProvideRegexCompletions, language),
-          ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation),
-          UpdateImportCompletionCacheInBackground: options.GetOption(UpdateImportCompletionCacheInBackground));
+        => new()
+        {
+            TriggerOnTyping = options.GetOption(TriggerOnTyping, language),
+            TriggerOnTypingLetters = options.GetOption(TriggerOnTypingLetters, language),
+            TriggerOnDeletion = options.GetOption(TriggerOnDeletion, language),
+            TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
+            EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),
+            SnippetsBehavior = options.GetOption(SnippetsBehavior, language),
+            HideAdvancedMembers = options.GetOption(HideAdvancedMembers, language),
+            ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
+            ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
+            UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
+            TypeImportCompletion = options.GetOption(TypeImportCompletionFeatureFlag),
+            ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
+            ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
+            ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
+            UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
+            NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
+            ShowNewSnippetExperience = options.GetOption(ShowNewSnippetExperience, language),
+            SnippetCompletion = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
+        };
 
     // feature flags
 
@@ -33,19 +39,21 @@ internal static class CompletionOptionsStorage
         CompletionOptions.Default.TypeImportCompletion,
         new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
 
-    public static readonly Option2<bool> TargetTypedCompletionFilterFeatureFlag = new(nameof(CompletionOptions), nameof(TargetTypedCompletionFilterFeatureFlag),
-        CompletionOptions.Default.TargetTypedCompletionFilter,
-        new FeatureFlagStorageLocation("Roslyn.TargetTypedCompletionFilter"));
-
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
 
-    // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), CompletionOptions.Default.HideAdvancedMembers);
+    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
+        CompletionOptions.Default.SnippetCompletion,
+        new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
-    // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(nameof(CompletionOptions), nameof(TriggerOnTyping), CompletionOptions.Default.TriggerOnTyping);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
+        "CompletionOptions", "HideAdvancedMembers", CompletionOptions.Default.HideAdvancedMembers,
+        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members"));
+
+    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(
+        "CompletionOptions", "TriggerOnTyping", CompletionOptions.Default.TriggerOnTyping,
+        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Auto List Members"));
 
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), CompletionOptions.Default.TriggerOnTypingLetters,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
@@ -100,4 +108,8 @@ internal static class CompletionOptionsStorage
             nameof(ProvideDateAndTimeCompletions),
             CompletionOptions.Default.ProvideDateAndTimeCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
+
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
+        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperience,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
 }

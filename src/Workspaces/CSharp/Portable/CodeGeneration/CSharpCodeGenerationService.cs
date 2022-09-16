@@ -10,12 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override CodeGenerationOptions DefaultOptions
             => CSharpCodeGenerationOptions.Default;
 
-        public override CodeGenerationOptions GetCodeGenerationOptions(AnalyzerConfigOptions info, CodeGenerationOptions? fallbackOptions)
-            => CSharpCodeGenerationOptions.Create(info, (CSharpCodeGenerationOptions?)fallbackOptions);
+        public override CodeGenerationOptions GetCodeGenerationOptions(AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions)
+            => options.GetCSharpCodeGenerationOptions((CSharpCodeGenerationOptions?)fallbackOptions);
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
             => CSharpCodeGenerationHelpers.GetDestination(node);

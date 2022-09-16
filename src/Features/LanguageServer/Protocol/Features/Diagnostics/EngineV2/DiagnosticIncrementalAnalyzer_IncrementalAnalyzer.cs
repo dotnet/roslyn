@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var isActiveDocument = _documentTrackingService.TryGetActiveDocument() == document.Id;
                 var isOpenDocument = document.IsOpen();
-                var isGeneratedRazorDocument = document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
+                var isGeneratedRazorDocument = document.IsRazorDocument();
 
                 // Only analyze open/active documents, unless it is a generated Razor document.
                 if (!isActiveDocument && !isOpenDocument && !isGeneratedRazorDocument)
@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var backgroundAnalysisScope = GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language);
+                var compilerDiagnosticsScope = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, document.Project.Language);
+
+                // TODO: Switch to a more reliable service to determine visible documents.
+                //       DocumentTrackingService is known be unreliable at times.
+                var isVisibleDocument = _documentTrackingService.GetVisibleDocuments().Contains(document.Id);
 
                 // We split the diagnostic computation for document into following steps:
                 //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
@@ -67,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                 {
                     var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
-                        backgroundAnalysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument, cancellationToken);
+                        backgroundAnalysisScope, compilerDiagnosticsScope, isActiveDocument, isVisibleDocument,
+                        isOpenDocument, isGeneratedRazorDocument, cancellationToken);
                     if (data.HasValue)
                     {
                         // We need to persist and raise diagnostics for suppressed analyzer.
@@ -84,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
-                    var logTelemetry = document.Project.Solution.Options.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+                    var logTelemetry = GlobalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
                     foreach (var stateSet in nonCachedStateSets)
                     {
                         var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
@@ -144,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 CompilationWithAnalyzers? compilationWithAnalyzers = null;
 
-                if (FullAnalysisEnabled(project, forceAnalyzerRun))
+                if (forceAnalyzerRun || GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language))
                 {
                     compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
                 }
@@ -246,13 +252,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
-            // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
-            if (!documentHadDiagnostics ||
-                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
-            {
-                // this is Perf to reduce raising events unnecessarily.
+            // If there was no diagnostic reported for this document, nothing to clean up
+            // This is done for Perf to reduce raising events unnecessarily.
+            if (!documentHadDiagnostics)
                 return;
-            }
+
+            // If full solution analysis is enabled for both compiler diagnostics and analyzers,
+            // we don't need to clear diagnostics for individual documents on document close/reset.
+            // This is done for Perf to reduce raising events unnecessarily.
+            var _ = GlobalOptions.IsFullSolutionAnalysisEnabled(document.Project.Language, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled);
+            if (compilerFullAnalysisEnabled && analyzersFullAnalysisEnabled)
+                return;
 
             var removeDiagnosticsOnDocumentClose = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
 
@@ -362,26 +372,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
-        private IReadOnlyList<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
+        private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
         {
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
-            if (GlobalOptions.GetBackgroundAnalysisScope(project.Language) != BackgroundAnalysisScope.FullSolution)
+            _ = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
+            if (!compilerFullSolutionAnalysisEnabled)
             {
-                stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
+                // Full solution analysis is not enabled for compiler diagnostics,
+                // so we remove the compiler analyzer state sets that are from build.
+                // We do so by retaining only those state sets that are
+                // either not for compiler analyzer or those which are for compiler
+                // analyzer, but not from build.
+                stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
             }
 
-            // Compute analyzer config options for computing effective severity.
-            // Note that these options are not cached onto the project, so we compute it once upfront. 
-            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+            if (!analyzersFullSolutionAnalysisEnabled)
+            {
+                // Full solution analysis is not enabled for analyzer diagnostics,
+                // so we remove the analyzer state sets that are from build.
+                // We do so by retaining only those state sets that are
+                // either for the special compiler/workspace analyzers or those which are for
+                // other analyzers, but not from build.
+                stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer() || !s.FromBuild(project.Id));
+            }
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions)).ToList();
+            return stateSets.WhereAsArray(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project));
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)
+        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
@@ -413,7 +435,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!, analyzerConfigOptions) != ReportDiagnostic.Hidden);
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
+            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.project.CompilationOptions!, arg.analyzerConfigOptions?.AnalyzerOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project, analyzerConfigOptions));
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -540,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we couldn't find a normal document, and all features are enabled for source generated documents,
                 // attempt to locate a matching source generated document in the project.
                 if (document is null
-                    && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                    && project.Solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }

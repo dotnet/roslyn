@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
+                var isComImport = unimplementedMembers.Any(static t => t.type.IsComImport);
 
                 var memberDefinitions = GenerateMembers(
                     compilation, unimplementedMembers, Options.ImplementTypeOptions.PropertyGenerationBehavior);
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 return
                     IdentifiersMatch(State.ClassOrStructType.Name, name) ||
-                    State.ClassOrStructType.TypeParameters.Any(t => IdentifiersMatch(t.Name, name));
+                    State.ClassOrStructType.TypeParameters.Any(static (t, arg) => arg.self.IdentifiersMatch(t.Name, arg.name), (self: this, name));
             }
 
             private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
@@ -392,8 +392,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private static bool IsUnexpressibleTypeParameter(ITypeParameterSymbol typeParameter)
             {
                 var condition1 = typeParameter.ConstraintTypes.Count(t => t.TypeKind == TypeKind.Class) >= 2;
-                var condition2 = typeParameter.ConstraintTypes.Any(ts => ts.IsUnexpressibleTypeParameterConstraint());
-                var condition3 = typeParameter.HasReferenceTypeConstraint && typeParameter.ConstraintTypes.Any(ts => ts.IsReferenceType && ts.SpecialType != SpecialType.System_Object);
+                var condition2 = typeParameter.ConstraintTypes.Any(static ts => ts.IsUnexpressibleTypeParameterConstraint());
+                var condition3 = typeParameter.HasReferenceTypeConstraint && typeParameter.ConstraintTypes.Any(static ts => ts.IsReferenceType && ts.SpecialType != SpecialType.System_Object);
 
                 return condition1 || condition2 || condition3;
             }

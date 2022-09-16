@@ -100,9 +100,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         public async Task<bool> ApplyAsync(
-            Workspace workspace, Document? fromDocument,
+            Workspace workspace,
+            Solution originalSolution,
+            Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
-            string title, IProgressTracker progressTracker,
+            string title,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                         _threadingContext.ThrowIfNotOnUIThread();
 
                         applied = await operations.Single().TryApplyAsync(
-                            workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                            workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     // Come back to the UI thread after processing the operations so we can commit the transaction
                     applied = await ProcessOperationsAsync(
-                        workspace, operations, progressTracker, cancellationToken).ConfigureAwait(true);
+                        workspace, originalSolution, operations, progressTracker, cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
@@ -241,9 +244,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return null;
             }
 
-            if (changedDocuments.Any(id => newSolution.GetRequiredDocument(id).HasInfoChanged(oldSolution.GetRequiredDocument(id))) ||
-                changedAdditionalDocuments.Any(id => newSolution.GetRequiredAdditionalDocument(id).HasInfoChanged(oldSolution.GetRequiredAdditionalDocument(id))) ||
-                changedAnalyzerConfigDocuments.Any(id => newSolution.GetRequiredAnalyzerConfigDocument(id).HasInfoChanged(oldSolution.GetRequiredAnalyzerConfigDocument(id))))
+            if (changedDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredDocument(id)), (oldSolution, newSolution)) ||
+                changedAdditionalDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredAdditionalDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAdditionalDocument(id)), (oldSolution, newSolution)) ||
+                changedAnalyzerConfigDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredAnalyzerConfigDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAnalyzerConfigDocument(id)), (oldSolution, newSolution)))
             {
                 return null;
             }
@@ -265,8 +268,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <returns><see langword="true"/> if all expected <paramref name="operations"/> are applied successfully;
         /// otherwise, <see langword="false"/>.</returns>
         private async Task<bool> ProcessOperationsAsync(
-            Workspace workspace, ImmutableArray<CodeActionOperation> operations,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace,
+            Solution originalSolution,
+            ImmutableArray<CodeActionOperation> operations,
+            IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
         {
             await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -284,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
 
                 _threadingContext.ThrowIfNotOnUIThread();
-                applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                applied &= await operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;

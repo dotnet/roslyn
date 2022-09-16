@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles
                 || document.IsGeneratedCode(cancellationToken))
             {
                 return default;

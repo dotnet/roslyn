@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntaxNode _nameofArgument;
         private readonly WithTypeParametersBinder? _withTypeParametersBinder;
-        private readonly WithParametersBinder? _withParametersBinder;
+        private readonly Binder? _withParametersBinder;
         private ThreeState _lazyIsNameofOperator;
 
-        internal NameofBinder(SyntaxNode nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, WithParametersBinder? withParametersBinder)
+        internal NameofBinder(SyntaxNode nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, Binder? withParametersBinder)
             : base(next)
         {
             _nameofArgument = nameofArgument;

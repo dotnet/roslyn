@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
@@ -25,8 +26,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var solution = workspace.CurrentSolution;
             options ??= solution.Options;
             var document = solution.GetRequiredDocument(semanticModel.SyntaxTree);
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+            return languageRecommender.GetRecommendedSymbolsInContext(context, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
 
         [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
@@ -49,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var solution = document.Project.Solution;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             options ??= solution.Options;
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+            return languageRecommender.GetRecommendedSymbolsInContext(context, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
     }
 }

@@ -78,9 +78,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsVolatile => false;
 
+        public bool IsRequired => Modifiers.IsRequired;
+
         public bool IsFixedSizeBuffer => false;
 
         public int FixedSize => 0;
+
+        public RefKind RefKind => RefKind.None;
+
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {

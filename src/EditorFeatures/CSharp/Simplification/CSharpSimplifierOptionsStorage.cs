@@ -28,16 +28,15 @@ internal static class CSharpSimplifierOptionsStorage
     }
 
     public static CSharpSimplifierOptions GetCSharpSimplifierOptions(this IGlobalOptionService globalOptions)
-        => new(
-            qualifyFieldAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp),
-            qualifyPropertyAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyPropertyAccess, LanguageNames.CSharp),
-            qualifyMethodAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.CSharp),
-            qualifyEventAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyEventAccess, LanguageNames.CSharp),
-            preferPredefinedTypeKeywordInMemberAccess: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
-            preferPredefinedTypeKeywordInDeclaration: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp),
-            varForBuiltInTypes: globalOptions.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes),
-            varWhenTypeIsApparent: globalOptions.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent),
-            varElsewhere: globalOptions.GetOption(CSharpCodeStyleOptions.VarElsewhere),
-            preferSimpleDefaultExpression: globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression),
-            preferBraces: globalOptions.GetOption(CSharpCodeStyleOptions.PreferBraces));
+        => new()
+        {
+            Common = globalOptions.GetCommonSimplifierOptions(LanguageNames.CSharp),
+            VarForBuiltInTypes = globalOptions.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes),
+            VarWhenTypeIsApparent = globalOptions.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent),
+            VarElsewhere = globalOptions.GetOption(CSharpCodeStyleOptions.VarElsewhere),
+            PreferSimpleDefaultExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression),
+            AllowEmbeddedStatementsOnSameLine = globalOptions.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine),
+            PreferBraces = globalOptions.GetOption(CSharpCodeStyleOptions.PreferBraces),
+            PreferThrowExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferThrowExpression),
+        };
 }

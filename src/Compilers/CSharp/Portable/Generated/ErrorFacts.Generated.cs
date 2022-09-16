@@ -280,8 +280,6 @@
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
                 case ErrorCode.WRN_MethGrpToNonDel:
                 case ErrorCode.WRN_LowerCaseTypeName:
-                case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                case ErrorCode.WRN_NullCheckingOnNullableType:
                 case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
                 case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
                 case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
@@ -289,6 +287,11 @@
                 case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                 case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
+                case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return true;
                 default:
                     return false;

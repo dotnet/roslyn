@@ -2564,15 +2564,15 @@ class B<T, U> where T : A
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,27): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (10,9): error CS0704: Cannot do non-virtual member lookup in 'U' because it is a type parameter
                 //         U.ReferenceEquals(T.F, null);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
-                // (10,9): error CS0119: 'U' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "U").WithArguments("U").WithLocation(10, 9),
+                // (10,27): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         U.ReferenceEquals(T.F, null);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type parameter"),
-                // (11,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(10, 27),
+                // (11,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(11, 9),
                 // (3,28): warning CS0649: Field 'A.F' is never assigned to, and will always have its default value null
                 //     internal static object F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null")
@@ -6466,9 +6466,9 @@ class MyClass
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //    MyStruct(int initField)   // CS0171
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "MyStruct").WithArguments("MyStruct.i", "preview").WithLocation(4, 4),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "MyStruct").WithArguments("MyStruct.i", "11.0").WithLocation(4, 4),
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "aStruct").WithArguments("aStruct").WithLocation(15, 16),
@@ -6477,7 +6477,7 @@ class MyClass
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0").WithLocation(8, 15)
                 );
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
@@ -6982,14 +6982,14 @@ namespace MyNamespace
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular10).
                 VerifyDiagnostics(
-                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //                 Goo();  // CS0188
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("preview").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("11.0").WithLocation(17, 17),
                 // (8,24): warning CS0649: Field 'MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0").WithLocation(8, 24));
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext).
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11).
                 VerifyDiagnostics(
                 // (8,24): warning CS0649: Field 'MyNamespace.MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
@@ -7032,11 +7032,11 @@ struct S
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         var b1 = F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("preview").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("11.0").WithLocation(10, 18));
 
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18));
         }
@@ -7066,11 +7066,11 @@ struct S
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         var b1 = this.F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 18));
 
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18));
@@ -7099,11 +7099,11 @@ struct S
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         /*this.*/ Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("preview").WithLocation(10, 19));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("11.0").WithLocation(10, 19));
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -7170,11 +7170,11 @@ struct S
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         this.Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 9));
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -9927,7 +9927,7 @@ struct S
 }";
 
             // Note that none of these errors except the first one are reported by the native compiler, because
-            // it does not report additional errors after an error is found in a formal parameter of a method.
+            // it does not report additional errors after an error is found in a parameter of a method.
 
             CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
@@ -9967,8 +9967,8 @@ struct S
                 // But what about the overload resolution problem in error recovery? Even though the argument is bad we still
                 // might want to try to get an overload resolution result. Thus we must infer a type for T in E.F<T>(D<T>). 
                 // We must do overload resolution on an invocation S.F<C<B>>(). Overload resolution succeeds; it has no reason
-                // to fail. (Overload resolution would fail if a formal parameter type of S.F<C<B>>() did not satisfy one of its
-                // constraints, but there are no formal parameters. Also, there are no constraints at all on T in S.F<T>.)
+                // to fail. (Overload resolution would fail if a parameter type of S.F<C<B>>() did not satisfy one of its
+                // constraints, but there are no parameters. Also, there are no constraints at all on T in S.F<T>.)
                 //
                 // Thus T in D<T> is inferred to be C<B>, and thus T in E.F<T> is inferred to be C<B>. 
                 //
@@ -9982,12 +9982,12 @@ struct S
                 //
                 // This is arguably a "cascading" error; we have already reported an error for C<B> when the 
                 // argument was bound. Normally we avoid reporting "cascading" errors in overload resolution by
-                // saying that an erroneous argument is implicitly convertible to any formal parameter type;
+                // saying that an erroneous argument is implicitly convertible to any parameter type;
                 // thus we avoid an erroneous expression from causing overload resolution to make every
                 // candidate method inapplicable. (Though it might cause overload resolution to fail by making
                 // every candidate method applicable, causing an ambiguity!)  But the overload resolution 
                 // error here is not caused by an argument *conversion* in the first place; the overload
-                // resolution error is caused because *the deduced formal parameter type is illegal.*
+                // resolution error is caused because *the deduced parameter type is illegal.*
                 //
                 // We might want to put some gear in place to suppress this cascading error. It is not
                 // entirely clear what that machinery might look like.
@@ -11747,30 +11747,30 @@ class D<T> where T : A
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,15): error CS0704: Cannot do member lookup in 'T' because it is a type parameter class E : T.B { }
+                // (9,15): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter class E : T.B { }
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (10,30): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (10,30): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     interface I<U> where U : T.B { }
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (11,6): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (11,6): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [T.B]
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (14,9): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (14,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.C<object> b1 = new T.C<object>();
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<object>").WithArguments("T"),
-                // (14,30): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (14,30): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.C<object> b1 = new T.C<object>();
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<object>").WithArguments("T"),
                 // (15,9): error CS0307: The type parameter 'T' cannot be used with type arguments
                 //         T<U>.B b2 = null;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "T<U>").WithArguments("T", "type parameter"),
-                // (16,22): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (16,22): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         b1 = default(T.B);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (17,27): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (17,27): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         object o = typeof(T.C<A>);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<A>").WithArguments("T"),
-                // (18,18): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (18,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         o = o as T.B;
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T")
                 );
@@ -12922,11 +12922,11 @@ class Test
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
-                // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     public S(int i) { } //CS0843
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.AIProp", "preview").WithLocation(5, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.AIProp", "11.0").WithLocation(5, 12));
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -13267,7 +13267,7 @@ End Interface";
             compilation2.VerifyDiagnostics(
                 // (8,9): error CS0856: Indexed property 'I.R' has non-optional arguments which must be provided
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
+                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
 
             var tree = compilation2.SyntaxTrees.Single();
@@ -14773,7 +14773,7 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyDelegate1'
                 //         md1(1);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9));
         }
@@ -16569,7 +16569,7 @@ public class Child2 : Parent
             var compilation = CreateCompilation(text);
 
             DiagnosticDescription[] expected = {
-                // (21,14): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Parent.Parent(int, int)'
+                // (21,14): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Parent.Parent(int, int)'
                 // public class Child : Parent { } // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Child").WithArguments("i", "Parent.Parent(int, int)").WithLocation(21, 14),
                 // (6,24): error CS1729: 'double' does not contain a constructor that takes 1 arguments
@@ -16578,7 +16578,7 @@ public class Child2 : Parent
                 // (7,26): error CS1729: 'Test' does not contain a constructor that takes 1 arguments
                 //         Test test1 = new Test(2); // CS1729
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("Test", "1").WithLocation(7, 26),
-                // (9,37): error CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'Parent.Parent(int, int)'
+                // (9,37): error CS7036: There is no argument given that corresponds to the required parameter 'j' of 'Parent.Parent(int, int)'
                 //         Parent exampleParent1 = new Parent(10); // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37)
             };

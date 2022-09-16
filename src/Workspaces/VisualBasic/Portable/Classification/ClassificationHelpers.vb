@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                throw ExceptionUtilities.UnexpectedValue(token.Kind())
+                Throw ExceptionUtilities.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -107,6 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.EndIfKeyword,
                 SyntaxKind.GosubKeyword,
                 SyntaxKind.YieldKeyword,
+                SyntaxKind.ThrowKeyword,
                 SyntaxKind.ToKeyword
                     Return True
                 Case Else
@@ -313,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 

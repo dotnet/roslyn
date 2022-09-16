@@ -41,17 +41,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public InlineDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             IEditorFormatMapService editorFormatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _classificationFormatMapService = classificationFormatMapService;
             _classificationTypeRegistryService = classificationTypeRegistryService;
+        }
+
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
+            return true;
         }
 
         // Need to override this from AbstractDiagnosticsTaggerProvider because the location option needs to be added
@@ -60,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             return TaggerEventSources.Compose(
                 base.CreateEventSource(textView, subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.Location));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineDiagnosticsOptions.Location));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)

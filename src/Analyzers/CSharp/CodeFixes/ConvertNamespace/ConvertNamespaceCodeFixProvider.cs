@@ -21,12 +21,6 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     using static ConvertNamespaceAnalysis;
@@ -70,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CSharpSyntaxFormatting.Instance, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var converted = await ConvertAsync(document, namespaceDecl, formattingOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var converted = await ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(
                 editor.OriginalRoot,

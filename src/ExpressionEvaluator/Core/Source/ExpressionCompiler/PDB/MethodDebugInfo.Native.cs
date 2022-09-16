@@ -97,10 +97,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
-                if (symMethod != null)
-                {
-                    symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
-                }
+                symMethod?.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
 
                 ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups;
                 ImmutableArray<ExternAliasRecord> externAliasRecords;
@@ -173,6 +170,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
+                string? name = null;
+                if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
+                {
+                    // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
+                    // We also need to ensure that the receiver implements `ISymEncUnmanagedMethod` to prevent the extension from throwing.
+                    var doc = methodInfo.GetDocumentsForMethod() switch
+                    {
+                        [var singleDocument] => singleDocument,
+                        var documents => throw ExceptionUtilities.UnexpectedValue(documents)
+                    };
+
+                    name = doc.GetName();
+                }
+
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -182,7 +193,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
-                    reuseSpan);
+                    reuseSpan,
+                    name);
             }
             catch (InvalidOperationException)
             {
@@ -665,10 +677,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
 
                     var dynamicFlags = default(ImmutableArray<bool>);
-                    if (dynamicLocalConstantMap != null)
-                    {
-                        dynamicLocalConstantMap.TryGetValue(name, out dynamicFlags);
-                    }
+                    dynamicLocalConstantMap?.TryGetValue(name, out dynamicFlags);
 
                     var tupleElementNames = default(ImmutableArray<string?>);
                     if (tupleLocalConstantMap != null)

@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
@@ -133,11 +133,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.UTF8StringLiteralToken) ||
-                token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken) ||
-                token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken))
+            if (token.IsKind(SyntaxKind.Utf8StringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
             {
-                text = Keyword("UTF8StringLiteral");
+                text = Keyword("Utf8StringLiteral");
                 return true;
             }
 
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken)
+                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Services, cancellationToken)
                                       .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Local: return the name if it's the declaration, otherwise the type
-            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(d => d.GetSyntax().DescendantTokens().Contains(token)))
+            if (symbol is ILocalSymbol localSymbol && !symbol.DeclaringSyntaxReferences.Any(static (d, token) => d.GetSyntax().DescendantTokens().Contains(token), token))
             {
                 symbol = localSymbol.Type;
             }
@@ -385,6 +385,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             ? "whereconstraint_CSharpKeyword"
                             : "whereclause_CSharpKeyword";
 
+                        return true;
+
+                    case SyntaxKind.RequiredKeyword:
+                        text = Keyword("required");
                         return true;
                 }
             }

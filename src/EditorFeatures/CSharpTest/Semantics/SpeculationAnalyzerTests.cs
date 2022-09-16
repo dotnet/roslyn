@@ -39,6 +39,10 @@ class Program
         [Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
         public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
         {
+            // We consider a change here to be a change in semantics as an instance call became a static call. In
+            // practice this is fine as the only thing that makes this change is complexification, and we don't test for
+            // semantics changed after that as the purpose of complexification is to put us in a safe place to make
+            // changes that won't break semantics.
             Test(@"
 static class Program
 {
@@ -47,7 +51,7 @@ static class Program
     {
         [|5.Vain()|];
     }
-}           ", "Vain(5)", false);
+}           ", "Vain(5)", semanticChanges: true);
         }
 
         [Fact]

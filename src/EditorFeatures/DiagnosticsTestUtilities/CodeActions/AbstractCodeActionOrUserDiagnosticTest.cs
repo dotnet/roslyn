@@ -185,13 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-            workspace.ApplyOptions(parameters.options);
-
-            if (parameters.globalOptions != null)
-            {
-                workspace.ApplyOptions(parameters.globalOptions);
-                parameters.globalOptions.SetGlobalOptions(workspace.GlobalOptions);
-            }
+            parameters.globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
 #endif
             return workspace;
         }
@@ -772,16 +766,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Tuple<Solution, Solution> result = null;
             foreach (var operation in operations)
             {
-                if (operation is ApplyChangesOperation && result == null)
+                if (operation is ApplyChangesOperation applyChangesOperation && result == null)
                 {
-                    var oldSolution = workspace.CurrentSolution;
-                    var newSolution = ((ApplyChangesOperation)operation).ChangedSolution;
-                    result = Tuple.Create(oldSolution, newSolution);
+                    result = Tuple.Create(workspace.CurrentSolution, applyChangesOperation.ChangedSolution);
                 }
                 else if (operation.ApplyDuringTests)
                 {
                     var oldSolution = workspace.CurrentSolution;
-                    await operation.TryApplyAsync(workspace, new ProgressTracker(), CancellationToken.None);
+                    await operation.TryApplyAsync(workspace, oldSolution, new ProgressTracker(), CancellationToken.None);
                     var newSolution = workspace.CurrentSolution;
                     result = Tuple.Create(oldSolution, newSolution);
                 }

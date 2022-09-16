@@ -275,8 +275,9 @@ namespace Microsoft.CodeAnalysis
 
                     if (this.GeneratorInfo.Documents.IsEmpty)
                     {
-                        // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
-                        // same Compilation, which should be compilationWithoutGeneratedFiles itself
+                        // If we have no generated files, the pre-generator compilation and post-generator compilation
+                        // should be the exact same instance; that way we're not creating more compilations than
+                        // necessary that would be unable to share source symbols.
                         Debug.Assert(object.ReferenceEquals(finalCompilation, compilationWithoutGeneratedFiles));
                     }
                 }

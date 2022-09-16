@@ -9,11 +9,11 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
@@ -74,12 +74,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         mutablePotentialConversionTypes.Add((spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
-                    Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(
-                        Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
+                    Dim invocationExpressionNode = spanNode.GetAncestors(Of InvocationExpressionSyntax).FirstOrDefault(
+                        Function(node) node.ArgumentList IsNot Nothing)
+
+                    Dim attributeNode = spanNode.GetAncestors(Of AttributeSyntax).FirstOrDefault(
+                        Function(node) node.ArgumentList IsNot Nothing)
 
                     ' Collect available cast pairs without target argument
-                    mutablePotentialConversionTypes.AddRange(
-                        GetPotentialConversionTypesWithInvocationNode(semanticModel, root, invocationNode, cancellationToken))
+                    If invocationExpressionNode IsNot Nothing Then
+                        mutablePotentialConversionTypes.AddRange(
+                            GetPotentialConversionTypesWithInvocationNode(semanticModel, root, invocationExpressionNode, cancellationToken))
+                    ElseIf attributeNode IsNot Nothing Then
+                        mutablePotentialConversionTypes.AddRange(
+                            GetPotentialConversionTypesWithInvocationNode(semanticModel, root, attributeNode, cancellationToken))
+                    End If
             End Select
 
             ' clear up duplicate types

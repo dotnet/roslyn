@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var activeStatementTrackingService = document.Project.Solution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            var activeStatementTrackingService = document.Project.Solution.Services.GetService<IActiveStatementTrackingService>();
             if (activeStatementTrackingService == null)
             {
                 return;

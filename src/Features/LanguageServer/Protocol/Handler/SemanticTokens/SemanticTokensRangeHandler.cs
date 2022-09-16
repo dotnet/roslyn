@@ -10,10 +10,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,18 +24,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    /// <summary>
-    /// Computes the semantic tokens for a given range.
-    /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(SemanticTokensRangeHandler)), Shared]
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
+    internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        private readonly CancellationTokenSource _disposalTokenSource;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         #region Semantic Tokens Refresh state
 
@@ -55,105 +55,103 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-        // initialized when first request comes in.
-
-        /// <summary>
-        /// Initially null.  Set to true/false when first initialized.  The other following fields will be set if this
-        /// is true.
-        /// </summary>
-        private bool? _supportsRefresh;
-
         /// <summary>
         /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
+        /// 
+        /// Null when the client does not support sending refresh notifications.
         /// </summary>
-        private AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
+        private readonly AsyncBatchingWorkQueue<Uri?>? _semanticTokenRefreshQueue;
 
         #endregion
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensRangeHandler(
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
+            ClientCapabilities clientCapabilities)
         {
             _globalOptions = globalOptions;
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
 
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            _disposalTokenSource = new();
+
+            if (clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
+            {
+                // Only send a refresh notification to the client every 2s (if needed) in order to avoid
+                // sending too many notifications at once.  This ensures we batch up workspace notifications,
+                // but also means we send soon enough after a compilation-computation to not make the user wait
+                // an enormous amount of time.
+                _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
+                    delay: TimeSpan.FromMilliseconds(2000),
+                    processBatchAsync: (documentUris, cancellationToken)
+                        => FilterLspTrackedDocumentsAsync(lspWorkspaceManager, notificationManager, documentUris, cancellationToken),
+                    equalityComparer: EqualityComparer<Uri?>.Default,
+                    asyncListener: _asyncListener,
+                    _disposalTokenSource.Token);
+
+                _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            }
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;
         }
 
-        public void Dispose()
+        private static ValueTask FilterLspTrackedDocumentsAsync(
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
+            ImmutableSegmentedList<Uri?> documentUris,
+            CancellationToken cancellationToken)
         {
-            ImmutableArray<CompilationAvailableEventSource> eventSources;
-            lock (_gate)
+            var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+            foreach (var documentUri in documentUris)
             {
-                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
-                _projectIdToEventSource.Clear();
-
-                _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
-            }
-
-            foreach (var eventSource in eventSources)
-                eventSource.Dispose();
-        }
-
-        /// <summary>
-        /// Returns true/false if refresh is supported for semantic tokens.
-        /// </summary>
-        private bool InitializeIfFirstRequest(RequestContext context)
-        {
-            lock (_gate)
-            {
-                if (_supportsRefresh == null)
+                if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
                 {
-                    _supportsRefresh = context.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true;
-
-                    if (_supportsRefresh.Value)
-                    {
-                        // Only send a refresh notification to the client every 0.5s (if needed) in order to avoid
-                        // sending too many notifications at once.  This ensures we batch up workspace notifications,
-                        // but also means we send soon enough after a compilation-computation to not make the user wait
-                        // an enormous amount of time.
-                        _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
-                            delay: TimeSpan.FromMilliseconds(500),
-                            processBatchAsync: c => context.NotificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, c),
-                            asyncListener: _asyncListener,
-                            context.QueueCancellationToken);
-                    }
+                    return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
                 }
-
-                return _supportsRefresh.Value;
             }
+
+            // LSP is already tracking all changed documents so we don't need to send a refresh request.
+            return ValueTaskFactory.CompletedTask;
         }
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
-            => EnqueueSemanticTokenRefreshNotification();
-
-        private void EnqueueSemanticTokenRefreshNotification()
         {
-            // We should only get here if refresh was enabled, which only happens in a codepath that ensured the queue
-            // was instantiated.
-            Contract.ThrowIfNull(_semanticTokenRefreshQueue);
-            _semanticTokenRefreshQueue.AddWork();
+            if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
+            {
+                var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
+                var documentUri = document.GetURI();
+
+                // We enqueue the URI since there's a chance the client is already tracking the
+                // document, in which case we don't need to send a refresh notification.
+                // We perform the actual check when processing the batch to ensure we have the
+                // most up-to-date list of tracked documents.
+                EnqueueSemanticTokenRefreshNotification(documentUri);
+            }
+            else
+            {
+                EnqueueSemanticTokenRefreshNotification(documentUri: null);
+            }
         }
 
-        public override async Task<LSP.SemanticTokens> HandleRequestAsync(
+        private void EnqueueSemanticTokenRefreshNotification(Uri? documentUri)
+        {
+            // We should have only gotten here if semantic tokens refresh is supported.
+            Contract.ThrowIfNull(_semanticTokenRefreshQueue);
+            _semanticTokenRefreshQueue.AddWork(documentUri);
+        }
+
+        public async Task<LSP.SemanticTokens> HandleRequestAsync(
             SemanticTokensRangeParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            // If this is the first time getting a request, initialize our state with information about the
-            // server/manager we're owned by.
-            var supportsRefresh = InitializeIfFirstRequest(context);
-
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
@@ -179,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
             // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
             // solution snapshot.
-            if (supportsRefresh)
+            if (_semanticTokenRefreshQueue != null)
                 await TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
 
             return new LSP.SemanticTokens { Data = tokensData };
@@ -188,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private async Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
         {
             // Determine the checksum for this project cone.  Note: this should be fast in practice because this is
-            // the same project-cone-checksum we used to even call into OOp above when we computed semantic tokens.
+            // the same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
             var projectChecksum = await project.Solution.State.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
 
             lock (_gate)
@@ -228,10 +226,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 _projectIdToLastComputedChecksum[project.Id] = projectChecksum;
             }
 
-            EnqueueSemanticTokenRefreshNotification();
+            EnqueueSemanticTokenRefreshNotification(documentUri: null);
         }
 
         private bool ChecksumIsUnchanged_NoLock(Project project, Checksum projectChecksum)
             => _projectIdToLastComputedChecksum.TryGetValue(project.Id, out var lastChecksum) && lastChecksum == projectChecksum;
+
+        public void Dispose()
+        {
+            ImmutableArray<CompilationAvailableEventSource> eventSources;
+            lock (_gate)
+            {
+                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
+                _projectIdToEventSource.Clear();
+
+                _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
+            }
+
+            foreach (var eventSource in eventSources)
+                eventSource.Dispose();
+
+            _disposalTokenSource.Cancel();
+            _disposalTokenSource.Dispose();
+        }
     }
 }

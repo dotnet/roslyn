@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
-            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
+            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Services);
 
             var context = new CodeGenerationContext(generateMethodBodies: true);
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeParameterNames = typeParameters.SelectAsArray(p => p.Name);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, formattingOptions, cancellationToken).ToString();
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Services, formattingOptions, cancellationToken).ToString();
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
@@ -208,12 +208,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return DoesTypeReferenceTypeParameter(@event.Type, typeParameter, checkedTypes);
                 case SymbolKind.Method:
                     var method = member as IMethodSymbol;
-                    return method.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
-                        method.TypeParameters.Any(t => t.ConstraintTypes.Any(c => DoesTypeReferenceTypeParameter(c, typeParameter, checkedTypes))) ||
+                    return method.Parameters.Any(static (t, arg) => DoesTypeReferenceTypeParameter(t.Type, arg.typeParameter, arg.checkedTypes), (typeParameter, checkedTypes)) ||
+                        method.TypeParameters.Any(static (t, arg) => t.ConstraintTypes.Any(static (c, arg) => DoesTypeReferenceTypeParameter(c, arg.typeParameter, arg.checkedTypes), (arg.typeParameter, arg.checkedTypes)), (typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(method.ReturnType, typeParameter, checkedTypes);
                 case SymbolKind.Property:
                     var property = member as IPropertySymbol;
-                    return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
+                    return property.Parameters.Any(static (t, arg) => DoesTypeReferenceTypeParameter(t.Type, arg.typeParameter, arg.checkedTypes), (typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
                 case SymbolKind.Field:
                     var field = member as IFieldSymbol;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // We want to ignore nullability when comparing as T and T? both are references to the type parameter
             if (type.Equals(typeParameter, SymbolEqualityComparer.Default) ||
-                type.GetTypeArguments().Any(t => DoesTypeReferenceTypeParameter(t, typeParameter, checkedTypes)))
+                type.GetTypeArguments().Any(static (t, arg) => DoesTypeReferenceTypeParameter(t, arg.typeParameter, arg.checkedTypes), (typeParameter, checkedTypes)))
             {
                 return true;
             }

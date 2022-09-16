@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             => CSharpSimplifierOptions.Default;
 
         public override SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions)
-            => CSharpSimplifierOptions.Create(options, (CSharpSimplifierOptions?)fallbackOptions);
+            => options.GetCSharpSimplifierOptions((CSharpSimplifierOptions?)fallbackOptions);
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {

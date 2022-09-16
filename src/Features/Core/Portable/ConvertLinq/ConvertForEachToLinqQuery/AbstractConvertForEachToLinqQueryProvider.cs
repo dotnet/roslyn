@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             }
 
             if (semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken)
-                .Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                .Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
                 return;
             }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             bool convertToQuery,
             CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Services);
             converter.Convert(editor, convertToQuery, cancellationToken);
             var newRoot = editor.GetChangedRoot();
             var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);

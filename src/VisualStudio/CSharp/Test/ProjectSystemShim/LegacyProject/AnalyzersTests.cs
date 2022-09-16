@@ -22,10 +22,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class AnalyzersTests : TestBase
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_GeneralOption()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -49,7 +49,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_CanBeFetchedFromWorkspace()
         {
             var ruleSetFile = Temp.CreateFile();
@@ -64,7 +63,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_ProjectSettingOverridesGeneralOption()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -93,7 +91,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_SpecificOptions()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -118,7 +115,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_ProjectSettingsOverrideSpecificOptions()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -143,7 +139,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact, WorkItem(1087250, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087250")]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void SetRuleSetFile_RemoveExtraBackslashes()
         {
             var ruleSetFile = Temp.CreateFile();
@@ -158,9 +153,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile);
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
+        [WpfFact, WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
         [WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
         [WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
         [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
@@ -198,9 +191,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        [WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_ProjectNoWarnOverridesOtherSettings()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -229,7 +220,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
         [WpfTheory]
         [CombinatorialData]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
         public async Task RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
         {
@@ -244,7 +234,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             using var environment = new TestEnvironment();
             if (useCpsProject)
             {
-                await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
+                await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: @"C:\test.dll", $"/ruleset:\"{ruleSetFile.Path}\"");
             }
             else
             {

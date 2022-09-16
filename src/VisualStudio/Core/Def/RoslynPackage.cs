@@ -311,21 +311,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             base.Dispose(disposing);
         }
 
-        private static void ReportSessionWideTelemetry()
+        private void ReportSessionWideTelemetry()
         {
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
             ChangeSignatureLogger.ReportTelemetry();
             InheritanceMarginLogger.ReportTelemetry();
+            ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
         }
 
         private void DisposeVisualStudioServices()
         {
-            if (_workspace != null)
-            {
-                _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
-            }
+            _workspace?.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
         }
 
         private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)

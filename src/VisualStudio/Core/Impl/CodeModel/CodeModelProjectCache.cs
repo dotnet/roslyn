@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             ICodeModelInstanceFactory codeModelInstanceFactory,
             ProjectCodeModelFactory projectFactory,
             IServiceProvider serviceProvider,
-            HostLanguageServices languageServices,
+            Microsoft.CodeAnalysis.Host.LanguageServices languageServices,
             VisualStudioWorkspace workspace)
         {
             State = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
@@ -148,10 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEUnexpected();
             }
 
-            if (_rootCodeModel == null)
-            {
-                _rootCodeModel = RootCodeModel.Create(State, parent, _projectId);
-            }
+            _rootCodeModel ??= RootCodeModel.Create(State, parent, _projectId);
 
             return _rootCodeModel;
         }
@@ -205,10 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            if (comHandle != null)
-            {
-                comHandle.Value.Object.Shutdown();
-            }
+            comHandle?.Object.Shutdown();
         }
 
         public void OnSourceFileRenaming(string oldFileName, string newFileName)

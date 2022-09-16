@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
@@ -16,7 +17,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
-using static Microsoft.CodeAnalysis.ProjectState;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
@@ -51,10 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 return;
             }
 
-            var configOptionsProvider = new ProjectAnalyzerConfigOptionsProvider(project.State);
-            var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
+            var configData = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
             var result = project.GetAnalyzerConfigOptions();
-            var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result);
+            var options = new CombinedAnalyzerConfigOptions(configData.ConfigOptions, result);
             UpdateOptions(options, Workspace.Options);
         }
 
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         private sealed class CombinedAnalyzerConfigOptions : AnalyzerConfigOptions
         {
             private readonly AnalyzerConfigOptions _workspaceOptions;
-            private readonly AnalyzerConfigOptionsResult? _result;
+            private readonly AnalyzerConfigData? _result;
 
-            public CombinedAnalyzerConfigOptions(AnalyzerConfigOptions workspaceOptions, AnalyzerConfigOptionsResult? result)
+            public CombinedAnalyzerConfigOptions(AnalyzerConfigOptions workspaceOptions, AnalyzerConfigData? result)
             {
                 _workspaceOptions = workspaceOptions;
                 _result = result;
@@ -130,6 +130,34 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 
                 value = null;
                 return false;
+            }
+
+            public override IEnumerable<string> Keys
+            {
+                get
+                {
+                    foreach (var key in _workspaceOptions.Keys)
+                        yield return key;
+
+                    if (!_result.HasValue)
+                        yield break;
+
+                    foreach (var key in _result.Value.AnalyzerOptions.Keys)
+                    {
+                        if (!_workspaceOptions.TryGetValue(key, out _))
+                            yield return key;
+                    }
+
+                    foreach (var (key, severity) in _result.Value.TreeOptions)
+                    {
+                        var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
+                        if (!_workspaceOptions.TryGetValue(diagnosticKey, out _) &&
+                            !_result.Value.AnalyzerOptions.TryGetKey(diagnosticKey, out _))
+                        {
+                            yield return diagnosticKey;
+                        }
+                    }
+                }
             }
         }
     }

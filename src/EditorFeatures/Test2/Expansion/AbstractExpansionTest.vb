@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -24,11 +25,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 End If
 
                 Dim document = If(Not useLastProject, workspace.CurrentSolution.Projects.Single(), workspace.CurrentSolution.Projects.Last()).Documents.Single()
-                Dim languageServices = document.Project.LanguageServices
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = Await document.GetCodeCleanupOptionsAsync(fallbackOptions:=Nothing, CancellationToken.None)
+                Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
 
                 If hostDocument.AnnotatedSpans.ContainsKey("Expand") Then
                     For Each span In hostDocument.AnnotatedSpans("Expand")

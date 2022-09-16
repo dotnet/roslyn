@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
                    EnforceOnBuildValues.MakeLocalFunctionStatic,
                    CSharpCodeStyleOptions.PreferStaticLocalFunction,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_local_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Local_function_can_be_made_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -42,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 return;
             }
 
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
             if (!option.Value)
             {
                 return;

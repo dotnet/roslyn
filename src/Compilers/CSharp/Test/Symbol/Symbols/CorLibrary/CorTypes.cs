@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 }
             }
 
-            Assert.Equal(count + knownMissingTypes.Count, (int)SpecialType.Count);
+            Assert.Equal((int)SpecialType.Count, count + knownMissingTypes.Count);
             Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 

@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -20,7 +21,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -686,14 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         internal override bool IsPublicOnlyAccessibility(ExpressionSyntax expression, Project project)
         {
             if (expression == null)
-            {
                 return false;
-            }
-
-            if (GeneratedTypesMustBePublic(project))
-            {
-                return true;
-            }
 
             var node = expression as SyntaxNode;
             SyntaxNode previousNode = null;
@@ -767,7 +761,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         internal override bool IsSimpleName(ExpressionSyntax expression)
             => expression is SimpleNameSyntax;
 
-        internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
+        internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Nothing to include
             if (string.IsNullOrWhiteSpace(includeUsingsOrImports))
@@ -803,9 +798,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return updatedSolution;
                 }
 
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-                var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, placeSystemNamespaceFirst, Formatter.Annotation);
+                var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
             }
 

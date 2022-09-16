@@ -21,14 +21,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FormatDocumentOnTypeHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
     [Method(Methods.TextDocumentOnTypeFormattingName)]
-    internal sealed class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
+    internal sealed class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
-        public override async Task<TextEdit[]?> HandleRequestAsync(
+        public async Task<TextEdit[]?> HandleRequestAsync(
             DocumentOnTypeFormattingParams request,
             RequestContext context,
             CancellationToken cancellationToken)
@@ -55,26 +55,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<TextEdit>();
             }
 
-            var formattingService = document.Project.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
+            var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(false))
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
             {
                 return Array.Empty<TextEdit>();
             }
 
             // We should use the options passed in by LSP instead of the document's options.
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
-            var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
+            var indentationOptions = new IndentationOptions(formattingOptions)
+            {
+                AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+            };
 
-            var textChanges = await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
             if (textChanges.IsEmpty)
             {
                 return Array.Empty<TextEdit>();
             }
 
             var edits = new ArrayBuilder<TextEdit>();
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text)));
             return edits.ToArrayAndFree();
         }
     }

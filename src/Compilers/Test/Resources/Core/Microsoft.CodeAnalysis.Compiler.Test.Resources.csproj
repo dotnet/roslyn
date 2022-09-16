@@ -160,6 +160,8 @@
     <EmbeddedResource Include="SymbolsTests\Interface\MDInterfaceMapping.dll" />
     <EmbeddedResource Include="SymbolsTests\Interface\StaticMethodInInterface.dll" />
     <Content Include="SymbolsTests\Interface\StaticMethodInInterface.il" />
+    <EmbeddedResource Include="SymbolsTests\RefAssembly\MVID1.dll" />
+    <EmbeddedResource Include="SymbolsTests\RefAssembly\MVID2.dll" />
     <EmbeddedResource Include="SymbolsTests\MDTestLib1.dll" />
     <Content Include="SymbolsTests\MDTestLib1.vb" />
     <EmbeddedResource Include="SymbolsTests\MDTestLib2.dll" />
@@ -372,6 +374,10 @@
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Analyzers\README.md" />
+    <Compile Include="Analyzers\DoNothingAnalyzer.cs" />
+    <Compile Include="Analyzers\DoNothingGenerator.cs" />
+    <Compile Include="Analyzers\DoNothingSuppressor.cs" />
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />

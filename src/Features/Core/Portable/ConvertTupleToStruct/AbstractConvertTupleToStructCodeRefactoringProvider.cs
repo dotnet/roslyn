@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // If it does, we can't convert this.  There is no way to describe this anonymous type
             // in the concrete type we create.
             var fields = tupleType.TupleElements;
-            var containsAnonymousType = fields.Any(p => p.Type.ContainsAnonymousType());
+            var containsAnonymousType = fields.Any(static p => p.Type.ContainsAnonymousType());
             if (containsAnonymousType)
             {
                 return;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 // If we captured any Method type-parameters, we can only replace the tuple types we
                 // find in the containing method.  No other tuple types in other members would be able
                 // to reference this type parameter.
-                if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Method))
+                if (!capturedTypeParameters.Any(static tp => tp.TypeParameterKind == TypeParameterKind.Method))
                 {
                     var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
                     if (containingType != null)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // If we captured any Type type-parameters, we can only replace the tuple
                     // types we find in the containing type.  No other tuple types in other
                     // types would be able to reference this type parameter.
-                    if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Type))
+                    if (!capturedTypeParameters.Any(static tp => tp.TypeParameterKind == TypeParameterKind.Type))
                     {
                         // To do a global find/replace of matching tuples, we need to search for documents
                         // containing tuples *and* which have the names of the tuple fields in them.  That means
@@ -212,13 +212,13 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             using (Logger.LogBlock(FunctionId.AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync, cancellationToken))
             {
                 var solution = document.Project.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.ConvertToStructAsync(solutionInfo, callbackId, document.Id, span, scope, isRecord, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Workspace.Services, fallbackOptions),
+                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Services, fallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // (and importantly not any of the documents where we change the call sites, below)
             // For records we don't use this however, but rather leave the parameters exactly as the tuple elements
             // were defined, since they function as both the parameters and the property names.
-            var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+            var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Next, generate the full struct that will be used to replace all instances of this
             // tuple type.
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var project = group.Key;
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var generator = project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                var generator = project.Services.GetRequiredService<SyntaxGenerator>();
 
                 // Get the fully qualified name for the new type we're creating.  We'll use this
                 // at replacement points so that we can find the right type even if we're in a 
