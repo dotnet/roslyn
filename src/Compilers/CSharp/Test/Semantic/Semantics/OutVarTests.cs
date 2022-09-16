@@ -23021,9 +23021,9 @@ public class Cls
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
+                // (9,29): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
                 //     static object Test1(out StaticType x)
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "Test1").WithArguments("Cls.StaticType").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(9, 29),
                 // (6,19): error CS0723: Cannot declare a variable of static type 'Cls.StaticType'
                 //         Test1(out StaticType x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
@@ -32094,9 +32094,9 @@ static class StaticType{}
                 // (5,31): error CS0723: Cannot declare a variable of static type 'StaticType'
                 // H.TakeOutParam(out StaticType x2);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x2").WithArguments("StaticType").WithLocation(5, 31),
-                // (9,24): error CS0721: 'StaticType': static types cannot be used as parameters
+                // (9,41): error CS0721: 'StaticType': static types cannot be used as parameters
                 //     public static void TakeOutParam(out StaticType x) 
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "TakeOutParam").WithArguments("StaticType").WithLocation(9, 24),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticType").WithArguments("StaticType").WithLocation(9, 41),
                 // (3,24): error CS0723: Cannot declare a variable of static type 'StaticType'
                 // H.TakeOutParam(out var x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x1").WithArguments("StaticType").WithLocation(3, 24)
