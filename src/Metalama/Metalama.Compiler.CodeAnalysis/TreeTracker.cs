@@ -56,6 +56,11 @@ namespace Metalama.Compiler
                 Debug.Fail("Cannot get the annotation.");
             }
 
+            if (oldAnnotation.Data == ExcludeDescendantsData)
+            {
+                return oldAnnotation;
+            }
+
             if (!annotations.TryGetValue(oldAnnotation, out var oldAnnotationData))
             {
                 Debug.Fail("Cannot get the annotation data.");
@@ -172,7 +177,7 @@ namespace Metalama.Compiler
         }
 
         [return: NotNull]
-        internal static SyntaxNode FindNode(this SyntaxNode ancestor, int kind, TextSpan span, bool findInsideTrivia)
+        internal static SyntaxNode FindNodeByPosition(this SyntaxNode ancestor, int kind, TextSpan span, bool findInsideTrivia)
         {
             SyntaxNode? foundNode;
 
@@ -251,7 +256,7 @@ namespace Metalama.Compiler
                 
                 sourceNode =
                     sourceAncestor!
-                        .FindNode(node.RawKind, nodeOriginalSpan, node.IsPartOfStructuredTrivia());
+                        .FindNodeByPosition(node.RawKind, nodeOriginalSpan, node.IsPartOfStructuredTrivia());
 
                 return true;
             }
@@ -338,10 +343,10 @@ namespace Metalama.Compiler
             return trivia;
         }
 
-        private static bool NeedsTrackingAnnotation<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out SyntaxNode? preTransformationNode)
+        private static bool NeedsTrackingAnnotation<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out SyntaxNode? sourceNode)
             where T : SyntaxNode?
         {
-            preTransformationNode = null!;
+            sourceNode = null!;
 
             if (node == null)
             {
@@ -377,7 +382,7 @@ namespace Metalama.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            if (TryFindSourceNode(node, ancestor, annotation, out preTransformationNode))
+            if (TryFindSourceNode(node, ancestor, annotation, out sourceNode))
             {
                 return true;    
             }

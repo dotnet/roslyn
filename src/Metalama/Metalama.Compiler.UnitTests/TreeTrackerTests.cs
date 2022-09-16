@@ -15,7 +15,7 @@ namespace Metalama.Compiler.UnitTests
 
             var omittedExpression = type.DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Single();
 
-            Assert.Same(omittedExpression, type.FindNode(omittedExpression.RawKind, omittedExpression.FullSpan, findInsideTrivia: false));
+            Assert.Same(omittedExpression, type.FindNodeByPosition(omittedExpression.RawKind, omittedExpression.FullSpan, findInsideTrivia: false));
         }
 
         [Fact]
