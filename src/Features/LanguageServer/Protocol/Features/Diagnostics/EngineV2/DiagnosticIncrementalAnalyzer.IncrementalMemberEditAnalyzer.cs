@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (diagnosticSpan.Start < oldSpan.Start)
                     {
                         // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.GetUnmappedTextSpan(text).Start >= oldSpan.Start))
+                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && l.GetUnmappedTextSpan(text).Start >= oldSpan.Start))
                         {
                             updatedDiagnostics = default;
                             return false;
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (oldSpan.End <= diagnosticSpan.Start)
                     {
                         // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => oldSpan.End > l.GetUnmappedTextSpan(text).Start))
+                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && oldSpan.End > l.GetUnmappedTextSpan(text).Start))
                         {
                             updatedDiagnostics = default;
                             return false;
