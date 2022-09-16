@@ -43,14 +43,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static async Task GenerateAsync(FileInfo? solution, FileInfo? project, FileInfo? compilerInvocation, FileInfo? binLog, string? output, LsifFormat outputFormat, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
-            using var outputFile = output != null ? new StreamWriter(output) : null;
-            TextWriter? outputWriter = null;
+            using var outputFile = output != null ? new StreamWriter(output, append: false, Encoding.UTF8) : null;
+            TextWriter? outputWriter;
 
             if (outputFile is null)
             {
-                Console.Out.Encoding = UTF8Encoding.UTF8;
-                Console.OutputEncoding = UTF8Encoding.UTF8;
-                Console.Error.Encoding = UTF8Encoding.UTF8;
+                Console.OutputEncoding = Encoding.UTF8;
                 outputWriter = Console.Out;
             }
             else
