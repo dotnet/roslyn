@@ -160,9 +160,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                // TODO: Unclear if using the unmapped span here is correct.  It feels appropriate as the caller should
-                // be askign about diagnostics in an actual document, and not where they were remapped to.
-                diagnostics = diagnostics.WhereAsArray(d => d.DocumentId is null || span.Value.IntersectsWith(d.DataLocation.GetUnmappedTextSpan(sourceText)));
+                // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
+                // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
+                diagnostics = diagnostics.WhereAsArray(
+                    d => d.DocumentId is null || span.Value.IntersectsWith(d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(sourceText)));
             }
 
 #if DEBUG

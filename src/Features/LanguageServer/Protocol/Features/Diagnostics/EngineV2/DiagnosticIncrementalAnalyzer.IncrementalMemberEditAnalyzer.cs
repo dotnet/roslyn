@@ -320,11 +320,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    var diagnosticSpan = diagnostic.DataLocation.GetUnmappedTextSpan(text);
+                    var diagnosticSpan = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
                     if (diagnosticSpan.Start < oldSpan.Start)
                     {
                         // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && l.GetUnmappedTextSpan(text).Start >= oldSpan.Start))
+                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && l.UnmappedFileSpan.GetClampedTextSpan(text).Start >= oldSpan.Start))
                         {
                             updatedDiagnostics = default;
                             return false;
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (oldSpan.End <= diagnosticSpan.Start)
                     {
                         // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && oldSpan.End > l.GetUnmappedTextSpan(text).Start))
+                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && oldSpan.End > l.UnmappedFileSpan.GetClampedTextSpan(text).Start))
                         {
                             updatedDiagnostics = default;
                             return false;
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     DiagnosticDataLocation UpdateLocation(DiagnosticDataLocation location)
                     {
-                        var diagnosticSpan = location.GetUnmappedTextSpan(text);
+                        var diagnosticSpan = location.UnmappedFileSpan.GetClampedTextSpan(text);
                         var start = Math.Min(Math.Max(diagnosticSpan.Start + delta, 0), tree.Length);
                         var newSpan = new TextSpan(start, start >= tree.Length ? 0 : diagnosticSpan.Length);
                         return location.WithSpan(newSpan, tree);

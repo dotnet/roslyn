@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
                     filterSpan is null
                         ? dxs.Where(d => d.DataLocation.DocumentId != null)
-                        : dxs.Where(d => d.DataLocation.DocumentId != null && d.DataLocation.GetUnmappedTextSpan(text).IntersectsWith(filterSpan.Value)),
+                        : dxs.Where(d => d.DataLocation.DocumentId != null && d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).IntersectsWith(filterSpan.Value)),
                     project,
                     CancellationToken.None);
             }

@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     continue;
 
                 // TODO: Is it correct to use UnmappedFileSpan here?
-                spanToDiagnostics.MultiAdd(diagnostic.DataLocation.GetUnmappedTextSpan(text), diagnostic);
+                spanToDiagnostics.MultiAdd(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text), diagnostic);
             }
 
             // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.

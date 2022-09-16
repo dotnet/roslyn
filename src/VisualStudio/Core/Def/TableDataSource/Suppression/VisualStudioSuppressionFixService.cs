@@ -183,8 +183,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             continue;
                         }
 
-                        // For document diagnostics, build does not have the computed text span info.
-                        // So we explicitly calculate the text span from the source text for the diagnostics.
+                        // For document diagnostics ensure that whatever was reported is placed at a valid location for
+                        // the state the document is currently in.
                         var document = project.GetDocument(documentId);
                         if (document != null)
                         {
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             foreach (var diagnostic in group)
                             {
-                                var span = diagnostic.DataLocation.GetUnmappedTextSpan(text);
+                                var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
                                 builder.Add(diagnostic.WithLocations(diagnostic.DataLocation.WithSpan(span, tree), additionalLocations: default));
                             }
                         }

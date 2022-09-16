@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     group.ToImmutableArray(),
                     title: null,
                     priority,
-                    applicableToSpan: groupKey.Item1.DataLocation.GetUnmappedTextSpan(text)));
+                    applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
             }
         }
 

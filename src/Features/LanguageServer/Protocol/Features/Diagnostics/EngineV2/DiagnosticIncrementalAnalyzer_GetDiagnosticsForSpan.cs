@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -389,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
                 return diagnostic.DocumentId == _document.Id &&
-                    (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.GetUnmappedTextSpan(_text)))
+                    (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));

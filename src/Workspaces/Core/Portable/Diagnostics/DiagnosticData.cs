@@ -187,9 +187,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static TextSpan GetUnmappedTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
-            => dataLocation.GetUnmappedTextSpan(text);
-
         private static DiagnosticDataLocation CreateLocation(TextDocument? document, Location location)
         {
             GetLocationInfo(out var originalLineInfo, out var mappedLineInfo);
