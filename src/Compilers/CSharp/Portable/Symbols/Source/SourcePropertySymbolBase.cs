@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(explicitlyImplementedProperty);
         }
 
-        internal abstract Location TypeLocation { get; }
+        protected abstract Location TypeLocation { get; }
 
 #nullable disable
 
@@ -1540,6 +1540,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
+            }
+
+            if (type.IsStatic)
+            {
+                if (GetMethod is not null)
+                {
+                    // '{0}': static types cannot be used as return types
+                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), TypeLocation, type);
+                }
+                else if (SetMethod is not null)
+                {
+                    // '{0}': static types cannot be used as parameters
+                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), TypeLocation, type);
+                }
             }
         }
 

@@ -13497,8 +13497,9 @@ class C
     S P { get { return null; } }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,11): error CS0722: 'S': static types cannot be used as return types
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(4, 11));
+                // (4,5): error CS0722: 'S': static types cannot be used as return types
+                //     S P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(4, 5));
         }
 
         [WorkItem(530434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530434")]
@@ -13581,34 +13582,28 @@ interface I
 {
     void M1(C c); // 1
     C M2(); // 2
-    C Prop { get; set; } // 3, 4
-    C this[C c] { get; set; } // 5, 6, 7
+    C Prop { get; set; } // 3
+    C this[C c] { get; set; } // 4, 5
 }
 ";
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
+                // (5,13): warning CS8897: 'C': static types cannot be used as parameters
                 //     void M1(C c); // 1
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(5, 13),
                 // (6,7): warning CS8898: 'C': static types cannot be used as return types
                 //     C M2(); // 2
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
-                // (7,14): warning CS8898: 'C': static types cannot be used as return types
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
-                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
-                //     C Prop { get; set; } // 3, 4
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
-                // (8,7): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(8, 12),
-                // (8,19): warning CS8898: 'C': static types cannot be used as return types
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
-                // (8,24): warning CS8897: 'C': static types cannot be used as parameters
-                //     C this[C c] { get; set; } // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
+                // (7,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(7, 5),
+                // (8,5): warning CS8898: 'C': static types cannot be used as return types
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(8, 5),
+                // (8,12): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 4, 5
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(8, 12)
             );
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));

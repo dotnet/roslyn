@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IAttributeTargetSymbol AttributesOwner => this;
 
-        internal override Location TypeLocation
+        protected override Location TypeLocation
             => ContainingType.Locations[0];
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
