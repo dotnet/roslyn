@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
             {
+                // Until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398 is resolved we can't disable
+                // quickinfo in InlineRename. Instead, we return no quickinfo information while the adornment
+                // is being shown. This can be removed after IFeaturesService supports disabling quickinfo
                 if (_globalOptions.GetOption(InlineRenameUIOptions.UseInlineAdornment) && _inlineRenameService.ActiveSession is not null)
                     return null;
 

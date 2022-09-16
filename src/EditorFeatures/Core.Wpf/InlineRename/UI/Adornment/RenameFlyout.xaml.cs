@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
@@ -25,8 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly IWpfTextView _textView;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
+        private readonly IAsynchronousOperationListener _listener;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IWpfThemeService? themeService, IAsyncQuickInfoBroker asyncQuickInfoBroker)
+        public RenameFlyout(
+            RenameFlyoutViewModel viewModel,
+            IWpfTextView textView,
+            IWpfThemeService? themeService,
+            IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -34,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -44,8 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Don't hook up our close events until we're done loading and have focused within the textbox
                 _textView.LostAggregateFocus += TextView_LostFocus;
                 IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
-
-                DismissToolTipsAsync().FileAndForget("InlineRename.DismissToolTips");
             };
 
             InitializeComponent();
@@ -56,6 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
             }
+
+            // Dismiss any current tooltips. Note that this does not disable tooltips
+            // from showing up again, so if a user has the mouse unmoved another
+            // tooltip will pop up. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398
+            // tracks when we can handle this with IFeaturesService in VS
+            var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
+            _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
         }
 
         private async Task DismissToolTipsAsync()
