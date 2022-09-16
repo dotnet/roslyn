@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast
             // Some trivia in the middle (#1 and #2) is moved to the front or behind  the expression
             // #1 and #2 change their position in the expression (#2 goes in front to stay near the type and #1 to the end to stay near the expression)
             // Some whitespace around the as operator is removed to follow the formatting rules of (Type)expr 
-            var openParen = Token(SyntaxKind.OpenParenToken);
-            var closeParen = Token(SyntaxKind.CloseParenToken);
+            var openParen = Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty);
+            var closeParen = Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty);
             var newTrailingTrivia = asExpression.Left.GetTrailingTrivia().SkipInitialWhitespace().ToSyntaxTriviaList().AddRange(asExpression.GetTrailingTrivia());
             var newLeadingTrivia = asExpression.GetLeadingTrivia().AddRange(asExpression.OperatorToken.TrailingTrivia.SkipInitialWhitespace());
             typeNode = typeNode.WithoutTrailingTrivia();
