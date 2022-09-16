@@ -193,5 +193,36 @@ class Program
                 CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task ConvertFromAsToExplicit_NullableReferenceType()
+        {
+            const string InitialMarkup = @"
+#nullable enable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = null as[||] string;
+    }
+}";
+            const string ExpectedMarkup = @"
+#nullable enable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = (string?)null;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = ExpectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
     }
 }
