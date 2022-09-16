@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// to <see cref="UnmappedFileSpan"/>.  The <see cref="FileLinePositionSpan.Path"/> of this value will be the
         /// fully normalized file path where the diagnostic is located at.
         /// </summary>
-        [DataMember(Order = 3)]
+        [DataMember(Order = 2)]
         public readonly FileLinePositionSpan MappedFileSpan;
 
         public DiagnosticDataLocation(
