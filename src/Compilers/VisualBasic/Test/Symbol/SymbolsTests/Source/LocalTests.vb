@@ -31,7 +31,7 @@ End Module
 
             Dim model = GetSemanticModel(compilation, "a.vb")
             Dim expressionSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 0)
-            Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, LocalSymbol)
+            Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, ILocalSymbol)
             Assert.False(local.IsConst)
             Assert.False(local.IsForEach)
             Assert.True(local.IsUsing)
@@ -58,7 +58,7 @@ End Module
 
             Dim model = GetSemanticModel(compilation, "a.vb")
             Dim expressionSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 0)
-            Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, LocalSymbol)
+            Dim local = DirectCast(model.GetSymbolInfo(expressionSyntax).Symbol, ILocalSymbol)
             Assert.False(local.IsConst)
             Assert.True(local.IsForEach)
             Assert.False(local.IsUsing)
