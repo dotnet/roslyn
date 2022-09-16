@@ -1124,7 +1124,10 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (8,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> F;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(8, 12));
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(8, 12),
+                // (15,9): error CS9079: Cannot ref-assign 'r1' to 'F' because 'r1' can only escape the current method through a return statement.
+                //         r2.F = ref r1;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "r2.F = ref r1").WithArguments("F", "r1").WithLocation(15, 9));
         }
 
         /// <summary>
@@ -2980,7 +2983,7 @@ class Program
         }
 
         [Fact]
-        public void MethodArgumentsMustMatch_07()
+        public void MethodArgumentsMustMatch_07_1()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
@@ -2993,30 +2996,112 @@ class Program
     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
-    static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); }
-    static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); }
-    static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); }
+    static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 4
+    static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 5
+    static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 6
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (8,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 41),
                 // (8,58): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 58),
-                // (9,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 41),
+                // (8,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 41),
                 // (9,65): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
                 //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 65),
+                // (9,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 41),
+                // (10,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 72),
                 // (10,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(10, 55),
-                // (10,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 72));
+                // (11,79): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //     static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(11, 79),
+                // (11,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(11, 55),
+                // (12,86): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //     static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(12, 86),
+                // (12,69): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(12, 69),
+                // (13,93): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //     static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 6
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(13, 93),
+                // (13,69): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(13, 69));
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_07_2()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+using System;
+
+ref struct R
+{
+    public byte B;
+    public ref byte RB;
+}
+
+class Program
+{
+    static R F0(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref R r = ref __refvalue(args.GetNextArg(), R);
+        r.RB = ref r.B; // 1
+        return r;
+    }
+
+    static void F1(ref R y) { F0(__arglist(ref y)); } // 2
+    static void F2([UnscopedRef] ref R y) { F0(__arglist(ref y)); } // 3
+
+    static R F3(ref R y) { return F0(__arglist(ref y)); } // 4
+    static R F4([UnscopedRef] ref R y) { return F0(__arglist(ref y)); } // 5
+}";
+            // __refvalue operators can only ref-escape to current method.
+            // __arglist operators essentially assume that anything can escape into anything else, including a ref into its referenced variable.
+            // this means we error on both declaration and usage of `F0` here. Ideally we would only error on one of the two, but not a big deal when __arglist is so niche as it is.
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (17,9): error CS8374: Cannot ref-assign 'r.B' to 'RB' because 'r.B' has a narrower escape scope than 'RB'.
+                //         r.RB = ref r.B; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.RB = ref r.B").WithArguments("RB", "r.B").WithLocation(17, 9),
+                // (21,48): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
+                //     static void F1(ref R y) { F0(__arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(21, 48),
+                // (21,31): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F1(ref R y) { F0(__arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(21, 31),
+                // (22,62): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //     static void F2([UnscopedRef] ref R y) { F0(__arglist(ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(22, 62),
+                // (22,45): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F2([UnscopedRef] ref R y) { F0(__arglist(ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(22, 45),
+                // (24,52): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
+                //     static R F3(ref R y) { return F0(__arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(24, 52),
+                // (24,35): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static R F3(ref R y) { return F0(__arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(24, 35),
+                // (25,66): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //     static R F4([UnscopedRef] ref R y) { return F0(__arglist(ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(25, 66),
+                // (25,49): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static R F4([UnscopedRef] ref R y) { return F0(__arglist(ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(25, 49));
         }
 
         /// <summary>
@@ -6349,8 +6434,11 @@ class Program
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (10,12): error CS9050: A ref field cannot refer to a ref struct.
-                //     public ref R1<T> R1
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12));
+                //     public ref R1<T> R1;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12),
+                // (11,45): error CS9079: Cannot ref-assign 'r1' to 'R1' because 'r1' can only escape the current method through a return statement.
+                //     public R2([UnscopedRef] ref R1<T> r1) { R1 = ref r1; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "R1 = ref r1").WithArguments("R1", "r1").WithLocation(11, 45));
         }
 
         [Fact]
@@ -7118,7 +7206,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R<T>").WithLocation(5, 12),
                 // (5,21): error CS0523: Struct member 'R<T>.Next' of type 'R<T>' causes a cycle in the struct layout
                 //     public ref R<T> Next;
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Next").WithArguments("R<T>.Next", "R<T>").WithLocation(5, 21));
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Next").WithArguments("R<T>.Next", "R<T>").WithLocation(5, 21),
+                // (11,9): error CS9079: Cannot ref-assign 'r' to 'Next' because 'r' can only escape the current method through a return statement.
+                //         r.Next = ref r;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "r.Next = ref r").WithArguments("Next", "r").WithLocation(11, 9));
         }
 
         /// <summary>
@@ -17810,16 +17901,12 @@ public class C1
                     static void M21([UnscopedRef] ref ByteContainer bc, ref RefByteContainer rbc)
                     {
                         // error. ref-safe-to-escape of 'bc' is 'ReturnOnly', therefore 'bc.ByteRef' can't be assigned to a ref parameter.
-                        // this error will be enabled in a future PR before RTM.
-                        // https://github.com/dotnet/csharplang/pull/6450
-                        rbc = bc.ByteRef;
+                        rbc = bc.ByteRef; // 1
                     }
                     static void M22([UnscopedRef] ref ByteContainer bc, ref RefByteContainer rbc)
                     {
                         // error. ref-safe-to-escape of 'bc' is 'ReturnOnly', therefore 'bc.ByteRef' can't be assigned to a ref parameter.
-                        // this error will be enabled in a future PR before RTM.
-                        // https://github.com/dotnet/csharplang/pull/6450
-                        rbc = bc.GetByteRef();
+                        rbc = bc.GetByteRef(); // 2
                     }
 
                     static RefByteContainer M31([UnscopedRef] ref ByteContainer bc)
@@ -17832,22 +17919,123 @@ public class C1
 
                     static RefByteContainer M41(ref ByteContainer bc)
                         // error: `bc.ByteRef` may contain a reference to `bc`, whose ref-safe-to-escape is CurrentMethod.
-                        => bc.ByteRef;
+                        => bc.ByteRef; // 3
 
                     static RefByteContainer M42(ref ByteContainer bc)
                         // error: `bc.GetByteRef()` may contain a reference to `bc`, whose ref-safe-to-escape is CurrentMethod.
-                        => bc.GetByteRef();
+                        => bc.GetByteRef(); // 4
                 }
                 """;
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
+                // (42,15): error CS9077: Cannot return a parameter by reference 'bc' through a ref parameter; it can only be returned in a return statement
+                //         rbc = bc.ByteRef; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "bc").WithArguments("bc").WithLocation(42, 15),
+                // (47,15): error CS9077: Cannot return a parameter by reference 'bc' through a ref parameter; it can only be returned in a return statement
+                //         rbc = bc.GetByteRef(); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "bc").WithArguments("bc").WithLocation(47, 15),
+                // (60,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
+                //         => bc.ByteRef; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(60, 12),
                 // (64,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
-                //         => bc.ByteRef;
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(64, 12),
-                // (68,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
-                //         => bc.GetByteRef();
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(68, 12));
+                //         => bc.GetByteRef(); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(64, 12));
+        }
+
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        public void ReturnOnlyScope_01()
+        {
+            // test that return scope is used in all return-ey locations.
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                ref struct RS
+                {
+                    public byte B;
+
+                    [UnscopedRef]
+                    public RSOut ToRSOut()
+                    {
+                        return new RSOut { RB = ref this.B };
+                    }
+                }
+
+                ref struct RSOut
+                {
+                    public ref byte RB;
+                }
+
+                class Program
+                {
+                    RS M1([UnscopedRef] ref RS rs) => rs;
+                    void M2([UnscopedRef] ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 1
+
+                    RS M3([UnscopedRef] ref RS rs)
+                    {
+                        return rs;
+                    }
+                    void M4([UnscopedRef] ref RS rs, out RSOut rs1)
+                    {
+                        rs1 = rs.ToRSOut(); // 2
+                    }
+
+                    void localContainer()
+                    {
+                #pragma warning disable 8321
+                        RS M1([UnscopedRef] ref RS rs) => rs;
+                        void M2([UnscopedRef] ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 3
+
+                        RS M3([UnscopedRef] ref RS rs)
+                        {
+                            return rs;
+                        }
+                        void M4([UnscopedRef] ref RS rs, out RSOut rs1)
+                        {
+                            rs1 = rs.ToRSOut(); // 4
+                        }
+                    }
+
+                    delegate RS ReturnsRefStruct([UnscopedRef] ref RS rs);
+                    delegate void RefStructOut([UnscopedRef] ref RS rs, out RSOut rs1);
+
+                    void lambdaContainer()
+                    {
+                        ReturnsRefStruct d1 = ([UnscopedRef] ref RS rs) => rs;
+                        RefStructOut d2 = ([UnscopedRef] ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 5
+
+                        ReturnsRefStruct d3 = ([UnscopedRef] ref RS rs) =>
+                        {
+                            return rs;
+                        };
+                        RefStructOut d4 = ([UnscopedRef] ref RS rs, out RSOut rs1) =>
+                        {
+                            rs1 = rs.ToRSOut(); // 6
+                        };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (22,62): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
+                //     void M2([UnscopedRef] ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(22, 62),
+                // (30,15): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
+                //         rs1 = rs.ToRSOut(); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(30, 15),
+                // (37,66): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
+                //         void M2([UnscopedRef] ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(37, 66),
+                // (45,19): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
+                //             rs1 = rs.ToRSOut(); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(45, 19),
+                // (55,77): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
+                //         RefStructOut d2 = ([UnscopedRef] ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 5
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(55, 77),
+                // (63,19): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
+                //             rs1 = rs.ToRSOut(); // 6
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(63, 19));
         }
     }
 }
