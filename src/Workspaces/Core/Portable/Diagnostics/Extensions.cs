@@ -67,14 +67,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (document == null)
             {
                 if (dataLocation.SourceSpan == null)
-                {
                     return Location.None;
-                }
 
                 var span = dataLocation.SourceSpan.Value;
-                return Location.Create(dataLocation.OriginalFilePath, span, new LinePositionSpan(
-                    new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
-                    new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
+                // TODO: is OriginalFileSpan correct here?  Presumably so as we don't have an actual document, so there
+                // could not be any remapping going on.
+                Debug.Assert(dataLocation.UnmappedFileSpan == dataLocation.MappedFileSpan);
+                return Location.Create(dataLocation.UnmappedFileSpan.Path, span, dataLocation.UnmappedFileSpan.Span);
             }
 
             Contract.ThrowIfFalse(dataLocation.DocumentId == document.Document.Id);

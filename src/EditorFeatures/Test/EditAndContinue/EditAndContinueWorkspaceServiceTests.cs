@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => actual.Select(d => InspectDiagnostic(d));
 
         private static string InspectDiagnostic(DiagnosticData diagnostic)
-            => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.GetFilePath()) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.GetFileLinePositionSpan().ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+            => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
         internal static Guid ReadModuleVersionId(Stream stream)
         {
