@@ -947,11 +947,6 @@
         <target state="translated">Parola chiave 'record' imprevista. Si intendeva 'struct record' o 'classe record'?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MisplacedScoped">
-        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="translated">Parola chiave contestuale 'scoped' imprevista. Si intendeva 'ref con ambito' o '@scoped'?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">I modelli di sezione possono essere usati solo una volta e direttamente all'interno di un modello di elenco.</target>
